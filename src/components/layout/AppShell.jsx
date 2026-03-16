@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, TrendingUp, Brain, Briefcase, ArrowLeftRight, Bell, Search } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { LayoutDashboard, TrendingUp, Brain, Briefcase, ArrowLeftRight, Bell, Search, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import TickerTape from '../dashboard/TickerTape';
 
 const NAV_ITEMS = [
-  { path: '/Dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/Dashboard', icon: LayoutDashboard, label: 'Overview' },
   { path: '/Markets', icon: TrendingUp, label: 'Markets' },
   { path: '/AIInsights', icon: Brain, label: 'AI' },
   { path: '/Portfolio', icon: Briefcase, label: 'Portfolio' },
@@ -16,25 +16,71 @@ export default function AppShell() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-[#0A0A0F] flex flex-col grid-bg">
       {/* Top Header */}
-      <header className="glass border-b border-border/50 px-4 py-3 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
-            <TrendingUp className="h-4 w-4 text-primary" />
+      <header className="glass-dark border-b border-white/[0.06] px-4 lg:px-6 py-0 h-14 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-4">
+          {/* Logo */}
+          <div className="flex items-center gap-2.5">
+            <div className="relative h-7 w-7">
+              <div className="absolute inset-0 rounded-lg bg-primary/20 blur-sm" />
+              <div className="relative h-7 w-7 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
+                <Zap className="h-3.5 w-3.5 text-primary" />
+              </div>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-inter font-black text-base tracking-[0.08em] text-white">TREDIA</span>
+              <span className="text-[9px] font-mono font-bold text-primary/80 bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded tracking-wider">PRO</span>
+            </div>
           </div>
-          <span className="font-inter font-bold text-lg tracking-tight text-foreground">TREDIA</span>
-          <span className="hidden sm:inline text-[10px] font-mono text-primary/70 bg-primary/10 px-1.5 py-0.5 rounded">PRO</span>
+
+          {/* Desktop Nav */}
+          <nav className="hidden lg:flex items-center gap-1 ml-4">
+            {NAV_ITEMS.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${
+                    isActive
+                      ? 'text-primary bg-primary/8'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-white/4'
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-pill"
+                      className="absolute inset-0 rounded-md bg-primary/8 border border-primary/15"
+                      transition={{ type: 'spring', bounce: 0.15, duration: 0.3 }}
+                    />
+                  )}
+                  <item.icon className="h-3.5 w-3.5 relative z-10" />
+                  <span className="relative z-10">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
+
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-1.5 text-sm text-muted-foreground">
-            <Search className="h-3.5 w-3.5" />
-            <span className="text-xs">Search markets...</span>
-            <kbd className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono">⌘K</kbd>
+          {/* Search */}
+          <div className="hidden sm:flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-muted-foreground cursor-pointer transition-colors">
+            <Search className="h-3 w-3" />
+            <span>Search...</span>
+            <kbd className="text-[9px] bg-white/[0.06] px-1.5 py-0.5 rounded font-mono ml-2">⌘K</kbd>
           </div>
-          <button className="relative p-2 rounded-lg hover:bg-secondary/50 transition-colors">
+
+          {/* Live indicator */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-chart-3/8 border border-chart-3/15">
+            <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
+            <span className="text-[10px] font-mono font-semibold text-chart-3 tracking-wider">LIVE</span>
+          </div>
+
+          {/* Notifications */}
+          <button className="relative p-2 rounded-lg hover:bg-white/[0.04] transition-colors">
             <Bell className="h-4 w-4 text-muted-foreground" />
-            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary live-pulse" />
+            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
           </button>
         </div>
       </header>
@@ -43,52 +89,41 @@ export default function AppShell() {
       <TickerTape />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 sm:pb-4">
-        <Outlet />
+      <main className="flex-1 overflow-y-auto pb-20 lg:pb-6">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 glass border-t border-border/50 sm:hidden z-50">
-        <div className="flex items-center justify-around py-1">
+      <nav className="fixed bottom-0 left-0 right-0 glass-dark border-t border-white/[0.06] lg:hidden z-50">
+        <div className="flex items-center justify-around py-1 safe-bottom">
           {NAV_ITEMS.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <Link key={item.path} to={item.path} className="flex flex-col items-center py-2 px-3 relative">
+              <Link key={item.path} to={item.path} className="flex flex-col items-center py-2 px-4 relative">
                 {isActive && (
                   <motion.div
-                    layoutId="nav-indicator"
-                    className="absolute -top-0.5 h-0.5 w-8 bg-primary rounded-full"
+                    layoutId="mobile-nav"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-6 bg-primary rounded-full"
                   />
                 )}
-                <item.icon className={`h-5 w-5 ${isActive ? 'text-primary' : 'text-muted-foreground'} transition-colors`} />
-                <span className={`text-[10px] mt-1 ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'}`}>{item.label}</span>
+                <item.icon className={`h-5 w-5 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                <span className={`text-[9px] mt-1 font-medium tracking-wide transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                  {item.label}
+                </span>
               </Link>
             );
           })}
         </div>
-      </nav>
-
-      {/* Desktop Sidebar */}
-      <nav className="hidden sm:flex fixed left-0 top-[53px] bottom-0 w-16 flex-col items-center py-4 gap-1 border-r border-border/50 bg-background z-40">
-        {NAV_ITEMS.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`relative flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all group ${isActive ? 'bg-primary/10' : 'hover:bg-secondary/50'}`}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-indicator"
-                  className="absolute left-0 h-6 w-0.5 bg-primary rounded-r-full"
-                />
-              )}
-              <item.icon className={`h-5 w-5 ${isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'} transition-colors`} />
-              <span className={`text-[9px] mt-0.5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>{item.label}</span>
-            </Link>
-          );
-        })}
       </nav>
     </div>
   );
