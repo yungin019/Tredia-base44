@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -11,7 +11,7 @@ const COLORS = ['hsl(142, 70%, 45%)', 'hsl(210, 100%, 55%)', 'hsl(280, 70%, 60%)
 
 export default function Portfolio() {
   const queryClient = useQueryClient();
-  const [showAdd, setShowAdd] = React.useState(false);
+  const [showAdd, setShowAdd] = useState(false);
 
   const { data: holdings = [], isLoading } = useQuery({
     queryKey: ['portfolio'],
