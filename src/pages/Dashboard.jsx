@@ -21,26 +21,46 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+
   return (
-    <div className="sm:ml-16 p-4 sm:p-6 space-y-6 max-w-[1400px] mx-auto">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="flex items-center justify-between mb-1">
-          <h1 className="text-xl font-bold">Market Overview</h1>
-          <span className="text-[10px] font-mono text-muted-foreground">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
-          </span>
+    <div className="p-4 lg:p-6 space-y-4 max-w-[1600px] mx-auto">
+      {/* Header */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end justify-between pt-1">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-black text-white/95 tracking-tight">Market Intelligence</h1>
+          </div>
+          <p className="text-[11px] text-white/30 font-medium tracking-wide">
+            Real-time data across all asset classes · AI-powered signals
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground mb-4">Real-time market intelligence powered by AI</p>
+        <div className="text-right hidden sm:block">
+          <div className="text-xl font-mono font-bold text-primary/90">{timeStr}</div>
+          <div className="text-[10px] font-mono text-white/25 tracking-widest mt-0.5">{dateStr}</div>
+        </div>
       </motion.div>
 
+      {/* Indices */}
       <IndexCards indices={indices} />
-      <PortfolioSummary />
-      <PerformanceChart />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <TopMovers stocks={stocks} />
-        <AISignalCard />
+      {/* Portfolio Summary */}
+      <PortfolioSummary />
+
+      {/* Chart + Signals */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+        <div className="xl:col-span-3">
+          <PerformanceChart />
+        </div>
+        <div className="xl:col-span-2">
+          <AISignalCard />
+        </div>
       </div>
+
+      {/* Top Movers */}
+      <TopMovers stocks={stocks} />
     </div>
   );
 }
