@@ -14,13 +14,13 @@ export default function AddHoldingDialog({ open, onOpenChange }) {
 
   const handleSave = async () => {
     if (!form.symbol || !form.shares || !form.avg_cost) {
-      toast.error('Please fill symbol, shares, and average cost');
+      toast.error('Symbol, shares, and average cost are required');
       return;
     }
     setSaving(true);
     await base44.entities.Portfolio.create({
       symbol: form.symbol.toUpperCase(),
-      name: form.name,
+      name: form.name || form.symbol.toUpperCase(),
       shares: parseFloat(form.shares),
       avg_cost: parseFloat(form.avg_cost),
       current_price: form.current_price ? parseFloat(form.current_price) : parseFloat(form.avg_cost),
@@ -32,36 +32,44 @@ export default function AddHoldingDialog({ open, onOpenChange }) {
     setSaving(false);
   };
 
+  const inputClass = "mt-1.5 bg-white/[0.04] border-white/[0.07] h-9 text-[12px] text-white/80 placeholder:text-white/20 focus:border-primary/40 font-mono";
+  const labelClass = "text-[10px] text-white/30 font-semibold tracking-[0.08em] uppercase";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border/50 max-w-sm">
+      <DialogContent className="bg-[#111118] border-white/[0.08] max-w-sm">
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent rounded-t-xl" />
         <DialogHeader>
-          <DialogTitle className="text-base">Add Holding</DialogTitle>
+          <DialogTitle className="text-[15px] font-bold text-white/90">Add Position</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
+        <div className="space-y-3 mt-1">
           <div>
-            <Label className="text-xs text-muted-foreground">Symbol *</Label>
-            <Input value={form.symbol} onChange={(e) => setForm({ ...form, symbol: e.target.value })} placeholder="AAPL" className="bg-secondary/50 border-border/50 h-9 mt-1 font-mono" />
+            <Label className={labelClass}>Ticker Symbol *</Label>
+            <Input value={form.symbol} onChange={(e) => setForm({ ...form, symbol: e.target.value })} placeholder="AAPL" className={inputClass} />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Company Name</Label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Apple Inc." className="bg-secondary/50 border-border/50 h-9 mt-1" />
+            <Label className={labelClass}>Company Name</Label>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Apple Inc." className={`${inputClass} font-inter`} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs text-muted-foreground">Shares *</Label>
-              <Input type="number" value={form.shares} onChange={(e) => setForm({ ...form, shares: e.target.value })} placeholder="100" className="bg-secondary/50 border-border/50 h-9 mt-1 font-mono" />
+              <Label className={labelClass}>Shares *</Label>
+              <Input type="number" value={form.shares} onChange={(e) => setForm({ ...form, shares: e.target.value })} placeholder="100" className={inputClass} />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Avg Cost *</Label>
-              <Input type="number" value={form.avg_cost} onChange={(e) => setForm({ ...form, avg_cost: e.target.value })} placeholder="150.00" className="bg-secondary/50 border-border/50 h-9 mt-1 font-mono" />
+              <Label className={labelClass}>Avg Cost *</Label>
+              <Input type="number" value={form.avg_cost} onChange={(e) => setForm({ ...form, avg_cost: e.target.value })} placeholder="150.00" className={inputClass} />
             </div>
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Current Price (optional)</Label>
-            <Input type="number" value={form.current_price} onChange={(e) => setForm({ ...form, current_price: e.target.value })} placeholder="175.00" className="bg-secondary/50 border-border/50 h-9 mt-1 font-mono" />
+            <Label className={labelClass}>Current Price (optional)</Label>
+            <Input type="number" value={form.current_price} onChange={(e) => setForm({ ...form, current_price: e.target.value })} placeholder="175.00" className={inputClass} />
           </div>
-          <Button onClick={handleSave} disabled={saving} className="w-full h-9 text-sm">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full h-9 text-[12px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground mt-1"
+          >
             {saving ? 'Adding...' : 'Add to Portfolio'}
           </Button>
         </div>

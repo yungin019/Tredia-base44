@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeftRight, ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeftRight, ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -28,16 +28,11 @@ export default function Trade() {
   });
 
   const handlePreview = () => {
-    if (!symbol || !shares) {
-      toast.error('Enter symbol and shares');
-      return;
-    }
+    if (!symbol || !shares) { toast.error('Enter symbol and number of shares'); return; }
     const stockData = getStockPrice(symbol.toUpperCase());
-    if (!stockData) {
-      setPreview({ symbol: symbol.toUpperCase(), name: symbol.toUpperCase(), price: (Math.random() * 200 + 50).toFixed(2) * 1, shares: parseFloat(shares) });
-    } else {
-      setPreview({ symbol: stockData.symbol, name: stockData.name, price: stockData.price, shares: parseFloat(shares) });
-    }
+    const price = stockData ? stockData.price : +(Math.random() * 200 + 50).toFixed(2);
+    const name = stockData ? stockData.name : symbol.toUpperCase();
+    setPreview({ symbol: symbol.toUpperCase(), name, price, shares: parseFloat(shares) });
   };
 
   const handleExecute = async () => {
@@ -49,142 +44,194 @@ export default function Trade() {
       action,
       shares: preview.shares,
       price: preview.price,
-      total: preview.price * preview.shares,
+      total: +(preview.price * preview.shares).toFixed(2),
       status: 'executed',
     });
-    toast.success(`${action.toUpperCase()} ${preview.shares} ${preview.symbol} @ $${preview.price.toFixed(2)}`);
-    setSymbol('');
-    setShares('');
-    setPreview(null);
+    toast.success(`${action.toUpperCase()} ${preview.shares} ${preview.symbol} executed at $${preview.price.toFixed(2)}`);
+    setSymbol(''); setShares(''); setPreview(null);
     setExecuting(false);
   };
 
-  const statusIcons = {
-    executed: <CheckCircle2 className="h-3.5 w-3.5 text-primary" />,
-    pending: <Clock className="h-3.5 w-3.5 text-chart-4" />,
-    cancelled: <XCircle className="h-3.5 w-3.5 text-destructive" />,
+  const statusConfig = {
+    executed: { icon: CheckCircle2, color: 'text-chart-3', bg: 'bg-chart-3/8' },
+    pending:  { icon: Clock, color: 'text-primary', bg: 'bg-primary/8' },
+    cancelled:{ icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/8' },
   };
 
   return (
-    <div className="sm:ml-16 p-4 sm:p-6 space-y-6 max-w-[1400px] mx-auto">
+    <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
+      {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="flex items-center gap-2 mb-1">
-          <ArrowLeftRight className="h-5 w-5 text-primary" />
-          <h1 className="text-xl font-bold">Trade</h1>
-        </div>
-        <p className="text-xs text-muted-foreground">Execute trades quickly and efficiently</p>
+        <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">Trade Execution</h1>
+        <p className="text-[11px] text-white/30 font-medium tracking-wide">Fast, precise order entry with live pricing</p>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Trade Form */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border/50 bg-card p-5">
-          <h3 className="text-sm font-semibold mb-4">New Order</h3>
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
+        {/* Order Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="xl:col-span-2 rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden"
+        >
+          <div className="h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="p-5">
+            <h3 className="text-sm font-bold text-white/80 mb-4">New Order</h3>
 
-          {/* Buy/Sell Toggle */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setAction('buy')}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                action === 'buy' ? 'bg-primary text-primary-foreground glow-green' : 'bg-secondary text-muted-foreground'
-              }`}
-            >
-              BUY
-            </button>
-            <button
-              onClick={() => setAction('sell')}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                action === 'sell' ? 'bg-destructive text-destructive-foreground glow-red' : 'bg-secondary text-muted-foreground'
-              }`}
-            >
-              SELL
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs text-muted-foreground">Symbol</Label>
-              <Input
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-                placeholder="AAPL"
-                className="bg-secondary/50 border-border/50 h-10 mt-1 font-mono text-lg"
-              />
+            {/* Buy / Sell */}
+            <div className="grid grid-cols-2 gap-2 mb-5">
+              <button
+                onClick={() => { setAction('buy'); setPreview(null); }}
+                className={`py-3 rounded-xl text-sm font-black tracking-wide transition-all ${
+                  action === 'buy'
+                    ? 'bg-chart-3 text-black glow-green'
+                    : 'bg-white/[0.04] text-white/30 border border-white/[0.07] hover:border-white/10'
+                }`}
+              >
+                BUY
+              </button>
+              <button
+                onClick={() => { setAction('sell'); setPreview(null); }}
+                className={`py-3 rounded-xl text-sm font-black tracking-wide transition-all ${
+                  action === 'sell'
+                    ? 'bg-destructive text-white glow-red'
+                    : 'bg-white/[0.04] text-white/30 border border-white/[0.07] hover:border-white/10'
+                }`}
+              >
+                SELL
+              </button>
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Shares</Label>
-              <Input
-                type="number"
-                value={shares}
-                onChange={(e) => setShares(e.target.value)}
-                placeholder="100"
-                className="bg-secondary/50 border-border/50 h-10 mt-1 font-mono text-lg"
-              />
-            </div>
-            <Button onClick={handlePreview} variant="outline" className="w-full h-10">
-              Preview Order
-            </Button>
-          </div>
 
-          {/* Order Preview */}
-          {preview && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-4 rounded-lg border border-border/50 bg-secondary/20">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs text-muted-foreground">Order Preview</span>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded ${action === 'buy' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
-                  {action.toUpperCase()}
-                </span>
+            <div className="space-y-3">
+              <div>
+                <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Ticker Symbol</Label>
+                <Input
+                  value={symbol}
+                  onChange={(e) => { setSymbol(e.target.value.toUpperCase()); setPreview(null); }}
+                  placeholder="AAPL"
+                  className="mt-1.5 bg-white/[0.04] border-white/[0.07] h-11 font-mono text-[16px] font-bold text-white/90 placeholder:text-white/15 focus:border-primary/40"
+                />
               </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><span className="text-xs text-muted-foreground">Symbol</span><div className="font-mono font-bold">{preview.symbol}</div></div>
-                <div><span className="text-xs text-muted-foreground">Shares</span><div className="font-mono font-bold">{preview.shares}</div></div>
-                <div><span className="text-xs text-muted-foreground">Price</span><div className="font-mono font-bold">${preview.price.toFixed(2)}</div></div>
-                <div><span className="text-xs text-muted-foreground">Total</span><div className="font-mono font-bold">${(preview.price * preview.shares).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div></div>
+              <div>
+                <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Number of Shares</Label>
+                <Input
+                  type="number"
+                  value={shares}
+                  onChange={(e) => { setShares(e.target.value); setPreview(null); }}
+                  placeholder="100"
+                  className="mt-1.5 bg-white/[0.04] border-white/[0.07] h-11 font-mono text-[16px] font-bold text-white/90 placeholder:text-white/15 focus:border-primary/40"
+                />
               </div>
               <Button
-                onClick={handleExecute}
-                disabled={executing}
-                className={`w-full mt-4 h-10 font-semibold ${action === 'buy' ? 'bg-primary hover:bg-primary/90' : 'bg-destructive hover:bg-destructive/90'}`}
+                onClick={handlePreview}
+                variant="outline"
+                className="w-full h-10 bg-transparent border-white/[0.1] text-white/50 hover:bg-white/[0.04] hover:text-white/80 text-[12px] font-semibold mt-1"
               >
-                {executing ? 'Executing...' : `Execute ${action.toUpperCase()} Order`}
+                Preview Order
               </Button>
-            </motion.div>
-          )}
+            </div>
+
+            {/* Preview */}
+            {preview && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.03] overflow-hidden"
+              >
+                <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                  <span className="text-[10px] text-white/30 font-semibold uppercase tracking-[0.1em]">Order Preview</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded tracking-wider ${action === 'buy' ? 'text-chart-3 bg-chart-3/10' : 'text-destructive bg-destructive/10'}`}>
+                    {action.toUpperCase()}
+                  </span>
+                </div>
+                <div className="p-4 grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'Symbol', value: preview.symbol },
+                    { label: 'Shares', value: preview.shares },
+                    { label: 'Est. Price', value: `$${preview.price.toFixed(2)}` },
+                    { label: 'Total Value', value: `$${(preview.price * preview.shares).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                  ].map((item) => (
+                    <div key={item.label}>
+                      <div className="text-[9px] text-white/25 uppercase tracking-[0.1em] mb-0.5">{item.label}</div>
+                      <div className="text-[13px] font-mono font-bold text-white/85">{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="px-4 pb-4">
+                  <div className="flex items-start gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/10 mb-3">
+                    <AlertTriangle className="h-3 w-3 text-primary/50 flex-shrink-0 mt-0.5" />
+                    <p className="text-[9px] text-white/30 leading-relaxed">This is a paper trading simulation. No real funds are used.</p>
+                  </div>
+                  <Button
+                    onClick={handleExecute}
+                    disabled={executing}
+                    className={`w-full h-10 font-black text-[12px] tracking-wide ${
+                      action === 'buy'
+                        ? 'bg-chart-3 hover:bg-chart-3/90 text-black'
+                        : 'bg-destructive hover:bg-destructive/90 text-white'
+                    }`}
+                  >
+                    {executing ? 'Executing...' : `Execute ${action.toUpperCase()} Order`}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </div>
         </motion.div>
 
         {/* Trade History */}
-        <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-border/50">
-            <h3 className="text-sm font-semibold">Recent Trades</h3>
+        <div className="xl:col-span-3 rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/[0.05]">
+            <h3 className="text-sm font-bold text-white/80">Order History</h3>
           </div>
+
           {trades.length === 0 ? (
-            <div className="p-8 text-center">
-              <Clock className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No trades yet</p>
+            <div className="p-12 text-center">
+              <Clock className="h-10 w-10 text-white/8 mx-auto mb-3" />
+              <p className="text-[12px] text-white/20">No trades executed yet</p>
             </div>
           ) : (
-            <div className="divide-y divide-border/30 max-h-[500px] overflow-y-auto">
-              {trades.map((trade) => (
-                <div key={trade.id} className="flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${trade.action === 'buy' ? 'bg-primary/10' : 'bg-destructive/10'}`}>
-                      {trade.action === 'buy' ? <ArrowUpRight className="h-4 w-4 text-primary" /> : <ArrowDownRight className="h-4 w-4 text-destructive" />}
-                    </div>
-                    <div>
-                      <div className="text-sm font-mono font-semibold">{trade.symbol}</div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {trade.shares} shares @ ${trade.price?.toFixed(2)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-mono font-medium">${trade.total?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                    <div className="flex items-center gap-1 justify-end">
-                      {statusIcons[trade.status]}
-                      <span className="text-[10px] text-muted-foreground capitalize">{trade.status}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/[0.05]">
+                    {['Asset', 'Action', 'Shares', 'Price', 'Total', 'Status'].map((h) => (
+                      <th key={h} className="text-left px-5 py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {trades.map((trade) => {
+                    const sc = statusConfig[trade.status] || statusConfig.executed;
+                    const StatusIcon = sc.icon;
+                    return (
+                      <tr key={trade.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0">
+                        <td className="px-5 py-3">
+                          <div className="font-mono font-black text-[13px] text-white/85">{trade.symbol}</div>
+                          <div className="text-[10px] text-white/25">{trade.name}</div>
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md ${
+                            trade.action === 'buy' ? 'text-chart-3 bg-chart-3/8' : 'text-destructive bg-destructive/8'
+                          }`}>
+                            {trade.action === 'buy' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                            {trade.action.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 font-mono text-[12px] text-white/60">{trade.shares}</td>
+                        <td className="px-5 py-3 font-mono text-[12px] text-white/60">${trade.price?.toFixed(2)}</td>
+                        <td className="px-5 py-3 font-mono text-[12px] font-bold text-white/80">${trade.total?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td className="px-5 py-3">
+                          <div className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-1 rounded-md ${sc.bg} ${sc.color}`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {trade.status}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
