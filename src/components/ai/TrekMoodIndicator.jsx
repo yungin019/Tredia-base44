@@ -1,39 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { fetchFearGreed } from '@/api/marketData';
 
-const MOODS = [
-  { label: 'PANIC', emoji: '😱', color: '#EF4444', bg: 'bg-[#EF4444]/10', border: 'border-[#EF4444]/20', range: [0, 15] },
-  { label: 'FEAR', emoji: '😰', color: '#F97316', bg: 'bg-[#F97316]/10', border: 'border-[#F97316]/20', range: [15, 35] },
-  { label: 'NEUTRAL', emoji: '😐', color: '#94A3B8', bg: 'bg-white/5', border: 'border-white/10', range: [35, 55] },
-  { label: 'OPTIMISM', emoji: '🙂', color: '#60A5FA', bg: 'bg-[#60A5FA]/10', border: 'border-[#60A5FA]/20', range: [55, 72] },
-  { label: 'GREED', emoji: '😏', color: '#22C55E', bg: 'bg-[#22C55E]/10', border: 'border-[#22C55E]/20', range: [72, 88] },
-  { label: 'EUPHORIA', emoji: '🤑', color: '#F59E0B', bg: 'bg-[#F59E0B]/10', border: 'border-[#F59E0B]/20', range: [88, 100] },
-];
-
-// Current fear & greed index: 62 = OPTIMISM
-const CURRENT_VALUE = 62;
-
-function getMood(value) {
-  return MOODS.find(m => value >= m.range[0] && value < m.range[1]) || MOODS[2];
-}
+const MOODS = {
+  '😱': { label: 'EXTREME FEAR', range: [0, 25], color: 'text-destructive' },
+  '😨': { label: 'FEAR', range: [26, 45], color: 'text-orange-500' },
+  '😐': { label: 'NEUTRAL', range: [46, 54], color: 'text-muted-foreground' },
+  '😏': { label: 'GREED', range: [55, 74], color: 'text-chart-3' },
+  '🤑': { label: 'EXTREME GREED', range: [75, 100], color: 'text-green-500' },
+};
 
 export default function TrekMoodIndicator() {
-  const mood = getMood(CURRENT_VALUE);
+  const [mood, setMood] = useState('😐');
+  const [label, setLabel] = useState('NEUTRAL');
+  const [color, setColor] = useState('text-muted-foreground');
+  const [value, setValue] = useState(50);
+
+  useEffect(() => {
+    const load = async () => {
+      const fg = await fetchFearGreed();
+      if (fg?.value) {
+        const v = fg.value;
+        setValue(v);
+        const entry = Object.entries(MOODS).find(([_, m]) => v >= m.range[0] && v <= m.range[1]);
+        if (entry) {
+          setMood(entry[0]);
+          setLabel(entry[1].label);
+          setColor(entry[1].color);
+        }
+      }
+    };
+    load();
+    const interval = setInterval(load, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className={`flex items-center gap-3 px-3 py-2 rounded-xl border ${mood.bg} ${mood.border}`}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.08 }}
+      className="rounded-xl border border-white/[0.07] bg-[#111118] p-5"
     >
-      <span className="text-xl">{mood.emoji}</span>
-      <div>
-        <p className="text-[8px] text-white/25 uppercase tracking-widest font-bold">TREK Mood</p>
-        <p className="text-[12px] font-black tracking-wide" style={{ color: mood.color }}>{mood.label}</p>
-      </div>
-      <div className="ml-auto flex flex-col items-end">
-        <span className="text-[18px] font-black font-mono" style={{ color: mood.color }}>{CURRENT_VALUE}</span>
-        <span className="text-[8px] text-white/20 font-mono">/ 100</span>
+      <h2 className="text-[11px] font-bold uppercase tracking-[0.1em] text-white/30 mb-4">Market Mood</h2>
+      <div className="flex items-end gap-3">
+        <div className="text-5xl">{mood}</div>
+        <div>
+          <div className={`text-xl font-black ${color}`}>{label}</div>
+          <div className="text-[10px] text-white/25 mt-0.5">Fear & Greed: {value.toFixed(0)}</div>
+        </div>
       </div>
     </motion.div>
   );
