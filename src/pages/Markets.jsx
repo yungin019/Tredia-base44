@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 const SECTORS = ['All', 'Technology', 'Financial', 'Healthcare', 'Energy', 'Consumer Cyclical', 'Consumer Defensive', 'Automotive'];
 
 export default function Markets() {
+  const { t } = useTranslation();
   const [stocks, setStocks] = useState([]);
   const [search, setSearch] = useState('');
   const [sector, setSector] = useState('All');

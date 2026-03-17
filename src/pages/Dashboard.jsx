@@ -33,10 +33,10 @@ export default function Dashboard() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end justify-between pt-1">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-black text-white/95 tracking-tight">Market Intelligence</h1>
+            <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('dashboard.title')}</h1>
           </div>
           <p className="text-[11px] text-white/30 font-medium tracking-wide">
-            Real-time data across all asset classes · AI-powered signals
+            {t('dashboard.subtitle')}
           </p>
         </div>
         <div className="text-right hidden sm:block">
