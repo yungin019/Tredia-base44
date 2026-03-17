@@ -44,7 +44,7 @@ const PREDEFINED_SIGNALS = [
     ],
   },
   {
-    type: 'alert', symbol: 'TSLA', title: 'Unusual Options Flow — Delivery Catalyst',
+    type: 'alert', symbol: 'TSLA', title: 'Unusual Options Flow — Delivery Catalyst', expectedPct: 10, expectedDays: '14d',
     message: 'Dark pool and options flow scanning detected $180 call volume at 340% above the 20-day average. Two-week expiry suggests positioning for an imminent catalyst — most likely Q1 delivery data. Historically TSLA moves 8–12% on delivery beats. This is a positioning signal, not a fundamental one.',
     confidence: 87, icon: Zap, time: '8m ago', sector: 'Automotive',
     targets: [{ label: 'Call Strike', value: '$180' }, { label: 'Expiry', value: '14 days' }, { label: 'Options Vol', value: '+340%' }],
