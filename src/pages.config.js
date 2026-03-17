@@ -54,6 +54,7 @@ import Portfolio from './pages/Portfolio';
 import Trade from './pages/Trade';
 import SplashScreen from './pages/SplashScreen';
 import Onboarding from './pages/Onboarding';
+import Login from './pages/Login';
 
 
 export const PAGES = {
