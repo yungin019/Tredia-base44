@@ -82,6 +82,9 @@ export default function Dashboard() {
 
       {/* Top Movers */}
       <TopMovers stocks={stocks} />
+
+      {/* Live News Feed */}
+      <NewsFeed />
     </div>
   );
 }
