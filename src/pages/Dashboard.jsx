@@ -7,6 +7,8 @@ import PortfolioSummary from '../components/dashboard/PortfolioSummary';
 import TopMovers from '../components/dashboard/TopMovers';
 import AISignalCard from '../components/dashboard/AISignalCard';
 import PerformanceChart from '../components/dashboard/PerformanceChart';
+import CryptoLiveCards from '../components/dashboard/CryptoLiveCards';
+import { fetchCryptoData, fetchFearGreed } from '../api/marketData';
 
 export default function Dashboard() {
   const { t } = useTranslation();
