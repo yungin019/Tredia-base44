@@ -108,7 +108,7 @@ const PREDEFINED_SIGNALS = [
     ],
   },
   {
-    type: 'bearish', symbol: 'META', title: 'Pre-Earnings Sentiment Deterioration',
+    type: 'bearish', symbol: 'META', title: 'Pre-Earnings Sentiment Deterioration', expectedPct: -8, expectedDays: '4d',
     message: 'NLP sentiment analysis across 50,000+ social, news, and analyst signals shows ad revenue concern rising sharply over the past 72 hours. Put/call ratio elevated at 1.4 (above 1.2 threshold). AI model flags 68% probability of a negative earnings reaction. Recommend reducing position size by 30–40% before the print.',
     confidence: 71, icon: AlertTriangle, time: '22m ago', sector: 'Technology',
     targets: [{ label: 'Downside Target', value: '$445' }, { label: 'P/C Ratio', value: '1.4' }, { label: 'Event', value: 'Earnings -4d' }],
