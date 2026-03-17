@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { getIndices, getAllStocks } from '../components/MarketData';
 import IndexCards from '../components/dashboard/IndexCards';
 import PortfolioSummary from '../components/dashboard/PortfolioSummary';
