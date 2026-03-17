@@ -8,10 +8,10 @@ import {
 import { base44 } from '@/api/base44Client';
 
 const typeConfig = {
-  bullish: { label: 'BULLISH',  color: 'text-chart-3',     bg: 'bg-chart-3/8',     border: 'border-chart-3/15',    bar: 'bg-chart-3',     glow: 'shadow-[0_0_20px_rgba(34,197,94,0.08)]' },
-  alert:   { label: 'ALERT',   color: 'text-primary',     bg: 'bg-primary/8',     border: 'border-primary/15',    bar: 'bg-primary',     glow: 'shadow-[0_0_20px_rgba(245,158,11,0.08)]' },
-  hedge:   { label: 'HEDGE',   color: 'text-chart-2',     bg: 'bg-chart-2/8',     border: 'border-chart-2/15',    bar: 'bg-chart-2',     glow: 'shadow-[0_0_20px_rgba(96,165,250,0.08)]' },
-  bearish: { label: 'BEARISH', color: 'text-destructive', bg: 'bg-destructive/8', border: 'border-destructive/15',bar: 'bg-destructive', glow: 'shadow-[0_0_20px_rgba(239,68,68,0.08)]' },
+  bullish: { label: 'BULLISH',  header: '🚀 NEXT JUMP DETECTED',   color: 'text-chart-3',     bg: 'bg-chart-3/8',     border: 'border-chart-3/15',    bar: 'bg-chart-3',     glow: 'shadow-[0_0_20px_rgba(34,197,94,0.08)]' },
+  alert:   { label: 'ALERT',   header: '⚡ CATALYST ALERT',        color: 'text-primary',     bg: 'bg-primary/8',     border: 'border-primary/15',    bar: 'bg-primary',     glow: 'shadow-[0_0_20px_rgba(245,158,11,0.08)]' },
+  hedge:   { label: 'HEDGE',   header: '🛡️ HEDGE SIGNAL',          color: 'text-chart-2',     bg: 'bg-chart-2/8',     border: 'border-chart-2/15',    bar: 'bg-chart-2',     glow: 'shadow-[0_0_20px_rgba(96,165,250,0.08)]' },
+  bearish: { label: 'BEARISH', header: '📉 LOSS RISK DETECTED',    color: 'text-destructive', bg: 'bg-destructive/8', border: 'border-destructive/15',bar: 'bg-destructive', glow: 'shadow-[0_0_20px_rgba(239,68,68,0.08)]' },
 };
 
 // Evidence pillars for each signal — the "WHY" data
