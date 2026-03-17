@@ -157,7 +157,7 @@ export default function SignalCard({ signal, index }) {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-black font-mono text-[18px] text-white/95 leading-none">{signal.symbol}</span>
               <span className="text-white/20 text-[12px]">·</span>
-              <span className={`text-[13px] font-black font-mono ${cfg.color}`}>+{signal.expectedPct || signal.confidence * 0.18 | 0}%</span>
+              <span className={`text-[13px] font-black font-mono ${cfg.color}`}>{signal.expectedPct > 0 ? '+' : ''}{signal.expectedPct ?? (signal.confidence * 0.18 | 0)}%</span>
               <span className="text-white/20 text-[12px]">·</span>
               <span className="text-[11px] font-mono text-white/40">{signal.expectedDays || '7–14d'}</span>
               <span className={`text-[8px] px-1.5 py-0.5 rounded font-black tracking-widest ${cfg.bg} ${cfg.color} border ${cfg.border} ml-1`}>{signal.sector}</span>
