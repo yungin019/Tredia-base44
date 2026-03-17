@@ -90,7 +90,7 @@ export default function SplashScreen() {
           <motion.div
             initial={{ width: '0%' }}
             animate={{ width: '100%' }}
-            transition={{ duration: 2.5, delay: 0.9, ease: 'linear' }}
+            transition={{ duration: 1.5, delay: 0.9, ease: 'linear' }}
             className="h-full rounded-full"
             style={{ background: '#F59E0B' }}
           />
