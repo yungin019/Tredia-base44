@@ -241,11 +241,12 @@ export default function AIInsights() {
         <MacroBar />
       </motion.div>
 
-      {/* Main 3-col grid */}
+      {/* TREK Mood + Main 3-col grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
 
-        {/* LEFT: AI Chat (takes 1 col on xl) */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="xl:col-span-1">
+        {/* LEFT: AI Chat */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="xl:col-span-1 flex flex-col gap-4">
+          <TrekMoodIndicator />
           <AIChat />
         </motion.div>
 
