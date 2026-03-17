@@ -57,6 +57,16 @@ export default function Portfolio() {
         </Button>
       </motion.div>
 
+      {/* TREK AI Analysis Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <TrekGradeCard />
+        <RiskScoreCard />
+        <StressTestCard />
+      </div>
+
+      {/* Sector Warning */}
+      <SectorWarning holdings={holdings} />
+
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3">
         {[
