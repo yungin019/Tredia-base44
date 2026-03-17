@@ -2,19 +2,29 @@ import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
+const TICKER_ITEMS = [
+  { symbol: 'AAPL', change: '+1.2%', up: true },
+  { symbol: 'TSLA', change: '-0.8%', up: false },
+  { symbol: 'NVDA', change: '+3.4%', up: true },
+  { symbol: 'BTC', change: '+2.1%', up: true },
+  { symbol: 'SPX', change: '+0.6%', up: true },
+];
+
+const repeated = [...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS];
+
 export default function SplashScreen() {
   const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
       navigate('/Dashboard');
-    }, 3000);
+    }, 3500);
     return () => clearTimeout(timer);
   }, [navigate]);
 
   return (
     <div
-      className="fixed inset-0 flex flex-col items-center justify-center"
+      className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden"
       style={{ backgroundColor: '#0A0A0F' }}
     >
       {/* Grid background */}
@@ -70,7 +80,7 @@ export default function SplashScreen() {
           The Edge Every Trader Needs
         </motion.p>
 
-          {/* Loading bar */}
+        {/* Loading bar */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -80,12 +90,40 @@ export default function SplashScreen() {
           <motion.div
             initial={{ width: '0%' }}
             animate={{ width: '100%' }}
-            transition={{ duration: 2, delay: 0.9, ease: 'linear' }}
+            transition={{ duration: 2.5, delay: 0.9, ease: 'linear' }}
             className="h-full rounded-full"
             style={{ background: '#F59E0B' }}
           />
         </motion.div>
       </div>
+
+      {/* Live market ticker at bottom */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.0 }}
+        className="absolute bottom-0 left-0 right-0 h-8 border-t border-white/[0.06] bg-white/[0.02] overflow-hidden flex items-center"
+      >
+        {/* Left fade */}
+        <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#0A0A0F] to-transparent z-10" />
+        {/* Right fade */}
+        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#0A0A0F] to-transparent z-10" />
+
+        <div className="flex items-center gap-0 ticker-animate whitespace-nowrap">
+          {repeated.map((item, i) => (
+            <span key={i} className="flex items-center gap-1.5 px-5">
+              <span className="text-[10px] font-bold text-white/60 font-mono">{item.symbol}</span>
+              <span
+                className="text-[10px] font-bold font-mono"
+                style={{ color: item.up ? '#22C55E' : '#EF4444' }}
+              >
+                {item.change}
+              </span>
+              <span className="text-white/10 text-[10px]">·</span>
+            </span>
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 }
