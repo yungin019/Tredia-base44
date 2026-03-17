@@ -68,6 +68,7 @@ export const PAGES = {
     "SplashScreen": SplashScreen,
     "Onboarding": Onboarding,
     "SignIn": SignIn,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {
