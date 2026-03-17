@@ -333,5 +333,6 @@ export default function SignalCard({ signal, index }) {
         )}
       </AnimatePresence>
     </motion.div>
+    </>
   );
 }
