@@ -172,7 +172,7 @@ const PREDEFINED_SIGNALS = [
     ],
   },
   {
-    type: 'alert', symbol: 'JPM', title: 'Financial Sector Rotation — Lead Horse',
+    type: 'alert', symbol: 'JPM', title: 'Financial Sector Rotation — Lead Horse', expectedPct: 7, expectedDays: '28–42d',
     message: 'Quantitative sector rotation model flags Financials as the highest-probability outperformer for the next 4–6 weeks. JPMorgan specifically showing above-average institutional inflows for 8 consecutive sessions. Yield curve steepening +18bps provides direct NIM tailwind. Model assigns 81% probability of sector outperformance vs SPX.',
     confidence: 81, icon: TrendingUp, time: '45m ago', sector: 'Financial',
     targets: [{ label: 'Target', value: '$215' }, { label: 'NIM Upside', value: '+12bps' }, { label: 'Sector Rank', value: '#1 / 11' }],
