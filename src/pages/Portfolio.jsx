@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Briefcase, Plus, Trash2, ArrowUpRight, ArrowDownRight, PieChart } from 'lucide-react';
+import { Briefcase, Plus, Trash2, ArrowUpRight, ArrowDownRight, PieChart, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PieChart as RePie, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import AddHoldingDialog from '../components/portfolio/AddHoldingDialog';
@@ -17,6 +18,7 @@ const COLORS = ['#F59E0B', '#3B82F6', '#22C55E', '#A855F7', '#EF4444', '#06B6D4'
 
 export default function Portfolio() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
 
@@ -48,13 +50,22 @@ export default function Portfolio() {
           <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('portfolio.title')}</h1>
           <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('portfolio.subtitle')}</p>
         </div>
-        <Button
-          onClick={() => setShowAdd(true)}
-          size="sm"
-          className="h-8 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
-        >
-          <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.add_holding')}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => navigate('/PaperTrading')}
+            size="sm"
+            className="h-8 text-[11px] font-bold bg-white/10 hover:bg-white/15 text-white/80"
+          >
+            <Play className="h-3.5 w-3.5 mr-1.5" /> Paper Trading
+          </Button>
+          <Button
+            onClick={() => setShowAdd(true)}
+            size="sm"
+            className="h-8 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.add_holding')}
+          </Button>
+        </div>
       </motion.div>
 
       {/* TREK AI Analysis Row */}

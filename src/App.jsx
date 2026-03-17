@@ -16,6 +16,7 @@ import AIInsights from './pages/AIInsights';
 import Portfolio from './pages/Portfolio';
 import Trade from './pages/Trade';
 import Settings from './pages/Settings';
+import PaperTrading from './pages/PaperTrading';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -53,6 +54,7 @@ const AuthenticatedApp = () => {
         <Route path="/Portfolio" element={<Portfolio />} />
         <Route path="/Trade" element={<Trade />} />
         <Route path="/Settings" element={<Settings />} />
+        <Route path="/PaperTrading" element={<PaperTrading />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
