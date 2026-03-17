@@ -188,6 +188,9 @@ export default function Portfolio() {
         </div>
       </div>
 
+      {/* Performance Chart */}
+      <PortfolioPerformanceChart />
+
       <AddHoldingDialog open={showAdd} onOpenChange={setShowAdd} />
     </div>
   );
