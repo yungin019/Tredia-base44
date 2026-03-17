@@ -40,7 +40,8 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Route path="/" element={<Navigate to="/Dashboard" replace />} />
+        <Route path="/Splash" element={<SplashScreen />} />
+      <Route path="/" element={<Navigate to="/Dashboard" replace />} />
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/Markets" element={<Markets />} />
         <Route path="/AIInsights" element={<AIInsights />} />
