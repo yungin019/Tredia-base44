@@ -136,49 +136,50 @@ export default function SignalCard({ signal, index }) {
         className="p-4 cursor-pointer select-none"
         onClick={() => setExpanded(e => !e)}
       >
-        <div className="flex items-start gap-3">
-          <div className={`h-10 w-10 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center flex-shrink-0`}>
-            <signal.icon className={`h-5 w-5 ${cfg.color}`} />
+        {/* Detection header */}
+        <div className="flex items-center justify-between mb-3">
+          <span className={`text-[10px] font-black tracking-widest uppercase ${cfg.color}`}>{cfg.header}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-mono text-white/22">{signal.time}</span>
+            {expanded
+              ? <ChevronUp className={`h-3.5 w-3.5 ${cfg.color} opacity-70`} />
+              : <ChevronDown className="h-3.5 w-3.5 text-white/20" />
+            }
+          </div>
+        </div>
+
+        {/* Ticker row */}
+        <div className="flex items-center gap-3 mb-3">
+          <div className={`h-9 w-9 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center flex-shrink-0`}>
+            <signal.icon className={`h-4.5 w-4.5 ${cfg.color}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-0.5">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-black font-mono text-[14px] text-white/95">{signal.symbol}</span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded font-black tracking-widest ${cfg.bg} ${cfg.color} border ${cfg.border}`}>{cfg.label}</span>
-                <span className="text-[9px] text-white/22 font-medium hidden sm:inline">{signal.sector}</span>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-[9px] font-mono text-white/22">{signal.time}</span>
-                {expanded
-                  ? <ChevronUp className={`h-3.5 w-3.5 ${cfg.color} opacity-70`} />
-                  : <ChevronDown className="h-3.5 w-3.5 text-white/20" />
-                }
-              </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-black font-mono text-[18px] text-white/95 leading-none">{signal.symbol}</span>
+              <span className="text-white/20 text-[12px]">·</span>
+              <span className={`text-[13px] font-black font-mono ${cfg.color}`}>+{signal.expectedPct || signal.confidence * 0.18 | 0}%</span>
+              <span className="text-white/20 text-[12px]">·</span>
+              <span className="text-[11px] font-mono text-white/40">{signal.expectedDays || '7–14d'}</span>
+              <span className={`text-[8px] px-1.5 py-0.5 rounded font-black tracking-widest ${cfg.bg} ${cfg.color} border ${cfg.border} ml-1`}>{signal.sector}</span>
             </div>
+            <p className="text-[10px] text-white/40 mt-0.5 truncate">{signal.title}</p>
+          </div>
+        </div>
 
-            <h4 className="text-[12px] font-bold text-white/80 mb-2.5">{signal.title}</h4>
-
-            {/* Summary evidence row — always visible */}
-            <div className="flex items-center gap-4">
-              {/* Confidence */}
-              <div className="flex items-center gap-2">
-                <div className="w-20 h-1 bg-white/[0.05] rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${signal.confidence}%` }}
-                    transition={{ delay: index * 0.07 + 0.3, duration: 0.7, ease: 'easeOut' }}
-                    className={`h-full ${cfg.bar} rounded-full`}
-                  />
-                </div>
-                <span className={`text-[10px] font-mono font-black ${cfg.color}`}>{signal.confidence}%</span>
-              </div>
-              <span className="text-[9px] text-white/20">confidence</span>
-              {/* Evidence pill count */}
-              <div className="ml-auto flex items-center gap-1 text-[9px] text-white/25">
-                <Eye className="h-3 w-3" />
-                <span>{signal.evidence?.length || 0} evidence factors</span>
-              </div>
-            </div>
+        {/* Animated confidence bar — gold fill */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[8px] text-white/25 uppercase tracking-wider font-semibold">AI Confidence</span>
+            <span className="text-[10px] font-mono font-black text-primary">{signal.confidence}%</span>
+          </div>
+          <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${signal.confidence}%` }}
+              transition={{ delay: index * 0.07 + 0.3, duration: 0.9, ease: 'easeOut' }}
+              className="h-full bg-primary rounded-full"
+              style={{ boxShadow: '0 0 8px rgba(245,158,11,0.5)' }}
+            />
           </div>
         </div>
       </div>
