@@ -1,18 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Loader2, Sparkles, RotateCcw } from 'lucide-react';
-
-// TREK gold avatar
-function TrekAvatar({ size = 5 }) {
-  return (
-    <div
-      className={`h-${size} w-${size} rounded-md flex items-center justify-center flex-shrink-0`}
-      style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)' }}
-    >
-      <span className="text-[10px] font-black" style={{ color: '#F59E0B' }}>T</span>
-    </div>
-  );
-}
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { askTrek } from '@/api/trek';
@@ -26,7 +14,21 @@ const SUGGESTED = [
   'Top defensive plays',
 ];
 
-
+function TrekAvatar({ size = 5 }) {
+  const px = size * 4;
+  return (
+    <div
+      className="rounded-md flex items-center justify-center flex-shrink-0"
+      style={{
+        height: px, width: px,
+        background: 'rgba(245,158,11,0.12)',
+        border: '1px solid rgba(245,158,11,0.25)',
+      }}
+    >
+      <span className="text-[10px] font-black" style={{ color: '#F59E0B' }}>T</span>
+    </div>
+  );
+}
 
 export default function AIChat() {
   const [messages, setMessages] = useState([]);
@@ -34,7 +36,6 @@ export default function AIChat() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const bottomRef = useRef(null);
-  // Keep anthropic-format history for context
   const historyRef = useRef([]);
 
   useEffect(() => {
@@ -55,26 +56,23 @@ export default function AIChat() {
     setLoading(false);
   };
 
-  const clear = () => {
+  const handleClear = () => {
     setMessages([]);
     historyRef.current = [];
     setError(null);
   };
 
-
-
   return (
     <div className="rounded-xl border border-primary/20 bg-[#0e0e16] overflow-hidden flex flex-col glow-gold" style={{ minHeight: 320 }}>
-      {/* Top gold line */}
       <div className="h-[1px] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05]">
         <TrekAvatar size={6} />
         <span className="text-[11px] font-bold text-white/80">Ask TREK</span>
-        <span className="text-[9px] font-mono font-bold text-primary/50 bg-primary/8 px-1.5 py-0.5 rounded border border-primary/15 ml-1 tracking-wider">CLAUDE · LIVE</span>
+        <span className="text-[9px] font-mono font-bold text-primary/50 px-1.5 py-0.5 rounded border border-primary/15 ml-1 tracking-wider" style={{ background: 'rgba(245,158,11,0.05)' }}>CLAUDE · LIVE</span>
         {messages.length > 0 && (
-          <button onClick={clear} className="ml-auto flex items-center gap-1 text-[9px] text-white/25 hover:text-white/50 transition-colors">
+          <button onClick={handleClear} className="ml-auto flex items-center gap-1 text-[9px] text-white/25 hover:text-white/50 transition-colors">
             <RotateCcw className="h-3 w-3" /> Clear
           </button>
         )}
