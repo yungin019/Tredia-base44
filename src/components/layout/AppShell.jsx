@@ -16,6 +16,7 @@ export default function AppShell() {
     { path: '/AIInsights', icon: Brain, label: t('nav.ai_insights') },
     { path: '/Portfolio', icon: Briefcase, label: t('nav.portfolio') },
     { path: '/Trade', icon: ArrowLeftRight, label: t('nav.trade') },
+    { path: '/Settings', icon: Settings, label: 'Settings' },
   ];
 
   return (

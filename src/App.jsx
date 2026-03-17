@@ -52,6 +52,7 @@ const AuthenticatedApp = () => {
         <Route path="/AIInsights" element={<AIInsights />} />
         <Route path="/Portfolio" element={<Portfolio />} />
         <Route path="/Trade" element={<Trade />} />
+        <Route path="/Settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
