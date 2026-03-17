@@ -9,6 +9,7 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
 const SECTORS = ['All', 'Technology', 'Financial', 'Healthcare', 'Energy', 'Consumer Cyclical', 'Consumer Defensive', 'Automotive'];
+const SECTOR_KEYS = { 'All': 'all', 'Technology': 'technology', 'Financial': 'financial', 'Healthcare': 'healthcare', 'Energy': 'energy', 'Consumer Cyclical': 'consumer_cyclical', 'Consumer Defensive': 'consumer_defensive', 'Automotive': 'automotive' };
 
 export default function Markets() {
   const { t } = useTranslation();
