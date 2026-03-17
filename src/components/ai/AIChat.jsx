@@ -63,7 +63,7 @@ export default function AIChat() {
   };
 
   return (
-    <div className="rounded-xl border border-primary/20 bg-[#0e0e16] overflow-hidden flex flex-col glow-gold" style={{ minHeight: 320 }}>
+    <div className="rounded-xl border border-primary/20 bg-[#0e0e16] overflow-hidden flex flex-col glow-gold h-full" style={{ minHeight: 320 }}>
       <div className="h-[1px] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
       {/* Header */}
@@ -79,7 +79,7 @@ export default function AIChat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 max-h-72">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-28 gap-2">
             <Sparkles className="h-6 w-6 text-primary/30" />
@@ -124,7 +124,11 @@ export default function AIChat() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2">
             <TrekAvatar size={5} />
             <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.07] rounded-xl px-3 py-2">
-              <Loader2 className="h-3 w-3 animate-spin" style={{ color: '#F59E0B' }} />
+              <div className="flex gap-1 items-center">
+                <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1, repeat: Infinity }} style={{ color: '#F59E0B' }}>●</motion.span>
+                <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }} style={{ color: '#F59E0B' }}>●</motion.span>
+                <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }} style={{ color: '#F59E0B' }}>●</motion.span>
+              </div>
               <span className="text-[10px] text-white/30">TREK is analyzing...</span>
             </div>
           </motion.div>
@@ -137,8 +141,8 @@ export default function AIChat() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="px-4 py-3 border-t border-white/[0.05]">
+      {/* Input - Sticky Bottom */}
+      <div className="sticky bottom-0 px-4 py-3 border-t border-white/[0.05] bg-[#0e0e16] safe-bottom">
         <div className="flex gap-2">
           <Input
             placeholder="Ask about any stock, strategy, or macro event..."

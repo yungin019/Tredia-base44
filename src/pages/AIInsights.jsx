@@ -5,13 +5,14 @@ import { Brain, TrendingUp, Shield, AlertTriangle, BarChart3, Zap, Activity } fr
 
 import AIChat from '@/components/ai/AIChat';
 import MarketScanner from '@/components/ai/MarketScanner';
-import SignalCard from '@/components/ai/SignalCard.jsx';
 import SentimentGauge from '@/components/ai/SentimentGauge';
 import MacroBar from '@/components/ai/MacroBar';
 import SectorHeatmap from '@/components/ai/SectorHeatmap';
 import LiveIntelligenceRibbon from '@/components/ai/LiveIntelligenceRibbon';
 import TrekMoodIndicator from '@/components/ai/TrekMoodIndicator';
 import NewsFeed from '@/components/ai/NewsFeed';
+import ExpandableSignalCard from '@/components/ai/ExpandableSignalCard';
+import MarketCauseEffect from '@/components/ai/MarketCauseEffect';
 
 const PREDEFINED_SIGNALS = [
   {
@@ -210,9 +211,10 @@ const PREDEFINED_SIGNALS = [
 
 export default function AIInsights() {
   const { t } = useTranslation();
+  const [expandedSignal, setExpandedSignal] = React.useState(null);
 
   return (
-    <div className="p-4 lg:p-6 space-y-5 max-w-[1800px] mx-auto">
+    <div className="p-4 lg:p-6 space-y-5 max-w-[1800px] mx-auto pb-24">
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
@@ -260,6 +262,9 @@ export default function AIInsights() {
         </motion.div>
       </div>
 
+      {/* Cause & Effect */}
+      <MarketCauseEffect />
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="xl:col-span-2">
           <div className="flex items-center justify-between mb-3">
@@ -268,7 +273,7 @@ export default function AIInsights() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {PREDEFINED_SIGNALS.map((signal, i) => (
-              <SignalCard key={i} signal={signal} index={i} />
+              <ExpandableSignalCard key={i} signal={signal} index={i} />
             ))}
           </div>
         </motion.div>
