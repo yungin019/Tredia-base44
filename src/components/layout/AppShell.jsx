@@ -8,6 +8,15 @@ import LanguageSelector from './LanguageSelector';
 
 export default function AppShell() {
   const location = useLocation();
+  const { t } = useTranslation();
+
+  const NAV_ITEMS = [
+    { path: '/Dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
+    { path: '/Markets', icon: TrendingUp, label: t('nav.markets') },
+    { path: '/AIInsights', icon: Brain, label: t('nav.ai_insights') },
+    { path: '/Portfolio', icon: Briefcase, label: t('nav.portfolio') },
+    { path: '/Trade', icon: ArrowLeftRight, label: t('nav.trade') },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] flex flex-col grid-bg">
