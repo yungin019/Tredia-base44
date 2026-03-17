@@ -30,6 +30,7 @@ const SUGGESTED = [
 ];
 
 export default function AIInsights() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [loading, setLoading] = useState(false);
@@ -57,8 +58,8 @@ export default function AIInsights() {
             <Brain className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-white/95 tracking-tight leading-none">AI Intelligence</h1>
-            <p className="text-[11px] text-white/30 font-medium mt-0.5">Institutional-grade signals · Real-time analysis</p>
+            <h1 className="text-2xl font-black text-white/95 tracking-tight leading-none">{t('ai.title')}</h1>
+            <p className="text-[11px] text-white/30 font-medium mt-0.5">{t('ai.subtitle')}</p>
           </div>
         </div>
       </motion.div>
@@ -74,13 +75,13 @@ export default function AIInsights() {
         <div className="p-5">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <span className="text-sm font-bold text-white/90">Ask TREDIA AI</span>
+            <span className="text-sm font-bold text-white/90">{t('ai.ask_title')}</span>
             <span className="text-[9px] font-mono font-bold text-primary/50 bg-primary/8 px-1.5 py-0.5 rounded border border-primary/15 ml-auto tracking-wider">GPT-4 · WEB</span>
           </div>
 
           <div className="flex gap-2">
             <Input
-              placeholder="Ask about any stock, strategy, or market condition..."
+              placeholder={t('ai.ask_placeholder')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAskAI()}
@@ -141,8 +142,8 @@ export default function AIInsights() {
       {/* Signals Grid */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-white/70 uppercase tracking-[0.1em]">Live Signal Feed</h2>
-          <span className="text-[9px] font-mono text-white/25">{PREDEFINED_SIGNALS.length} signals · updated now</span>
+          <h2 className="text-sm font-bold text-white/70 uppercase tracking-[0.1em]">{t('ai.signal_feed')}</h2>
+          <span className="text-[9px] font-mono text-white/25">{t('ai.signals_count', { count: PREDEFINED_SIGNALS.length })}</span>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {PREDEFINED_SIGNALS.map((signal, i) => {
