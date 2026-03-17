@@ -123,7 +123,7 @@ export default function AIInsights() {
                 {loading ? (
                   <div className="flex items-center gap-2.5 text-[11px] text-white/35">
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                    <span>Analyzing market data...</span>
+                    <span>{t('ai.analyzing')}</span>
                     <div className="flex gap-1 ml-auto">
                       {[...Array(3)].map((_, i) => (
                         <div key={i} className="h-1 w-1 rounded-full bg-primary/50 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />

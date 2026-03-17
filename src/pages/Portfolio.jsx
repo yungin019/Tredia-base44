@@ -11,6 +11,7 @@ import AddHoldingDialog from '../components/portfolio/AddHoldingDialog';
 const COLORS = ['#F59E0B', '#3B82F6', '#22C55E', '#A855F7', '#EF4444', '#06B6D4'];
 
 export default function Portfolio() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
 
@@ -39,8 +40,8 @@ export default function Portfolio() {
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">Portfolio</h1>
-          <p className="text-[11px] text-white/30 font-medium tracking-wide">Track, analyze, and manage your holdings</p>
+          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('portfolio.title')}</h1>
+          <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('portfolio.subtitle')}</p>
         </div>
         <Button
           onClick={() => setShowAdd(true)}
