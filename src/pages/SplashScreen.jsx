@@ -70,7 +70,7 @@ export default function SplashScreen() {
           The Edge Every Trader Needs
         </motion.p>
 
-        {/* Loading bar */}
+          {/* Loading bar */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
