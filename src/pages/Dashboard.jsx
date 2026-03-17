@@ -60,6 +60,9 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
+      {/* Crypto + Fear & Greed */}
+      <CryptoLiveCards crypto={crypto} fearGreed={fearGreed} />
+
       {/* Indices */}
       <IndexCards indices={indices} />
 
