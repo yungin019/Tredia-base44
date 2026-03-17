@@ -183,10 +183,15 @@ export default function SignalCard({ signal, index }) {
         </div>
 
         {/* Animated confidence bar — gold fill */}
-        <div className="space-y-1">
+        <div className="space-y-1 mb-3">
           <div className="flex items-center justify-between">
             <span className="text-[8px] text-white/25 uppercase tracking-wider font-semibold">AI Confidence</span>
-            <span className="text-[10px] font-mono font-black text-primary">{signal.confidence}%</span>
+            <button
+              onClick={e => { e.stopPropagation(); setShowConfidence(true); }}
+              className="text-[10px] font-mono font-black text-primary hover:opacity-70 transition-opacity"
+            >
+              {signal.confidence}% ›
+            </button>
           </div>
           <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
             <motion.div
@@ -197,6 +202,23 @@ export default function SignalCard({ signal, index }) {
               style={{ boxShadow: '0 0 8px rgba(245,158,11,0.5)' }}
             />
           </div>
+        </div>
+
+        {/* Portfolio impact + TAP TO SEE WHY */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-white/[0.03] border border-white/[0.05] rounded-lg px-2.5 py-1.5">
+            <span className="text-[8px] text-white/25">Portfolio impact: </span>
+            <span className={`text-[10px] font-black font-mono ${signal.type === 'bearish' ? 'text-[#EF4444]' : 'text-primary'}`}>
+              {signal.type === 'bearish' ? '-$840' : '+$1,240'}
+            </span>
+          </div>
+          <button
+            onClick={e => { e.stopPropagation(); setShowModal(true); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${cfg.border} ${cfg.bg} hover:brightness-125 transition-all`}
+          >
+            <Eye className={`h-3 w-3 ${cfg.color}`} />
+            <span className={`text-[9px] font-black ${cfg.color} whitespace-nowrap`}>SEE WHY</span>
+          </button>
         </div>
       </div>
 
