@@ -48,7 +48,7 @@ export default function Portfolio() {
           size="sm"
           className="h-8 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
         >
-          <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Holding
+          <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.add_holding')}
         </Button>
       </motion.div>
 
