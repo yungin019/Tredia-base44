@@ -124,14 +124,16 @@ export default function AIChat() {
         </AnimatePresence>
         {loading && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2">
-            <div className="h-5 w-5 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-              <Brain className="h-3 w-3 text-primary" />
+            <TrekAvatar size={5} />
+            <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.07] rounded-xl px-3 py-2">
+              <Loader2 className="h-3 w-3 animate-spin" style={{ color: '#F59E0B' }} />
+              <span className="text-[10px] text-white/30">TREK is analyzing...</span>
             </div>
-            <div className="flex gap-1 bg-white/[0.04] border border-white/[0.07] rounded-xl px-3 py-2">
-              {[0,1,2].map(i => (
-                <div key={i} className="h-1 w-1 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-              ))}
-            </div>
+          </motion.div>
+        )}
+        {error && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[10px] text-red-400/70 text-center py-1">
+            {error}
           </motion.div>
         )}
         <div ref={bottomRef} />
