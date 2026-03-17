@@ -76,7 +76,7 @@ const PREDEFINED_SIGNALS = [
     ],
   },
   {
-    type: 'hedge', symbol: 'SPX', title: 'Volatility Regime Shift Warning',
+    type: 'hedge', symbol: 'SPX', title: 'Volatility Regime Shift Warning', expectedPct: -2, expectedDays: '5d',
     message: 'VIX term structure inversion detected — front-month VIX trading above 3-month VIX for the first time since October. Historical backtesting shows this precedes a 73% probability of a ≥1.5% SPX drawdown within 5 sessions. Reduce net delta and consider protective put spreads. This is not a crash signal — it\'s a regime warning.',
     confidence: 78, icon: Shield, time: '15m ago', sector: 'Index',
     targets: [{ label: 'VIX Level', value: '14.2' }, { label: 'SPX Support', value: '5,120' }, { label: 'Hedge Window', value: '5 Sessions' }],
