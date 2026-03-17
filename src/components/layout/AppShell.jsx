@@ -80,6 +80,8 @@ export default function AppShell() {
             <span className="text-[10px] font-mono font-semibold text-chart-3 tracking-wider">LIVE</span>
           </div>
 
+          <LanguageSelector />
+
           {/* Notifications */}
           <button className="relative p-2 rounded-lg hover:bg-white/[0.04] transition-colors">
             <Bell className="h-4 w-4 text-muted-foreground" />
