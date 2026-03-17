@@ -123,6 +123,9 @@ export default function SignalCard({ signal, index }) {
   const isNew = index < 2; // first 2 are "live" signals
 
   return (
+    <>
+    {showModal && <SignalDetailModal signal={signal} cfg={cfg} onClose={() => setShowModal(false)} />}
+    {showConfidence && <ConfidenceBreakdownModal confidence={signal.confidence} symbol={signal.symbol} onClose={() => setShowConfidence(false)} />}
     <motion.div
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
@@ -130,9 +133,17 @@ export default function SignalCard({ signal, index }) {
       className={`rounded-xl border bg-[#0e0e16] overflow-hidden transition-all duration-300 ${
         expanded
           ? `border-white/[0.14] ${cfg.glow}`
+          : isNew
+          ? `border-primary/30 ${cfg.glow}`
           : 'border-white/[0.07] hover:border-white/[0.11]'
       }`}
     >
+      {isNew && (
+        <div className="flex items-center gap-1.5 px-4 pt-2.5">
+          <div className="h-1.5 w-1.5 rounded-full bg-primary live-pulse" />
+          <span className="text-[8px] font-black text-primary/70 uppercase tracking-widest">LIVE — detected {index === 0 ? '4' : '9'} minutes ago</span>
+        </div>
+      )}
       {/* Colored top strip — thicker when expanded */}
       <div className={`${cfg.bar} opacity-60 transition-all duration-300 ${expanded ? 'h-[3px]' : 'h-[2px]'}`} />
 
