@@ -1,6 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Loader2, Sparkles, RotateCcw } from 'lucide-react';
+
+// TREK gold avatar
+function TrekAvatar({ size = 5 }) {
+  return (
+    <div
+      className={`h-${size} w-${size} rounded-md flex items-center justify-center flex-shrink-0`}
+      style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)' }}
+    >
+      <span className="text-[10px] font-black" style={{ color: '#F59E0B' }}>T</span>
+    </div>
+  );
+}
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { askTrek } from '@/api/trek';
@@ -49,7 +61,7 @@ export default function AIChat() {
     setError(null);
   };
 
-  const clear = () => setMessages([]);
+
 
   return (
     <div className="rounded-xl border border-primary/20 bg-[#0e0e16] overflow-hidden flex flex-col glow-gold" style={{ minHeight: 320 }}>
