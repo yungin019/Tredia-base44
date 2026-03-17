@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { ArrowLeftRight, ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';

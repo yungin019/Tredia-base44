@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Zap, TrendingUp, Shield, AlertTriangle, BarChart3, Send, Loader2, Sparkles, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
