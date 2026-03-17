@@ -53,6 +53,7 @@ import Markets from './pages/Markets';
 import Portfolio from './pages/Portfolio';
 import Trade from './pages/Trade';
 import SplashScreen from './pages/SplashScreen';
+import Onboarding from './pages/Onboarding';
 
 
 export const PAGES = {
@@ -62,6 +63,7 @@ export const PAGES = {
     "Portfolio": Portfolio,
     "Trade": Trade,
     "SplashScreen": SplashScreen,
+    "Onboarding": Onboarding,
 }
 
 export const pagesConfig = {
