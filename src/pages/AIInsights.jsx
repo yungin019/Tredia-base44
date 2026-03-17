@@ -140,7 +140,7 @@ const PREDEFINED_SIGNALS = [
     ],
   },
   {
-    type: 'bullish', symbol: 'AAPL', title: 'Cup & Handle — Breakout Attempt',
+    type: 'bullish', symbol: 'AAPL', title: 'Cup & Handle — Breakout Attempt', expectedPct: 6, expectedDays: '21–28d',
     message: 'Classic cup and handle formation completing on the daily timeframe. Rim resistance at $191.50 being tested with above-average volume. Fundamental score 8.4/10 driven by services revenue growth (+14% YoY). India manufacturing ramp de-risks supply chain. Price target: $195–$202 on 3–4 week horizon.',
     confidence: 84, icon: BarChart3, time: '31m ago', sector: 'Technology',
     targets: [{ label: 'Breakout Level', value: '$191.50' }, { label: 'Target', value: '$195–$202' }, { label: 'Stop', value: '$184' }],
