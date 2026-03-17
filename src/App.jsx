@@ -9,7 +9,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppShell from './components/layout/AppShell';
 import Dashboard from './pages/Dashboard';
 import Markets from './pages/Markets';
-import AIInsights from './pages/AIInsights';
+import AIInsights from './pages/AIInsights.jsx';
 import Portfolio from './pages/Portfolio';
 import Trade from './pages/Trade';
 
