@@ -7,6 +7,11 @@ import { Briefcase, Plus, Trash2, ArrowUpRight, ArrowDownRight, PieChart } from 
 import { Button } from '@/components/ui/button';
 import { PieChart as RePie, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import AddHoldingDialog from '../components/portfolio/AddHoldingDialog';
+import TrekGradeCard from '../components/portfolio/TrekGradeCard';
+import RiskScoreCard from '../components/portfolio/RiskScoreCard';
+import StressTestCard from '../components/portfolio/StressTestCard';
+import SectorWarning from '../components/portfolio/SectorWarning';
+import PortfolioPerformanceChart from '../components/portfolio/PortfolioPerformanceChart';
 
 const COLORS = ['#F59E0B', '#3B82F6', '#22C55E', '#A855F7', '#EF4444', '#06B6D4'];
 
