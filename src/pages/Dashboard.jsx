@@ -9,6 +9,7 @@ import AISignalCard from '../components/dashboard/AISignalCard';
 import PerformanceChart from '../components/dashboard/PerformanceChart';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [indices, setIndices] = useState([]);
   const [stocks, setStocks] = useState([]);
 
