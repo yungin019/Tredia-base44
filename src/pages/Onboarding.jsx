@@ -1,44 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Star, ArrowRight, Check, ChevronRight } from 'lucide-react';
+import { TrendingUp, Star, ArrowRight, Check, ChevronRight, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const BROKERS = [
-  {
-    id: 'alpaca',
-    name: 'Alpaca',
-    desc: 'Commission-free API-first trading for stocks & crypto',
-    recommended: true,
-    color: '#F59E0B',
-  },
-  {
-    id: 'ibkr',
-    name: 'IBKR',
-    desc: 'Interactive Brokers — professional-grade global markets',
-    recommended: false,
-    color: '#60A5FA',
-  },
-  {
-    id: 'robinhood',
-    name: 'Robinhood',
-    desc: 'Simple commission-free stocks, ETFs, and options',
-    recommended: false,
-    color: '#22C55E',
-  },
-  {
-    id: 'coinbase',
-    name: 'Coinbase',
-    desc: 'Leading crypto exchange with 200+ digital assets',
-    recommended: false,
-    color: '#818CF8',
-  },
-  {
-    id: 'schwab',
-    name: 'Schwab',
-    desc: 'Full-service brokerage with research & tools',
-    recommended: false,
-    color: '#94A3B8',
-  },
+  { id: 'alpaca', name: 'Alpaca', desc: 'Commission-free API-first trading for stocks & crypto', recommended: true, color: '#F59E0B' },
+  { id: 'ibkr', name: 'IBKR', desc: 'Interactive Brokers — professional-grade global markets', recommended: false, color: '#60A5FA' },
+  { id: 'robinhood', name: 'Robinhood', desc: 'Simple commission-free stocks, ETFs, and options', recommended: false, color: '#22C55E' },
+  { id: 'coinbase', name: 'Coinbase', desc: 'Leading crypto exchange with 200+ digital assets', recommended: false, color: '#818CF8' },
+  { id: 'schwab', name: 'Schwab', desc: 'Full-service brokerage with research & tools', recommended: false, color: '#94A3B8' },
 ];
 
 const fadeUp = {
@@ -47,16 +17,67 @@ const fadeUp = {
   exit: { opacity: 0, y: -10 },
 };
 
+function TrekIntro({ onEnter }) {
+  return (
+    <motion.div key="trek" {...fadeUp} transition={{ duration: 0.4 }}>
+      <div className="rounded-2xl border border-[#F59E0B]/20 bg-[#111118] p-8 flex flex-col items-center gap-6 text-center">
+        {/* TREK avatar */}
+        <motion.div
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="h-16 w-16 rounded-2xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 flex items-center justify-center"
+          style={{ boxShadow: '0 0 32px rgba(245,158,11,0.15)' }}
+        >
+          <span className="text-2xl font-black" style={{ color: '#F59E0B' }}>T</span>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#F59E0B]/60 mb-2">Meet TREK</p>
+          <h2 className="text-xl font-black text-white/90 mb-1">Your Trading Intelligence</h2>
+        </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="text-sm text-white/45 leading-relaxed max-w-sm"
+        >
+          "Hey, I'm TREK — your personal trading intelligence. I analyze markets 24/7 so you always know what's moving and why. Let's make you a better trader."
+        </motion.p>
+
+        <motion.button
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={onEnter}
+          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mt-2"
+          style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
+        >
+          Enter TREDIA <ArrowRight className="h-4 w-4" />
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function Onboarding() {
   const navigate = useNavigate();
-  const [step, setStep] = useState('choice'); // 'choice' | 'broker' | 'learn'
+  // steps: 'choice' | 'broker' | 'paper' | 'trek'
+  const [step, setStep] = useState('choice');
   const [selectedBroker, setSelectedBroker] = useState(null);
   const [connected, setConnected] = useState(false);
 
   const handleConnect = (brokerId) => {
     setSelectedBroker(brokerId);
     setConnected(true);
-    setTimeout(() => navigate('/Dashboard'), 1400);
+    setTimeout(() => setStep('trek'), 1200);
   };
 
   return (
@@ -91,7 +112,6 @@ export default function Onboarding() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Already Trade */}
                 <motion.button
                   whileHover={{ scale: 1.02, borderColor: 'rgba(245,158,11,0.4)' }}
                   whileTap={{ scale: 0.98 }}
@@ -109,11 +129,10 @@ export default function Onboarding() {
                   <ChevronRight className="h-4 w-4 text-[#F59E0B]/50 self-end mt-auto" />
                 </motion.button>
 
-                {/* New to Trading */}
                 <motion.button
                   whileHover={{ scale: 1.02, borderColor: 'rgba(245,158,11,0.4)' }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setStep('learn')}
+                  onClick={() => setStep('paper')}
                   className="flex flex-col items-center gap-4 p-6 rounded-2xl border border-white/10 bg-[#111118] cursor-pointer transition-all text-left group"
                   style={{ outline: 'none' }}
                 >
@@ -154,14 +173,12 @@ export default function Onboarding() {
                       className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/[0.08] bg-[#111118] hover:bg-white/[0.03] transition-all text-left"
                       style={{ outline: 'none' }}
                     >
-                      {/* Broker icon */}
                       <div
                         className="h-10 w-10 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
                         style={{ background: `${broker.color}15`, border: `1px solid ${broker.color}25`, color: broker.color }}
                       >
                         {broker.name.slice(0, 2).toUpperCase()}
                       </div>
-
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
                           <span className="font-bold text-white/85 text-sm">{broker.name}</span>
@@ -173,7 +190,6 @@ export default function Onboarding() {
                         </div>
                         <p className="text-xs text-white/30 truncate">{broker.desc}</p>
                       </div>
-
                       {connected && selectedBroker === broker.id ? (
                         <motion.div
                           initial={{ scale: 0 }}
@@ -183,10 +199,7 @@ export default function Onboarding() {
                           <Check className="h-3 w-3 text-[#22C55E]" />
                         </motion.div>
                       ) : (
-                        <span
-                          className="text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0"
-                          style={{ background: '#F59E0B15', color: '#F59E0B', border: '1px solid #F59E0B25' }}
-                        >
+                        <span className="text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0" style={{ background: '#F59E0B15', color: '#F59E0B', border: '1px solid #F59E0B25' }}>
                           Connect
                         </span>
                       )}
@@ -204,53 +217,59 @@ export default function Onboarding() {
             </motion.div>
           )}
 
-          {/* STEP 2B: New to Trading */}
-          {step === 'learn' && (
-            <motion.div key="learn" {...fadeUp} transition={{ duration: 0.4 }}>
+          {/* STEP 2B: Paper Trading */}
+          {step === 'paper' && (
+            <motion.div key="paper" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="text-center mb-6">
                 <h1 className="text-2xl font-black text-white/90 mb-1">Let's Get You Started</h1>
-                <p className="text-sm text-white/35">Tredia will guide you every step of the way</p>
+                <p className="text-sm text-white/35">No real money. No risk. Just learning.</p>
               </div>
 
-              <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-6 flex flex-col gap-4">
-                {[
-                  { icon: '📊', title: 'AI Market Signals', desc: 'Get professional-grade trade signals powered by AI' },
-                  { icon: '🛡️', title: 'Paper Trading Mode', desc: 'Practice risk-free with virtual $100,000' },
-                  { icon: '📰', title: 'Market Intelligence', desc: 'Curated news and macro analysis delivered daily' },
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.08 }}
-                    className="flex items-start gap-3"
-                  >
-                    <span className="text-xl flex-shrink-0">{item.icon}</span>
-                    <div>
-                      <p className="text-sm font-bold text-white/80">{item.title}</p>
-                      <p className="text-xs text-white/30 mt-0.5">{item.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
+              {/* $100k Virtual Portfolio Card */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="rounded-2xl border border-[#F59E0B]/20 bg-[#111118] p-6 mb-4"
+                style={{ boxShadow: '0 0 40px rgba(245,158,11,0.06)' }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-center justify-center">
+                    <DollarSign className="h-5 w-5 text-[#F59E0B]" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#F59E0B]/60">Virtual Portfolio</p>
+                    <p className="text-xl font-black text-white/90" style={{ fontFamily: 'JetBrains Mono, monospace' }}>$100,000.00</p>
+                  </div>
+                </div>
+
+                <p className="text-sm text-white/40 leading-relaxed mb-6">
+                  Start with $100k in paper trading. Learn with zero risk.
+                </p>
 
                 <motion.button
                   whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate('/Dashboard')}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-bold text-sm mt-2"
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setStep('trek')}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
                 >
-                  Start Exploring <ArrowRight className="h-4 w-4" />
+                  Start Paper Trading <ArrowRight className="h-4 w-4" />
                 </motion.button>
-              </div>
+              </motion.div>
 
               <button
                 onClick={() => setStep('choice')}
-                className="mt-4 text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto"
+                className="text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto"
               >
                 ← Back
               </button>
             </motion.div>
+          )}
+
+          {/* STEP 3: TREK Introduction (both paths) */}
+          {step === 'trek' && (
+            <TrekIntro onEnter={() => navigate('/Dashboard')} />
           )}
 
         </AnimatePresence>
