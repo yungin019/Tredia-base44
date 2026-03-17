@@ -1,0 +1,141 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "markets": "Markets",
+    "ai_insights": "AI Insights",
+    "portfolio": "Portfolio",
+    "trade": "Trade"
+  },
+  "dashboard": {
+    "title": "Market Intelligence",
+    "subtitle": "Real-time data across all asset classes · AI-powered signals",
+    "time_label": "NYSE"
+  },
+  "markets": {
+    "title": "Markets",
+    "subtitle": "Live prices across equities, ETFs, and indices",
+    "search_placeholder": "Search symbol or name...",
+    "sectors": {
+      "all": "All",
+      "technology": "Technology",
+      "financial": "Financial",
+      "healthcare": "Healthcare",
+      "energy": "Energy",
+      "consumer_cyclical": "Consumer Cyclical",
+      "consumer_defensive": "Consumer Defensive",
+      "automotive": "Automotive"
+    },
+    "table": {
+      "symbol": "Symbol",
+      "company": "Company",
+      "price": "Price",
+      "change": "Change",
+      "chart_7d": "7D",
+      "volume": "Volume",
+      "mkt_cap": "Mkt Cap"
+    },
+    "watchlist_added": "{{symbol}} added to watchlist"
+  },
+  "ai": {
+    "title": "AI Intelligence",
+    "subtitle": "Institutional-grade signals · Real-time analysis",
+    "ask_placeholder": "Ask about any stock, strategy, or market condition...",
+    "ask_title": "Ask TREDIA AI",
+    "analyzing": "Analyzing market data...",
+    "signal_feed": "Live Signal Feed",
+    "signals_count": "{{count}} signals · updated now",
+    "confidence": "confidence",
+    "details": "Details",
+    "suggested": {
+      "nvda": "Is NVDA overbought?",
+      "fed": "Fed rate outlook 2025",
+      "sectors": "Best sectors for Q2",
+      "btc": "Bitcoin next resistance"
+    }
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "subtitle": "Track, analyze, and manage your holdings",
+    "add_holding": "Add Holding",
+    "total_value": "Total Value",
+    "total_pnl": "Total P&L",
+    "return": "Return",
+    "allocation": "Allocation",
+    "holdings": "Holdings ({{count}})",
+    "no_holdings": "No holdings yet. Add your first position.",
+    "loading": "Loading...",
+    "table": {
+      "symbol": "Symbol",
+      "shares": "Shares",
+      "avg_cost": "Avg Cost",
+      "current": "Current",
+      "market_value": "Market Value",
+      "pnl": "P&L"
+    },
+    "dialog": {
+      "title": "Add Position",
+      "symbol": "Ticker Symbol *",
+      "name": "Company Name",
+      "shares": "Shares *",
+      "avg_cost": "Avg Cost *",
+      "current_price": "Current Price (optional)",
+      "symbol_placeholder": "AAPL",
+      "name_placeholder": "Apple Inc.",
+      "shares_placeholder": "100",
+      "price_placeholder": "150.00",
+      "current_placeholder": "175.00",
+      "add_button": "Add to Portfolio",
+      "adding": "Adding...",
+      "validation": "Symbol, shares, and average cost are required",
+      "success": "{{symbol}} added to portfolio"
+    }
+  },
+  "trade": {
+    "title": "Trade Execution",
+    "subtitle": "Fast, precise order entry with live pricing",
+    "new_order": "New Order",
+    "buy": "BUY",
+    "sell": "SELL",
+    "symbol_label": "Ticker Symbol",
+    "shares_label": "Number of Shares",
+    "symbol_placeholder": "AAPL",
+    "shares_placeholder": "100",
+    "preview_button": "Preview Order",
+    "order_preview": "Order Preview",
+    "estimated_price": "Est. Price",
+    "total_value": "Total Value",
+    "paper_warning": "This is a paper trading simulation. No real funds are used.",
+    "execute_buy": "Execute BUY Order",
+    "execute_sell": "Execute SELL Order",
+    "executing": "Executing...",
+    "history_title": "Order History",
+    "no_trades": "No trades executed yet",
+    "validation": "Enter symbol and number of shares",
+    "success": "{{action}} {{shares}} {{symbol}} executed at ${{price}}",
+    "table": {
+      "asset": "Asset",
+      "action": "Action",
+      "shares": "Shares",
+      "price": "Price",
+      "total": "Total",
+      "status": "Status"
+    }
+  },
+  "common": {
+    "live": "LIVE",
+    "loading": "Loading...",
+    "search": "Search",
+    "all_time_return": "all time return",
+    "since_open": "since open",
+    "all_time": "all time",
+    "ready_to_deploy": "ready to deploy",
+    "vs_last_month": "vs. last month",
+    "top_movers": "Top Movers",
+    "portfolio_performance": "Portfolio Performance",
+    "ai_signals": "AI Signals",
+    "view_all": "View all"
+  },
+  "language": {
+    "select": "Language"
+  }
+}
