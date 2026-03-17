@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Loader2, Sparkles, RotateCcw, Brain } from 'lucide-react';
+import { Send, Loader2, Sparkles, RotateCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
+import { askTrek } from '@/api/trek';
 
 const SUGGESTED = [
   'Is NVDA overbought?',
@@ -14,7 +14,7 @@ const SUGGESTED = [
   'Top defensive plays',
 ];
 
-const SYSTEM_PROMPT = `You are TREDIA AI — a premium institutional-grade trading intelligence assistant. Provide concise, data-driven analysis. Use precise financial language. Include specific price levels, probabilities, and actionable insight. Format key numbers and tickers in UPPERCASE. Keep responses under 200 words. Be direct and confident.`;
+
 
 export default function AIChat() {
   const [messages, setMessages] = useState([]);
