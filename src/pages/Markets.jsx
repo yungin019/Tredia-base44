@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchCryptoData } from '@/api/marketData';
-import AssetClassTabs from '@/components/markets/AssetClassTabs';
-import SectorHeatmap from '@/components/markets/SectorHeatmap';
-import TrekScreener from '@/components/markets/TrekScreener';
-import CryptoAssets from '@/components/markets/CryptoAssets';
-import TimeframeSelector from '@/components/markets/TimeframeSelector';
+import AssetClassTabs from '@/components/markets/AssetClassTabs.jsx';
+import SectorHeatmap from '@/components/markets/SectorHeatmap.jsx';
+import TrekScreener from '@/components/markets/TrekScreener.jsx';
+import CryptoAssets from '@/components/markets/CryptoAssets.jsx';
+import TimeframeSelector from '@/components/markets/TimeframeSelector.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
 
 // Mock chart data for different timeframes
