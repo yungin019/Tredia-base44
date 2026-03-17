@@ -117,7 +117,10 @@ Use precise numbers, price levels, and probabilities. Be direct. Under 220 words
 
 export default function SignalCard({ signal, index }) {
   const [expanded, setExpanded] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showConfidence, setShowConfidence] = useState(false);
   const cfg = typeConfig[signal.type];
+  const isNew = index < 2; // first 2 are "live" signals
 
   return (
     <motion.div
