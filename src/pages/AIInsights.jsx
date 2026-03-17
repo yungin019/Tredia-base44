@@ -13,7 +13,7 @@ import SectorHeatmap from '@/components/ai/SectorHeatmap';
 const PREDEFINED_SIGNALS = [
   {
     type: 'bullish', symbol: 'NVDA', title: 'Momentum Breakout — $870 Cleared',
-    message: 'NVDA confirmed breakout above $870 key resistance on 3.2× average volume. Institutional accumulation pattern detected over 14 sessions. Neural network model assigns 85% probability of continued upside toward $920–$950 range. This is the same technical setup seen before NVDA's +40% run in Nov 2023.',
+    message: 'NVDA confirmed breakout above $870 key resistance on 3.2× average volume. Institutional accumulation pattern detected over 14 sessions. Neural network model assigns 85% probability of continued upside toward $920–$950 range. This is the same technical setup seen before NVDA\u2019s +40% run in Nov 2023.',
     confidence: 92, icon: TrendingUp, time: '2m ago', sector: 'Technology',
     targets: [{ label: 'Entry Zone', value: '$871–$878' }, { label: 'Target 1', value: '$920' }, { label: 'Stop Loss', value: '$852' }],
     evidence: [
