@@ -15,6 +15,7 @@ import Markets from './pages/Markets';
 import AIInsights from './pages/AIInsights';
 import Portfolio from './pages/Portfolio';
 import Trade from './pages/Trade';
+import Settings from './pages/Settings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
