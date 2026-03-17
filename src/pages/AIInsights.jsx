@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Brain, TrendingUp, Shield, AlertTriangle, BarChart3, Zap, Activity } from 'lucide-react';
@@ -211,7 +211,6 @@ const PREDEFINED_SIGNALS = [
 
 export default function AIInsights() {
   const { t } = useTranslation();
-  const [expandedSignal, setExpandedSignal] = React.useState(null);
 
   return (
     <div className="p-4 lg:p-6 space-y-5 max-w-[1800px] mx-auto pb-24">
