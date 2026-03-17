@@ -134,6 +134,10 @@
   transform: translateY(-1px);
 }
 
+/* RTL Support */
+[dir="rtl"] .ticker-animate { animation-direction: reverse; }
+[dir="rtl"] .font-mono { letter-spacing: 0; }
+
 /* Number flash on update */
 @keyframes flashGreen {
   0% { color: hsl(142, 70%, 45%); }
