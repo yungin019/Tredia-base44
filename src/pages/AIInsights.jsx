@@ -59,7 +59,7 @@ const PREDEFINED_SIGNALS = [
     risks: [
       'Delivery miss would cause rapid reversal — options premium would collapse.',
       'Macro headwinds: rising rates reducing EV purchase financing demand.',
-      'Chinese competition (BYD) intensifying in TSLA\'s core growth market.',
+      'Chinese competition (BYD) intensifying in TSLA\u2019s core growth market.',
     ],
     news: [
       { headline: 'Tesla Shanghai factory output at record levels in March — supplier sources', source: 'Bloomberg · 22m ago', sentiment: 'positive' },
