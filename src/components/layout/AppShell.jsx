@@ -11,12 +11,11 @@ export default function AppShell() {
   const { t } = useTranslation();
 
   const NAV_ITEMS = [
-    { path: '/Dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
-    { path: '/Markets', icon: TrendingUp, label: t('nav.markets') },
-    { path: '/AIInsights', icon: Brain, label: t('nav.ai_insights') },
-    { path: '/Portfolio', icon: Briefcase, label: t('nav.portfolio') },
-    { path: '/Trade', icon: ArrowLeftRight, label: t('nav.trade') },
-    { path: '/Settings', icon: Settings, label: 'Settings' },
+    { path: '/AIInsights', icon: Brain, label: 'Feed', isTrek: false },
+    { path: '/Markets', icon: TrendingUp, label: 'Markets', isTrek: false },
+    { path: '/Portfolio', icon: Briefcase, label: 'Portfolio', isTrek: false },
+    { path: '/AIInsights', icon: Zap, label: 'TREK ⚡', isTrek: true },
+    { path: '/Settings', icon: Settings, label: 'Settings', isTrek: false },
   ];
 
   return (
@@ -40,30 +39,30 @@ export default function AppShell() {
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-1 ml-4">
-            {NAV_ITEMS.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${
-                    isActive
-                      ? 'text-primary bg-primary/8'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-white/4'
-                  }`}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="nav-pill"
-                      className="absolute inset-0 rounded-md bg-primary/8 border border-primary/15"
-                      transition={{ type: 'spring', bounce: 0.15, duration: 0.3 }}
-                    />
-                  )}
-                  <item.icon className="h-3.5 w-3.5 relative z-10" />
-                  <span className="relative z-10">{item.label}</span>
-                </Link>
-              );
-            })}
+            {NAV_ITEMS.filter(item => !item.isTrek).map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={`${item.path}-${item.label}`}
+                    to={item.path}
+                    className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${
+                      isActive
+                        ? 'text-primary bg-primary/8'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-white/4'
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="nav-pill"
+                        className="absolute inset-0 rounded-md bg-primary/8 border border-primary/15"
+                        transition={{ type: 'spring', bounce: 0.15, duration: 0.3 }}
+                      />
+                    )}
+                    <item.icon className="h-3.5 w-3.5 relative z-10" />
+                    <span className="relative z-10">{item.label}</span>
+                  </Link>
+                );
+              })}
           </nav>
         </div>
 
@@ -113,17 +112,19 @@ export default function AppShell() {
       <nav className="fixed bottom-0 left-0 right-0 glass-dark border-t border-white/[0.06] lg:hidden z-50">
         <div className="flex items-center justify-around py-1 safe-bottom">
           {NAV_ITEMS.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path && !item.isTrek;
+            const isTrekActive = item.isTrek && location.pathname === item.path;
             return (
-              <Link key={item.path} to={item.path} className="flex flex-col items-center py-2 px-4 relative">
-                {isActive && (
+              <Link key={`${item.path}-${item.label}`} to={item.path} className="flex flex-col items-center py-2 px-4 relative">
+                {(isActive || isTrekActive) && (
                   <motion.div
                     layoutId="mobile-nav"
-                    className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-6 bg-primary rounded-full"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-6 rounded-full"
+                    style={{ background: item.isTrek ? '#F59E0B' : 'hsl(var(--primary))' }}
                   />
                 )}
-                <item.icon className={`h-5 w-5 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className={`text-[9px] mt-1 font-medium tracking-wide transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                <item.icon className={`h-5 w-5 transition-colors ${(isActive || isTrekActive) ? (item.isTrek ? 'text-[#F59E0B]' : 'text-primary') : 'text-muted-foreground'}`} />
+                <span className={`text-[9px] mt-1 font-medium tracking-wide transition-colors ${(isActive || isTrekActive) ? (item.isTrek ? 'text-[#F59E0B]' : 'text-primary') : 'text-muted-foreground'}`}>
                   {item.label}
                 </span>
               </Link>
