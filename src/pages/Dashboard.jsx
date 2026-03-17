@@ -14,6 +14,8 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const [indices, setIndices] = useState([]);
   const [stocks, setStocks] = useState([]);
+  const [crypto, setCrypto] = useState(null);
+  const [fearGreed, setFearGreed] = useState(null);
 
   useEffect(() => {
     const update = () => {
@@ -22,6 +24,17 @@ export default function Dashboard() {
     };
     update();
     const interval = setInterval(update, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      const [c, fg] = await Promise.all([fetchCryptoData(), fetchFearGreed()]);
+      if (c) setCrypto(c);
+      if (fg) setFearGreed(fg);
+    };
+    load();
+    const interval = setInterval(load, 60000);
     return () => clearInterval(interval);
   }, []);
 
