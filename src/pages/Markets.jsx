@@ -65,7 +65,7 @@ export default function Markets() {
                   : 'bg-white/[0.04] text-white/35 hover:text-white/60 border border-white/[0.06]'
               }`}
             >
-              {s}
+              {t(`markets.sectors.${SECTOR_KEYS[s]}`)}
             </button>
           ))}
         </div>
