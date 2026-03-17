@@ -20,7 +20,10 @@ export default function AIChat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const bottomRef = useRef(null);
+  // Keep anthropic-format history for context
+  const historyRef = useRef([]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,14 +33,20 @@ export default function AIChat() {
     const q = (text || input).trim();
     if (!q) return;
     setInput('');
+    setError(null);
+    historyRef.current = [...historyRef.current, { role: 'user', content: q }];
     setMessages(prev => [...prev, { role: 'user', content: q }]);
     setLoading(true);
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `${SYSTEM_PROMPT}\n\nUser: ${q}`,
-      add_context_from_internet: true,
-    });
-    setMessages(prev => [...prev, { role: 'ai', content: result }]);
+    const reply = await askTrek(historyRef.current);
+    historyRef.current = [...historyRef.current, { role: 'assistant', content: reply }];
+    setMessages(prev => [...prev, { role: 'ai', content: reply }]);
     setLoading(false);
+  };
+
+  const clear = () => {
+    setMessages([]);
+    historyRef.current = [];
+    setError(null);
   };
 
   const clear = () => setMessages([]);
