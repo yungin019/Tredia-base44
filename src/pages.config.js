@@ -66,6 +66,7 @@ export const PAGES = {
     "Trade": Trade,
     "SplashScreen": SplashScreen,
     "Onboarding": Onboarding,
+    "SignIn": SignIn,
 }
 
 export const pagesConfig = {
