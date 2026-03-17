@@ -231,6 +231,11 @@ export default function AIInsights() {
         </div>
       </motion.div>
 
+      {/* Live Intelligence Ribbon */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }} className="relative">
+        <LiveIntelligenceRibbon />
+      </motion.div>
+
       {/* Macro Bar */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
         <MacroBar />
