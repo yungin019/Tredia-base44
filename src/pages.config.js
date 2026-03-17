@@ -56,7 +56,7 @@ import SplashScreen from './pages/SplashScreen';
 import Onboarding from './pages/Onboarding';
 import SignIn from './pages/SignIn';
 import Settings from './pages/Settings';
-
+import PaperTrading from './pages/PaperTrading';
 
 
 export const PAGES = {
@@ -69,6 +69,7 @@ export const PAGES = {
     "Onboarding": Onboarding,
     "SignIn": SignIn,
     "Settings": Settings,
+    "PaperTrading": PaperTrading,
 }
 
 export const pagesConfig = {
