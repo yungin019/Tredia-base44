@@ -70,11 +70,9 @@ export default function AIChat() {
 
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05]">
-        <div className="h-6 w-6 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-          <Brain className="h-3.5 w-3.5 text-primary" />
-        </div>
-        <span className="text-[11px] font-bold text-white/80">Ask TREDIA AI</span>
-        <span className="text-[9px] font-mono font-bold text-primary/50 bg-primary/8 px-1.5 py-0.5 rounded border border-primary/15 ml-1 tracking-wider">GPT-4 · LIVE</span>
+        <TrekAvatar size={6} />
+        <span className="text-[11px] font-bold text-white/80">Ask TREK</span>
+        <span className="text-[9px] font-mono font-bold text-primary/50 bg-primary/8 px-1.5 py-0.5 rounded border border-primary/15 ml-1 tracking-wider">CLAUDE · LIVE</span>
         {messages.length > 0 && (
           <button onClick={clear} className="ml-auto flex items-center gap-1 text-[9px] text-white/25 hover:text-white/50 transition-colors">
             <RotateCcw className="h-3 w-3" /> Clear
