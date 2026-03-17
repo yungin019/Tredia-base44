@@ -9,6 +9,9 @@ import SignalCard from '@/components/ai/SignalCard';
 import SentimentGauge from '@/components/ai/SentimentGauge';
 import MacroBar from '@/components/ai/MacroBar';
 import SectorHeatmap from '@/components/ai/SectorHeatmap';
+import LiveIntelligenceRibbon from '@/components/ai/LiveIntelligenceRibbon';
+import TrekMoodIndicator from '@/components/ai/TrekMoodIndicator';
+import NewsFeed from '@/components/ai/NewsFeed';
 
 const PREDEFINED_SIGNALS = [
   {
