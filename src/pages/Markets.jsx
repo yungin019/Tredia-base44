@@ -37,8 +37,8 @@ export default function Markets() {
   return (
     <div className="p-4 lg:p-6 space-y-4 max-w-[1600px] mx-auto">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">Markets</h1>
-        <p className="text-[11px] text-white/30 font-medium tracking-wide mb-4">Live prices across equities, ETFs, and indices</p>
+        <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('markets.title')}</h1>
+        <p className="text-[11px] text-white/30 font-medium tracking-wide mb-4">{t('markets.subtitle')}</p>
       </motion.div>
 
       {/* Controls */}
@@ -46,7 +46,7 @@ export default function Markets() {
         <div className="relative sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/25" />
           <Input
-            placeholder="Search symbol or name..."
+            placeholder={t('markets.search_placeholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-white/[0.04] border-white/[0.07] h-9 text-[12px] text-white/70 placeholder:text-white/20 focus:border-primary/30"
