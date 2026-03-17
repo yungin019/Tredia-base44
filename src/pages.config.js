@@ -47,8 +47,24 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AIInsights from './pages/AIInsights';
+import Dashboard from './pages/Dashboard';
+import Markets from './pages/Markets';
+import Portfolio from './pages/Portfolio';
+import Trade from './pages/Trade';
+import SplashScreen from './pages/SplashScreen';
 
-export const pagesConfig = {
-	Pages: {}
+
+export const PAGES = {
+    "AIInsights": AIInsights,
+    "Dashboard": Dashboard,
+    "Markets": Markets,
+    "Portfolio": Portfolio,
+    "Trade": Trade,
+    "SplashScreen": SplashScreen,
 }
 
+export const pagesConfig = {
+    mainPage: "Dashboard",
+    Pages: PAGES,
+};
