@@ -10,6 +10,10 @@ import PerformanceChart from '../components/dashboard/PerformanceChart';
 import CryptoLiveCards from '../components/dashboard/CryptoLiveCards';
 import { fetchCryptoData, fetchFearGreed } from '../api/marketData';
 import NewsFeed from '../components/dashboard/NewsFeed';
+import TrekDailyBrief from '../components/dashboard/TrekDailyBrief';
+import GlobalSentimentMeter from '../components/dashboard/GlobalSentimentMeter';
+import SmartMoneyAlerts from '../components/dashboard/SmartMoneyAlerts';
+import EarningsCalendar from '../components/dashboard/EarningsCalendar';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -45,6 +49,9 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 lg:p-6 space-y-4 max-w-[1600px] mx-auto">
+      {/* TREK Daily Brief */}
+      <TrekDailyBrief />
+
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end justify-between pt-1">
         <div>
@@ -61,8 +68,13 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* Crypto + Fear & Greed */}
-      <CryptoLiveCards crypto={crypto} fearGreed={fearGreed} />
+      {/* Crypto + Fear & Greed + Sentiment */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <CryptoLiveCards crypto={crypto} fearGreed={fearGreed} />
+        </div>
+        <GlobalSentimentMeter fearGreed={fearGreed} />
+      </div>
 
       {/* Indices */}
       <IndexCards indices={indices} />
@@ -78,6 +90,12 @@ export default function Dashboard() {
         <div className="xl:col-span-2">
           <AISignalCard />
         </div>
+      </div>
+
+      {/* Smart Money + Earnings */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SmartMoneyAlerts />
+        <EarningsCalendar />
       </div>
 
       {/* Top Movers */}
