@@ -1,16 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, TrendingUp, Brain, Briefcase, ArrowLeftRight, Bell, Search, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import TickerTape from '../dashboard/TickerTape';
-
-const NAV_ITEMS = [
-  { path: '/Dashboard', icon: LayoutDashboard, label: 'Overview' },
-  { path: '/Markets', icon: TrendingUp, label: 'Markets' },
-  { path: '/AIInsights', icon: Brain, label: 'AI' },
-  { path: '/Portfolio', icon: Briefcase, label: 'Portfolio' },
-  { path: '/Trade', icon: ArrowLeftRight, label: 'Trade' },
-];
+import LanguageSelector from './LanguageSelector';
 
 export default function AppShell() {
   const location = useLocation();
