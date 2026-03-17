@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronDown, ChevronUp, Brain, Newspaper, BarChart2,
   Activity, AlertCircle, TrendingUp, TrendingDown,
-  Loader2, Zap, Eye, Target, ShieldAlert
+  Loader2, Zap, Eye, Target, ShieldAlert, Clock
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import SignalDetailModal from './SignalDetailModal';
+import ConfidenceBreakdownModal from './ConfidenceBreakdownModal';
 
 const typeConfig = {
   bullish: { label: 'BULLISH',  header: '🚀 NEXT JUMP DETECTED',   color: 'text-chart-3',     bg: 'bg-chart-3/8',     border: 'border-chart-3/15',    bar: 'bg-chart-3',     glow: 'shadow-[0_0_20px_rgba(34,197,94,0.08)]' },
