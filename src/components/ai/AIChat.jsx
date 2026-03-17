@@ -108,8 +108,8 @@ export default function AIChat() {
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {msg.role === 'ai' && (
-                <div className="h-5 w-5 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
-                  <Brain className="h-3 w-3 text-primary" />
+                <div className="mr-2 mt-0.5">
+                  <TrekAvatar size={5} />
                 </div>
               )}
               <div className={`max-w-[85%] rounded-xl px-3 py-2 text-[11px] leading-relaxed ${
