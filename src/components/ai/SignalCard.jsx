@@ -92,24 +92,22 @@ export default function SignalCard({ signal, index }) {
         <p className="text-[10px] text-white/40 leading-relaxed line-clamp-2">{signal.message}</p>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-1 border-t border-white/[0.05]">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between pt-3 border-t border-white/[0.05]">
+          <div className="flex items-center gap-4">
             {/* Confidence */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-16 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                <div className="h-full rounded-full bg-primary" style={{ width: `${signal.confidence}%` }} />
-              </div>
-              <button
-                onClick={e => { e.stopPropagation(); setShowConfidence(true); }}
-                className={`text-[10px] font-black font-mono ${cfg.color} hover:opacity-70 transition-opacity`}
-              >
-                {signal.confidence}%
-              </button>
-            </div>
+            <button
+              onClick={e => { e.stopPropagation(); setShowConfidence(true); }}
+              className={`text-4xl font-black font-mono ${cfg.color} hover:opacity-70 transition-opacity leading-none`}
+            >
+              {signal.confidence}<span className="text-sm">%</span>
+            </button>
             {/* Expected move */}
-            <span className={`text-[10px] font-bold font-mono ${signal.expectedPct > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
-              {signal.expectedPct > 0 ? '+' : ''}{signal.expectedPct}% · {signal.expectedDays}
-            </span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[9px] text-white/30 uppercase tracking-wider font-mono">Confidence</span>
+              <span className={`text-[12px] font-bold font-mono ${signal.expectedPct > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
+                {signal.expectedPct > 0 ? '+' : ''}{signal.expectedPct}% · {signal.expectedDays}
+              </span>
+            </div>
           </div>
           <div className={`flex items-center gap-0.5 text-[9px] font-bold ${cfg.color}`}>
             <span>View</span>
