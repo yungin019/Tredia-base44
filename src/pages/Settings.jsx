@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
 import { getFoundingMemberInfo } from '@/api/foundingMembers';
 import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import LegalLinksSection from '@/components/settings/LegalLinksSection';
 
@@ -43,7 +43,7 @@ const PRO_FEATURES = [
 export default function Settings() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const { tier } = useSubscription();
+  const { tier } = useSubscriptionStatus();
   const { restorePurchases, purchaseInProgress, purchaseError } = useRevenueCat();
   const [user, setUser] = useState(null);
   const [foundingMember, setFoundingMember] = useState(null);
