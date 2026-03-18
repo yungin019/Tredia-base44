@@ -183,8 +183,12 @@ export default function Onboarding() {
             <motion.div key="broker" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="text-center mb-6">
                 <h1 className="text-2xl font-black text-white/90 mb-1">Connect Your Broker</h1>
-                <p className="text-sm text-white/35">Broker integrations coming soon — start with paper trading for now</p>
-                <p className="text-xs text-white/20 mt-2">(Real broker OAuth flows require API keys to be configured)</p>
+                <p className="text-sm text-white/35 mb-2">Broker integrations coming in a future release</p>
+                <p className="text-[10px] text-white/15 px-4">
+                  ⚠️ These are UI placeholders. Actual broker connections require OAuth API setup with Alpaca, IBKR, Robinhood, etc.
+                  <br/><br/>
+                  For now, use Paper Trading to practice with $100k in simulated funds.
+                </p>
               </div>
               <div className="flex flex-col gap-3">
                 {BROKERS.map((broker, i) => (
