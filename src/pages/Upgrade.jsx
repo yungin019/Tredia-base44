@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Check, Crown, Users } from 'lucide-react';
-import { getFoundingStats, claimFoundingMemberSlot } from '@/api/foundingMembers';
+import { getFoundingStats, claimFoundingMemberSlot, getFoundingMemberInfo } from '@/api/foundingMembers';
 import { base44 } from '@/api/base44Client';
 
 const ELITE_FEATURES = [
