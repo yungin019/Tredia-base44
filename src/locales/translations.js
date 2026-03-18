@@ -137,7 +137,7 @@ const translations = {
     translation: {
       nav: { feed: "AIフィード", markets: "マーケット", portfolio: "ポートフォリオ", trek: "TREK ⚡", settings: "設定" },
       splash: { tagline: "すべてのトレーダーが必要とするエッジ" },
-      signin: { title: "ログイン", email: "メール", google: "Googleで続行", apple: "Appleで続行", emailAuth: "メールでログイン" },
+      signin: { title: "ログイン", subtitle: "TREDIAアカウントにアクセス", email: "メール", google: "Googleで続行", apple: "Appleで続行", emailAuth: "メールでログイン", or: "または", sendLink: "マジックリンクを送信", enterEmail: "メールアドレスを入力" },
       dashboard: { title: "市場概観", subtitle: "リアルタイムのインデックス、暗号、市場インテリジェンス" },
       markets: { title: "マーケット", subtitle: "株、暗号通貨、為替、商品を分析" },
       portfolio: { title: "ポートフォリオ", subtitle: "あなたのポジションとパフォーマンス", noHoldings: "まだポジションはありません。最初のポジションを追加してください。" },
@@ -145,14 +145,15 @@ const translations = {
       trek: { title: "TREKインテリジェンス", live: "ライブ", signal: "シグナル", confidence: "信頼度" },
       paperTrading: { title: "ペーパートレーディング", subtitle: "仮想資金でトレードをシミュレート", newOrder: "新規注文", orderHistory: "注文履歴", buy: "買う", sell: "売る" },
       onboarding: { title: "TREDIAへようこそ", selectBroker: "ブローカーを選択", setupComplete: "セットアップ完了" },
-      upgrade: { title: "プランをアップグレード", elite: "エリート", pro: "プロ", foundingMember: "創設メンバー" }
+      upgrade: { title: "プランをアップグレード", elite: "エリート", pro: "プロ", foundingMember: "創設メンバー" },
+      common: { loading: "読み込み中...", error: "エラー", success: "成功" }
     }
   },
   zh: {
     translation: {
       nav: { feed: "AI信息源", markets: "市场", portfolio: "投资组合", trek: "TREK ⚡", settings: "设置" },
       splash: { tagline: "每个交易者都需要的优势" },
-      signin: { title: "登录", email: "电子邮件", google: "使用Google继续", apple: "使用Apple继续", emailAuth: "使用电子邮件登录" },
+      signin: { title: "登录", subtitle: "访问您的 TREDIA 账户", email: "电子邮件", google: "使用Google继续", apple: "使用Apple继续", emailAuth: "使用电子邮件登录", or: "或", sendLink: "发送魔法链接", enterEmail: "输入您的电子邮件" },
       dashboard: { title: "市场概览", subtitle: "实时指数、加密货币和市场情报" },
       markets: { title: "市场", subtitle: "分析股票、加密货币、外汇和商品" },
       portfolio: { title: "投资组合", subtitle: "您的头寸和绩效", noHoldings: "暂无头寸。添加您的第一个头寸。" },
@@ -160,14 +161,15 @@ const translations = {
       trek: { title: "TREK智能", live: "直播", signal: "信号", confidence: "置信度" },
       paperTrading: { title: "模拟交易", subtitle: "使用虚拟资金模拟交易", newOrder: "新订单", orderHistory: "订单历史", buy: "购买", sell: "出售" },
       onboarding: { title: "欢迎来到TREDIA", selectBroker: "选择您的经纪商", setupComplete: "设置完成" },
-      upgrade: { title: "升级您的计划", elite: "精英", pro: "专业版", foundingMember: "创始成员" }
+      upgrade: { title: "升级您的计划", elite: "精英", pro: "专业版", foundingMember: "创始成员" },
+      common: { loading: "加载中...", error: "错误", success: "成功" }
     }
   },
   ko: {
     translation: {
       nav: { feed: "AI 피드", markets: "시장", portfolio: "포트폴리오", trek: "TREK ⚡", settings: "설정" },
       splash: { tagline: "모든 거래자가 필요로 하는 우위" },
-      signin: { title: "로그인", email: "이메일", google: "Google로 계속", apple: "Apple로 계속", emailAuth: "이메일로 로그인" },
+      signin: { title: "로그인", subtitle: "TREDIA 계정에 액세스", email: "이메일", google: "Google로 계속", apple: "Apple로 계속", emailAuth: "이메일로 로그인", or: "또는", sendLink: "매직 링크 보내기", enterEmail: "이메일을 입력하세요" },
       dashboard: { title: "시장 개요", subtitle: "실시간 지수, 암호화폐 및 시장 정보" },
       markets: { title: "시장", subtitle: "주식, 암호화폐, 외환 및 상품 분석" },
       portfolio: { title: "포트폴리오", subtitle: "귀하의 포지션 및 성과", noHoldings: "아직 포지션이 없습니다. 첫 번째 포지션을 추가하세요." },
@@ -175,14 +177,15 @@ const translations = {
       trek: { title: "TREK 인텔리전스", live: "라이브", signal: "신호", confidence: "신뢰도" },
       paperTrading: { title: "종이 거래", subtitle: "가상 자금으로 거래 시뮬레이션", newOrder: "새 주문", orderHistory: "주문 기록", buy: "구매", sell: "판매" },
       onboarding: { title: "TREDIA에 오신 것을 환영합니다", selectBroker: "브로커 선택", setupComplete: "설정 완료" },
-      upgrade: { title: "계획 업그레이드", elite: "엘리트", pro: "프로", foundingMember: "창립 회원" }
+      upgrade: { title: "계획 업그레이드", elite: "엘리트", pro: "프로", foundingMember: "창립 회원" },
+      common: { loading: "로딩 중...", error: "오류", success: "성공" }
     }
   },
   ru: {
     translation: {
       nav: { feed: "Лента ИИ", markets: "Рынки", portfolio: "Портфель", trek: "TREK ⚡", settings: "Настройки" },
       splash: { tagline: "Преимущество, которое нужно каждому трейдеру" },
-      signin: { title: "Вход", email: "Email", google: "Продолжить с Google", apple: "Продолжить с Apple", emailAuth: "Вход с Email" },
+      signin: { title: "Вход", subtitle: "Доступ к вашей учетной записи TREDIA", email: "Email", google: "Продолжить с Google", apple: "Продолжить с Apple", emailAuth: "Вход с Email", or: "ИЛИ", sendLink: "Отправить волшебную ссылку", enterEmail: "Введите ваш email" },
       dashboard: { title: "Обзор рынка", subtitle: "Индексы в реальном времени, крипто и рыночная аналитика" },
       markets: { title: "Рынки", subtitle: "Анализируйте акции, крипто, форекс и сырье" },
       portfolio: { title: "Портфель", subtitle: "Ваши позиции и производительность", noHoldings: "Пока нет позиций. Добавьте свою первую позицию." },
@@ -190,14 +193,15 @@ const translations = {
       trek: { title: "Интеллект TREK", live: "LIVE", signal: "Сигнал", confidence: "Уверенность" },
       paperTrading: { title: "Бумажная торговля", subtitle: "Симулируйте сделки с виртуальными средствами", newOrder: "Новый заказ", orderHistory: "История заказов", buy: "КУПИТЬ", sell: "ПРОДАТЬ" },
       onboarding: { title: "Добро пожаловать в TREDIA", selectBroker: "Выберите своего брокера", setupComplete: "Настройка завершена" },
-      upgrade: { title: "Обновите свой план", elite: "Элита", pro: "Про", foundingMember: "Основатель" }
+      upgrade: { title: "Обновите свой план", elite: "Элита", pro: "Про", foundingMember: "Основатель" },
+      common: { loading: "Загрузка...", error: "Ошибка", success: "Успех" }
     }
   },
   tr: {
     translation: {
       nav: { feed: "AI Akışı", markets: "Piyasalar", portfolio: "Portföy", trek: "TREK ⚡", settings: "Ayarlar" },
       splash: { tagline: "Her tüccarın ihtiyaç duyduğu avantaj" },
-      signin: { title: "Oturum Aç", email: "E-posta", google: "Google ile devam et", apple: "Apple ile devam et", emailAuth: "E-posta ile oturum aç" },
+      signin: { title: "Oturum Aç", subtitle: "TREDIA hesabınıza erişin", email: "E-posta", google: "Google ile devam et", apple: "Apple ile devam et", emailAuth: "E-posta ile oturum aç", or: "VEYA", sendLink: "Sihirli bağlantı gönder", enterEmail: "E-postanızı girin" },
       dashboard: { title: "Pazar Özeti", subtitle: "Gerçek zamanlı endeksler, kripto ve pazar istihbaratı" },
       markets: { title: "Piyasalar", subtitle: "Hisse senetleri, kripto, forex ve emtiaları analiz et" },
       portfolio: { title: "Portföy", subtitle: "Pozisyonlarınız ve performansınız", noHoldings: "Henüz pozisyon yok. İlk pozisyonunuzu ekleyin." },
@@ -205,14 +209,15 @@ const translations = {
       trek: { title: "TREK Zekası", live: "CANLI", signal: "Sinyal", confidence: "Güven" },
       paperTrading: { title: "Kağıt Ticareti", subtitle: "Sanal fonlarla ticaret simülasyonu yap", newOrder: "Yeni Sipariş", orderHistory: "Sipariş Geçmişi", buy: "SATINAL", sell: "SAT" },
       onboarding: { title: "TREDIA'ya Hoş Geldiniz", selectBroker: "Brokerinizi Seçin", setupComplete: "Kurulum Tamamlandı" },
-      upgrade: { title: "Planınızı Yükseltin", elite: "Elite", pro: "Pro", foundingMember: "Kurucu Üye" }
+      upgrade: { title: "Planınızı Yükseltin", elite: "Elite", pro: "Pro", foundingMember: "Kurucu Üye" },
+      common: { loading: "Yükleniyor...", error: "Hata", success: "Başarı" }
     }
   },
   nl: {
     translation: {
       nav: { feed: "AI Feed", markets: "Markten", portfolio: "Portefeuille", trek: "TREK ⚡", settings: "Instellingen" },
       splash: { tagline: "Het voordeel dat elke trader nodig heeft" },
-      signin: { title: "Aanmelden", email: "E-mail", google: "Doorgaan met Google", apple: "Doorgaan met Apple", emailAuth: "Aanmelden met e-mail" },
+      signin: { title: "Aanmelden", subtitle: "Toegang tot uw TREDIA-account", email: "E-mail", google: "Doorgaan met Google", apple: "Doorgaan met Apple", emailAuth: "Aanmelden met e-mail", or: "OF", sendLink: "Magische link verzenden", enterEmail: "Voer uw e-mailadres in" },
       dashboard: { title: "Marktoverzicht", subtitle: "Realtime indices, crypto en marktinformatie" },
       markets: { title: "Markten", subtitle: "Analyseer aandelen, crypto, forex en grondstoffen" },
       portfolio: { title: "Portefeuille", subtitle: "Uw posities en prestaties", noHoldings: "Nog geen posities. Voeg uw eerste positie toe." },
@@ -220,22 +225,24 @@ const translations = {
       trek: { title: "TREK Intelligentie", live: "LIVE", signal: "Signaal", confidence: "Betrouwbaarheid" },
       paperTrading: { title: "Papierhandel", subtitle: "Simuleer transacties met virtuele fondsen", newOrder: "Nieuwe bestelling", orderHistory: "Bestelgeschiedenis", buy: "KOPEN", sell: "VERKOPEN" },
       onboarding: { title: "Welkom bij TREDIA", selectBroker: "Selecteer uw makelaar", setupComplete: "Installatie voltooid" },
-      upgrade: { title: "Upgrade uw plan", elite: "Elite", pro: "Pro", foundingMember: "Oprichtend lid" }
+      upgrade: { title: "Upgrade uw plan", elite: "Elite", pro: "Pro", foundingMember: "Oprichtend lid" },
+      common: { loading: "Bezig met laden...", error: "Fout", success: "Succes" }
     }
   },
   pl: {
     translation: {
       nav: { feed: "Kanał AI", markets: "Rynki", portfolio: "Portfel", trek: "TREK ⚡", settings: "Ustawienia" },
       splash: { tagline: "Przewaga, której potrzebuje każdy trader" },
-      signin: { title: "Zaloguj się", email: "E-mail", google: "Kontynuuj z Google", apple: "Kontynuuj z Apple", emailAuth: "Zaloguj się za pomocą e-maila" },
+      signin: { title: "Zaloguj się", subtitle: "Uzyskaj dostęp do konta TREDIA", email: "E-mail", google: "Kontynuuj z Google", apple: "Kontynuuj z Apple", emailAuth: "Zaloguj się za pomocą e-maila", or: "LUB", sendLink: "Wyślij magiczny link", enterEmail: "Wpisz swój e-mail" },
       dashboard: { title: "Przegląd rynku", subtitle: "Indeksy w czasie rzeczywistym, kryptowaluty i intelligencja rynku" },
       markets: { title: "Rynki", subtitle: "Analizuj akcje, kryptowaluty, forex i surowce" },
       portfolio: { title: "Portfel", subtitle: "Twoje pozycje i wyniki", noHoldings: "Brak pozycji. Dodaj swoją pierwszą pozycję." },
       settings: { title: "Ustawienia", language: "Język", profile: "Profil", notifications: "Powiadomienia", tier: "Typ konta" },
       trek: { title: "Inteligencja TREK", live: "NA ŻYWO", signal: "Sygnał", confidence: "Pewność" },
-      paperTrading: { title: "Handel papierowy", subtitle: "Symuluj transakcje za pomocą wirtualnych funduszy", newOrder: "Nowe zamówienie", orderHistory: "Historia zamówień", buy: "KУПИТЬ", sell: "SPRZEDAĆ" },
+      paperTrading: { title: "Handel papierowy", subtitle: "Symuluj transakcje za pomocą wirtualnych funduszy", newOrder: "Nowe zamówienie", orderHistory: "Historia zamówień", buy: "KUP", sell: "SPRZEDAJ" },
       onboarding: { title: "Witamy w TREDIA", selectBroker: "Wybierz swojego brokera", setupComplete: "Konfiguracja ukończona" },
-      upgrade: { title: "Uaktualnij swój plan", elite: "Elite", pro: "Pro", foundingMember: "Członek założyciel" }
+      upgrade: { title: "Uaktualnij swój plan", elite: "Elite", pro: "Pro", foundingMember: "Członek założyciel" },
+      common: { loading: "Ładowanie...", error: "Błąd", success: "Sukces" }
     }
   },
   th: {
