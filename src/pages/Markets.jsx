@@ -48,6 +48,7 @@ const STOCK_DATA = [
 ];
 
 export default function Markets() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('stocks');
   const [activeFilter, setActiveFilter] = useState(null);
   const [timeframe, setTimeframe] = useState('1D');
