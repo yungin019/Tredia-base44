@@ -43,6 +43,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { tier } = useSubscription();
+  const { restorePurchases, purchaseInProgress, purchaseError } = useRevenueCat();
   const [user, setUser] = useState(null);
   const [foundingMember, setFoundingMember] = useState(null);
   const [notifications, setNotifications] = useState({
@@ -51,6 +52,7 @@ export default function Settings() {
     newsAlerts: true,
     earningsCalendar: false,
   });
+  const [restoreMessage, setRestoreMessage] = useState(null);
 
   useEffect(() => {
     base44.auth.me()
