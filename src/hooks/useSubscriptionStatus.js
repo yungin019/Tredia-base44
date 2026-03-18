@@ -4,6 +4,12 @@
  * SINGLE SOURCE OF TRUTH: RevenueCat ONLY
  * No localStorage fallback. No local tier persistence.
  * 
+ * Entitlement identifiers from RevenueCat Dashboard:
+ * - elite: 'elite_monthly'
+ * - pro: '$rc_monthly'
+ * - yearly: '$rc_annual'
+ * - lifetime: '$rc_lifetime'
+ * 
  * If RevenueCat unavailable or user has no entitlements:
  * - Default to FREE tier
  * - NO premium features unlocked
@@ -12,6 +18,7 @@
 
 import { useRevenueCat } from './useRevenueCat';
 import { useMemo } from 'react';
+import { REVENUECAT_CONFIG } from '@/lib/revenuecat-config';
 
 export function useSubscriptionStatus() {
   const { getCurrentTier: getRevenueCatTier, hasActiveSubscription, checkEntitlement } = useRevenueCat();
@@ -36,10 +43,15 @@ export function useSubscriptionStatus() {
   const hasAccess = (feature) => {
     if (!hasActiveSubscription()) return false; // No subscription = no premium features
 
-    if (checkEntitlement('elite')) return true; // Elite has everything
+    // Lifetime and yearly have all features
+    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.lifetime)) return true;
+    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.yearly)) return true;
+    
+    // Elite has all features
+    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.elite)) return true;
 
-    if (checkEntitlement('pro')) {
-      // Pro restricted features
+    // Pro has most features but not super_ai
+    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.pro)) {
       if (feature === 'super_ai') return false;
       if (feature === 'institutional_flow') return false;
       return true;
@@ -54,9 +66,9 @@ export function useSubscriptionStatus() {
   const isFree = tier === 'free';
 
   /**
-   * Check if currently subscribed (pro or elite)
+   * Check if currently subscribed (pro, elite, yearly, or lifetime)
    */
-  const isSubscribed = tier === 'pro' || tier === 'elite';
+  const isSubscribed = tier !== 'free';
 
   return {
     tier,
@@ -64,6 +76,8 @@ export function useSubscriptionStatus() {
     isSubscribed,
     isPro: tier === 'pro',
     isElite: tier === 'elite',
+    isYearly: tier === 'yearly',
+    isLifetime: tier === 'lifetime',
     hasAccess,
     hasActiveSubscription,
     checkEntitlement, // Direct RevenueCat check
