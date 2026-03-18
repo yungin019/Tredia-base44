@@ -212,8 +212,30 @@ const PREDEFINED_SIGNALS = [
   },
 ];
 
+function toSignalCardProps(s) {
+  const signalMap = { bullish: 'BUY', bearish: 'SELL', hedge: 'SELL', alert: 'WATCH' };
+  const ev = s.evidence || [];
+  return {
+    symbol: s.symbol,
+    title: s.title,
+    signal: signalMap[s.type] || 'HOLD',
+    confidence: s.confidence,
+    time: s.time,
+    expectedMove: s.expectedPct ? `${s.expectedPct > 0 ? '+' : ''}${s.expectedPct}%` : undefined,
+    timeframe: s.expectedDays,
+    technicalSummary: s.message,
+    confidence_breakdown: {
+      technical: ev[0]?.score ?? 0,
+      sentiment: ev[1]?.score ?? 0,
+      volume:    ev[2]?.score ?? 0,
+      macro:     ev[3]?.score ?? 0,
+    },
+  };
+}
+
 export default function AIInsights() {
   const { t } = useTranslation();
+  const { tier } = useSubscription();
 
   return (
     <div className="p-4 lg:p-6 space-y-5 max-w-[1800px] mx-auto pb-24">
