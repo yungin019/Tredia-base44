@@ -2,17 +2,19 @@ import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, TrendingUp, Brain, Briefcase, ArrowLeftRight, Bell, Search, Zap, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import TickerTape from '../dashboard/TickerTape';
 
 export default function AppShell() {
+  const { t } = useTranslation();
   const location = useLocation();
 
   const NAV_ITEMS = [
-    { path: '/AIInsights', icon: Brain, label: 'Feed', isTrek: false },
-    { path: '/Markets', icon: TrendingUp, label: 'Markets', isTrek: false },
-    { path: '/Portfolio', icon: Briefcase, label: 'Portfolio', isTrek: false },
-    { path: '/AIInsights', icon: Zap, label: 'TREK ⚡', isTrek: true },
-    { path: '/Settings', icon: Settings, label: 'Settings', isTrek: false },
+    { path: '/AIInsights', icon: Brain, labelKey: 'nav.feed', isTrek: false },
+    { path: '/Markets', icon: TrendingUp, labelKey: 'nav.markets', isTrek: false },
+    { path: '/Portfolio', icon: Briefcase, labelKey: 'nav.portfolio', isTrek: false },
+    { path: '/AIInsights', icon: Zap, labelKey: 'nav.trek', isTrek: true },
+    { path: '/Settings', icon: Settings, labelKey: 'nav.settings', isTrek: false },
   ];
 
   return (
@@ -40,7 +42,7 @@ export default function AppShell() {
                 const isActive = location.pathname === item.path;
                 return (
                   <Link
-                    key={`${item.path}-${item.label}`}
+                    key={`${item.path}-${item.labelKey}`}
                     to={item.path}
                     className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${
                       isActive
@@ -56,7 +58,7 @@ export default function AppShell() {
                       />
                     )}
                     <item.icon className="h-3.5 w-3.5 relative z-10" />
-                    <span className="relative z-10">{item.label}</span>
+                    <span className="relative z-10">{t(item.labelKey)}</span>
                   </Link>
                 );
               })}
@@ -110,7 +112,7 @@ export default function AppShell() {
             const isActive = location.pathname === item.path && !item.isTrek;
             const isTrekActive = item.isTrek && location.pathname === item.path;
             return (
-              <Link key={`${item.path}-${item.label}`} to={item.path} className="flex flex-col items-center py-2 px-4 relative">
+              <Link key={`${item.path}-${item.labelKey}`} to={item.path} className="flex flex-col items-center py-2 px-4 relative">
                 {(isActive || isTrekActive) && (
                   <motion.div
                     layoutId="mobile-nav"
@@ -120,7 +122,7 @@ export default function AppShell() {
                 )}
                 <item.icon className={`h-5 w-5 transition-colors ${(isActive || isTrekActive) ? (item.isTrek ? 'text-[#F59E0B]' : 'text-primary') : 'text-muted-foreground'}`} />
                 <span className={`text-[9px] mt-1 font-medium tracking-wide transition-colors ${(isActive || isTrekActive) ? (item.isTrek ? 'text-[#F59E0B]' : 'text-primary') : 'text-muted-foreground'}`}>
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </Link>
             );
