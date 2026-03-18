@@ -256,7 +256,7 @@ function toEngineSignalCardProps(s) {
 
 export default function AIInsights() {
   const { t } = useTranslation();
-  const { tier } = useSubscriptionStatus();
+  const { isElite } = useSubscriptionStatus();
   const [engineSignals, setEngineSignals] = useState([]);
   const [engineLoading, setEngineLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -399,22 +399,22 @@ export default function AIInsights() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <div className="lg:col-span-2">
-              <SuperAICard isElite={tier === 'elite'} result={null} />
+              <SuperAICard isElite={isElite} result={null} />
             </div>
             {engineLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="h-28 rounded-xl bg-white/[0.03] animate-pulse border border-white/[0.05]" />
               ))
             ) : engineSignals.length > 0 ? (
-              engineSignals.slice(0, tier === 'elite' ? 10 : 3).map((signal, i) => (
+              engineSignals.slice(0, isElite ? 10 : 3).map((signal, i) => (
                 <SignalCard key={i} signal={toEngineSignalCardProps(signal)} />
               ))
             ) : (
-              PREDEFINED_SIGNALS.slice(0, tier === 'elite' ? 6 : 2).map((signal, i) => (
+              PREDEFINED_SIGNALS.slice(0, isElite ? 6 : 2).map((signal, i) => (
                 <SignalCard key={i} signal={toSignalCardProps(signal)} />
               ))
             )}
-            {tier !== 'elite' && (
+            {!isElite && (
               <div className="lg:col-span-2 p-4 rounded-lg bg-white/[0.03] border border-primary/20 text-center">
                 <p className="text-xs text-white/40 mb-2">Unlock unlimited signals · Tap for more</p>
               </div>
