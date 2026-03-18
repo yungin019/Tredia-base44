@@ -20,51 +20,51 @@ const translations = {
     }
   },
   sv: {
-    translation: {
-      nav: { feed: "AI-flöde", markets: "Marknader", portfolio: "Portfölj", trek: "TREK ⚡", settings: "Inställningar" },
-      splash: { tagline: "Fördelar som varje handlare behöver" },
-      signin: { title: "Logga in", subtitle: "Få åtkomst till ditt TREDIA-konto", email: "E-post", google: "Fortsätt med Google", apple: "Fortsätt med Apple", emailAuth: "Logga in med e-post", or: "ELLER", sendLink: "Skicka Magic Link", enterEmail: "Ange din e-postadress" },
-      dashboard: { title: "Marknadsöversikt", subtitle: "Realtids-index, krypto och marknadsintelligens" },
-      markets: { title: "Marknader", subtitle: "Analysera aktier, krypto, forex och råvaror" },
-      portfolio: { title: "Portfölj", subtitle: "Dina innehav och prestanda", noHoldings: "Inga innehav ännu. Lägg till din första position." },
-      settings: { title: "Inställningar", language: "Språk", profile: "Profil", notifications: "Aviseringar", tier: "Kontotyp" },
-      trek: { title: "TREK Intelligence", live: "LIVE", signal: "Signal", confidence: "Konfidens" },
-      paperTrading: { title: "Papershandel", subtitle: "Simulera affärer med virtuella pengar", newOrder: "Ny Order", orderHistory: "Orderhistorik", buy: "KÖP", sell: "SÄLJ" },
-      onboarding: { title: "Välkommen till TREDIA", selectBroker: "Välj din mäklare", setupComplete: "Konfiguration slutförd" },
-      upgrade: { title: "Uppgradera din plan", elite: "Elite", pro: "Pro", foundingMember: "Grundande medlem" },
-      common: { loading: "Laddar...", error: "Fel", success: "Framgång" }
+     translation: {
+       nav: { feed: "AI-flöde", markets: "Marknader", portfolio: "Portfölj", trek: "TREK ⚡", settings: "Inställningar" },
+       splash: { tagline: "Fördelar som varje handlare behöver" },
+       signin: { title: "Logga in", subtitle: "Få åtkomst till ditt TREDIA-konto", email: "E-post", google: "Fortsätt med Google", apple: "Fortsätt med Apple", emailAuth: "Logga in med e-post", or: "ELLER", sendLink: "Skicka Magic Link", enterEmail: "Ange din e-postadress" },
+       dashboard: { title: "Marknadsöversikt", subtitle: "Realtids-index, krypto och marknadsintelligens", noSignals: "Inga signaler tillgängliga", fearGreed: "Fear & Greed Index", live: "LIVE", refresh: "Uppdatera" },
+       markets: { title: "Marknader", subtitle: "Analysera aktier, krypto, forex och råvaror", noData: "Ingen marknadsdata tillgänglig" },
+       portfolio: { title: "Portfölj", subtitle: "Dina innehav och prestanda", noHoldings: "Inga innehav ännu. Lägg till din första position.", empty: "Din portfölj är tom" },
+       settings: { title: "Inställningar", language: "Språk", profile: "Profil", notifications: "Aviseringar", tier: "Kontotyp" },
+       trek: { title: "TREK Intelligence", live: "LIVE", signal: "Signal", confidence: "Konfidens", bull: "TJUR", alert: "VARNING", hedge: "SKYDD", disclaimer: "För informationsändamål · Du fattar det slutgiltiga beslutet" },
+       paperTrading: { title: "Papershandel", subtitle: "Simulera affärer med virtuella pengar", newOrder: "Ny Order", orderHistory: "Orderhistorik", buy: "KÖP", sell: "SÄLJ" },
+       onboarding: { title: "Välkommen till TREDIA", selectBroker: "Välj din mäklare", setupComplete: "Konfiguration slutförd" },
+       upgrade: { title: "Uppgradera din plan", elite: "Elite", pro: "Pro", foundingMember: "Grundande medlem" },
+       common: { loading: "Laddar...", error: "Fel", success: "Framgång", emptyState: "Ingen data tillgänglig", tryAgain: "Försök igen", notAvailable: "Inte tillgänglig" }
     }
   },
   fr: {
-    translation: {
-      nav: { feed: "Flux IA", markets: "Marchés", portfolio: "Portefeuille", trek: "TREK ⚡", settings: "Paramètres" },
-      splash: { tagline: "L'avantage que chaque trader demande" },
-      signin: { title: "Se connecter", subtitle: "Accédez à votre compte TREDIA", email: "E-mail", google: "Continuer avec Google", apple: "Continuer avec Apple", emailAuth: "Se connecter par e-mail", or: "OU", sendLink: "Envoyer le lien magique", enterEmail: "Entrez votre e-mail" },
-      dashboard: { title: "Aperçu du marché", subtitle: "Indices en temps réel, crypto et renseignements de marché" },
-      markets: { title: "Marchés", subtitle: "Analysez les actions, les cryptos, le forex et les matières premières" },
-      portfolio: { title: "Portefeuille", subtitle: "Vos positions et performances", noHoldings: "Aucune position pour le moment. Ajoutez votre première position." },
-      settings: { title: "Paramètres", language: "Langue", profile: "Profil", notifications: "Notifications", tier: "Niveau de compte" },
-      trek: { title: "Intelligence TREK", live: "EN DIRECT", signal: "Signal", confidence: "Confiance" },
-      paperTrading: { title: "Simulation de trading", subtitle: "Simulez des échanges avec des fonds virtuels", newOrder: "Nouvelle commande", orderHistory: "Historique des commandes", buy: "ACHETER", sell: "VENDRE" },
-      onboarding: { title: "Bienvenue sur TREDIA", selectBroker: "Sélectionnez votre courtier", setupComplete: "Configuration complète" },
-      upgrade: { title: "Améliorez votre plan", elite: "Elite", pro: "Pro", foundingMember: "Membre fondateur" },
-      common: { loading: "Chargement...", error: "Erreur", success: "Succès" }
+     translation: {
+       nav: { feed: "Flux IA", markets: "Marchés", portfolio: "Portefeuille", trek: "TREK ⚡", settings: "Paramètres" },
+       splash: { tagline: "L'avantage que chaque trader demande" },
+       signin: { title: "Se connecter", subtitle: "Accédez à votre compte TREDIA", email: "E-mail", google: "Continuer avec Google", apple: "Continuer avec Apple", emailAuth: "Se connecter par e-mail", or: "OU", sendLink: "Envoyer le lien magique", enterEmail: "Entrez votre e-mail" },
+       dashboard: { title: "Aperçu du marché", subtitle: "Indices en temps réel, crypto et renseignements de marché", noSignals: "Aucun signal disponible", fearGreed: "Indice Peur & Avidité", live: "EN DIRECT", refresh: "Actualiser" },
+       markets: { title: "Marchés", subtitle: "Analysez les actions, les cryptos, le forex et les matières premières", noData: "Aucune donnée de marché disponible" },
+       portfolio: { title: "Portefeuille", subtitle: "Vos positions et performances", noHoldings: "Aucune position pour le moment. Ajoutez votre première position.", empty: "Votre portefeuille est vide" },
+       settings: { title: "Paramètres", language: "Langue", profile: "Profil", notifications: "Notifications", tier: "Niveau de compte" },
+       trek: { title: "Intelligence TREK", live: "EN DIRECT", signal: "Signal", confidence: "Confiance", bull: "HAUSSIER", alert: "ALERTE", hedge: "COUVERTURE", disclaimer: "À titre informatif · Vous prenez la décision finale" },
+       paperTrading: { title: "Simulation de trading", subtitle: "Simulez des échanges avec des fonds virtuels", newOrder: "Nouvelle commande", orderHistory: "Historique des commandes", buy: "ACHETER", sell: "VENDRE" },
+       onboarding: { title: "Bienvenue sur TREDIA", selectBroker: "Sélectionnez votre courtier", setupComplete: "Configuration complète" },
+       upgrade: { title: "Améliorez votre plan", elite: "Elite", pro: "Pro", foundingMember: "Membre fondateur" },
+       common: { loading: "Chargement...", error: "Erreur", success: "Succès", emptyState: "Aucune donnée disponible", tryAgain: "Réessayer", notAvailable: "Non disponible" }
     }
   },
   ar: {
-    translation: {
-      nav: { feed: "تغذية الذكاء الاصطناعي", markets: "الأسواق", portfolio: "المحفظة", trek: "TREK ⚡", settings: "الإعدادات" },
-      splash: { tagline: "الميزة التي يحتاجها كل متاجر" },
-      signin: { title: "تسجيل الدخول", subtitle: "الوصول إلى حسابك TREDIA", email: "البريد الإلكتروني", google: "متابعة مع جوجل", apple: "متابعة مع أبل", emailAuth: "تسجيل الدخول عبر البريد الإلكتروني", or: "أو", sendLink: "إرسال رابط سحري", enterEmail: "أدخل بريدك الإلكتروني" },
-      dashboard: { title: "نظرة عامة على السوق", subtitle: "الرموز والعملات الرقمية والمعلومات الحية" },
-      markets: { title: "الأسواق", subtitle: "حلل الأسهم والعملات الرقمية والفوركس والسلع" },
-      portfolio: { title: "المحفظة", subtitle: "ممتلكاتك والأداء", noHoldings: "لا توجد ممتلكات حتى الآن. أضف موضعك الأول." },
-      settings: { title: "الإعدادات", language: "اللغة", profile: "الملف الشخصي", notifications: "إخطارات", tier: "مستوى الحساب" },
-      trek: { title: "ذكاء TREK", live: "مباشر", signal: "الإشارة", confidence: "الثقة" },
-      paperTrading: { title: "تداول الورقة", subtitle: "محاكاة الصفقات برأس مال افتراضي", newOrder: "أمر جديد", orderHistory: "سجل الطلبات", buy: "شراء", sell: "بيع" },
-      onboarding: { title: "مرحبا بك في TREDIA", selectBroker: "اختر وسيطك", setupComplete: "اكتمل الإعداد" },
-      upgrade: { title: "ترقية خطتك", elite: "نخبة", pro: "احترافي", foundingMember: "عضو مؤسس" },
-      common: { loading: "جاري التحميل...", error: "خطأ", success: "نجاح" }
+     translation: {
+       nav: { feed: "تغذية الذكاء الاصطناعي", markets: "الأسواق", portfolio: "المحفظة", trek: "TREK ⚡", settings: "الإعدادات" },
+       splash: { tagline: "الميزة التي يحتاجها كل متاجر" },
+       signin: { title: "تسجيل الدخول", subtitle: "الوصول إلى حسابك TREDIA", email: "البريد الإلكتروني", google: "متابعة مع جوجل", apple: "متابعة مع أبل", emailAuth: "تسجيل الدخول عبر البريد الإلكتروني", or: "أو", sendLink: "إرسال رابط سحري", enterEmail: "أدخل بريدك الإلكتروني" },
+       dashboard: { title: "نظرة عامة على السوق", subtitle: "الرموز والعملات الرقمية والمعلومات الحية", noSignals: "لا توجد إشارات متاحة", fearGreed: "مؤشر الخوف والجشع", live: "مباشر", refresh: "تحديث" },
+       markets: { title: "الأسواق", subtitle: "حلل الأسهم والعملات الرقمية والفوركس والسلع", noData: "لا توجد بيانات سوق متاحة" },
+       portfolio: { title: "المحفظة", subtitle: "ممتلكاتك والأداء", noHoldings: "لا توجد ممتلكات حتى الآن. أضف موضعك الأول.", empty: "محفظتك فارغة" },
+       settings: { title: "الإعدادات", language: "اللغة", profile: "الملف الشخصي", notifications: "إخطارات", tier: "مستوى الحساب" },
+       trek: { title: "ذكاء TREK", live: "مباشر", signal: "الإشارة", confidence: "الثقة", bull: "صاعد", alert: "تحذير", hedge: "تحوط", disclaimer: "لأغراض إعلامية · أنت تتخذ القرار النهائي" },
+       paperTrading: { title: "تداول الورقة", subtitle: "محاكاة الصفقات برأس مال افتراضي", newOrder: "أمر جديد", orderHistory: "سجل الطلبات", buy: "شراء", sell: "بيع" },
+       onboarding: { title: "مرحبا بك في TREDIA", selectBroker: "اختر وسيطك", setupComplete: "اكتمل الإعداد" },
+       upgrade: { title: "ترقية خطتك", elite: "نخبة", pro: "احترافي", foundingMember: "عضو مؤسس" },
+       common: { loading: "جاري التحميل...", error: "خطأ", success: "نجاح", emptyState: "لا توجد بيانات متاحة", tryAgain: "حاول مرة أخرى", notAvailable: "غير متاح" }
     }
   },
   
