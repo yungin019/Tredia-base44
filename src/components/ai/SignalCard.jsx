@@ -11,6 +11,8 @@ const TYPE_CONFIG = {
     border: 'border-[#22C55E]/20',
     color: 'text-[#22C55E]',
     dot: 'bg-[#22C55E]',
+    leftBorder: true,
+    leftBorderColor: '#22C55E',
   },
   bearish: {
     header: 'BEARISH SIGNAL',
@@ -49,7 +51,11 @@ export default function SignalCard({ signal, index }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.06 }}
         onClick={() => setShowDetail(true)}
-        className={`card-hover cursor-pointer rounded-xl border ${cfg.border} bg-[#111118] p-4 flex flex-col gap-3`}
+        className={`card-hover cursor-pointer rounded-xl border ${cfg.border} bg-[#111118] p-4 flex flex-col gap-3 relative`}
+        style={cfg.leftBorder ? {
+          borderLeft: `3px solid ${cfg.leftBorderColor}`,
+          boxShadow: `inset 0 0 12px ${cfg.leftBorderColor}22, inset -4px 0 12px ${cfg.leftBorderColor}15`
+        } : {}}
       >
         {/* Top row */}
         <div className="flex items-start justify-between gap-2">
