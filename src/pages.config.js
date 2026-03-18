@@ -58,6 +58,7 @@ import SignIn from './pages/SignIn';
 import SplashScreen from './pages/SplashScreen';
 import Trade from './pages/Trade';
 import Upgrade from './pages/Upgrade';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -77,4 +78,5 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "SplashScreen",
     Pages: PAGES,
+    Layout: __Layout,
 };
