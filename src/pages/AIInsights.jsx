@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Brain, TrendingUp, Shield, AlertTriangle, BarChart3, Zap, Activity } from 'lucide-react';
