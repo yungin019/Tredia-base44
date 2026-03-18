@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Zap, Check, Crown, Users } from 'lucide-react';
 import { getFoundingStats, claimFoundingMemberSlot, getFoundingMemberInfo } from '@/api/foundingMembers';
 import { base44 } from '@/api/base44Client';
@@ -21,6 +22,7 @@ const FOUNDING_FEATURES = [
 ];
 
 export default function Upgrade() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({ foundingSpotsTaken: 0, foundingSpotsRemaining: 100, isSoldOut: false });
   const [loadingStats, setLoadingStats] = useState(true);
   const [joining, setJoining] = useState(false);
@@ -75,7 +77,7 @@ export default function Upgrade() {
   return (
     <div className="p-4 lg:p-6 max-w-2xl mx-auto pb-24 space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="text-2xl font-black text-white/95 tracking-tight">Upgrade</h1>
+        <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('upgrade.title')}</h1>
         <p className="text-sm text-white/35 mt-1">Unlock the full power of TREDIA</p>
       </motion.div>
 
@@ -199,7 +201,7 @@ export default function Upgrade() {
         </ul>
         <button className="w-full py-3 rounded-xl font-black text-sm tracking-wide hover:opacity-90 transition-opacity"
           style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-          Upgrade to Elite
+          {t('upgrade.elite')} →
         </button>
       </motion.div>
 
@@ -217,7 +219,7 @@ export default function Upgrade() {
           ))}
         </ul>
         <button className="w-full py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55">
-          Upgrade to Pro
+          {t('upgrade.pro')} →
         </button>
       </motion.div>
     </div>
