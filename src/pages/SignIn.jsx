@@ -14,17 +14,11 @@ export default function SignIn() {
   const [error, setError] = useState(null);
 
   const handleGoogle = () => {
-    base44.auth.redirectToLogin({
-      provider: 'google',
-      nextUrl: window.location.pathname
-    });
+    base44.auth.redirectToLogin();
   };
 
   const handleApple = () => {
-    base44.auth.redirectToLogin({
-      provider: 'apple',
-      nextUrl: window.location.pathname
-    });
+    base44.auth.redirectToLogin();
   };
 
   const handleEmail = async (e) => {
@@ -32,10 +26,7 @@ export default function SignIn() {
     setError(null);
     setLoading(true);
     try {
-      await base44.auth.redirectToLogin({
-        email,
-        nextUrl: window.location.pathname
-      });
+      base44.auth.redirectToLogin();
     } catch (err) {
       setError(err.message || 'Something went wrong');
     } finally {
