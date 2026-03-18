@@ -25,11 +25,14 @@ const FOUNDING_FEATURES = [
 
 export default function Upgrade() {
   const { t } = useTranslation();
+  const { makePurchase, restorePurchases, purchaseInProgress, purchaseError, isInitialized } = useRevenueCat();
   const [stats, setStats] = useState({ foundingSpotsTaken: 0, foundingSpotsRemaining: 100, isSoldOut: false });
   const [loadingStats, setLoadingStats] = useState(true);
   const [joining, setJoining] = useState(false);
   const [joined, setJoined] = useState(false);
   const [joinedNumber, setJoinedNumber] = useState(null);
+  const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'annual'
+  const [lastPurchaseError, setLastPurchaseError] = useState(null);
 
   useEffect(() => {
     const init = async () => {
