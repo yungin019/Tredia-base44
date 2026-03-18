@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { getFoundingMemberInfo } from '@/api/foundingMembers';
 import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
+import { useSubscription } from '@/hooks/useSubscription';
 
 function SectionHeader({ title }) {
   return (
@@ -38,6 +39,7 @@ const PRO_FEATURES = [
 
 export default function Settings() {
   const navigate = useNavigate();
+  const { tier } = useSubscription();
   const [user, setUser] = useState(null);
   const [foundingMember, setFoundingMember] = useState(null);
   const [notifications, setNotifications] = useState({
@@ -177,7 +179,13 @@ export default function Settings() {
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-4">
         <SectionHeader title="Account Tier" />
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-xs font-black px-3 py-1 rounded-full bg-white/[0.06] border border-white/[0.1] text-white/40 tracking-widest uppercase">FREE</span>
+          <span className={`text-xs font-black px-3 py-1 rounded-full tracking-widest uppercase ${
+            tier === 'elite' ? 'bg-[#F59E0B]/15 border border-[#F59E0B]/40 text-[#F59E0B]' :
+            tier === 'pro' ? 'bg-blue-500/15 border border-blue-500/40 text-blue-400' :
+            'bg-white/[0.06] border border-white/[0.1] text-white/40'
+          }`}>
+            {tier.toUpperCase()}
+          </span>
           <span className="text-xs text-white/25">Current plan</span>
         </div>
         <ul className="space-y-2 mb-4">
