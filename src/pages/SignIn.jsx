@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
 import { Mail, Chrome, Apple, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function SignIn() {
+  const { t } = useTranslation();
   const [mode, setMode] = useState(null); // null | 'email'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,7 +64,7 @@ export default function SignIn() {
             </svg>
           </div>
           <span className="text-3xl font-black tracking-tight" style={{ color: '#F59E0B', letterSpacing: '-0.03em' }}>TREDIA</span>
-          <p className="text-[11px] text-white/30 tracking-widest uppercase">The Edge Every Trader Needs</p>
+           <p className="text-[11px] text-white/30 tracking-widest uppercase">{t('splash.tagline')}</p>
         </motion.div>
 
         {/* Card */}
@@ -74,8 +76,8 @@ export default function SignIn() {
           style={{ boxShadow: '0 0 40px rgba(0,0,0,0.4)' }}
         >
           <div className="text-center mb-1">
-            <h1 className="text-lg font-black text-white/90">Sign In</h1>
-            <p className="text-xs text-white/30 mt-0.5">Access your trading intelligence</p>
+            <h1 className="text-lg font-black text-white/90">{t('signin.title')}</h1>
+            <p className="text-xs text-white/30 mt-0.5">{t('signin.subtitle')}</p>
           </div>
 
           {/* OAuth buttons */}
@@ -89,7 +91,7 @@ export default function SignIn() {
               <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
               <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
             </svg>
-            Continue with Google
+            {t('signin.google')}
           </button>
 
           <button
@@ -97,12 +99,12 @@ export default function SignIn() {
             className="flex items-center justify-center gap-3 w-full py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
           >
             <Apple className="h-4 w-4 text-white/80" />
-            Continue with Apple
+            {t('signin.apple')}
           </button>
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-[1px] bg-white/[0.07]" />
-            <span className="text-[10px] text-white/20 font-medium tracking-wider uppercase">or</span>
+            <span className="text-[10px] text-white/20 font-medium tracking-wider uppercase">{t('signin.or')}</span>
             <div className="flex-1 h-[1px] bg-white/[0.07]" />
           </div>
 
@@ -112,17 +114,17 @@ export default function SignIn() {
               className="flex items-center justify-center gap-3 w-full py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
             >
               <Mail className="h-4 w-4" />
-              Continue with Email
+              {t('signin.emailAuth')}
             </button>
           ) : (
             <form onSubmit={handleEmail} className="flex flex-col gap-3">
               <input
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-[#F59E0B]/40 transition-colors"
+               type="email"
+               placeholder={t('signin.enterEmail')}
+               value={email}
+               onChange={e => setEmail(e.target.value)}
+               required
+               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-[#F59E0B]/40 transition-colors"
               />
               {error && <p className="text-xs text-red-400/70">{error}</p>}
               <button
@@ -131,7 +133,7 @@ export default function SignIn() {
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-bold text-sm transition-all"
                 style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: loading ? 0.7 : 1 }}
               >
-                {loading ? 'Sending...' : <><span>Send Magic Link</span><ArrowRight className="h-4 w-4" /></>}
+                {loading ? t('common.loading') : <><span>{t('signin.sendLink')}</span><ArrowRight className="h-4 w-4" /></>}
               </button>
               <button type="button" onClick={() => setMode(null)} className="text-[10px] text-white/25 hover:text-white/45 transition-colors text-center">
                 ← Back
