@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -17,7 +16,6 @@ import PortfolioPerformanceChart from '../components/portfolio/PortfolioPerforma
 const COLORS = ['#F59E0B', '#3B82F6', '#22C55E', '#A855F7', '#EF4444', '#06B6D4'];
 
 export default function Portfolio() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
@@ -47,8 +45,8 @@ export default function Portfolio() {
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('portfolio.title')}</h1>
-          <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('portfolio.subtitle')}</p>
+          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">Portfolio</h1>
+          <p className="text-[11px] text-white/30 font-medium tracking-wide">View your holdings, allocation, and AI-powered portfolio analysis</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -63,7 +61,7 @@ export default function Portfolio() {
             size="sm"
             className="h-8 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.add_holding')}
+            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Holding
           </Button>
         </div>
       </motion.div>
