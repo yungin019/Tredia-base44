@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const TICKER_ITEMS = [
   { symbol: 'AAPL', change: '+1.2%', up: true },
@@ -13,6 +14,7 @@ const TICKER_ITEMS = [
 const repeated = [...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS];
 
 export default function SplashScreen() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,7 +79,7 @@ export default function SplashScreen() {
           className="text-sm font-medium tracking-widest uppercase"
           style={{ color: 'rgba(255,255,255,0.45)', letterSpacing: '0.2em' }}
         >
-          The Edge Every Trader Needs
+          {t('splash.tagline')}
         </motion.p>
 
         {/* Loading bar */}
