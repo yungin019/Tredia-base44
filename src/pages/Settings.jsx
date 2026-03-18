@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Globe, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
 import { getFoundingMemberInfo } from '@/api/foundingMembers';
 import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
@@ -39,6 +40,7 @@ const PRO_FEATURES = [
 
 export default function Settings() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const { tier } = useSubscription();
   const [user, setUser] = useState(null);
   const [foundingMember, setFoundingMember] = useState(null);
