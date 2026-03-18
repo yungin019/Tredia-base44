@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Lock, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const SIGNAL_COLORS = {
   BUY:   { color: '#22c55e', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.25)' },
@@ -43,6 +44,8 @@ function ModelRow({ model, data }) {
 }
 
 function LockedCard() {
+  const navigate = useNavigate();
+
   return (
     <div style={{ background: '#111118', border: '1px solid rgba(245,158,11,0.35)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, #F59E0B, transparent)' }} />
@@ -54,17 +57,19 @@ function LockedCard() {
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.55, marginBottom: 2 }}>4 AI models. One perfect signal.</p>
         <p style={{ fontSize: 10, color: 'rgba(245,158,11,0.6)', letterSpacing: '0.05em', fontWeight: 600 }}>Claude · GPT-4 · Gemini · Mistral</p>
       </div>
-      <button style={{
-        marginTop: 4, padding: '10px 24px',
-        background: 'linear-gradient(135deg, #F59E0B, #FCD34D)',
-        border: 'none', borderRadius: 99, cursor: 'pointer',
-        fontSize: 12, fontWeight: 800, color: '#0A0A0F', letterSpacing: '0.04em',
-        boxShadow: '0 0 20px rgba(245,158,11,0.25)', transition: 'opacity 0.15s',
-      }}
+      <button
+        onClick={() => navigate('/Upgrade')}
+        style={{
+          marginTop: 4, padding: '10px 24px',
+          background: 'linear-gradient(135deg, #F59E0B, #FCD34D)',
+          border: 'none', borderRadius: 99, cursor: 'pointer',
+          fontSize: 12, fontWeight: 800, color: '#0A0A0F', letterSpacing: '0.04em',
+          boxShadow: '0 0 20px rgba(245,158,11,0.25)', transition: 'opacity 0.15s',
+        }}
         onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
         onMouseLeave={e => e.currentTarget.style.opacity = '1'}
       >
-        Upgrade to Elite — $49.99/mo
+        Upgrade to Elite
       </button>
     </div>
   );
