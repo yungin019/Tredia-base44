@@ -2,13 +2,10 @@ import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, TrendingUp, Brain, Briefcase, ArrowLeftRight, Bell, Search, Zap, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import TickerTape from '../dashboard/TickerTape';
-import LanguageSelector from './LanguageSelector';
 
 export default function AppShell() {
   const location = useLocation();
-  const { t } = useTranslation();
 
   const NAV_ITEMS = [
     { path: '/AIInsights', icon: Brain, label: 'Feed', isTrek: false },
@@ -79,8 +76,6 @@ export default function AppShell() {
             <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
             <span className="text-[10px] font-mono font-semibold text-chart-3 tracking-wider">LIVE</span>
           </div>
-
-          <LanguageSelector />
 
           {/* Notifications */}
           <button className="relative p-2 rounded-lg hover:bg-white/[0.04] transition-colors">
