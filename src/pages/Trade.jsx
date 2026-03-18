@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { ArrowLeftRight, ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,6 @@ import { toast } from 'sonner';
 import { getStockPrice } from '../components/MarketData';
 
 export default function Trade() {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [action, setAction] = useState('buy');
   const [symbol, setSymbol] = useState('');
@@ -64,8 +62,8 @@ export default function Trade() {
     <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('trade.title')}</h1>
-        <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('trade.subtitle')}</p>
+        <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">Paper Trading</h1>
+        <p className="text-[11px] text-white/30 font-medium tracking-wide">Simulate trades with virtual funds — perfect for practice and testing strategies</p>
       </motion.div>
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
@@ -77,7 +75,7 @@ export default function Trade() {
         >
           <div className="h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <div className="p-5">
-            <h3 className="text-sm font-bold text-white/80 mb-4">{t('trade.new_order')}</h3>
+            <h3 className="text-sm font-bold text-white/80 mb-4">New Order</h3>
 
             {/* Buy / Sell */}
             <div className="grid grid-cols-2 gap-2 mb-5">
