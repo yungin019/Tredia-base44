@@ -1,63 +1,62 @@
 /**
  * useSubscriptionStatus Hook
  * 
- * Combines useSubscription (local tier storage) and useRevenueCat (Apple subscription state).
- * This is the single source of truth for subscription status across the app.
+ * SINGLE SOURCE OF TRUTH: RevenueCat ONLY
+ * No localStorage fallback. No local tier persistence.
  * 
- * In TestFlight:
- * - useRevenueCat provides real sandbox purchase state
- * - Falls back to localStorage tier for offline resilience
- * 
- * In production App Store:
- * - useRevenueCat gets entitlements from RevenueCat backend (which validates Apple receipts)
- * - Always trusted source of truth
+ * If RevenueCat unavailable or user has no entitlements:
+ * - Default to FREE tier
+ * - NO premium features unlocked
+ * - All gating enforced strictly
  */
 
-import { useSubscription } from './useSubscription';
 import { useRevenueCat } from './useRevenueCat';
 import { useMemo } from 'react';
 
 export function useSubscriptionStatus() {
-  const { tier: localTier, hasAccess: hasLocalAccess } = useSubscription();
   const { getCurrentTier: getRevenueCatTier, hasActiveSubscription, checkEntitlement } = useRevenueCat();
 
   /**
-   * Get the authoritative tier:
-   * 1. If RevenueCat has active subscription, trust it
-   * 2. Otherwise, fall back to local tier (offline or free user)
+   * Get the authoritative tier: RevenueCat entitlements ONLY
+   * If no active subscription → FREE (strict default)
    */
   const tier = useMemo(() => {
     if (hasActiveSubscription()) {
       const rcTier = getRevenueCatTier();
-      if (rcTier !== 'free') return rcTier;
+      if (rcTier === 'elite') return 'elite';
+      if (rcTier === 'pro') return 'pro';
     }
-    return localTier;
-  }, [hasActiveSubscription, getRevenueCatTier, localTier]);
+    return 'free'; // STRICT: Default to free if no entitlements
+  }, [hasActiveSubscription, getRevenueCatTier]);
 
   /**
    * Check if user has access to a feature
-   * Respects both local gating and RevenueCat entitlements
+   * STRICT: RevenueCat entitlements ONLY, no fallback
    */
   const hasAccess = (feature) => {
-    // If has active subscription, trust RevenueCat entitlements
-    if (hasActiveSubscription()) {
-      const rcTier = getRevenueCatTier();
-      if (rcTier === 'elite') return true;
-      if (rcTier === 'pro' && feature !== 'super_ai' && feature !== 'institutional_flow') return true;
+    if (!hasActiveSubscription()) return false; // No subscription = no premium features
+
+    if (checkEntitlement('elite')) return true; // Elite has everything
+
+    if (checkEntitlement('pro')) {
+      // Pro restricted features
+      if (feature === 'super_ai') return false;
+      if (feature === 'institutional_flow') return false;
+      return true;
     }
-    // Fall back to local tier access logic
-    return hasLocalAccess(feature);
+
+    return false;
   };
 
   /**
    * Check if currently in free tier
    */
-  const isFree = tier === 'free' && !hasActiveSubscription();
+  const isFree = tier === 'free';
 
   /**
    * Check if currently subscribed (pro or elite)
    */
-  const isSubscribed = tier !== 'free' && hasActiveSubscription();
+  const isSubscribed = tier === 'pro' || tier === 'elite';
 
   return {
     tier,
