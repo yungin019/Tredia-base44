@@ -199,9 +199,17 @@ export default function Upgrade() {
             </li>
           ))}
         </ul>
-        <button className="w-full py-3 rounded-xl font-black text-sm tracking-wide hover:opacity-90 transition-opacity"
+        <button onClick={() => {
+          // TODO: Wire to RevenueCat or Apple In-App Purchases
+          // For now, show honest upgrade flow
+          const { upgradeTier } = require('@/hooks/useSubscription');
+          console.log('Elite purchase flow would trigger here - blocked by RevenueCat setup');
+        }}
+          className="w-full py-3 rounded-xl font-black text-sm tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50"
+          title="Requires RevenueCat SDK integration with Apple In-App Purchases"
+          disabled={false}
           style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-          {t('upgrade.elite')} →
+          {t('upgrade.elite')} → <span style={{ fontSize: '10px', opacity: 0.7 }}>RevenueCat</span>
         </button>
       </motion.div>
 
@@ -218,8 +226,14 @@ export default function Upgrade() {
             </li>
           ))}
         </ul>
-        <button className="w-full py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55">
-          {t('upgrade.pro')} →
+        <button onClick={() => {
+          // TODO: Wire to RevenueCat or Apple In-App Purchases
+          console.log('Pro purchase flow would trigger here - blocked by RevenueCat setup');
+        }}
+          className="w-full py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55 disabled:opacity-50"
+          title="Requires RevenueCat SDK integration with Apple In-App Purchases"
+          disabled={false}>
+          {t('upgrade.pro')} → <span style={{ fontSize: '10px', opacity: 0.7 }}>RevenueCat</span>
         </button>
       </motion.div>
     </div>
