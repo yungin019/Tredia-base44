@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { askTrek } from '@/api/trek';
 import { buildMarketContext } from '@/api/marketContext';
+import { base44 } from '@/api/base44Client';
 
 const SUGGESTED = [
   'Is NVDA overbought?',
