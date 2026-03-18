@@ -8,7 +8,7 @@ const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 import AIChat from '@/components/ai/AIChat';
 import SignalCard from '@/components/trek/SignalCard';
-import { SuperAICard } from '@/components/trek/SuperAICard';
+import SuperAICard from '@/components/trek/SuperAICard';
 import { useSubscription } from '@/hooks/useSubscription';
 import MarketScanner from '@/components/ai/MarketScanner';
 import SentimentGauge from '@/components/ai/SentimentGauge';
