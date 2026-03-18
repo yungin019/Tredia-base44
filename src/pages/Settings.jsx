@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Globe, Zap, Bell, Briefcase } from 'lucide-react';
+import { User, Globe, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { base44 } from '@/api/base44Client';
+import { getFoundingMemberInfo } from '@/api/foundingMembers';
+import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
 
 function SectionHeader({ title }) {
   return (
@@ -35,8 +38,8 @@ const PRO_FEATURES = [
 
 export default function Settings() {
   const navigate = useNavigate();
-  const [name, setName] = useState('Alex Trader');
-  const [email, setEmail] = useState('alex@tredia.com');
+  const [user, setUser] = useState(null);
+  const [foundingMember, setFoundingMember] = useState(null);
   const [notifications, setNotifications] = useState({
     priceAlerts: true,
     trekSignals: true,
@@ -44,17 +47,35 @@ export default function Settings() {
     earningsCalendar: false,
   });
 
+  useEffect(() => {
+    base44.auth.me()
+      .then(u => {
+        setUser(u);
+        const userId = u?.email || u?.id;
+        if (userId) {
+          getFoundingMemberInfo(userId)
+            .then(setFoundingMember)
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const toggle = (key) => setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
 
   return (
     <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-6">
-      <motion.h1
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-2xl font-black text-white/95 tracking-tight"
-      >
+      <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        className="text-2xl font-black text-white/95 tracking-tight">
         Settings
       </motion.h1>
+
+      {/* FOUNDING MEMBER BADGE */}
+      {foundingMember && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <FoundingMemberBadge ogNumber={foundingMember.og_number} />
+        </motion.div>
+      )}
 
       {/* PROFILE */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
@@ -67,22 +88,51 @@ export default function Settings() {
           <div className="flex-1 space-y-2">
             <div>
               <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">Name</label>
-              <input
-                value={name}
-                onChange={e => setName(e.target.value)}
-                className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85 outline-none focus:border-[#F59E0B]/40 transition-colors"
-              />
+              <div className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85">
+                {user?.full_name || '—'}
+              </div>
             </div>
             <div>
               <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">Email</label>
-              <input
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85 outline-none focus:border-[#F59E0B]/40 transition-colors"
-              />
+              <div className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85">
+                {user?.email || '—'}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* AI Profile Summary */}
+        {(user?.budget_range || user?.experience_level) && (
+          <div className="pt-3 border-t border-white/[0.05]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/25 mb-2">AI Personalization</p>
+            <div className="flex flex-wrap gap-2">
+              {user.budget_range && (
+                <span className="text-[10px] px-2 py-1 rounded-lg font-semibold"
+                  style={{ background: 'rgba(245,158,11,0.08)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.2)' }}>
+                  {user.budget_range}
+                </span>
+              )}
+              {user.risk_tolerance && (
+                <span className="text-[10px] px-2 py-1 rounded-lg font-semibold"
+                  style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  {user.risk_tolerance}
+                </span>
+              )}
+              {user.goal && (
+                <span className="text-[10px] px-2 py-1 rounded-lg font-semibold"
+                  style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  {user.goal}
+                </span>
+              )}
+              {user.experience_level && (
+                <span className="text-[10px] px-2 py-1 rounded-lg font-semibold"
+                  style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  {user.experience_level}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* CONNECTED BROKERS */}
@@ -94,11 +144,9 @@ export default function Settings() {
             <Briefcase className="h-6 w-6 text-white/20" />
           </div>
           <p className="text-sm text-gray-400">No brokers connected</p>
-          <button
-            onClick={() => navigate('/Onboarding')}
+          <button onClick={() => navigate('/Onboarding')}
             className="px-6 py-2.5 rounded-xl font-bold text-sm transition-opacity hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
-          >
+            style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
             Add Broker
           </button>
         </div>
@@ -129,25 +177,20 @@ export default function Settings() {
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-4">
         <SectionHeader title="Account Tier" />
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-xs font-black px-3 py-1 rounded-full bg-white/[0.06] border border-white/[0.1] text-white/40 tracking-widest uppercase">
-            FREE
-          </span>
+          <span className="text-xs font-black px-3 py-1 rounded-full bg-white/[0.06] border border-white/[0.1] text-white/40 tracking-widest uppercase">FREE</span>
           <span className="text-xs text-white/25">Current plan</span>
         </div>
-
         <ul className="space-y-2 mb-4">
           {PRO_FEATURES.map(f => (
             <li key={f} className="flex items-center gap-2 text-sm text-white/50">
-              <span style={{ color: '#F59E0B' }}>⚡</span>
-              {f}
+              <span style={{ color: '#F59E0B' }}>⚡</span>{f}
             </li>
           ))}
         </ul>
-
         <button
+          onClick={() => navigate('/Upgrade')}
           className="w-full py-3 rounded-xl font-black text-sm tracking-wide transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#0A0A0F' }}
-        >
+          style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#0A0A0F' }}>
           ⚡ Upgrade to PRO
         </button>
       </motion.div>
@@ -163,8 +206,7 @@ export default function Settings() {
       </motion.div>
 
       {/* VERSION */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-        className="text-center pb-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center pb-4">
         <span className="text-xs text-gray-400 font-mono">TREDIA v1.0.0</span>
       </motion.div>
     </div>
