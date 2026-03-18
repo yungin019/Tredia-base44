@@ -38,6 +38,8 @@ const TYPE_CONFIG = {
     border: 'border-[#60A5FA]/20',
     color: 'text-[#60A5FA]',
     dot: 'bg-[#60A5FA]',
+    leftBorder: true,
+    leftBorderColor: '#60A5FA',
   },
 };
 
