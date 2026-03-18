@@ -89,8 +89,6 @@ export default function SuperAICard({ result, isElite }) {
       {/* Elite glow accent */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, #F59E0B, transparent)', opacity: 0.6 }} />
 
-      {!isElite && <LockedOverlay />}
-
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
