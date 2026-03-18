@@ -7,7 +7,7 @@ const translations = {
     translation: {
       nav: { feed: "AI Feed", markets: "Markets", portfolio: "Portfolio", trek: "TREK ⚡", settings: "Settings" },
       splash: { tagline: "The Edge Every Trader Needs" },
-      signin: { title: "Sign In", email: "Email", google: "Continue with Google", apple: "Continue with Apple", emailAuth: "Sign in with Email" },
+      signin: { title: "Sign In", subtitle: "Access your TREDIA account", email: "Email", google: "Continue with Google", apple: "Continue with Apple", emailAuth: "Sign in with Email", or: "OR", sendLink: "Send Magic Link", enterEmail: "Enter your email" },
       dashboard: { title: "Market Overview", subtitle: "Real-time indices, crypto, and market intelligence" },
       markets: { title: "Markets", subtitle: "Analyze stocks, crypto, forex, and commodities" },
       portfolio: { title: "Portfolio", subtitle: "Your holdings and performance", noHoldings: "No holdings yet. Add your first position." },
@@ -15,7 +15,8 @@ const translations = {
       trek: { title: "TREK Intelligence", live: "LIVE", signal: "Signal", confidence: "Confidence" },
       paperTrading: { title: "Paper Trading", subtitle: "Simulate trades with virtual funds", newOrder: "New Order", orderHistory: "Order History", buy: "BUY", sell: "SELL" },
       onboarding: { title: "Welcome to TREDIA", selectBroker: "Select Your Broker", setupComplete: "Setup Complete" },
-      upgrade: { title: "Upgrade Your Plan", elite: "Elite", pro: "Pro", foundingMember: "Founding Member" }
+      upgrade: { title: "Upgrade Your Plan", elite: "Elite", pro: "Pro", foundingMember: "Founding Member" },
+      common: { loading: "Loading...", error: "Error", success: "Success" }
     }
   },
   sv: {
