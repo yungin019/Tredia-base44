@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchCryptoData } from '@/api/marketData';
@@ -47,7 +46,6 @@ const STOCK_DATA = [
 ];
 
 export default function Markets() {
-  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('stocks');
   const [activeFilter, setActiveFilter] = useState(null);
   const [timeframe, setTimeframe] = useState('1D');
@@ -76,8 +74,8 @@ export default function Markets() {
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('nav.markets')}</h1>
-          <p className="text-[11px] text-white/30 font-medium tracking-wide">Real-time market intelligence</p>
+          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">Markets</h1>
+          <p className="text-[11px] text-white/30 font-medium tracking-wide">Real-time market intelligence and sector analysis</p>
         </div>
       </motion.div>
 

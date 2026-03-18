@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -38,7 +37,6 @@ const CHART_DATA = [
 ];
 
 export default function PaperTrading() {
-  const { t } = useTranslation();
   const [ticker, setTicker] = useState('');
   const [shares, setShares] = useState('');
   const [action, setAction] = useState('buy');
