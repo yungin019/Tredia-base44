@@ -76,8 +76,8 @@ export default function SignIn() {
           style={{ boxShadow: '0 0 40px rgba(0,0,0,0.4)' }}
         >
           <div className="text-center mb-1">
-            <h1 className="text-lg font-black text-white/90">{t('signin.title')}</h1>
-            <p className="text-xs text-white/30 mt-0.5">{t('signin.subtitle')}</p>
+            <h1 className="text-lg font-black text-white/90">{t('signin.title') || 'Welcome to TREDIA'}</h1>
+             <p className="text-xs text-white/30 mt-0.5">{t('signin.subtitle') || 'Access your TREDIA account'}</p>
           </div>
 
           {/* OAuth buttons */}
@@ -91,7 +91,7 @@ export default function SignIn() {
               <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
               <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
             </svg>
-            {t('signin.google')}
+            {t('signin.google') || 'Continue with Google'}
           </button>
 
           <button
@@ -99,12 +99,12 @@ export default function SignIn() {
             className="flex items-center justify-center gap-3 w-full py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
           >
             <Apple className="h-4 w-4 text-white/80" />
-            {t('signin.apple')}
+            {t('signin.apple') || 'Continue with Apple'}
           </button>
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-[1px] bg-white/[0.07]" />
-            <span className="text-[10px] text-white/20 font-medium tracking-wider uppercase">{t('signin.or')}</span>
+            <span className="text-[10px] text-white/20 font-medium tracking-wider uppercase">{t('signin.or') || 'OR'}</span>
             <div className="flex-1 h-[1px] bg-white/[0.07]" />
           </div>
 
@@ -114,13 +114,13 @@ export default function SignIn() {
               className="flex items-center justify-center gap-3 w-full py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
             >
               <Mail className="h-4 w-4" />
-              {t('signin.emailAuth')}
+              {t('signin.emailAuth') || 'Continue with Email'}
             </button>
           ) : (
             <form onSubmit={handleEmail} className="flex flex-col gap-3">
               <input
                type="email"
-               placeholder={t('signin.enterEmail')}
+               placeholder={t('signin.enterEmail') || 'Enter your email'}
                value={email}
                onChange={e => setEmail(e.target.value)}
                required
@@ -133,7 +133,7 @@ export default function SignIn() {
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-bold text-sm transition-all"
                 style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: loading ? 0.7 : 1 }}
               >
-                {loading ? t('common.loading') : <><span>{t('signin.sendLink')}</span><ArrowRight className="h-4 w-4" /></>}
+                {loading ? (t('common.loading') || 'Loading...') : <><span>{t('signin.sendLink') || 'Send Magic Link'}</span><ArrowRight className="h-4 w-4" /></>}
               </button>
               <button type="button" onClick={() => setMode(null)} className="text-[10px] text-white/25 hover:text-white/45 transition-colors text-center">
                 ← Back

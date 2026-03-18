@@ -79,7 +79,7 @@ export default function SplashScreen() {
           className="text-sm font-medium tracking-widest uppercase"
           style={{ color: 'rgba(255,255,255,0.45)', letterSpacing: '0.2em' }}
         >
-          {t('splash.tagline')}
+  {t('splash.tagline') || 'The Edge Every Trader Needs'}
         </motion.p>
 
         {/* Loading bar */}

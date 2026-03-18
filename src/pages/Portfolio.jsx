@@ -47,8 +47,8 @@ export default function Portfolio() {
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('portfolio.title')}</h1>
-          <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('portfolio.subtitle')}</p>
+          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('portfolio.title') || 'Portfolio'}</h1>
+           <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('portfolio.subtitle') || 'Your holdings and performance'}</p>
         </div>
         <div className="flex gap-2">
           <Button
