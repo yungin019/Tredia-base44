@@ -53,9 +53,9 @@ function LockedCard() {
         <Lock style={{ width: 22, height: 22, color: '#F59E0B' }} />
       </div>
       <div style={{ textAlign: 'center' }}>
-        <p style={{ fontSize: 13, fontWeight: 900, color: 'rgba(255,255,255,0.88)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>Super AI — Elite Only</p>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.55, marginBottom: 2 }}>4 AI models. One perfect signal.</p>
-        <p style={{ fontSize: 10, color: 'rgba(245,158,11,0.6)', letterSpacing: '0.05em', fontWeight: 600 }}>Claude · GPT-4 · Gemini · Mistral</p>
+        <p style={{ fontSize: 13, fontWeight: 900, color: 'rgba(255,255,255,0.88)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>⚡ Super AI — Elite Only</p>
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.55, marginBottom: 2 }}>4-model consensus: Claude, GPT-4, Gemini, Mistral</p>
+        <p style={{ fontSize: 10, color: 'rgba(245,158,11,0.6)', letterSpacing: '0.05em', fontWeight: 600, marginBottom: 8 }}>Real LLM integration with market data synthesis</p>
       </div>
       <button
         onClick={() => navigate('/Upgrade')}
@@ -69,7 +69,7 @@ function LockedCard() {
         onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
         onMouseLeave={e => e.currentTarget.style.opacity = '1'}
       >
-        Upgrade to Elite
+        Unlock Elite
       </button>
     </div>
   );
