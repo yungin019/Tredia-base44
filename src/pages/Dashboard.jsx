@@ -14,6 +14,7 @@ import TrekDailyBrief from '../components/dashboard/TrekDailyBrief';
 import GlobalSentimentMeter from '../components/dashboard/GlobalSentimentMeter';
 import SmartMoneyAlerts from '../components/dashboard/SmartMoneyAlerts';
 import EarningsCalendar from '../components/dashboard/EarningsCalendar';
+import TickerTape from '../components/dashboard/TickerTape';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -48,9 +49,11 @@ export default function Dashboard() {
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
 
   return (
-    <div className="p-4 lg:p-6 space-y-4 max-w-[1600px] mx-auto">
-      {/* TREK Daily Brief */}
-      <TrekDailyBrief />
+    <div className="w-full">
+      <TickerTape />
+      <div className="p-4 lg:p-6 space-y-4 max-w-[1600px] mx-auto">
+        {/* TREK Daily Brief */}
+        <TrekDailyBrief />
 
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end justify-between pt-1">
@@ -101,8 +104,9 @@ export default function Dashboard() {
       {/* Top Movers */}
       <TopMovers stocks={stocks} />
 
-      {/* Live News Feed */}
-      <NewsFeed />
+        {/* Live News Feed */}
+        <NewsFeed />
+      </div>
     </div>
   );
 }
