@@ -55,15 +55,13 @@ export default function Layout({ children, currentPageName }) {
     }
   }, []);
 
-  // Ensure language is detected and set in HTML
+  // Ensure language is detected and set in HTML with proper RTL support
   useEffect(() => {
     const currentLng = i18n.language || 'en';
     document.documentElement.lang = currentLng;
-    if (currentLng.startsWith('ar')) {
-      document.documentElement.dir = 'rtl';
-    } else {
-      document.documentElement.dir = 'ltr';
-    }
+    // Check if language is RTL (supports Arabic, Hebrew, Urdu, Persian, etc.)
+    const isRTL = RTL_LANGUAGES.some(rtl => currentLng.startsWith(rtl));
+    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
   }, [i18n.language]);
 
   return <>{children}</>;
