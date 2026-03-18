@@ -260,6 +260,8 @@ export default function AIInsights() {
   const [engineSignals, setEngineSignals] = useState([]);
   const [engineLoading, setEngineLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [trekInsight, setTrekInsight] = useState(null);
+  const [fngValue, setFngValue] = useState(null);
   const intervalRef = useRef(null);
 
   const generateTrekInsight = (fng, signals) => {
