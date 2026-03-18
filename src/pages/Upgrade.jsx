@@ -209,6 +209,30 @@ export default function Upgrade() {
         </div>
       </motion.div>
 
+      {/* Billing Cycle Toggle */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+        className="flex items-center justify-center gap-4 rounded-xl border border-white/[0.06] bg-white/[0.01] p-3">
+        <button
+          onClick={() => setBillingCycle('monthly')}
+          className={`px-4 py-2 rounded-lg font-bold text-xs transition-all ${
+            billingCycle === 'monthly'
+              ? 'bg-[#F59E0B] text-[#0A0A0F]'
+              : 'bg-white/[0.04] text-white/50 hover:bg-white/[0.06]'
+          }`}>
+          Monthly
+        </button>
+        <button
+          onClick={() => setBillingCycle('annual')}
+          className={`px-4 py-2 rounded-lg font-bold text-xs transition-all relative ${
+            billingCycle === 'annual'
+              ? 'bg-[#F59E0B] text-[#0A0A0F]'
+              : 'bg-white/[0.04] text-white/50 hover:bg-white/[0.06]'
+          }`}>
+          Annual
+          <span className="absolute -top-5 right-0 text-[9px] text-[#F59E0B] font-black">Save 25%</span>
+        </button>
+      </motion.div>
+
       {/* Elite Plan */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         className="rounded-xl border border-white/[0.08] bg-[#111118] p-6">
@@ -216,7 +240,12 @@ export default function Upgrade() {
           <Crown className="h-4 w-4 text-[#F59E0B]" />
           <span className="text-[10px] font-black tracking-[0.18em] uppercase text-[#F59E0B]">Elite Plan</span>
         </div>
-        <p className="text-2xl font-black text-white/90 mb-1">$49.99<span className="text-sm font-medium text-white/35">/mo</span></p>
+        <p className="text-2xl font-black text-white/90 mb-1">
+          {billingCycle === 'monthly' ? '$49.99' : '$449.99'}
+          <span className="text-sm font-medium text-white/35">
+            {billingCycle === 'monthly' ? '/mo' : '/yr'}
+          </span>
+        </p>
         <p className="text-xs text-white/30 mb-5">Full TREDIA intelligence, zero limits.</p>
         <ul className="space-y-2.5 mb-6">
           {ELITE_FEATURES.map(f => (
@@ -225,17 +254,19 @@ export default function Upgrade() {
             </li>
           ))}
         </ul>
-        <button onClick={() => {
-          // TODO: Wire to RevenueCat or Apple In-App Purchases
-          // For now, show honest upgrade flow
-          const { upgradeTier } = require('@/hooks/useSubscription');
-          console.log('Elite purchase flow would trigger here - blocked by RevenueCat setup');
-        }}
+        {lastPurchaseError && (
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 mb-4">
+            <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+            <p className="text-xs text-destructive">{lastPurchaseError}</p>
+          </motion.div>
+        )}
+        <button
+          onClick={() => handlePurchase('elite')}
+          disabled={purchaseInProgress || !isInitialized}
           className="w-full py-3 rounded-xl font-black text-sm tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50"
-          title="Requires RevenueCat SDK integration with Apple In-App Purchases"
-          disabled={false}
           style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-          {t('upgrade.elite')} → <span style={{ fontSize: '10px', opacity: 0.7 }}>RevenueCat</span>
+          {purchaseInProgress ? 'Processing...' : '⚡ Subscribe to Elite'}
         </button>
       </motion.div>
 
