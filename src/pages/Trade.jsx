@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeftRight, ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 import { getStockPrice } from '../components/MarketData';
 
 export default function Trade() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [action, setAction] = useState('buy');
   const [symbol, setSymbol] = useState('');
@@ -62,8 +64,8 @@ export default function Trade() {
     <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">Paper Trading</h1>
-        <p className="text-[11px] text-white/30 font-medium tracking-wide">Simulate trades with virtual funds — perfect for practice and testing strategies</p>
+        <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('paperTrading.title')}</h1>
+        <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('paperTrading.subtitle')}</p>
       </motion.div>
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
@@ -75,7 +77,7 @@ export default function Trade() {
         >
           <div className="h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <div className="p-5">
-            <h3 className="text-sm font-bold text-white/80 mb-4">New Order</h3>
+            <h3 className="text-sm font-bold text-white/80 mb-4">{t('paperTrading.newOrder')}</h3>
 
             {/* Buy / Sell */}
             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -87,7 +89,7 @@ export default function Trade() {
                     : 'bg-white/[0.04] text-white/30 border border-white/[0.07] hover:border-white/10'
                 }`}
               >
-                BUY
+                {t('paperTrading.buy')}
               </button>
               <button
                 onClick={() => { setAction('sell'); setPreview(null); }}
@@ -97,13 +99,13 @@ export default function Trade() {
                     : 'bg-white/[0.04] text-white/30 border border-white/[0.07] hover:border-white/10'
                 }`}
               >
-                SELL
+                {t('paperTrading.sell')}
               </button>
             </div>
 
             <div className="space-y-3">
               <div>
-                <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Ticker Symbol</Label>
+                <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">{t('trek.signal')}</Label>
                 <Input
                   value={symbol}
                   onChange={(e) => { setSymbol(e.target.value.toUpperCase()); setPreview(null); }}
@@ -112,7 +114,7 @@ export default function Trade() {
                 />
               </div>
               <div>
-                <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Number of Shares</Label>
+                <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Shares</Label>
                 <Input
                   type="number"
                   value={shares}
@@ -138,7 +140,7 @@ export default function Trade() {
                 className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.03] overflow-hidden"
               >
                 <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
-                  <span className="text-[10px] text-white/30 font-semibold uppercase tracking-[0.1em]">Order Preview</span>
+                  <span className="text-[10px] text-white/30 font-semibold uppercase tracking-[0.1em]">{t('paperTrading.newOrder')} Preview</span>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded tracking-wider ${action === 'buy' ? 'text-chart-3 bg-chart-3/10' : 'text-destructive bg-destructive/10'}`}>
                     {action.toUpperCase()}
                   </span>
@@ -171,7 +173,7 @@ export default function Trade() {
                         : 'bg-destructive hover:bg-destructive/90 text-white'
                     }`}
                   >
-                    {executing ? 'Executing...' : `Execute ${action.toUpperCase()} Order`}
+                    {executing ? t('common.loading') : `Execute ${action.toUpperCase()} ${t('paperTrading.newOrder')}`}
                   </Button>
                 </div>
               </motion.div>
@@ -182,13 +184,13 @@ export default function Trade() {
         {/* Trade History */}
         <div className="xl:col-span-3 rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden">
           <div className="px-5 py-4 border-b border-white/[0.05]">
-            <h3 className="text-sm font-bold text-white/80">Order History</h3>
+            <h3 className="text-sm font-bold text-white/80">{t('paperTrading.orderHistory')}</h3>
           </div>
 
           {trades.length === 0 ? (
             <div className="p-12 text-center">
               <Clock className="h-10 w-10 text-white/8 mx-auto mb-3" />
-              <p className="text-[12px] text-white/20">No trades executed yet</p>
+              <p className="text-[12px] text-white/20">{t('common.loading')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
