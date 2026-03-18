@@ -75,7 +75,7 @@ function LockedCard() {
   );
 }
 
-export function SuperAICard({ result, isElite }) {
+export function SuperAICard({ result, isElite = false }) {
   const [expanded, setExpanded] = useState(false);
 
   if (!isElite) return <LockedCard />;
