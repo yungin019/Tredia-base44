@@ -363,6 +363,29 @@ export default function AIInsights() {
         </motion.div>
       </div>
 
+      {/* ⚡ TREK WOW MOMENT BANNER */}
+      {trekInsight && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            background: 'linear-gradient(135deg, #111118, #1a1a2e)',
+            border: '1px solid rgba(245,158,11,0.3)',
+            borderLeft: '3px solid #F59E0B',
+            borderRadius: 16,
+            padding: '14px 18px',
+          }}
+        >
+          <div style={{ color: '#F59E0B', fontWeight: 800, fontSize: 11, marginBottom: 6, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F59E0B', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
+            ⚡ TREK INSIGHT · {lastUpdated ? lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </div>
+          <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, lineHeight: 1.6, fontWeight: 500 }}>
+            {trekInsight}
+          </div>
+        </motion.div>
+      )}
+
       {/* Cause & Effect */}
       <MarketCauseEffect />
 
