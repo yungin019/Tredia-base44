@@ -7,6 +7,7 @@ import { askTrek } from '@/api/trek';
 import { buildMarketContext } from '@/api/marketContext';
 import { base44 } from '@/api/base44Client';
 import { useSubscription } from '@/hooks/useSubscription';
+import QueryLimitModal from './QueryLimitModal';
 
 const SUGGESTED = [
   'Is NVDA overbought?',
@@ -33,6 +34,30 @@ function TrekAvatar({ size = 5 }) {
   );
 }
 
+const QUERY_LIMIT_KEY = 'trek_daily_queries';
+const QUERY_LIMIT_DATE_KEY = 'trek_query_date';
+const FREE_LIMIT = 5;
+
+function getQuestionsToday() {
+  const today = new Date().toDateString();
+  const storedDate = localStorage.getItem(QUERY_LIMIT_DATE_KEY);
+  if (storedDate !== today) {
+    localStorage.setItem(QUERY_LIMIT_DATE_KEY, today);
+    localStorage.setItem(QUERY_LIMIT_KEY, '0');
+    return 0;
+  }
+  return parseInt(localStorage.getItem(QUERY_LIMIT_KEY) || '0', 10);
+}
+
+function incrementQuestions() {
+  const today = new Date().toDateString();
+  localStorage.setItem(QUERY_LIMIT_DATE_KEY, today);
+  const current = getQuestionsToday();
+  const next = current + 1;
+  localStorage.setItem(QUERY_LIMIT_KEY, next.toString());
+  return next;
+}
+
 export default function AIChat() {
   const { tier, hasAccess } = useSubscription();
   const [messages, setMessages] = useState([]);
@@ -42,8 +67,13 @@ export default function AIChat() {
   const [marketContext, setMarketContext] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [questionsToday, setQuestionsToday] = useState(0);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const bottomRef = useRef(null);
   const historyRef = useRef([]);
+
+  useEffect(() => {
+    setQuestionsToday(getQuestionsToday());
+  }, []);
 
   useEffect(() => {
     buildMarketContext().then(setMarketContext).catch(() => {});
@@ -59,8 +89,8 @@ export default function AIChat() {
     if (!q) return;
     
     // Enforce FREE tier limit (5 questions/day)
-    if (tier === 'free' && questionsToday >= 5) {
-      setError('FREE users get 5 questions/day. Upgrade to PRO for unlimited.');
+    if (tier === 'free' && questionsToday >= FREE_LIMIT) {
+      setShowLimitModal(true);
       return;
     }
     
@@ -69,7 +99,9 @@ export default function AIChat() {
     historyRef.current = [...historyRef.current, { role: 'user', content: q }];
     setMessages(prev => [...prev, { role: 'user', content: q }]);
     setLoading(true);
-    setQuestionsToday(prev => prev + 1);
+    
+    const nextCount = incrementQuestions();
+    setQuestionsToday(nextCount);
     
     try {
       const reply = await askTrek(historyRef.current, marketContext, currentUser);
@@ -88,7 +120,9 @@ export default function AIChat() {
   };
 
   return (
-    <div className="rounded-xl border border-primary/20 bg-[#0e0e16] overflow-hidden flex flex-col glow-gold h-full" style={{ minHeight: 320 }}>
+    <>
+      <QueryLimitModal isOpen={showLimitModal} onClose={() => setShowLimitModal(false)} />
+      <div className="rounded-xl border border-primary/20 bg-[#0e0e16] overflow-hidden flex flex-col glow-gold h-full" style={{ minHeight: 320 }}>
       <div className="h-[1px] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
       {/* Header */}
@@ -172,7 +206,7 @@ export default function AIChat() {
       <div className="sticky bottom-0 px-4 py-3 border-t border-white/[0.05] bg-[#0e0e16] safe-bottom">
         {tier === 'free' && (
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: 8, background: 'rgba(245,158,11,0.1)', borderRadius: 6, padding: '6px' }}>
-            {questionsToday}/5 questions used today
+            {questionsToday}/{FREE_LIMIT} questions used today
           </div>
         )}
         <div className="flex gap-2">
@@ -181,12 +215,12 @@ export default function AIChat() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !loading && send()}
-            disabled={tier === 'free' && questionsToday >= 5}
+            disabled={tier === 'free' && questionsToday >= FREE_LIMIT}
             className="bg-white/[0.04] border-white/[0.07] h-9 text-[12px] text-white/80 placeholder:text-white/20 focus:border-primary/40 disabled:opacity-50"
           />
           <Button
             onClick={() => send()}
-            disabled={loading || !input.trim() || (tier === 'free' && questionsToday >= 5)}
+            disabled={loading || !input.trim() || (tier === 'free' && questionsToday >= FREE_LIMIT)}
             size="sm"
             className="h-9 px-3 bg-primary hover:bg-primary/90 text-primary-foreground"
           >
@@ -198,5 +232,6 @@ export default function AIChat() {
         </p>
       </div>
     </div>
+    </>
   );
 }
