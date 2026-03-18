@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { APPLE_IAP_PRODUCTS, getEntitlementForTier } from '@/lib/revenuecat-config';
+import { REVENUECAT_CONFIG, getEntitlementIdentifier, getTierFromEntitlement } from '@/lib/revenuecat-config';
 
 /**
  * RevenueCat Hook
@@ -147,11 +147,14 @@ export function useRevenueCat() {
 
   /**
    * Get current tier based on active entitlements
-   * @returns {string} - 'free', 'pro', or 'elite'
+   * @returns {string} - 'free', 'elite', 'pro', 'yearly', or 'lifetime'
    */
   const getCurrentTier = useCallback(() => {
-    if (checkEntitlement('elite')) return 'elite';
-    if (checkEntitlement('pro')) return 'pro';
+    // Check in priority order: lifetime, yearly, elite, pro
+    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.lifetime)) return 'lifetime';
+    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.yearly)) return 'yearly';
+    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.elite)) return 'elite';
+    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.pro)) return 'pro';
     return 'free';
   }, [checkEntitlement]);
 
