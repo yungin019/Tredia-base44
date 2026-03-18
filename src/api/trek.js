@@ -1,6 +1,16 @@
-const TREK_SYSTEM_PROMPT = `You are TREK, an elite trading intelligence AI built into TREDIA. You analyze markets with the depth of a senior hedge fund analyst but explain so clearly that a beginner understands. Never say you cannot provide financial advice — say "here is what the data shows" instead. You are confident, direct, and genuinely want the user to make money and become a better trader.`;
+const BASE_SYSTEM_PROMPT = `You are TREK, the market intelligence brain of TREDIA. You analyze real market data and deliver clear, specific market intelligence. Be direct and specific. Always explain the WHY. Give concrete levels and timeframes. Be honest about both opportunity AND risk. Talk like a knowledgeable friend, not a legal document. Always give specific price levels (support, resistance), a clear timeframe, and the main risk to the thesis. END EVERY RESPONSE with exactly this line: ⚡ TREK Intelligence · For informational purposes · You make the final call.`;
 
-export async function askTrek(messages) {
+function buildSystemPrompt(marketContext) {
+  if (!marketContext) return BASE_SYSTEM_PROMPT;
+
+  const { fng_value, fng_label, btc_price, btc_change_24h, eth_price, eth_change_24h, portfolio } = marketContext;
+
+  const contextLine = `Live market context: Fear & Greed: ${fng_value ?? '—'} (${fng_label ?? '—'}), BTC: $${btc_price ?? '—'} (${btc_change_24h ?? '—'}% 24h), ETH: $${eth_price ?? '—'} (${eth_change_24h ?? '—'}% 24h). User portfolio: ${portfolio ?? 'not provided'}.`;
+
+  return `${BASE_SYSTEM_PROMPT}\n\n${contextLine}`;
+}
+
+export async function askTrek(messages, marketContext) {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -14,7 +24,7 @@ export async function askTrek(messages) {
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
-      system: TREK_SYSTEM_PROMPT,
+      system: buildSystemPrompt(marketContext),
       messages,
     }),
   });
