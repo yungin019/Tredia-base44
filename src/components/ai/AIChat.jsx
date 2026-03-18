@@ -166,6 +166,9 @@ export default function AIChat() {
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
           </Button>
         </div>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: 8 }}>
+          ⚡ TREK Intelligence · For informational purposes · You make the final call.
+        </p>
       </div>
     </div>
   );
