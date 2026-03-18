@@ -77,6 +77,8 @@ function LockedCard() {
 export default function SuperAICard({ result, isElite }) {
   const [expanded, setExpanded] = useState(false);
 
+  if (!isElite) return <LockedCard />;
+
   const finalSc = SIGNAL_COLORS[result?.finalSignal] || SIGNAL_COLORS.HOLD;
   const models = result?.modelResults || {};
   const agreementCount = result?.agreementCount ?? 0;
