@@ -1,13 +1,9 @@
-const AV_KEY = import.meta.env.VITE_ALPHAVANTAGE_API_KEY || import.meta.env.ALPHAVANTAGE_API_KEY;
+import { base44 } from '@/api/base44Client';
 
 export async function fetchStockRSI(symbol) {
   try {
-    const url = `https://www.alphavantage.co/query?function=RSI&symbol=${symbol}&interval=daily&time_period=14&series_type=close&apikey=${AV_KEY}`;
-    const data = await fetch(url).then(r => r.json());
-    const analysis = data?.['Technical Analysis: RSI'];
-    if (!analysis) return 55;
-    const latestDate = Object.keys(analysis)[0];
-    return parseFloat(analysis[latestDate]?.RSI ?? 55);
+    const res = await base44.functions.invoke('marketData', { type: 'rsi', symbol });
+    return res.data?.rsi ?? 55;
   } catch {
     return 55;
   }
@@ -15,15 +11,8 @@ export async function fetchStockRSI(symbol) {
 
 export async function fetchStockPrice(symbol) {
   try {
-    const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${AV_KEY}`;
-    const data = await fetch(url).then(r => r.json());
-    const quote = data?.['Global Quote'];
-    if (!quote) return null;
-    return {
-      price: parseFloat(quote['05. price']),
-      change24h: parseFloat(quote['10. change percent']?.replace('%', '')),
-      volume: parseInt(quote['06. volume']),
-    };
+    const res = await base44.functions.invoke('marketData', { type: 'quote', symbol });
+    return res.data?.quote ?? null;
   } catch {
     return null;
   }
