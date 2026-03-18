@@ -29,6 +29,8 @@ const TYPE_CONFIG = {
     border: 'border-primary/20',
     color: 'text-primary',
     dot: 'bg-primary',
+    leftBorder: true,
+    leftBorderColor: '#F59E0B',
   },
   hedge: {
     header: 'HEDGE SIGNAL',
