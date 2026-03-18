@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, TrendingUp, AlertCircle, Activity } from 'lucide-react';
 
@@ -20,11 +20,50 @@ const tagColors = {
 
 export default function LiveIntelligenceRibbon() {
   const [activeDetail, setActiveDetail] = useState(null);
+  const [fngData, setFngData] = useState(null);
+
+  useEffect(() => {
+    const fetchFng = async () => {
+      try {
+        const res = await fetch('https://api.alternative.me/fng/?limit=1');
+        const data = await res.json();
+        if (data.data && data.data[0]) {
+          setFngData({
+            value: parseInt(data.data[0].value),
+            label: data.data[0].value_classification,
+          });
+        }
+      } catch (e) {
+        // fallback
+        setFngData({ value: 55, label: 'Neutral' });
+      }
+    };
+    fetchFng();
+    const iv = setInterval(fetchFng, 5 * 60 * 1000); // 5 minutes
+    return () => clearInterval(iv);
+  }, []);
 
   const repeated = [...INTEL_ITEMS, ...INTEL_ITEMS, ...INTEL_ITEMS];
 
   return (
     <>
+      {/* Fear & Greed Header */}
+      {fngData && (
+        <div style={{
+          background: fngData.value > 75 ? 'linear-gradient(135deg, #13120a, #0e0e14)' : 'linear-gradient(135deg, #111118, #1a1a2e)',
+          border: fngData.value > 75 ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(245,158,11,0.3)',
+          borderLeft: fngData.value > 75 ? '3px solid #EF4444' : '3px solid #F59E0B',
+          borderRadius: 16,
+          padding: '10px 14px',
+          marginBottom: 12,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: fngData.value > 75 ? '#EF4444' : '#F59E0B', animation: 'livePulse 2s ease-in-out infinite' }} />
+            <span style={{ color: fngData.value > 75 ? '#EF4444' : '#F59E0B' }}>Fear & Greed: {fngData.value} — {fngData.label.toUpperCase()}</span>
+          </div>
+        </div>
+      )}
+
       <div className="relative overflow-hidden bg-[#0e0e16] border border-white/[0.07] rounded-xl h-8 flex items-center">
         <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0e0e16] to-transparent z-10 flex items-center justify-center">
           <Activity className="h-3 w-3 text-primary animate-pulse" />
