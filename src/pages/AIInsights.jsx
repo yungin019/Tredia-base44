@@ -406,13 +406,18 @@ export default function AIInsights() {
                 <div key={i} className="h-28 rounded-xl bg-white/[0.03] animate-pulse border border-white/[0.05]" />
               ))
             ) : engineSignals.length > 0 ? (
-              engineSignals.map((signal, i) => (
+              engineSignals.slice(0, tier === 'elite' ? 10 : 3).map((signal, i) => (
                 <SignalCard key={i} signal={toEngineSignalCardProps(signal)} />
               ))
             ) : (
-              PREDEFINED_SIGNALS.map((signal, i) => (
+              PREDEFINED_SIGNALS.slice(0, tier === 'elite' ? 6 : 2).map((signal, i) => (
                 <SignalCard key={i} signal={toSignalCardProps(signal)} />
               ))
+            )}
+            {tier !== 'elite' && (
+              <div className="lg:col-span-2 p-4 rounded-lg bg-white/[0.03] border border-primary/20 text-center">
+                <p className="text-xs text-white/40 mb-2">Unlock unlimited signals · Tap for more</p>
+              </div>
             )}
           </div>
         </motion.div>
