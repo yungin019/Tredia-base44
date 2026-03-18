@@ -10,7 +10,6 @@ import TrekScreener from '@/components/markets/TrekScreener.jsx';
 import CryptoAssets from '@/components/markets/CryptoAssets.jsx';
 import TimeframeSelector from '@/components/markets/TimeframeSelector.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
-import { useTranslation } from 'react-i18next';
 
 // Mock chart data for different timeframes
 const CHART_DATA = {

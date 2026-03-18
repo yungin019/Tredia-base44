@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Lock, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
