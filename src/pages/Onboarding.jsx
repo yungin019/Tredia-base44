@@ -194,8 +194,9 @@ export default function Onboarding() {
                 {BROKERS.map((broker, i) => (
                   <motion.div key={broker.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}>
                     <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                      onClick={() => handleConnect(broker.id)} disabled={connected}
-                      className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/[0.08] bg-[#111118] hover:bg-white/[0.03] transition-all text-left" style={{ outline: 'none' }}>
+                      onClick={() => {}}
+                      disabled={true}
+                      className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/[0.08] bg-[#111118] opacity-50 cursor-not-allowed text-left" style={{ outline: 'none' }}>
                       <div className="h-10 w-10 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
                         style={{ background: `${broker.color}15`, border: `1px solid ${broker.color}25`, color: broker.color }}>
                         {broker.name.slice(0, 2).toUpperCase()}
