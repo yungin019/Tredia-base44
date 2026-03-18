@@ -4,6 +4,7 @@ import { Send, Loader2, Sparkles, RotateCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { askTrek } from '@/api/trek';
+import { buildMarketContext } from '@/api/marketContext';
 
 const SUGGESTED = [
   'Is NVDA overbought?',
@@ -35,8 +36,13 @@ export default function AIChat() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [marketContext, setMarketContext] = useState(null);
   const bottomRef = useRef(null);
   const historyRef = useRef([]);
+
+  useEffect(() => {
+    buildMarketContext().then(setMarketContext).catch(() => {});
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -50,7 +56,7 @@ export default function AIChat() {
     historyRef.current = [...historyRef.current, { role: 'user', content: q }];
     setMessages(prev => [...prev, { role: 'user', content: q }]);
     setLoading(true);
-    const reply = await askTrek(historyRef.current);
+    const reply = await askTrek(historyRef.current, marketContext);
     historyRef.current = [...historyRef.current, { role: 'assistant', content: reply }];
     setMessages(prev => [...prev, { role: 'ai', content: reply }]);
     setLoading(false);
