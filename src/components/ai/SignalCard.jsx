@@ -69,7 +69,15 @@ export default function SignalCard({ signal, index }) {
             </span>
             <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot} animate-pulse flex-shrink-0`} />
           </div>
-          <span className="text-[9px] text-white/25 font-mono whitespace-nowrap">{signal.time}</span>
+          <div className="flex items-center gap-2">
+            {signal.time === 'live' && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-chart-3/15 border border-chart-3/30">
+                <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="h-1.5 w-1.5 bg-chart-3 rounded-full" />
+                <span className="text-[8px] font-black text-chart-3 uppercase tracking-widest">Live</span>
+              </div>
+            )}
+            <span className="text-[9px] text-white/25 font-mono whitespace-nowrap">{signal.time !== 'live' && signal.time}</span>
+          </div>
         </div>
 
         {/* Symbol + Title */}
