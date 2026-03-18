@@ -3,26 +3,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, Eye, Zap, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 
 const SIGNAL_CONFIG = {
-  BUY:   { color: 'text-chart-3', bg: 'bg-chart-3/10', border: 'border-chart-3/20', icon: TrendingUp },
-  SELL:  { color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/20', icon: TrendingDown },
-  HOLD:  { color: 'text-white/50', bg: 'bg-white/5', border: 'border-white/10', icon: Minus },
-  WATCH: { color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20', icon: Eye },
+  BUY:   { label: 'BUY',   color: '#22c55e', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.25)',  icon: TrendingUp },
+  SELL:  { label: 'SELL',  color: '#ef4444', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.25)',  icon: TrendingDown },
+  HOLD:  { label: 'HOLD',  color: '#6b7280', bg: 'rgba(107,114,128,0.12)', border: 'rgba(107,114,128,0.2)', icon: Minus },
+  WATCH: { label: 'WATCH', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.25)', icon: Eye },
 };
 
-function ConfidenceBar({ label, value }) {
+function BreakdownBar({ label, value }) {
+  const color = value >= 75 ? '#22c55e' : value >= 50 ? '#F59E0B' : '#ef4444';
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-[10px] text-white/30 w-20 shrink-0">{label}</span>
-      <div className="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+    <div className="space-y-1">
+      <div className="flex justify-between items-center">
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'rgba(255,255,255,0.45)', fontWeight: 700 }}>{value}</span>
+      </div>
+      <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="h-full rounded-full"
-          style={{ background: value >= 75 ? '#22c55e' : value >= 50 ? '#F59E0B' : '#ef4444' }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+          style={{ height: '100%', background: color, borderRadius: 99 }}
         />
       </div>
-      <span className="text-[10px] font-mono text-white/40 w-7 text-right">{value}</span>
     </div>
   );
 }
@@ -33,72 +35,83 @@ export default function SignalCard({ signal }) {
   const Icon = cfg.icon;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`rounded-xl border bg-[#111118] overflow-hidden ${cfg.border}`}
+    <div
+      style={{
+        background: '#111118',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 16,
+        padding: 16,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0,
+      }}
     >
-      {/* Header */}
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div className="flex items-center gap-2">
-            <span className="font-mono font-black text-[15px] text-white/90">{signal.symbol}</span>
-            {signal.jumpDetected && (
-              <span className="flex items-center gap-1 text-[9px] font-bold text-primary bg-primary/10 border border-primary/20 rounded-full px-2 py-0.5">
-                <Zap className="h-2.5 w-2.5" /> JUMP
-              </span>
-            )}
-            {signal.lossDetected && (
-              <span className="flex items-center gap-1 text-[9px] font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-full px-2 py-0.5">
-                <AlertTriangle className="h-2.5 w-2.5" /> RISK
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${cfg.color} ${cfg.bg}`}>
-              <Icon className="h-3 w-3" />
-              {signal.signal}
+      {/* Top row: symbol + badges + signal badge */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: 16, color: 'rgba(255,255,255,0.92)' }}>
+            {signal.symbol}
+          </span>
+          {signal.jumpDetected && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 700, color: '#F59E0B', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: 99, padding: '2px 8px', letterSpacing: '0.08em' }}>
+              <Zap style={{ width: 9, height: 9 }} /> JUMP
             </span>
-            <div className="flex flex-col items-end">
-              <span className="text-[18px] font-black font-mono text-white/90 leading-none">{signal.confidence}</span>
-              <span className="text-[8px] text-white/25 uppercase tracking-wider">conf.</span>
-            </div>
-          </div>
+          )}
+          {signal.lossDetected && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 700, color: '#ef4444', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 99, padding: '2px 8px', letterSpacing: '0.08em' }}>
+              <AlertTriangle style={{ width: 9, height: 9 }} /> RISK
+            </span>
+          )}
         </div>
-
-        <p className="text-[11px] font-semibold text-white/60 mb-1 leading-snug">{signal.title}</p>
-        <p className="text-[10px] text-white/35 leading-relaxed">{signal.oneLiner}</p>
-
-        {/* Expected move + timeframe */}
-        {(signal.expectedMove || signal.timeframe) && (
-          <div className="flex items-center gap-3 mt-2.5">
-            {signal.expectedMove && (
-              <span className={`text-[11px] font-mono font-bold ${signal.signal === 'BUY' ? 'text-chart-3' : 'text-destructive'}`}>
-                {signal.expectedMove}
-              </span>
-            )}
-            {signal.timeframe && (
-              <span className="text-[10px] text-white/25 font-mono">{signal.timeframe}</span>
-            )}
-            {signal.time && (
-              <span className="text-[10px] text-white/20 ml-auto">{signal.time}</span>
-            )}
-          </div>
-        )}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}`, borderRadius: 99, padding: '4px 10px', whiteSpace: 'nowrap', letterSpacing: '0.05em' }}>
+          <Icon style={{ width: 11, height: 11 }} />
+          {cfg.label}
+        </span>
       </div>
 
-      {/* Jump/Loss reasons */}
-      {(signal.jumpReason || signal.lossReason) && (
-        <div className="px-4 pb-3 flex flex-col gap-1.5">
-          {signal.jumpReason && (
-            <div className="text-[10px] text-primary/70 bg-primary/5 border border-primary/10 rounded-lg px-3 py-1.5">
-              ⚡ {signal.jumpReason}
-            </div>
+      {/* Title */}
+      {signal.title && (
+        <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.65)', marginBottom: 4, lineHeight: 1.4 }}>
+          {signal.title}
+        </p>
+      )}
+
+      {/* One-liner */}
+      {signal.oneLiner && (
+        <p style={{ fontSize: 11, fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', marginBottom: 10, lineHeight: 1.5 }}>
+          {signal.oneLiner}
+        </p>
+      )}
+
+      {/* Confidence bar (gold) */}
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Confidence</span>
+          <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 800, color: '#F59E0B' }}>{signal.confidence}%</span>
+        </div>
+        <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${signal.confidence}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            style={{ height: '100%', background: 'linear-gradient(90deg, #F59E0B, #FCD34D)', borderRadius: 99 }}
+          />
+        </div>
+      </div>
+
+      {/* Expected move + timeframe */}
+      {(signal.expectedMove || signal.timeframe || signal.time) && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+          {signal.expectedMove && (
+            <span style={{ fontSize: 12, fontFamily: 'monospace', fontWeight: 800, color: signal.signal === 'SELL' ? '#ef4444' : '#22c55e' }}>
+              {signal.expectedMove}
+            </span>
           )}
-          {signal.lossReason && (
-            <div className="text-[10px] text-destructive/70 bg-destructive/5 border border-destructive/10 rounded-lg px-3 py-1.5">
-              ⚠ {signal.lossReason}
-            </div>
+          {signal.timeframe && (
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace' }}>{signal.timeframe}</span>
+          )}
+          {signal.time && (
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginLeft: 'auto' }}>{signal.time}</span>
           )}
         </div>
       )}
@@ -106,12 +119,21 @@ export default function SignalCard({ signal }) {
       {/* Expand toggle */}
       <button
         onClick={() => setExpanded(v => !v)}
-        className="w-full flex items-center justify-center gap-1 py-2 border-t border-white/[0.05] text-[10px] text-white/25 hover:text-white/40 transition-colors"
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+          padding: '8px 0', marginTop: 2, borderTop: '1px solid rgba(255,255,255,0.05)',
+          background: 'none', border: 'none', borderRadius: 0, cursor: 'pointer',
+          fontSize: 10, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
+          borderTop: '1px solid rgba(255,255,255,0.05)',
+          transition: 'color 0.15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = 'rgba(245,158,11,0.7)'}
+        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}
       >
-        {expanded ? <><ChevronUp className="h-3 w-3" /> Less</> : <><ChevronDown className="h-3 w-3" /> Details</>}
+        {expanded ? <><ChevronUp style={{ width: 12, height: 12 }} /> Hide Details</> : <><ChevronDown style={{ width: 12, height: 12 }} /> Show Details</>}
       </button>
 
-      {/* Expanded content */}
+      {/* Expanded section */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -119,59 +141,79 @@ export default function SignalCard({ signal }) {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="overflow-hidden border-t border-white/[0.05]"
+            style={{ overflow: 'hidden' }}
           >
-            <div className="p-4 space-y-4">
-              {/* Technical summary */}
-              {signal.technicalSummary && (
-                <div>
-                  <p className="text-[9px] font-bold text-white/25 uppercase tracking-widest mb-1.5">Technical</p>
-                  <p className="text-[11px] text-white/50 leading-relaxed">{signal.technicalSummary}</p>
-                </div>
-              )}
+            <div style={{ paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-              {/* Why Buy / Why Sell */}
-              {signal.whyBuy?.length > 0 && (
-                <div>
-                  <p className="text-[9px] font-bold text-chart-3/60 uppercase tracking-widest mb-1.5">Why Buy</p>
-                  <ul className="space-y-1">
-                    {signal.whyBuy.map((r, i) => (
-                      <li key={i} className="flex items-start gap-1.5 text-[10px] text-white/45">
-                        <span className="text-chart-3 mt-0.5">+</span>{r}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {signal.whySell?.length > 0 && (
-                <div>
-                  <p className="text-[9px] font-bold text-destructive/60 uppercase tracking-widest mb-1.5">Why Sell</p>
-                  <ul className="space-y-1">
-                    {signal.whySell.map((r, i) => (
-                      <li key={i} className="flex items-start gap-1.5 text-[10px] text-white/45">
-                        <span className="text-destructive mt-0.5">−</span>{r}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Confidence breakdown */}
+              {/* Confidence breakdown bars */}
               {signal.confidence_breakdown && (
                 <div>
-                  <p className="text-[9px] font-bold text-white/25 uppercase tracking-widest mb-2">Confidence Breakdown</p>
-                  <div className="space-y-1.5">
-                    <ConfidenceBar label="Technical" value={signal.confidence_breakdown.technical} />
-                    <ConfidenceBar label="Sentiment" value={signal.confidence_breakdown.sentiment} />
-                    <ConfidenceBar label="Volume" value={signal.confidence_breakdown.volume} />
-                    <ConfidenceBar label="Macro" value={signal.confidence_breakdown.macro} />
+                  <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>Confidence Breakdown</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <BreakdownBar label="Technical" value={signal.confidence_breakdown.technical ?? 0} />
+                    <BreakdownBar label="Sentiment" value={signal.confidence_breakdown.sentiment ?? 0} />
+                    <BreakdownBar label="Volume"    value={signal.confidence_breakdown.volume ?? 0} />
+                    <BreakdownBar label="Macro"     value={signal.confidence_breakdown.macro ?? 0} />
                   </div>
                 </div>
               )}
+
+              {/* Technical summary */}
+              {signal.technicalSummary && (
+                <div>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>Technical Summary</p>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', lineHeight: 1.55 }}>{signal.technicalSummary}</p>
+                </div>
+              )}
+
+              {/* Why Buy */}
+              {signal.whyBuy?.length > 0 && (
+                <div>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(34,197,94,0.6)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>Why Buy</p>
+                  <ul style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {signal.whyBuy.map((r, i) => (
+                      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>
+                        <span style={{ color: '#22c55e', fontWeight: 800, marginTop: 1 }}>+</span>{r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Why Sell */}
+              {signal.whySell?.length > 0 && (
+                <div>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(239,68,68,0.6)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>Why Sell / Risks</p>
+                  <ul style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {signal.whySell.map((r, i) => (
+                      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>
+                        <span style={{ color: '#ef4444', fontWeight: 800, marginTop: 1 }}>−</span>{r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Jump reason */}
+              {signal.jumpReason && (
+                <div style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 10, padding: '10px 12px' }}>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>⚡ Jump Signal</p>
+                  <p style={{ fontSize: 11, color: 'rgba(245,158,11,0.75)', lineHeight: 1.5 }}>{signal.jumpReason}</p>
+                </div>
+              )}
+
+              {/* Loss reason */}
+              {signal.lossReason && (
+                <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '10px 12px' }}>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>⚠ Risk Alert</p>
+                  <p style={{ fontSize: 11, color: 'rgba(239,68,68,0.7)', lineHeight: 1.5 }}>{signal.lossReason}</p>
+                </div>
+              )}
+
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
