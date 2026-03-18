@@ -8,6 +8,7 @@ import { getFoundingMemberInfo } from '@/api/foundingMembers';
 import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
+import LegalLinksSection from '@/components/settings/LegalLinksSection';
 
 function SectionHeader({ title }) {
   return (
