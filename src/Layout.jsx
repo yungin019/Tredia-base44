@@ -24,7 +24,8 @@ const resources = {
       },
       portfolio: {
         title: "Portfolio",
-        subtitle: "Your holdings and performance"
+        subtitle: "Your holdings and performance",
+        noHoldings: "No holdings yet. Add your first position."
       },
       settings: {
         title: "Settings",
@@ -55,7 +56,8 @@ const resources = {
       },
       portfolio: {
         title: "Portfölj",
-        subtitle: "Dina innehav och prestanda"
+        subtitle: "Dina innehav och prestanda",
+        noHoldings: "Inga innehav ännu. Lägg till din första position."
       },
       settings: {
         title: "Inställningar",
@@ -86,7 +88,8 @@ const resources = {
       },
       portfolio: {
         title: "Portefeuille",
-        subtitle: "Vos positions et performances"
+        subtitle: "Vos positions et performances",
+        noHoldings: "Aucune position pour le moment. Ajoutez votre première position."
       },
       settings: {
         title: "Paramètres",
@@ -117,7 +120,8 @@ const resources = {
       },
       portfolio: {
         title: "المحفظة",
-        subtitle: "ممتلكاتك والأداء"
+        subtitle: "ممتلكاتك والأداء",
+        noHoldings: "لا توجد ممتلكات حتى الآن. أضف موضعك الأول."
       },
       settings: {
         title: "الإعدادات",
