@@ -9,7 +9,7 @@ const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 import AIChat from '@/components/ai/AIChat';
 import SignalCard from '@/components/trek/SignalCard';
 import SuperAICard from '@/components/trek/SuperAICard';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import MarketScanner from '@/components/ai/MarketScanner';
 import SentimentGauge from '@/components/ai/SentimentGauge';
 import MacroBar from '@/components/ai/MacroBar';
@@ -256,7 +256,7 @@ function toEngineSignalCardProps(s) {
 
 export default function AIInsights() {
   const { t } = useTranslation();
-  const { tier } = useSubscription();
+  const { tier } = useSubscriptionStatus();
   const [engineSignals, setEngineSignals] = useState([]);
   const [engineLoading, setEngineLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
