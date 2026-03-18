@@ -215,7 +215,7 @@ export default function Settings() {
 
       {/* VERSION */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center pb-4">
-        <span className="text-xs text-gray-400 font-mono">TREDIA v1.0.0</span>
+        <span className="text-xs text-white/25 font-mono">TREDIA v6.0.0 · App Store Ready</span>
       </motion.div>
     </div>
   );
