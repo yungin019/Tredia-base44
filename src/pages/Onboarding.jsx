@@ -212,14 +212,7 @@ export default function Onboarding() {
                         </div>
                         <p className="text-xs text-white/30 truncate">{broker.desc}</p>
                       </div>
-                      {connected && selectedBroker === broker.id ? (
-                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-                          className="h-6 w-6 rounded-full bg-[#22C55E]/20 border border-[#22C55E]/40 flex items-center justify-center flex-shrink-0">
-                          <Check className="h-3 w-3 text-[#22C55E]" />
-                        </motion.div>
-                      ) : (
-                        <span className="text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0" style={{ background: '#F59E0B15', color: '#F59E0B', border: '1px solid #F59E0B25' }}>Connect</span>
-                      )}
+                      <span className="text-[9px] font-black px-2.5 py-1 rounded-lg flex-shrink-0 uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}>Coming Soon</span>
                     </motion.button>
                   </motion.div>
                 ))}
