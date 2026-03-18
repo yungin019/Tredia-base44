@@ -20,6 +20,8 @@ const TYPE_CONFIG = {
     border: 'border-[#EF4444]/20',
     color: 'text-[#EF4444]',
     dot: 'bg-[#EF4444]',
+    leftBorder: true,
+    leftBorderColor: '#EF4444',
   },
   alert: {
     header: 'CATALYST ALERT',
