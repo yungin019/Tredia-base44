@@ -21,32 +21,31 @@ export function useRevenueCat() {
 
   /**
    * Initialize RevenueCat on mount
-   * In production, this would call Purchases.configure() and fetch customer info
+   * Calls Purchases.getCustomerInfo() to fetch subscription state from RevenueCat backend
+   * If unavailable, defaults to FREE tier (no fallback unlocks)
    */
   useEffect(() => {
     const initRevenueCat = async () => {
       try {
-        // In production with real RevenueCat SDK:
+        // With real RevenueCat SDK:
         // const Purchases = await import('react-native-purchases');
         // await Purchases.configure({ apiKey: process.env.VITE_REVENUECAT_API_KEY });
         // const info = await Purchases.getCustomerInfo();
         // updateFromCustomerInfo(info);
         
-        // For now, initialize from localStorage (TestFlight fallback)
-        const savedEntitlements = localStorage.getItem('tredia_entitlements');
-        if (savedEntitlements) {
-          setActiveEntitlements(JSON.parse(savedEntitlements));
-        }
-        
-        const savedCustomerInfo = localStorage.getItem('tredia_customer_info');
-        if (savedCustomerInfo) {
-          setCustomerInfo(JSON.parse(savedCustomerInfo));
-        }
-        
+        // For now, RevenueCat SDK not initialized
+        // In production, getCustomerInfo() is called here
+        // If it fails: default to FREE, no local fallback
+        setActiveEntitlements([]); // Empty = FREE tier
+        setCustomerInfo(null);
         setIsInitialized(true);
       } catch (error) {
         console.error('RevenueCat initialization failed:', error);
-        setIsInitialized(true); // Initialize anyway so UI doesn't freeze
+        // STRICT: Do not fall back to localStorage
+        // Default to FREE tier only
+        setActiveEntitlements([]);
+        setCustomerInfo(null);
+        setIsInitialized(true);
       }
     };
 
@@ -55,7 +54,8 @@ export function useRevenueCat() {
 
   /**
    * Update entitlements from customer info
-   * Called after purchase or restore
+   * Called after purchase or restore (from RevenueCat SDK only)
+   * NO localStorage persistence — RevenueCat is single source of truth
    */
   const updateFromCustomerInfo = useCallback((info) => {
     if (!info) return;
@@ -64,15 +64,17 @@ export function useRevenueCat() {
     setCustomerInfo(info);
     setActiveEntitlements(entitlements);
 
-    // Persist to localStorage for offline fallback
-    localStorage.setItem('tredia_entitlements', JSON.stringify(entitlements));
-    localStorage.setItem('tredia_customer_info', JSON.stringify(info));
+    // STRICT: No localStorage fallback
+    // RevenueCat is the only source of truth
   }, []);
 
   /**
    * Initiate a purchase
    * @param {string} productId - Apple IAP product ID
    * @returns {Promise<boolean>} - true if purchase succeeded
+   * 
+   * STRICT: Calls real RevenueCat SDK only.
+   * No mock unlocks. No localStorage. RevenueCat validates receipt.
    */
   const makePurchase = useCallback(async (productId) => {
     if (!productId) {
@@ -84,32 +86,15 @@ export function useRevenueCat() {
     setPurchaseError(null);
 
     try {
-      // In production with real RevenueCat SDK:
+      // With real RevenueCat SDK (when VITE_REVENUECAT_API_KEY is set):
       // const Purchases = await import('react-native-purchases');
       // const result = await Purchases.purchaseProduct(productId);
       // updateFromCustomerInfo(result.customerInfo);
       // return true;
 
-      // For now, simulate with localStorage (TestFlight development)
-      console.log(`[RevenueCat] Purchase initiated for product: ${productId}`);
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock success - in real flow, RevenueCat confirms the transaction
-      const mockInfo = {
-        entitlements: {
-          active: {
-            [productId.includes('elite') ? 'elite' : 'pro']: {
-              isActive: true,
-              expiresAtMs: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
-            }
-          }
-        },
-        activeSubscriptions: [productId],
-      };
-      updateFromCustomerInfo(mockInfo);
-      return true;
+      // For now, SDK not available
+      setPurchaseError('RevenueCat SDK not configured. Please check your API key.');
+      return false;
     } catch (error) {
       const msg = error?.message || 'Purchase failed. Please try again.';
       setPurchaseError(msg);
@@ -123,31 +108,23 @@ export function useRevenueCat() {
   /**
    * Restore previous purchases
    * @returns {Promise<boolean>} - true if restore succeeded
+   * 
+   * STRICT: Calls real RevenueCat SDK only.
+   * No localStorage fallback. RevenueCat validates App Store receipt.
    */
   const restorePurchases = useCallback(async () => {
     setPurchaseInProgress(true);
     setPurchaseError(null);
 
     try {
-      // In production with real RevenueCat SDK:
+      // With real RevenueCat SDK (when VITE_REVENUECAT_API_KEY is set):
       // const Purchases = await import('react-native-purchases');
       // const result = await Purchases.restoreTransactions();
       // updateFromCustomerInfo(result);
       // return true;
 
-      console.log('[RevenueCat] Restore purchases initiated');
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      
-      // Mock: check localStorage for any existing purchases
-      const savedInfo = localStorage.getItem('tredia_customer_info');
-      if (savedInfo) {
-        updateFromCustomerInfo(JSON.parse(savedInfo));
-        return true;
-      }
-      
-      setPurchaseError('No previous purchases found.');
+      // For now, SDK not available
+      setPurchaseError('RevenueCat SDK not configured. Please check your API key.');
       return false;
     } catch (error) {
       const msg = error?.message || 'Restore failed. Please try again.';
