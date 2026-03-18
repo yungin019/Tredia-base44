@@ -235,9 +235,54 @@ function toSignalCardProps(s) {
   };
 }
 
+function toEngineSignalCardProps(s) {
+  return {
+    symbol: s.symbol,
+    title: s.oneLiner,
+    signal: s.signal,
+    confidence: s.confidence,
+    time: 'live',
+    expectedMove: s.change24h != null ? `${s.change24h > 0 ? '+' : ''}${s.change24h.toFixed(2)}%` : undefined,
+    timeframe: '24h',
+    technicalSummary: s.oneLiner,
+    confidence_breakdown: {
+      technical: s.rsi ? Math.round(Math.abs(50 - s.rsi) + 50) : 50,
+      sentiment: s.confidence,
+      volume: s.jumpDetected ? 85 : 50,
+      macro: 55,
+    },
+  };
+}
+
 export default function AIInsights() {
   const { t } = useTranslation();
   const { tier } = useSubscription();
+  const [engineSignals, setEngineSignals] = useState([]);
+  const [engineLoading, setEngineLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const intervalRef = useRef(null);
+
+  const fetchSignals = async () => {
+    try {
+      const result = await runTREKEngine();
+      setEngineSignals(result.signals || []);
+      setLastUpdated(new Date());
+    } catch {
+      // degrade gracefully — keep existing signals
+    } finally {
+      setEngineLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSignals();
+    intervalRef.current = setInterval(fetchSignals, REFRESH_INTERVAL);
+    return () => clearInterval(intervalRef.current);
+  }, []);
+
+  const lastUpdatedLabel = lastUpdated
+    ? lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : null;
 
   return (
     <div className="p-4 lg:p-6 space-y-5 max-w-[1800px] mx-auto pb-24">
