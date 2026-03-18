@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { askTrek } from '@/api/trek';
 import { buildMarketContext } from '@/api/marketContext';
 import { base44 } from '@/api/base44Client';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import QueryLimitModal from './QueryLimitModal';
 
 const SUGGESTED = [
@@ -59,7 +59,7 @@ function incrementQuestions() {
 }
 
 export default function AIChat() {
-  const { tier, hasAccess } = useSubscription();
+  const { tier } = useSubscriptionStatus();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
