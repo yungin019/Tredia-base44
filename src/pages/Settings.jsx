@@ -282,9 +282,12 @@ export default function Settings() {
        </div>
       </motion.div>
 
+      {/* LEGAL */}
+      <LegalLinksSection />
+
       {/* VERSION */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center pb-4">
-        <span className="text-xs text-white/25 font-mono">TREDIA v6.0.0 · App Store Ready</span>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="text-center pb-4">
+        <span className="text-xs text-white/25 font-mono">TREDIA v6.0.0 · TestFlight Ready</span>
       </motion.div>
     </div>
   );
