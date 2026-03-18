@@ -274,7 +274,12 @@ export default function Upgrade() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-6">
         <span className="text-[10px] font-black tracking-[0.18em] uppercase text-white/40">Pro Plan</span>
-        <p className="text-2xl font-black text-white/90 mb-1 mt-1">$19.99<span className="text-sm font-medium text-white/35">/mo</span></p>
+        <p className="text-2xl font-black text-white/90 mb-1 mt-1">
+          {billingCycle === 'monthly' ? '$19.99' : '$179.99'}
+          <span className="text-sm font-medium text-white/35">
+            {billingCycle === 'monthly' ? '/mo' : '/yr'}
+          </span>
+        </p>
         <p className="text-xs text-white/30 mb-5">For serious traders who want more.</p>
         <ul className="space-y-2.5 mb-6">
           {['Unlimited TREK signals', 'Real-time price alerts', 'Advanced charts'].map(f => (
@@ -283,14 +288,12 @@ export default function Upgrade() {
             </li>
           ))}
         </ul>
-        <button onClick={() => {
-          // TODO: Wire to RevenueCat or Apple In-App Purchases
-          console.log('Pro purchase flow would trigger here - blocked by RevenueCat setup');
-        }}
+        <button
+          onClick={() => handlePurchase('pro')}
+          disabled={purchaseInProgress || !isInitialized}
           className="w-full py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55 disabled:opacity-50"
-          title="Requires RevenueCat SDK integration with Apple In-App Purchases"
-          disabled={false}>
-          {t('upgrade.pro')} → <span style={{ fontSize: '10px', opacity: 0.7 }}>RevenueCat</span>
+        >
+          {purchaseInProgress ? 'Processing...' : `Subscribe to Pro`}
         </button>
       </motion.div>
     </div>
