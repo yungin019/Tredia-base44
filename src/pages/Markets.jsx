@@ -186,14 +186,16 @@ export default function Markets() {
       {/* Forex Tab */}
       {activeTab === 'forex' && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-white/[0.07] bg-[#111118] p-8 text-center">
-          <p className="text-white/30 text-sm">Forex data coming soon</p>
+          <p className="text-white/30 text-sm">Forex markets available in future release</p>
+          <p className="text-white/15 text-xs mt-2">(Ready for: OANDA, FXCM, or FX data API integration)</p>
         </motion.div>
       )}
 
       {/* Commodities Tab */}
       {activeTab === 'commodities' && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-white/[0.07] bg-[#111118] p-8 text-center">
-          <p className="text-white/30 text-sm">Commodities data coming soon</p>
+          <p className="text-white/30 text-sm">Commodities markets available in future release</p>
+          <p className="text-white/15 text-xs mt-2">(Ready for: Gold, Oil, Natural Gas data APIs)</p>
         </motion.div>
       )}
     </div>
