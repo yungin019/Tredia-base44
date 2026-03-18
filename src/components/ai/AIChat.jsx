@@ -51,7 +51,7 @@ export default function AIChat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  const hasApiKey = !!(import.meta.env.VITE_ANTHROPIC_API_KEY || import.meta.env.ANTHROPIC_API_KEY);
+  const hasApiKey = !!(import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY);
 
   const send = async (text) => {
     const q = (text || input).trim();
@@ -86,7 +86,7 @@ export default function AIChat() {
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05]">
         <TrekAvatar size={6} />
         <span className="text-[11px] font-bold text-white/80">Ask TREK</span>
-        <span className="text-[9px] font-mono font-bold text-primary/50 px-1.5 py-0.5 rounded border border-primary/15 ml-1 tracking-wider" style={{ background: 'rgba(245,158,11,0.05)' }}>CLAUDE · LIVE</span>
+        <span className="text-[9px] font-mono font-bold text-primary/50 px-1.5 py-0.5 rounded border border-primary/15 ml-1 tracking-wider" style={{ background: 'rgba(245,158,11,0.05)' }}>GPT-4o · LIVE</span>
         {messages.length > 0 && (
           <button onClick={handleClear} className="ml-auto flex items-center gap-1 text-[9px] text-white/25 hover:text-white/50 transition-colors">
             <RotateCcw className="h-3 w-3" /> Clear
