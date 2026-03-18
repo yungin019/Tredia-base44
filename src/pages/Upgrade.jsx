@@ -126,6 +126,8 @@ export default function Upgrade() {
                 <Users className="h-3 w-3 text-white/30" />
                 {loadingStats ? (
                   <span className="text-[11px] text-white/30">Loading...</span>
+                ) : joined ? (
+                  <span className="text-[11px] text-[#F59E0B] font-bold">You are OG #{joinedNumber} · 100 spots claimed</span>
                 ) : stats.isSoldOut ? (
                   <span className="text-[11px] text-red-400 font-bold">100 of 100 spots taken — SOLD OUT</span>
                 ) : (
@@ -139,7 +141,7 @@ export default function Upgrade() {
             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${pctFull * 100}%` }}
+                animate={{ width: loadingStats ? '0%' : `${pctFull * 100}%` }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
                 className="h-full rounded-full"
                 style={{ background: 'linear-gradient(90deg, #F59E0B, #FCD34D)' }}
@@ -147,11 +149,13 @@ export default function Upgrade() {
             </div>
           </div>
 
-          {/* CTA */}
-          {joined ? (
+          {/* CTA — suppressed while loading to prevent flicker */}
+          {loadingStats ? (
+            <div className="h-11 rounded-xl animate-pulse" style={{ background: 'rgba(245,158,11,0.08)' }} />
+          ) : joined ? (
             <div className="text-center py-3 rounded-xl font-black text-sm"
               style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e' }}>
-              ✓ You're OG #{joinedNumber} — Welcome, Founding Member!
+              ✓ You're OG #{joinedNumber} — Founding Member
             </div>
           ) : stats.isSoldOut ? (
             <div className="text-center py-3 rounded-xl font-bold text-sm text-white/30"
