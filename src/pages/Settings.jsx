@@ -197,12 +197,23 @@ export default function Settings() {
             </li>
           ))}
         </ul>
-        <button
-          onClick={() => navigate('/Upgrade')}
-          className="w-full py-3 rounded-xl font-black text-sm tracking-wide transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#0A0A0F' }}>
-          ⚡ Upgrade to PRO
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => navigate('/Upgrade')}
+            className="py-3 rounded-xl font-black text-sm tracking-wide transition-opacity hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#0A0A0F' }}>
+            ⚡ Upgrade
+          </button>
+          <button
+            onClick={() => {
+              // TODO: Wire to RevenueCat restorePurchases()
+              console.log('Restore Purchases would call RevenueCat SDK');
+            }}
+            className="py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55"
+            title="Restores your purchases from RevenueCat">
+            Restore
+          </button>
+        </div>
       </motion.div>
 
       {/* LANGUAGE */}
