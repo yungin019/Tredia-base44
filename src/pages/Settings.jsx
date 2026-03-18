@@ -190,7 +190,7 @@ export default function Settings() {
             tier === 'pro' ? 'bg-blue-500/15 border border-blue-500/40 text-blue-400' :
             'bg-white/[0.06] border border-white/[0.1] text-white/40'
           }`}>
-            {tier.toUpperCase()}
+            {tier ? tier.toUpperCase() : 'FREE'}
           </span>
           <span className="text-xs text-white/25">Current plan</span>
         </div>
