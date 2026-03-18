@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Zap, Check, Crown, Users } from 'lucide-react';
+import { Zap, Check, Crown, Users, AlertCircle } from 'lucide-react';
 import { getFoundingStats, claimFoundingMemberSlot, getFoundingMemberInfo } from '@/api/foundingMembers';
 import { base44 } from '@/api/base44Client';
+import { useRevenueCat } from '@/hooks/useRevenueCat';
+import { getProductId } from '@/lib/revenuecat-config';
 
 const ELITE_FEATURES = [
   'Unlimited TREK AI signals',
