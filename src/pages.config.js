@@ -50,26 +50,28 @@
 import AIInsights from './pages/AIInsights';
 import Dashboard from './pages/Dashboard';
 import Markets from './pages/Markets';
-import Portfolio from './pages/Portfolio';
-import Trade from './pages/Trade';
-import SplashScreen from './pages/SplashScreen';
 import Onboarding from './pages/Onboarding';
-import SignIn from './pages/SignIn';
-import Settings from './pages/Settings';
 import PaperTrading from './pages/PaperTrading';
+import Portfolio from './pages/Portfolio';
+import Settings from './pages/Settings';
+import SignIn from './pages/SignIn';
+import SplashScreen from './pages/SplashScreen';
+import Trade from './pages/Trade';
+import Upgrade from './pages/Upgrade';
 
 
 export const PAGES = {
     "AIInsights": AIInsights,
     "Dashboard": Dashboard,
     "Markets": Markets,
-    "Portfolio": Portfolio,
-    "Trade": Trade,
-    "SplashScreen": SplashScreen,
     "Onboarding": Onboarding,
-    "SignIn": SignIn,
-    "Settings": Settings,
     "PaperTrading": PaperTrading,
+    "Portfolio": Portfolio,
+    "Settings": Settings,
+    "SignIn": SignIn,
+    "SplashScreen": SplashScreen,
+    "Trade": Trade,
+    "Upgrade": Upgrade,
 }
 
 export const pagesConfig = {

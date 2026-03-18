@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { getIndices, getAllStocks } from '../components/MarketData';
 import IndexCards from '../components/dashboard/IndexCards';
 import PortfolioSummary from '../components/dashboard/PortfolioSummary';
@@ -16,6 +17,7 @@ import EarningsCalendar from '../components/dashboard/EarningsCalendar';
 import TickerTape from '../components/dashboard/TickerTape';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [indices, setIndices] = useState([]);
   const [stocks, setStocks] = useState([]);
   const [crypto, setCrypto] = useState(null);
@@ -57,10 +59,10 @@ export default function Dashboard() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end justify-between pt-1">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-black text-white/95 tracking-tight">Market Overview</h1>
+            <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('dashboard.title')}</h1>
           </div>
           <p className="text-[11px] text-white/30 font-medium tracking-wide">
-            Real-time indices, crypto, and market intelligence
+            {t('dashboard.subtitle')}
           </p>
         </div>
         <div className="text-right hidden sm:block">
