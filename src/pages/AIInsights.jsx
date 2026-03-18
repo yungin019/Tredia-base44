@@ -4,6 +4,9 @@ import { motion } from 'framer-motion';
 import { Brain, TrendingUp, Shield, AlertTriangle, BarChart3, Zap, Activity } from 'lucide-react';
 
 import AIChat from '@/components/ai/AIChat';
+import SignalCard from '@/components/trek/SignalCard';
+import { SuperAICard } from '@/components/trek/SuperAICard';
+import useSubscription from '@/hooks/useSubscription';
 import MarketScanner from '@/components/ai/MarketScanner';
 import SentimentGauge from '@/components/ai/SentimentGauge';
 import MacroBar from '@/components/ai/MacroBar';
