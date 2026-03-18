@@ -87,8 +87,6 @@ export default function Onboarding() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [step, setStep] = useState('choice');
-  const [selectedBroker, setSelectedBroker] = useState(null);
-  const [connected, setConnected] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Profile fields
@@ -96,12 +94,6 @@ export default function Onboarding() {
   const [riskTolerance, setRiskTolerance] = useState('');
   const [goal, setGoal] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('');
-
-  const handleConnect = (brokerId) => {
-    setSelectedBroker(brokerId);
-    setConnected(true);
-    setTimeout(() => setStep('profile'), 1200);
-  };
 
   const handleProfileSave = async () => {
     setSaving(true);
