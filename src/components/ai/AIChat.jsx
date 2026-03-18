@@ -51,17 +51,24 @@ export default function AIChat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
+  const hasApiKey = !!import.meta.env.VITE_ANTHROPIC_API_KEY;
+
   const send = async (text) => {
     const q = (text || input).trim();
     if (!q) return;
+    if (!hasApiKey) return;
     setInput('');
     setError(null);
     historyRef.current = [...historyRef.current, { role: 'user', content: q }];
     setMessages(prev => [...prev, { role: 'user', content: q }]);
     setLoading(true);
-    const reply = await askTrek(historyRef.current, marketContext, currentUser);
-    historyRef.current = [...historyRef.current, { role: 'assistant', content: reply }];
-    setMessages(prev => [...prev, { role: 'ai', content: reply }]);
+    try {
+      const reply = await askTrek(historyRef.current, marketContext, currentUser);
+      historyRef.current = [...historyRef.current, { role: 'assistant', content: reply }];
+      setMessages(prev => [...prev, { role: 'ai', content: reply }]);
+    } catch (e) {
+      setError('TREK is temporarily unavailable. Please try again shortly.');
+    }
     setLoading(false);
   };
 
