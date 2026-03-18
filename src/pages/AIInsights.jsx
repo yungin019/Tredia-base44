@@ -296,8 +296,11 @@ export default function AIInsights() {
             <span className="text-[9px] font-mono text-white/20">{PREDEFINED_SIGNALS.length} active signals · refreshed now</span>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="lg:col-span-2">
+              <SuperAICard isElite={tier === 'elite'} result={null} />
+            </div>
             {PREDEFINED_SIGNALS.map((signal, i) => (
-              <ExpandableSignalCard key={i} signal={signal} index={i} />
+              <SignalCard key={i} signal={toSignalCardProps(signal)} />
             ))}
           </div>
         </motion.div>
