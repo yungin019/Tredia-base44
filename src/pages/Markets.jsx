@@ -74,9 +74,9 @@ export default function Markets() {
   return (
     <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
       {/* Header */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('markets.title') || 'Markets'}</h1>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1 truncate">{t('markets.title') || 'Markets'}</h1>
           <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('markets.subtitle') || 'Live Markets'}</p>
         </div>
       </motion.div>

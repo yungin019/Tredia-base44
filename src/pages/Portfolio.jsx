@@ -45,25 +45,25 @@ export default function Portfolio() {
   return (
     <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
       {/* Header */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('portfolio.title') || 'Portfolio'}</h1>
            <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('portfolio.subtitle') || 'Your holdings and performance'}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             onClick={() => navigate('/PaperTrading')}
             size="sm"
-            className="h-8 text-[11px] font-bold bg-white/10 hover:bg-white/15 text-white/80"
+            className="h-8 text-[10px] font-bold bg-white/10 hover:bg-white/15 text-white/80 whitespace-nowrap"
           >
-            <Play className="h-3.5 w-3.5 mr-1.5" /> Paper Trading
+            <Play className="h-3.5 w-3.5 mr-1.5" /> Trade
           </Button>
           <Button
             onClick={() => setShowAdd(true)}
             size="sm"
-            className="h-8 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="h-8 text-[10px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
           >
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Holding
+            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add
           </Button>
         </div>
       </motion.div>

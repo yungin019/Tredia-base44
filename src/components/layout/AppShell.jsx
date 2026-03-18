@@ -106,29 +106,36 @@ export default function AppShell() {
       </main>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 glass-dark border-t border-white/[0.06] lg:hidden z-50">
-        <div className="flex items-center justify-around py-1 safe-bottom">
-          {NAV_ITEMS.map((item) => {
-            const isActive = location.pathname === item.path && !item.isTrek;
-            const isTrekActive = item.isTrek && location.pathname === item.path;
-            return (
-              <Link key={`${item.path}-${item.labelKey}`} to={item.path} className="flex flex-col items-center py-2 px-4 relative">
-                {(isActive || isTrekActive) && (
-                  <motion.div
-                    layoutId="mobile-nav"
-                    className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-6 rounded-full"
-                    style={{ background: item.isTrek ? '#F59E0B' : 'hsl(var(--primary))' }}
-                  />
-                )}
-                <item.icon className={`h-5 w-5 transition-colors ${(isActive || isTrekActive) ? (item.isTrek ? 'text-[#F59E0B]' : 'text-primary') : 'text-muted-foreground'}`} />
-                <span className={`text-[9px] mt-1 font-medium tracking-wide transition-colors ${(isActive || isTrekActive) ? (item.isTrek ? 'text-[#F59E0B]' : 'text-primary') : 'text-muted-foreground'}`}>
-                  {t(item.labelKey)}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+       <nav className="fixed bottom-0 left-0 right-0 glass-dark border-t border-white/[0.06] lg:hidden z-50">
+         <div className="flex items-center justify-around py-1 safe-bottom">
+           {NAV_ITEMS.map((item) => {
+             const isActive = location.pathname === item.path && !item.isTrek;
+             const isTrekActive = item.isTrek && location.pathname === item.path;
+             const fallbackLabels = {
+               'nav.feed': 'Feed',
+               'nav.markets': 'Markets',
+               'nav.portfolio': 'Portfolio',
+               'nav.trek': 'TREK',
+               'nav.settings': 'Settings'
+             };
+             return (
+               <Link key={`${item.path}-${item.labelKey}`} to={item.path} className="flex flex-col items-center py-2 px-3 relative">
+                 {(isActive || isTrekActive) && (
+                   <motion.div
+                     layoutId="mobile-nav"
+                     className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-6 rounded-full"
+                     style={{ background: item.isTrek ? '#F59E0B' : 'hsl(var(--primary))' }}
+                   />
+                 )}
+                 <item.icon className={`h-5 w-5 transition-colors ${(isActive || isTrekActive) ? (item.isTrek ? 'text-[#F59E0B]' : 'text-primary') : 'text-muted-foreground'}`} />
+                 <span className={`text-[8px] mt-1 font-medium tracking-wide transition-colors ${(isActive || isTrekActive) ? (item.isTrek ? 'text-[#F59E0B]' : 'text-primary') : 'text-muted-foreground'}`}>
+                   {t(item.labelKey) || fallbackLabels[item.labelKey] || 'Menu'}
+                 </span>
+               </Link>
+             );
+           })}
+         </div>
+       </nav>
     </div>
   );
 }
