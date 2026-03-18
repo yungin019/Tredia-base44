@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Globe, Briefcase } from 'lucide-react';
+import { User, Globe, Briefcase, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
 import { getFoundingMemberInfo } from '@/api/foundingMembers';
 import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useRevenueCat } from '@/hooks/useRevenueCat';
 
 function SectionHeader({ title }) {
   return (
