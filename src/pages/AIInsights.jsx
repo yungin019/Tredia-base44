@@ -14,7 +14,6 @@ import SectorHeatmap from '@/components/ai/SectorHeatmap';
 import LiveIntelligenceRibbon from '@/components/ai/LiveIntelligenceRibbon';
 import TrekMoodIndicator from '@/components/ai/TrekMoodIndicator';
 import NewsFeed from '@/components/ai/NewsFeed';
-import ExpandableSignalCard from '@/components/ai/ExpandableSignalCard';
 import MarketCauseEffect from '@/components/ai/MarketCauseEffect';
 
 const PREDEFINED_SIGNALS = [
