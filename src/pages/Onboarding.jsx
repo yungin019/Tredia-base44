@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, Star, ArrowRight, Check, ChevronRight, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
@@ -83,6 +84,7 @@ function TrekIntro({ onEnter }) {
 }
 
 export default function Onboarding() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [step, setStep] = useState('choice');
   const [selectedBroker, setSelectedBroker] = useState(null);
@@ -143,9 +145,9 @@ export default function Onboarding() {
           {step === 'choice' && (
             <motion.div key="choice" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="text-center mb-6">
-                <h1 className="text-2xl font-black text-white/90 mb-1">Welcome to Tredia</h1>
-                <p className="text-sm text-white/35">Tell us about your trading experience</p>
-              </div>
+                  <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.title')}</h1>
+                  <p className="text-sm text-white/35">Tell us about your trading experience</p>
+                </div>
               <div className="grid grid-cols-2 gap-4">
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   onClick={() => setStep('broker')}
