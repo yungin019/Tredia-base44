@@ -103,7 +103,7 @@ export default function Upgrade() {
   return (
     <div className="p-4 lg:p-6 max-w-2xl mx-auto pb-24 space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('upgrade.title')}</h1>
+        <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('upgrade.title') || 'Upgrade Your Plan'}</h1>
         <p className="text-sm text-white/35 mt-1">Unlock the full power of TREDIA</p>
       </motion.div>
 
