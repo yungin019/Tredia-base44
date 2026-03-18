@@ -225,6 +225,23 @@ export default function Settings() {
            <option value="sv">Svenska (SV)</option>
            <option value="fr">Français (FR)</option>
            <option value="ar">العربية (AR)</option>
+           <option value="es">Español (ES)</option>
+           <option value="de">Deutsch (DE)</option>
+           <option value="it">Italiano (IT)</option>
+           <option value="pt">Português (PT)</option>
+           <option value="ja">日本語 (JA)</option>
+           <option value="zh">中文 (ZH)</option>
+           <option value="ko">한국어 (KO)</option>
+           <option value="ru">Русский (RU)</option>
+           <option value="tr">Türkçe (TR)</option>
+           <option value="nl">Nederlands (NL)</option>
+           <option value="pl">Polski (PL)</option>
+           <option value="th">ไทย (TH)</option>
+           <option value="id">Bahasa Indonesia (ID)</option>
+           <option value="ro">Română (RO)</option>
+           <option value="el">Ελληνικά (EL)</option>
+           <option value="vi">Tiếng Việt (VI)</option>
+           <option value="hi">हिन्दी (HI)</option>
          </select>
        </div>
       </motion.div>
