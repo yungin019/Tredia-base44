@@ -200,6 +200,21 @@ export default function Settings() {
             </li>
           ))}
         </ul>
+        {restoreMessage && (
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            className={`flex items-center gap-2 p-3 rounded-lg mb-3 ${
+              restoreMessage.type === 'error'
+                ? 'bg-destructive/10 border border-destructive/20'
+                : 'bg-chart-3/10 border border-chart-3/20'
+            }`}>
+            <AlertCircle className={`h-4 w-4 flex-shrink-0 ${
+              restoreMessage.type === 'error' ? 'text-destructive' : 'text-chart-3'
+            }`} />
+            <p className={`text-xs ${
+              restoreMessage.type === 'error' ? 'text-destructive' : 'text-chart-3'
+            }`}>{restoreMessage.text}</p>
+          </motion.div>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => navigate('/Upgrade')}
@@ -208,13 +223,19 @@ export default function Settings() {
             ⚡ Upgrade
           </button>
           <button
-            onClick={() => {
-              // TODO: Wire to RevenueCat restorePurchases()
-              console.log('Restore Purchases would call RevenueCat SDK');
+            onClick={async () => {
+              setRestoreMessage(null);
+              const success = await restorePurchases();
+              if (success) {
+                setRestoreMessage({ type: 'success', text: 'Purchases restored successfully!' });
+              } else {
+                setRestoreMessage({ type: 'error', text: purchaseError || 'Restore failed. Try again.' });
+              }
             }}
-            className="py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55"
+            disabled={purchaseInProgress}
+            className="py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55 disabled:opacity-50"
             title="Restores your purchases from RevenueCat">
-            Restore
+            {purchaseInProgress ? 'Restoring...' : 'Restore'}
           </button>
         </div>
       </motion.div>
