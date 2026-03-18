@@ -1,4 +1,4 @@
-const AV_KEY = import.meta.env.VITE_ALPHAVANTAGE_API_KEY;
+const AV_KEY = import.meta.env.VITE_ALPHAVANTAGE_API_KEY || import.meta.env.ALPHAVANTAGE_API_KEY;
 
 export async function fetchStockRSI(symbol) {
   try {

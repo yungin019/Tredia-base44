@@ -51,7 +51,7 @@ export default function AIChat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  const hasApiKey = !!import.meta.env.VITE_ANTHROPIC_API_KEY;
+  const hasApiKey = !!(import.meta.env.VITE_ANTHROPIC_API_KEY || import.meta.env.ANTHROPIC_API_KEY);
 
   const send = async (text) => {
     const q = (text || input).trim();

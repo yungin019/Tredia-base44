@@ -19,7 +19,7 @@ function buildSystemPrompt(marketContext, user) {
 }
 
 export async function askTrek(messages, marketContext, user = null) {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || import.meta.env.ANTHROPIC_API_KEY;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
