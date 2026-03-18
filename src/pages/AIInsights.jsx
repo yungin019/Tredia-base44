@@ -297,9 +297,16 @@ export default function AIInsights() {
             <p className="text-[11px] text-white/30 font-medium mt-0.5">{t('ai.subtitle')}</p>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-2 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-1.5">
-          <Activity className="h-3 w-3 text-chart-3 animate-pulse" />
-          <span className="text-[9px] font-mono font-bold text-white/40 uppercase tracking-wider">Live Intelligence Active</span>
+        <div className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-1.5">
+          <span className="h-2 w-2 rounded-full bg-chart-3 animate-pulse flex-shrink-0" />
+          <span className="text-[9px] font-mono font-bold text-white/40 uppercase tracking-wider">LIVE</span>
+          <span className="text-[9px] text-white/20 hidden sm:block">· Updates every 5 min</span>
+          {lastUpdatedLabel && (
+            <span className="text-[9px] text-white/20 hidden md:block">· {lastUpdatedLabel}</span>
+          )}
+          <button onClick={fetchSignals} className="ml-1 text-white/20 hover:text-white/50 transition-colors">
+            <RefreshCw className="h-3 w-3" />
+          </button>
         </div>
       </motion.div>
 
