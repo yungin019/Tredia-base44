@@ -38,11 +38,13 @@ export default function AIChat() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [marketContext, setMarketContext] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const bottomRef = useRef(null);
   const historyRef = useRef([]);
 
   useEffect(() => {
     buildMarketContext().then(setMarketContext).catch(() => {});
+    base44.auth.me().then(setCurrentUser).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export default function AIChat() {
     historyRef.current = [...historyRef.current, { role: 'user', content: q }];
     setMessages(prev => [...prev, { role: 'user', content: q }]);
     setLoading(true);
-    const reply = await askTrek(historyRef.current, marketContext);
+    const reply = await askTrek(historyRef.current, marketContext, currentUser);
     historyRef.current = [...historyRef.current, { role: 'assistant', content: reply }];
     setMessages(prev => [...prev, { role: 'ai', content: reply }]);
     setLoading(false);
