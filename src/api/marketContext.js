@@ -2,7 +2,7 @@ import { base44 } from '@/api/base44Client';
 
 export async function fetchStockRSI(symbol) {
   try {
-    const res = await base44.functions.invoke('marketData', { type: 'rsi', symbol });
+    const res = await base44.functions.invoke('marketAggregator', { type: 'rsi', symbol });
     return res.data?.rsi ?? 55;
   } catch {
     return 55;
@@ -11,7 +11,7 @@ export async function fetchStockRSI(symbol) {
 
 export async function fetchStockPrice(symbol) {
   try {
-    const res = await base44.functions.invoke('marketData', { type: 'quote', symbol });
+    const res = await base44.functions.invoke('marketAggregator', { symbol });
     return res.data?.quote ?? null;
   } catch {
     return null;
