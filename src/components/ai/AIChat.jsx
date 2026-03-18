@@ -51,12 +51,9 @@ export default function AIChat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  const hasApiKey = !!(import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY);
-
   const send = async (text) => {
     const q = (text || input).trim();
     if (!q) return;
-    if (!hasApiKey) return;
     setInput('');
     setError(null);
     historyRef.current = [...historyRef.current, { role: 'user', content: q }];
@@ -99,26 +96,20 @@ export default function AIChat() {
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-28 gap-2">
             <Sparkles className="h-6 w-6 text-primary/30" />
-            {!hasApiKey ? (
-              <p className="text-[11px] text-primary/50 text-center font-semibold px-4">
-                ⚡ TREK is ready — API keys not configured yet
-              </p>
-            ) : (
-              <>
-                <p className="text-[11px] text-white/20 text-center">Ask anything about markets, stocks, or strategies</p>
-                <div className="flex flex-wrap gap-1.5 justify-center mt-2">
-                  {SUGGESTED.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => send(s)}
-                      className="text-[9px] text-white/35 hover:text-white/70 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.06] px-2 py-1 rounded-lg transition-colors"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+            <>
+              <p className="text-[11px] text-white/20 text-center">Ask anything about markets, stocks, or strategies</p>
+              <div className="flex flex-wrap gap-1.5 justify-center mt-2">
+                {SUGGESTED.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => send(s)}
+                    className="text-[9px] text-white/35 hover:text-white/70 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.06] px-2 py-1 rounded-lg transition-colors"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </>
           </div>
         )}
         <AnimatePresence>
