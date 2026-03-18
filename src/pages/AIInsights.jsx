@@ -262,11 +262,32 @@ export default function AIInsights() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const intervalRef = useRef(null);
 
+  const generateTrekInsight = (fng, signals) => {
+    if (!fng && (!signals || signals.length === 0)) return null;
+    const fngLabel = fng > 75 ? 'EXTREME GREED' :
+                     fng > 55 ? 'GREED' :
+                     fng > 45 ? 'NEUTRAL' :
+                     fng > 25 ? 'FEAR' : 'EXTREME FEAR';
+    const topBuy = signals?.find(s => s.signal === 'BUY');
+    const topSell = signals?.find(s => s.signal === 'SELL');
+    return `Markets at ${fngLabel} (${fng}/100). ` +
+      (topBuy ? `Best setup: ${topBuy.symbol} — ${topBuy.oneLiner} ` : '') +
+      (topSell ? `Watch: ${topSell.symbol} showing risk signals.` : '');
+  };
+
   const fetchSignals = async () => {
     try {
       const result = await runTREKEngine();
-      setEngineSignals(result.signals || []);
+      const signals = result.signals || [];
+      setEngineSignals(signals);
       setLastUpdated(new Date());
+      // build trek insight from live data
+      const fngRes = await fetch('https://api.alternative.me/fng/').then(r => r.json()).catch(() => null);
+      const fngVal = fngRes?.data?.[0] ? parseInt(fngRes.data[0].value) : null;
+      if (fngVal !== null) {
+        setTrekInsight(generateTrekInsight(fngVal, signals));
+        setFngValue(fngVal);
+      }
     } catch {
       // degrade gracefully — keep existing signals
     } finally {

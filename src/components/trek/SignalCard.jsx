@@ -34,22 +34,43 @@ export default function SignalCard({ signal }) {
   const cfg = SIGNAL_CONFIG[signal.signal] || SIGNAL_CONFIG.HOLD;
   const Icon = cfg.icon;
 
+  const glowMap = {
+    BUY:   '0 0 20px rgba(34,197,94,0.15)',
+    SELL:  '0 0 20px rgba(239,68,68,0.15)',
+    WATCH: '0 0 20px rgba(245,158,11,0.15)',
+    HOLD:  'none',
+  };
+  const leftBorderMap = {
+    BUY:   '#22c55e',
+    SELL:  '#ef4444',
+    WATCH: '#F59E0B',
+    HOLD:  'rgba(255,255,255,0.1)',
+  };
+  const microCopyMap = {
+    BUY:   'Momentum building',
+    SELL:  'Risk increasing',
+    WATCH: 'Breakout forming',
+    HOLD:  'Consolidating',
+  };
+
   return (
     <div
       style={{
         background: '#111118',
         border: '1px solid rgba(255,255,255,0.08)',
+        borderLeft: `3px solid ${leftBorderMap[signal.signal] || leftBorderMap.HOLD}`,
         borderRadius: 16,
         padding: 16,
         display: 'flex',
         flexDirection: 'column',
         gap: 0,
+        boxShadow: glowMap[signal.signal] || 'none',
       }}
     >
       {/* Top row: symbol + badges + signal badge */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: 16, color: 'rgba(255,255,255,0.92)' }}>
+          <span style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: 18, color: 'rgba(255,255,255,0.95)' }}>
             {signal.symbol}
           </span>
           {signal.jumpDetected && (
@@ -63,10 +84,17 @@ export default function SignalCard({ signal }) {
             </span>
           )}
         </div>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}`, borderRadius: 99, padding: '4px 10px', whiteSpace: 'nowrap', letterSpacing: '0.05em' }}>
-          <Icon style={{ width: 11, height: 11 }} />
-          {cfg.label}
-        </span>
+        {/* Signal badge (large) + confidence big number */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}`, borderRadius: 99, padding: '5px 12px', whiteSpace: 'nowrap', letterSpacing: '0.07em' }}>
+            <Icon style={{ width: 12, height: 12 }} />
+            {cfg.label}
+          </span>
+          <span style={{ fontSize: 22, fontFamily: 'monospace', fontWeight: 900, color: cfg.color, lineHeight: 1 }}>
+            {signal.confidence}%
+          </span>
+          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>confidence</span>
+        </div>
       </div>
 
       {/* Title */}
@@ -78,43 +106,44 @@ export default function SignalCard({ signal }) {
 
       {/* One-liner */}
       {signal.oneLiner && (
-        <p style={{ fontSize: 11, fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', marginBottom: 10, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 11, fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', marginBottom: 8, lineHeight: 1.5 }}>
           {signal.oneLiner}
         </p>
       )}
 
-      {/* Confidence bar (gold) */}
+      {/* Expected move + timeframe + LIVE badge */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+        {signal.expectedMove && (
+          <span style={{ fontSize: 14, fontFamily: 'monospace', fontWeight: 900, color: signal.signal === 'SELL' ? '#ef4444' : '#22c55e' }}>
+            {signal.expectedMove}
+          </span>
+        )}
+        {signal.timeframe && (
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', background: 'rgba(255,255,255,0.05)', borderRadius: 6, padding: '2px 6px' }}>{signal.timeframe}</span>
+        )}
+        {/* LIVE badge */}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 99, padding: '2px 8px', marginLeft: 'auto' }}>
+          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
+          LIVE · {signal.time || 'just now'}
+        </span>
+      </div>
+
+      {/* Micro copy */}
+      <p style={{ fontSize: 10, color: cfg.color, fontWeight: 600, opacity: 0.7, marginBottom: 10, letterSpacing: '0.05em' }}>
+        {microCopyMap[signal.signal] || ''}
+      </p>
+
+      {/* Confidence bar (signal color) */}
       <div style={{ marginBottom: 10 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Confidence</span>
-          <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 800, color: '#F59E0B' }}>{signal.confidence}%</span>
-        </div>
-        <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+        <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${signal.confidence}%` }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            style={{ height: '100%', background: 'linear-gradient(90deg, #F59E0B, #FCD34D)', borderRadius: 99 }}
+            style={{ height: '100%', background: cfg.color, borderRadius: 99, opacity: 0.6 }}
           />
         </div>
       </div>
-
-      {/* Expected move + timeframe */}
-      {(signal.expectedMove || signal.timeframe || signal.time) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          {signal.expectedMove && (
-            <span style={{ fontSize: 12, fontFamily: 'monospace', fontWeight: 800, color: signal.signal === 'SELL' ? '#ef4444' : '#22c55e' }}>
-              {signal.expectedMove}
-            </span>
-          )}
-          {signal.timeframe && (
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace' }}>{signal.timeframe}</span>
-          )}
-          {signal.time && (
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginLeft: 'auto' }}>{signal.time}</span>
-          )}
-        </div>
-      )}
 
       {/* Expand toggle */}
       <button
