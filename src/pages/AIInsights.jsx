@@ -347,15 +347,27 @@ export default function AIInsights() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="xl:col-span-2">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[11px] font-bold text-white/50 uppercase tracking-[0.12em]">{t('ai.signal_feed')}</h2>
-            <span className="text-[9px] font-mono text-white/20">{PREDEFINED_SIGNALS.length} active signals · refreshed now</span>
+            <span className="text-[9px] font-mono text-white/20">
+              {engineLoading ? 'Fetching live data...' : `${engineSignals.length} live signals · ${lastUpdatedLabel || 'now'}`}
+            </span>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <div className="lg:col-span-2">
               <SuperAICard isElite={tier === 'elite'} result={null} />
             </div>
-            {PREDEFINED_SIGNALS.map((signal, i) => (
-              <SignalCard key={i} signal={toSignalCardProps(signal)} />
-            ))}
+            {engineLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-28 rounded-xl bg-white/[0.03] animate-pulse border border-white/[0.05]" />
+              ))
+            ) : engineSignals.length > 0 ? (
+              engineSignals.map((signal, i) => (
+                <SignalCard key={i} signal={toEngineSignalCardProps(signal)} />
+              ))
+            ) : (
+              PREDEFINED_SIGNALS.map((signal, i) => (
+                <SignalCard key={i} signal={toSignalCardProps(signal)} />
+              ))
+            )}
           </div>
         </motion.div>
 
