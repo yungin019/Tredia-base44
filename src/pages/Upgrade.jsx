@@ -77,6 +77,27 @@ export default function Upgrade() {
     }
   };
 
+  const handlePurchase = async (tier) => {
+    setLastPurchaseError(null);
+    const productId = getProductId(tier, billingCycle);
+    if (!productId) {
+      setLastPurchaseError('Product configuration error');
+      return;
+    }
+    const success = await makePurchase(productId);
+    if (!success && purchaseError) {
+      setLastPurchaseError(purchaseError);
+    }
+  };
+
+  const handleRestore = async () => {
+    setLastPurchaseError(null);
+    const success = await restorePurchases();
+    if (!success && purchaseError) {
+      setLastPurchaseError(purchaseError);
+    }
+  };
+
   const pctFull = stats.foundingSpotsTaken / 100;
 
   return (
