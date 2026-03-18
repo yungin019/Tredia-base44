@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { askTrek } from '@/api/trek';
 import { buildMarketContext } from '@/api/marketContext';
 import { base44 } from '@/api/base44Client';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const SUGGESTED = [
   'Is NVDA overbought?',
@@ -33,12 +34,14 @@ function TrekAvatar({ size = 5 }) {
 }
 
 export default function AIChat() {
+  const { tier, hasAccess } = useSubscription();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [marketContext, setMarketContext] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [questionsToday, setQuestionsToday] = useState(0);
   const bottomRef = useRef(null);
   const historyRef = useRef([]);
 
@@ -54,11 +57,20 @@ export default function AIChat() {
   const send = async (text) => {
     const q = (text || input).trim();
     if (!q) return;
+    
+    // Enforce FREE tier limit (5 questions/day)
+    if (tier === 'free' && questionsToday >= 5) {
+      setError('FREE users get 5 questions/day. Upgrade to PRO for unlimited.');
+      return;
+    }
+    
     setInput('');
     setError(null);
     historyRef.current = [...historyRef.current, { role: 'user', content: q }];
     setMessages(prev => [...prev, { role: 'user', content: q }]);
     setLoading(true);
+    setQuestionsToday(prev => prev + 1);
+    
     try {
       const reply = await askTrek(historyRef.current, marketContext, currentUser);
       historyRef.current = [...historyRef.current, { role: 'assistant', content: reply }];
@@ -158,17 +170,23 @@ export default function AIChat() {
 
       {/* Input - Sticky Bottom */}
       <div className="sticky bottom-0 px-4 py-3 border-t border-white/[0.05] bg-[#0e0e16] safe-bottom">
+        {tier === 'free' && (
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: 8, background: 'rgba(245,158,11,0.1)', borderRadius: 6, padding: '6px' }}>
+            {questionsToday}/5 questions used today
+          </div>
+        )}
         <div className="flex gap-2">
           <Input
             placeholder="Ask about any stock, strategy, or macro event..."
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !loading && send()}
-            className="bg-white/[0.04] border-white/[0.07] h-9 text-[12px] text-white/80 placeholder:text-white/20 focus:border-primary/40"
+            disabled={tier === 'free' && questionsToday >= 5}
+            className="bg-white/[0.04] border-white/[0.07] h-9 text-[12px] text-white/80 placeholder:text-white/20 focus:border-primary/40 disabled:opacity-50"
           />
           <Button
             onClick={() => send()}
-            disabled={loading || !input.trim()}
+            disabled={loading || !input.trim() || (tier === 'free' && questionsToday >= 5)}
             size="sm"
             className="h-9 px-3 bg-primary hover:bg-primary/90 text-primary-foreground"
           >
