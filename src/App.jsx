@@ -17,6 +17,7 @@ import Portfolio from './pages/Portfolio';
 import Trade from './pages/Trade';
 import Settings from './pages/Settings';
 import PaperTrading from './pages/PaperTrading';
+import Upgrade from './pages/Upgrade';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -54,6 +55,7 @@ const AuthenticatedApp = () => {
         <Route path="/Portfolio" element={<Portfolio />} />
         <Route path="/Trade" element={<Trade />} />
         <Route path="/Settings" element={<Settings />} />
+        <Route path="/Upgrade" element={<Upgrade />} />
         <Route path="/PaperTrading" element={<PaperTrading />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
