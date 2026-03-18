@@ -71,7 +71,7 @@ export default function Settings() {
     <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-6">
       <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="text-2xl font-black text-white/95 tracking-tight">
-        Settings
+        {t('settings.title')}
       </motion.h1>
 
       {/* FOUNDING MEMBER BADGE */}
@@ -207,12 +207,26 @@ export default function Settings() {
 
       {/* LANGUAGE */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
-        <SectionHeader title="Language" />
-        <div className="flex items-center gap-3">
-          <Globe className="h-5 w-5 text-white/25" />
-          <span className="text-sm text-white/55">Auto-detected: <span className="text-white/80 font-semibold">English</span></span>
-        </div>
+       className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
+       <SectionHeader title={t('settings.language')} />
+       <div className="flex items-center justify-between">
+         <div className="flex items-center gap-3">
+           <Globe className="h-5 w-5 text-white/25" />
+           <span className="text-sm text-white/55">
+             {t('settings.language')}: <span className="text-white/80 font-semibold">{i18n.language.toUpperCase()}</span>
+           </span>
+         </div>
+         <select
+           value={i18n.language}
+           onChange={(e) => i18n.changeLanguage(e.target.value)}
+           className="bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/80 cursor-pointer"
+         >
+           <option value="en">English (EN)</option>
+           <option value="sv">Svenska (SV)</option>
+           <option value="fr">Français (FR)</option>
+           <option value="ar">العربية (AR)</option>
+         </select>
+       </div>
       </motion.div>
 
       {/* VERSION */}
