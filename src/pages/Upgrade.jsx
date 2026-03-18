@@ -28,10 +28,25 @@ export default function Upgrade() {
   const [joinedNumber, setJoinedNumber] = useState(null);
 
   useEffect(() => {
-    getFoundingStats()
-      .then(setStats)
-      .catch(() => {})
-      .finally(() => setLoadingStats(false));
+    const init = async () => {
+      try {
+        const [statsData, user] = await Promise.all([getFoundingStats(), base44.auth.me()]);
+        setStats(statsData);
+        const userId = user?.email || user?.id;
+        if (userId) {
+          const existing = await getFoundingMemberInfo(userId);
+          if (existing) {
+            setJoined(true);
+            setJoinedNumber(existing.og_number);
+          }
+        }
+      } catch (e) {
+        // ignore
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    init();
   }, []);
 
   const handleJoinFounding = async () => {
