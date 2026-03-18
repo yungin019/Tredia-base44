@@ -14,11 +14,15 @@ export default function SignIn() {
   const [error, setError] = useState(null);
 
   const handleGoogle = () => {
-    base44.auth.redirectToLogin({ provider: 'google' });
+    // For public app, redirect to Base44 login endpoint with provider
+    const appId = new URLSearchParams(window.location.search).get('app') || 'tredia';
+    window.location.href = `/api/auth/login?app_id=${appId}&provider=google&redirect_to=${encodeURIComponent(window.location.href)}`;
   };
 
   const handleApple = () => {
-    base44.auth.redirectToLogin({ provider: 'apple' });
+    // For public app, redirect to Base44 login endpoint with provider
+    const appId = new URLSearchParams(window.location.search).get('app') || 'tredia';
+    window.location.href = `/api/auth/login?app_id=${appId}&provider=apple&redirect_to=${encodeURIComponent(window.location.href)}`;
   };
 
   const handleEmail = async (e) => {
@@ -26,10 +30,11 @@ export default function SignIn() {
     setError(null);
     setLoading(true);
     try {
-      await base44.auth.redirectToLogin({ email });
+      // For public app, use email magic link flow
+      const appId = new URLSearchParams(window.location.search).get('app') || 'tredia';
+      window.location.href = `/api/auth/login?app_id=${appId}&email=${encodeURIComponent(email)}&redirect_to=${encodeURIComponent(window.location.href)}`;
     } catch (err) {
       setError(err.message || 'Something went wrong');
-    } finally {
       setLoading(false);
     }
   };
