@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Briefcase, Plus, Trash2, ArrowUpRight, ArrowDownRight, PieChart, Play } from 'lucide-react';
@@ -16,6 +17,7 @@ import PortfolioPerformanceChart from '../components/portfolio/PortfolioPerforma
 const COLORS = ['#F59E0B', '#3B82F6', '#22C55E', '#A855F7', '#EF4444', '#06B6D4'];
 
 export default function Portfolio() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
@@ -45,8 +47,8 @@ export default function Portfolio() {
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">Portfolio</h1>
-          <p className="text-[11px] text-white/30 font-medium tracking-wide">View your holdings, allocation, and AI-powered portfolio analysis</p>
+          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('portfolio.title')}</h1>
+          <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('portfolio.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -145,10 +147,10 @@ export default function Portfolio() {
           {isLoading ? (
             <div className="p-10 text-center text-white/25 text-[12px]">Loading...</div>
           ) : holdings.length === 0 ? (
-            <div className="p-10 text-center">
-              <Briefcase className="h-10 w-10 text-white/10 mx-auto mb-3" />
-              <p className="text-[12px] text-white/25">No holdings yet. Add your first position.</p>
-            </div>
+           <div className="p-10 text-center">
+             <Briefcase className="h-10 w-10 text-white/10 mx-auto mb-3" />
+             <p className="text-[12px] text-white/25">{t('portfolio.noHoldings')}</p>
+           </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
