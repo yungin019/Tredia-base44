@@ -329,15 +329,15 @@ export default function AIInsights() {
       {/* AI Context Banner */}
       <ContextBanner
         storageKey="ai_insights_v1"
-        title="TREK AI Signals ⚡"
-        body="These are AI-generated trading signals based on real market data, volume analysis, and sentiment. Each signal has a confidence score and a clear action (BUY / HOLD / SELL)."
+        title={t('ai.contextTitle')}
+        body={t('ai.contextBody')}
         steps={[
-          "Read the signal for a stock you're interested in",
-          "Check the confidence score — higher = stronger signal",
-          "Tap a signal card to see the full analysis",
+          t('ai.contextStep1'),
+          t('ai.contextStep2'),
+          t('ai.contextStep3'),
         ]}
-        actions={[{ label: "Explain the strongest signal", onClick: () => {} }]}
-        aiQuestion="Explain what TREK signals are and how to use them. I'm new to trading."
+        actions={[{ label: t('ai.contextAction'), onClick: () => {} }]}
+        aiQuestion={t('ai.contextQuestion')}
       />
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
@@ -352,8 +352,8 @@ export default function AIInsights() {
         </div>
         <div className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-1.5">
           <span className="h-2 w-2 rounded-full bg-chart-3 animate-pulse flex-shrink-0" />
-          <span className="text-[9px] font-mono font-bold text-white/40 uppercase tracking-wider">LIVE</span>
-          <span className="text-[9px] text-white/20 hidden sm:block">· Updates every 5 min</span>
+          <span className="text-[9px] font-mono font-bold text-white/40 uppercase tracking-wider">{t('common.live')}</span>
+          <span className="text-[9px] text-white/20 hidden sm:block">· {t('ai.updatesEvery')}</span>
           {lastUpdatedLabel && (
             <span className="text-[9px] text-white/20 hidden md:block">· {lastUpdatedLabel}</span>
           )}
@@ -424,7 +424,7 @@ export default function AIInsights() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[11px] font-bold text-white/50 uppercase tracking-[0.12em]">{t('ai.signal_feed')}</h2>
             <span className="text-[9px] font-mono text-white/20">
-              {engineLoading ? 'Fetching live data...' : `${engineSignals.length} live signals · ${lastUpdatedLabel || 'now'}`}
+              {engineLoading ? t('ai.fetchingLiveData') : `${engineSignals.length} ${t('ai.liveSignals')} · ${lastUpdatedLabel || t('common.now')}`}
             </span>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -446,7 +446,7 @@ export default function AIInsights() {
             )}
             {!isElite && (
               <div className="lg:col-span-2 p-4 rounded-lg bg-white/[0.03] border border-primary/20 text-center">
-                <p className="text-xs text-white/40 mb-2">Unlock unlimited signals · Tap for more</p>
+                <p className="text-xs text-white/40 mb-2">{t('ai.unlockSignals')}</p>
               </div>
             )}
           </div>

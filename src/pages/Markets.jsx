@@ -147,7 +147,7 @@ export default function Markets() {
             className="rounded-xl border border-white/[0.07] bg-[#111118] p-5"
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold text-white/80">S&P 500 Index</h2>
+              <h2 className="text-sm font-bold text-white/80">{t('markets.sp500')}</h2>
               <TimeframeSelector timeframe={timeframe} onTimeframeChange={setTimeframe} />
             </div>
             <div className="h-[280px]">
@@ -236,16 +236,16 @@ export default function Markets() {
       {/* Forex Tab */}
       {activeTab === 'forex' && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-white/[0.07] bg-[#111118] p-8 text-center">
-          <p className="text-white/30 text-sm">Forex markets available in future release</p>
-          <p className="text-white/15 text-xs mt-2">(Ready for: OANDA, FXCM, or FX data API integration)</p>
+          <p className="text-white/30 text-sm">{t('markets.forexComingSoon')}</p>
+          <p className="text-white/15 text-xs mt-2">{t('markets.forexAPIs')}</p>
         </motion.div>
       )}
 
       {/* Commodities Tab */}
       {activeTab === 'commodities' && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-white/[0.07] bg-[#111118] p-8 text-center">
-          <p className="text-white/30 text-sm">Commodities markets available in future release</p>
-          <p className="text-white/15 text-xs mt-2">(Ready for: Gold, Oil, Natural Gas data APIs)</p>
+          <p className="text-white/30 text-sm">{t('markets.commoditiesComingSoon')}</p>
+          <p className="text-white/15 text-xs mt-2">{t('markets.commoditiesAPIs')}</p>
         </motion.div>
       )}
       </div>

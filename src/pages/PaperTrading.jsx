@@ -139,7 +139,7 @@ export default function PaperTrading() {
             <div>
               <div style={{ fontSize: 17, fontWeight: 900, color: 'rgba(255,255,255,0.92)', marginBottom: 2 }}>{traderLevel.name}</div>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>
-                {nextLevel ? `${(nextLevel.minWin - winRateNum).toFixed(1)}% win rate to reach ${nextLevel.name}` : 'Max level reached 🏆'}
+                {nextLevel ? t('paperTrading.winRateToReach', { value: (nextLevel.minWin - winRateNum).toFixed(1), level: nextLevel.name }) : t('paperTrading.maxLevelReached')}
               </div>
               {/* Progress bar */}
               <div style={{ width: 160, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
@@ -156,10 +156,10 @@ export default function PaperTrading() {
           {/* Stats */}
           <div className="flex items-center gap-6">
             {[
-              { icon: Trophy, label: 'Win Rate', value: `${winRateNum}%`, color: '#22c55e' },
-              { icon: Target, label: 'Best Trade', value: '+$2,482', color: '#F59E0B' },
-              { icon: ShieldCheck, label: 'Trades', value: '23', color: '#60a5fa' },
-              { icon: ChevronUp, label: 'Streak', value: '4W 🔥', color: '#a78bfa' },
+              { icon: Trophy, label: t('paperTrading.winRate'), value: `${winRateNum}%`, color: '#22c55e' },
+              { icon: Target, label: t('paperTrading.bestTrade'), value: '+$2,482', color: '#F59E0B' },
+              { icon: ShieldCheck, label: t('paperTrading.trades'), value: '23', color: '#60a5fa' },
+              { icon: ChevronUp, label: t('paperTrading.streak'), value: '4W 🔥', color: '#a78bfa' },
             ].map((s, i) => (
               <div key={i} className="text-center">
                 <s.icon className="h-3.5 w-3.5 mx-auto mb-1" style={{ color: s.color }} />
@@ -234,9 +234,9 @@ export default function PaperTrading() {
               <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-2">{t('paperTrading.symbol')}</label>
               <div className="flex gap-2">
                 {[
-                  { label: 'Market', value: 'market' },
-                  { label: 'Limit', value: 'limit' },
-                ].map(({ label, value }) => (
+                    { label: t('paperTrading.market'), value: 'market' },
+                    { label: t('paperTrading.limit'), value: 'limit' },
+                  ].map(({ label, value }) => (
                   <button
                     key={value}
                     onClick={() => setOrderType(value)}
@@ -304,7 +304,7 @@ export default function PaperTrading() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/[0.05]">
-                    {[t('markets.symbol'), t('paperTrading.shares'), t('portfolio.avgCost'), t('portfolio.currentPrice'), 'P&L ($)', 'P&L (%)', t('trek.wow')].map((h, i) => (
+                    {[t('markets.symbol'), t('paperTrading.shares'), t('portfolio.avgCost'), t('portfolio.currentPrice'), t('paperTrading.pnlDollars'), t('paperTrading.pnlPercent'), t('trek.grade')].map((h, i) => (
                       <th key={i} className={`${i === 0 ? 'text-left px-5' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>{h}</th>
                     ))}
                   </tr>
@@ -344,21 +344,21 @@ export default function PaperTrading() {
             transition={{ delay: 0.15 }}
             className="rounded-xl border border-white/[0.07] bg-[#111118] p-5"
           >
-            <h3 className="text-sm font-bold text-white/80 mb-4">{t('paperTrading.balance')}</h3>
+            <h3 className="text-sm font-bold text-white/80 mb-4">{t('paperTrading.performance')}</h3>
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-chart-3" />
                 <div>
-                  <div className="text-[10px] text-white/40">Your Return</div>
+                  <div className="text-[10px] text-white/40">{t('paperTrading.yourReturn')}</div>
                   <div className="text-lg font-bold text-chart-3">+12.4%</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-white/30" />
                 <div>
-                  <div className="text-[10px] text-white/40">S&P 500</div>
+                  <div className="text-[10px] text-white/40">{t('paperTrading.sp500')}</div>
                   <div className="text-lg font-bold text-white/50">+8.2%</div>
                 </div>
               </div>
@@ -376,8 +376,8 @@ export default function PaperTrading() {
                     labelStyle={{ color: 'rgba(255,255,255,0.5)' }}
                   />
                   <Legend wrapperStyle={{ fontSize: 9 }} />
-                  <Line type="monotone" dataKey="portfolio" name="Your Portfolio" stroke="#F59E0B" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="sp500" name="S&P 500" stroke="rgba(255,255,255,0.25)" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="portfolio" name={t('paperTrading.yourPortfolio')} stroke="#F59E0B" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="sp500" name={t('paperTrading.sp500')} stroke="rgba(255,255,255,0.25)" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -393,9 +393,9 @@ export default function PaperTrading() {
         className="grid grid-cols-3 gap-4"
       >
         {[
-          { label: 'Total P&L', value: `${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`, sub: 'vs $100K start', color: totalPnL >= 0 ? '#22c55e' : '#ef4444', icon: TrendingUp },
-          { label: 'Win Rate', value: '73.2%', sub: '↑ vs 65% avg', color: '#F59E0B', icon: Target },
-          { label: 'Best Trade', value: '+$2,482.50', sub: 'NVDA · Jan 2025', color: '#22c55e', icon: Trophy },
+          { label: t('paperTrading.totalPnL'), value: `${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`, sub: t('paperTrading.vsStart'), color: totalPnL >= 0 ? '#22c55e' : '#ef4444', icon: TrendingUp },
+          { label: t('paperTrading.winRate'), value: '73.2%', sub: t('paperTrading.vsAvg'), color: '#F59E0B', icon: Target },
+          { label: t('paperTrading.bestTrade'), value: '+$2,482.50', sub: t('paperTrading.bestTradeInfo'), color: '#22c55e', icon: Trophy },
         ].map((s, i) => (
           <motion.div
             key={i}

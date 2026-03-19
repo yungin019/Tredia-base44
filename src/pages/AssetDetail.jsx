@@ -84,12 +84,12 @@ function TradeModal({ asset, action, onClose }) {
             className="h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: `${color}20`, border: `2px solid ${color}40` }}>
             <CheckCircle2 className="h-8 w-8" style={{ color }} />
           </motion.div>
-          <p className="text-[11px] font-black uppercase tracking-[0.15em] mb-1" style={{ color }}>Paper Trade Executed</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.15em] mb-1" style={{ color }}>{t('paperTrading.executed')}</p>
           <p className="text-[22px] font-black text-white/95 mb-1">{action} {asset.symbol}</p>
-          <p className="text-[13px] text-white/50 mb-2">{shares} shares @ ${asset.price.toLocaleString()}</p>
-          <p className="text-[11px] text-white/30 mb-6">Added to your paper portfolio</p>
+          <p className="text-[13px] text-white/50 mb-2">{shares} {t('paperTrading.shares')} @ ${asset.price.toLocaleString()}</p>
+          <p className="text-[11px] text-white/30 mb-6">{t('paperTrading.addedToPortfolio')}</p>
           <button onClick={onClose} className="w-full py-3 rounded-xl font-bold text-sm text-white/60 border border-white/[0.1] hover:border-white/20 transition-colors">
-            Done
+          {t('common.done')}
           </button>
         </motion.div>
       </motion.div>
@@ -112,7 +112,7 @@ function TradeModal({ asset, action, onClose }) {
             <p className="text-[11px] font-black uppercase tracking-[0.15em] mb-0.5" style={{ color }}>
               {isBuy ? '🟢' : '🔴'} {action} {asset.symbol}
             </p>
-            <p className="text-[12px] text-white/40">Paper Trading · No real money</p>
+            <p className="text-[12px] text-white/40">{t('paperTrading.noRealMoney')}</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/[0.04] transition-colors">
             <X className="h-4 w-4 text-white/30" />
@@ -121,16 +121,16 @@ function TradeModal({ asset, action, onClose }) {
 
         <div className="rounded-xl p-3 mb-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex justify-between text-[11px] mb-1">
-            <span className="text-white/40">Current Price</span>
+            <span className="text-white/40">{t('asset.currentPrice')}</span>
             <span className="font-mono font-bold text-white/85">${asset.price.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-[11px]">
-            <span className="text-white/40">Shares</span>
+            <span className="text-white/40">{t('paperTrading.shares')}</span>
             <span className="font-mono font-bold text-white/85">{shares}</span>
           </div>
         </div>
 
-        <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-white/30 block mb-1.5">Amount (USD)</label>
+        <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-white/30 block mb-1.5">{t('paperTrading.amount')}</label>
         <input
           type="number"
           placeholder="e.g. 1000"
@@ -146,7 +146,7 @@ function TradeModal({ asset, action, onClose }) {
           disabled={!amount || parseFloat(amount) <= 0}
           className="w-full py-3.5 rounded-xl font-black text-sm transition-all hover:opacity-90 disabled:opacity-30"
           style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)`, color: '#0A0A0F' }}>
-          Confirm {action}
+          {t('paperTrading.confirm')} {action}
         </button>
       </motion.div>
     </motion.div>
@@ -252,7 +252,7 @@ export default function AssetDetail() {
         style={{ background: `${asset.color}08`, border: `1px solid ${asset.color}25`, borderLeft: `4px solid ${asset.color}` }}>
         <div className="flex items-center gap-2 mb-2">
           <Zap className="h-3.5 w-3.5 text-primary" />
-          <span className="text-[10px] font-black text-primary uppercase tracking-[0.12em]">TREK Analysis</span>
+          <span className="text-[10px] font-black text-primary uppercase tracking-[0.12em]">{t('ai.analysis')}</span>
           <span className="ml-auto text-[10px] font-black" style={{ color: cvColor }}>
             {asset.confidence}% confidence · {asset.conviction}
           </span>

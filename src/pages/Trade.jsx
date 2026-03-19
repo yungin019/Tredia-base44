@@ -114,7 +114,7 @@ export default function Trade() {
                 />
               </div>
               <div>
-                <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Shares</Label>
+                <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">{t('paperTrading.shares')}</Label>
                 <Input
                   type="number"
                   value={shares}
@@ -128,7 +128,7 @@ export default function Trade() {
                 variant="outline"
                 className="w-full h-10 bg-transparent border-white/[0.1] text-white/50 hover:bg-white/[0.04] hover:text-white/80 text-[12px] font-semibold mt-1"
               >
-                Preview Order
+                {t('paperTrading.previewOrder')}
               </Button>
             </div>
 
@@ -142,15 +142,15 @@ export default function Trade() {
                 <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
                   <span className="text-[10px] text-white/30 font-semibold uppercase tracking-[0.1em]">{t('paperTrading.newOrder') || 'New Order'} Preview</span>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded tracking-wider ${action === 'buy' ? 'text-chart-3 bg-chart-3/10' : 'text-destructive bg-destructive/10'}`}>
-                    {action.toUpperCase()}
+                    {t(`paperTrading.${action}`).toUpperCase()}
                   </span>
                 </div>
                 <div className="p-4 grid grid-cols-2 gap-3">
                   {[
-                    { label: 'Symbol', value: preview.symbol },
-                    { label: 'Shares', value: preview.shares },
-                    { label: 'Est. Price', value: `$${preview.price.toFixed(2)}` },
-                    { label: 'Total Value', value: `$${(preview.price * preview.shares).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                    { label: t('paperTrading.symbol'), value: preview.symbol },
+                    { label: t('paperTrading.shares'), value: preview.shares },
+                    { label: t('asset.estPrice'), value: `$${preview.price.toFixed(2)}` },
+                    { label: t('paperTrading.totalValue'), value: `$${(preview.price * preview.shares).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
                   ].map((item) => (
                     <div key={item.label}>
                       <div className="text-[9px] text-white/25 uppercase tracking-[0.1em] mb-0.5">{item.label}</div>
@@ -162,7 +162,7 @@ export default function Trade() {
                 <div className="px-4 pb-4">
                   <div className="flex items-start gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/10 mb-3">
                     <AlertTriangle className="h-3 w-3 text-primary/50 flex-shrink-0 mt-0.5" />
-                    <p className="text-[9px] text-white/30 leading-relaxed">This is a paper trading simulation. No real funds are used.</p>
+                    <p className="text-[9px] text-white/30 leading-relaxed">{t('paperTrading.simulation')}</p>
                   </div>
                   <Button
                     onClick={handleExecute}
@@ -173,7 +173,7 @@ export default function Trade() {
                         : 'bg-destructive hover:bg-destructive/90 text-white'
                     }`}
                   >
-                    {executing ? (t('common.loading') || 'Loading...') : `Execute ${action.toUpperCase()} ${t('paperTrading.newOrder') || 'Order'}`}
+                    {executing ? t('common.loading') : `${t('paperTrading.execute')} ${action.toUpperCase()}`}
                   </Button>
                 </div>
               </motion.div>
@@ -197,7 +197,7 @@ export default function Trade() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/[0.05]">
-                    {['Asset', 'Action', 'Shares', 'Price', 'Total', 'Status'].map((h) => (
+                    {[t('paperTrading.asset'), t('paperTrading.action'), t('paperTrading.shares'), t('paperTrading.price'), t('paperTrading.total'), t('paperTrading.status')].map((h) => (
                       <th key={h} className="text-left px-5 py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase">{h}</th>
                     ))}
                   </tr>
