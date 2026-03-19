@@ -202,7 +202,7 @@ export default function Home() {
     }
   };
 
-  useEffect(() => { loadNews(); }, []);
+  useEffect(() => { loadNews(); }, []); // eslint-disable-line
 
   const sentimentLabel = fearGreed
     ? fearGreed.value >= 70 ? 'GREED' : fearGreed.value >= 50 ? 'NEUTRAL' : fearGreed.value >= 30 ? 'FEAR' : 'EXTREME FEAR'
