@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 const TABS = [
   { id: 'stocks', label: 'Stocks' },
   { id: 'crypto', label: 'Crypto' },
+  { id: 'watchlist', label: '⭐ Watchlist' },
   { id: 'forex', label: 'Forex' },
   { id: 'commodities', label: 'Commodities' },
 ];
