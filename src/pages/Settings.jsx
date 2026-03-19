@@ -53,6 +53,7 @@ export default function Settings() {
     newsAlerts: true,
     earningsCalendar: false,
   });
+  const [notifLoaded, setNotifLoaded] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState(null);
 
   useEffect(() => {
