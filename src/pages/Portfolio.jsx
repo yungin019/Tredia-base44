@@ -66,7 +66,7 @@ export default function Portfolio() {
     <PullToRefresh onRefresh={async () => {
       queryClient.invalidateQueries({ queryKey: ['portfolio'] });
     }}>
-      <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
+      <div className="min-h-screen bg-background p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
       {/* AI Context Banner */}
       <ContextBanner
         storageKey="portfolio_v1"
