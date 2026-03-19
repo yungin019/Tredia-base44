@@ -4,6 +4,7 @@ import { Home, TrendingUp, Brain, Briefcase, Zap, Settings, Bell, Search } from 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/AuthContext';
+import { base44 } from '@/api/base44Client';
 
 const NAV_ITEMS = [
   { path: '/Home',       icon: Home,      label: 'Home',     isTrek: false },
