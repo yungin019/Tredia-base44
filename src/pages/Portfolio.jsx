@@ -63,6 +63,18 @@ export default function Portfolio() {
 
   return (
     <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
+      {/* AI Context Banner */}
+      <ContextBanner
+        storageKey="portfolio_v1"
+        title="Your Portfolio 📈"
+        body="Here you track all your positions. P&L shows your profit or loss. The TREK grade tells you how healthy your portfolio is. Ask me anything about what you see."
+        actions={[
+          { label: "Analyze my portfolio", onClick: () => {} },
+          { label: "Add my first position", onClick: () => setShowAdd(true) },
+        ]}
+        aiQuestion="Explain P&L, portfolio allocation, and risk in simple terms. I'm a beginner."
+      />
+
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div>
