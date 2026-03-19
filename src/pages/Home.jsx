@@ -6,6 +6,7 @@ import { Zap, Target, AlertTriangle, ChevronRight, Clock, ExternalLink, X } from
 import { fetchFearGreed } from '@/api/marketData';
 import TickerTape from '@/components/dashboard/TickerTape';
 import { base44 } from '@/api/base44Client';
+import ContextBanner from '@/components/ai/ContextBanner';
 
 // ── ALERTS ──────────────────────────────────────────────────────────────────
 const ALERTS = [
