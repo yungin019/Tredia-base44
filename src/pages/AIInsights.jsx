@@ -324,6 +324,20 @@ export default function AIInsights() {
   return (
     <div className="p-4 lg:p-6 space-y-5 max-w-[1800px] mx-auto pb-24">
 
+      {/* AI Context Banner */}
+      <ContextBanner
+        storageKey="ai_insights_v1"
+        title="TREK AI Signals ⚡"
+        body="These are AI-generated trading signals based on real market data, volume analysis, and sentiment. Each signal has a confidence score and a clear action (BUY / HOLD / SELL)."
+        steps={[
+          "Read the signal for a stock you're interested in",
+          "Check the confidence score — higher = stronger signal",
+          "Tap a signal card to see the full analysis",
+        ]}
+        actions={[{ label: "Explain the strongest signal", onClick: () => {} }]}
+        aiQuestion="Explain what TREK signals are and how to use them. I'm new to trading."
+      />
+
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="h-9 w-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
