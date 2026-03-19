@@ -299,7 +299,7 @@ export default function Home() {
 
         {/* ── RECOMMENDED ASSETS ── */}
         <div>
-          <SectionTitle icon="📈" label="Recommended Assets" sub="Top AI opportunities" action="View markets" onAction={() => navigate('/Markets')} />
+          <SectionTitle icon="📈" label={t('home.recommended')} sub={t('home.topOpportunities')} action={t('home.viewMarkets')} onAction={() => navigate('/Markets')} />
           <div className="space-y-2">
             {RECOMMENDED.map((s, i) => (
               <motion.button
