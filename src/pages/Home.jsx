@@ -248,7 +248,7 @@ export default function Home() {
 
         {/* ── ALERTS ── */}
         <div>
-          <SectionTitle icon="🚨" label="Alerts" sub="Time-sensitive" action="All signals" onAction={() => navigate('/AIInsights')} />
+          <SectionTitle icon="🚨" label={t('home.alerts')} sub={t('home.timeSensitive')} action={t('home.allSignals')} onAction={() => navigate('/AIInsights')} />
           <div className="space-y-2">
             {ALERTS.map((a, i) => (
               <motion.button
