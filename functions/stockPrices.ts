@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
       );
       const data = await res.json();
       const series = data['Time Series (Daily)'];
-      if (!series) return Response.json({ chartData: [] });
+      if (!series) { console.log('AV response:', JSON.stringify(data).slice(0, 300)); return Response.json({ chartData: [] }); }
       const chartData = Object.entries(series)
         .slice(0, 30)
         .reverse()
