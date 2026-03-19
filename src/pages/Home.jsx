@@ -215,6 +215,14 @@ export default function Home() {
     <div className="w-full">
       <TickerTape />
       <div className="p-4 lg:p-6 space-y-6 max-w-[900px] mx-auto pb-24">
+        {/* AI Context Banner */}
+        <ContextBanner
+          storageKey="home_v1"
+          title="Welcome to TREDIA ⚡"
+          body="This is your command center. Alerts are ranked by urgency, signals are AI-powered, and news is analyzed for market impact. I'm here to guide you."
+          actions={[{ label: "What should I focus on today?", onClick: () => {} }]}
+          aiQuestion="I just opened TREDIA. What should I focus on today? Give me a quick briefing."
+        />
 
         {/* ── TREK INSIGHT ── */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}

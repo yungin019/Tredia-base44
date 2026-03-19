@@ -14,6 +14,7 @@ import StressTestCard from '../components/portfolio/StressTestCard';
 import SectorWarning from '../components/portfolio/SectorWarning';
 import PortfolioPerformanceChart from '../components/portfolio/PortfolioPerformanceChart';
 import TradeHistory from '../components/portfolio/TradeHistory';
+import ContextBanner from '@/components/ai/ContextBanner';
 
 const COLORS = ['#F59E0B', '#3B82F6', '#22C55E', '#A855F7', '#EF4444', '#06B6D4'];
 
