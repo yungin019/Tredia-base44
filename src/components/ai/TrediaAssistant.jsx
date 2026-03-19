@@ -251,7 +251,7 @@ Always end with a suggested next action or follow-up question.`;
             </div>
             <p className="text-[11px] text-white/70 leading-snug">{ctx.greeting}</p>
             <div className="flex items-center gap-1 mt-2 text-[10px] text-primary/70 font-bold">
-              Tap to chat <ChevronRight className="h-3 w-3" />
+              {t('common.live')} <ChevronRight className="h-3 w-3" />
             </div>
           </motion.button>
         )}
