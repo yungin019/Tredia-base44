@@ -13,25 +13,25 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const getLoginUrl = () => {
+    const appId = window.location.hostname.split('.')[0].replace('preview--', '');
+    const returnTo = encodeURIComponent(window.location.origin + '/Dashboard');
+    return `https://base44.app/login?app=${appId}&next=${returnTo}`;
+  };
+
   const handleGoogle = () => {
-    base44.auth.redirectToLogin();
+    window.location.href = getLoginUrl();
   };
 
   const handleApple = () => {
-    base44.auth.redirectToLogin();
+    window.location.href = getLoginUrl();
   };
 
   const handleEmail = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    try {
-      base44.auth.redirectToLogin();
-    } catch (err) {
-      setError(err.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
+    window.location.href = getLoginUrl();
   };
 
   return (
