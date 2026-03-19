@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, TrendingUp, Brain, Briefcase, Zap, Settings, Bell, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,12 +8,12 @@ import { base44 } from '@/api/base44Client';
 import TrediaAssistant from '@/components/ai/TrediaAssistant';
 import NotificationsPanel from '@/components/ui/NotificationsPanel';
 
-const NAV_ITEMS = [
-  { path: '/Home',       icon: Home,      label: 'Home',     isTrek: false },
-  { path: '/Markets',    icon: TrendingUp, label: 'Markets',  isTrek: false },
-  { path: '/Portfolio',  icon: Briefcase,  label: 'Portfolio', isTrek: false },
-  { path: '/AIInsights', icon: Zap,        label: 'TREK',     isTrek: true  },
-  { path: '/Settings',   icon: Settings,   label: 'Settings', isTrek: false },
+const NAV_CONFIG = [
+  { path: '/Home',       icon: Home,      translationKey: 'nav.feed',     isTrek: false },
+  { path: '/Markets',    icon: TrendingUp, translationKey: 'nav.markets',  isTrek: false },
+  { path: '/Portfolio',  icon: Briefcase,  translationKey: 'nav.portfolio', isTrek: false },
+  { path: '/AIInsights', icon: Zap,        translationKey: 'nav.trek',     isTrek: true  },
+  { path: '/Settings',   icon: Settings,   translationKey: 'nav.settings', isTrek: false },
 ];
 
 export default function AppShell() {
