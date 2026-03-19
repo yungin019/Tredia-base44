@@ -4,8 +4,6 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import { base44 } from '@/api/base44Client';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import AppShell from './components/layout/AppShell';
 import SplashScreen from './pages/SplashScreen';
@@ -21,9 +19,9 @@ import PaperTrading from './pages/PaperTrading';
 import Upgrade from './pages/Upgrade';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoading } = useAuth();
 
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -32,15 +30,6 @@ const AuthenticatedApp = () => {
         </div>
       </div>
     );
-  }
-
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      base44.auth.redirectToLogin('/Dashboard');
-      return null;
-    }
   }
 
   return (
