@@ -13,25 +13,19 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const getLoginUrl = () => {
-    const appId = window.location.hostname.split('.')[0].replace('preview--', '');
-    const returnTo = encodeURIComponent(window.location.origin + '/Dashboard');
-    return `https://base44.app/login?app=${appId}&next=${returnTo}`;
-  };
-
   const handleGoogle = () => {
-    window.location.href = getLoginUrl();
+    base44.auth.redirectToLogin('/Dashboard');
   };
 
   const handleApple = () => {
-    window.location.href = getLoginUrl();
+    base44.auth.redirectToLogin('/Dashboard');
   };
 
   const handleEmail = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    window.location.href = getLoginUrl();
+    base44.auth.redirectToLogin('/Dashboard');
   };
 
   return (
