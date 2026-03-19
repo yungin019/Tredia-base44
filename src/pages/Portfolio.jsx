@@ -239,8 +239,109 @@ export default function Portfolio() {
         </div>
       </div>
 
-      {/* Performance Chart */}
-      <PortfolioPerformanceChart />
+      {/* Tabs: Holdings / Trade History */}
+      <div className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden">
+        {/* Tab Bar */}
+        <div className="flex border-b border-white/[0.05]">
+          {[
+            { id: 'holdings', label: `Holdings (${holdings.length})` },
+            { id: 'history', label: 'Trade History' },
+            { id: 'performance', label: 'Performance' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-5 py-3.5 text-[12px] font-bold transition-colors relative ${
+                activeTab === tab.id ? 'text-white/90' : 'text-white/35 hover:text-white/60'
+              }`}
+            >
+              {tab.label}
+              {activeTab === tab.id && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Holdings Tab */}
+        {activeTab === 'holdings' && (
+          isLoading ? (
+            <div className="p-10 text-center text-white/25 text-[12px]">Loading...</div>
+          ) : holdings.length === 0 ? (
+            <div className="p-12 flex flex-col items-center text-center gap-4">
+              <div className="h-14 w-14 rounded-2xl border border-white/[0.06] bg-white/[0.03] flex items-center justify-center">
+                <Briefcase className="h-7 w-7 text-white/20" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white/60 mb-1">No positions yet</p>
+                <p className="text-[11px] text-white/25 max-w-xs">Track your investments here. Add a holding manually or simulate trades with paper trading.</p>
+              </div>
+              <div className="flex gap-3 flex-wrap justify-center mt-1">
+                <Button onClick={() => setShowAdd(true)} size="sm" className="h-9 px-5 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Plus className="h-3.5 w-3.5 mr-1.5" /> Add First Position
+                </Button>
+                <Button onClick={() => navigate('/PaperTrading')} size="sm" variant="outline" className="h-9 px-5 text-[11px] font-bold border-white/[0.1] bg-white/[0.03] text-white/60 hover:bg-white/[0.06]">
+                  <Play className="h-3.5 w-3.5 mr-1.5" /> Start Paper Trading
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/[0.05]">
+                    {['Symbol', 'Shares', 'Avg Cost', 'Current', 'Market Value', 'P&L', ''].map((h, i) => (
+                      <th key={i} className={`${i === 0 ? 'text-left px-5' : i === 6 ? 'w-10' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {holdings.map((h) => {
+                    const currentPrice = livePrices[h.symbol] || h.current_price || h.avg_cost;
+                    const pnl = (currentPrice - h.avg_cost) * h.shares;
+                    const pnlPct = ((currentPrice - h.avg_cost) / h.avg_cost * 100);
+                    const mktValue = currentPrice * h.shares;
+                    return (
+                      <tr key={h.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0">
+                        <td className="px-5 py-3">
+                          <div className="font-mono font-black text-[13px] text-white/85">{h.symbol}</div>
+                          <div className="text-[10px] text-white/30">{h.name}</div>
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-[12px] text-white/60">{h.shares}</td>
+                        <td className="px-4 py-3 text-right font-mono text-[12px] text-white/60">${h.avg_cost.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right font-mono text-[12px] text-white/85 font-bold">${currentPrice.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right font-mono text-[12px] text-white/60">${mktValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+                        <td className={`px-4 py-3 text-right font-mono ${pnl >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
+                          <div className="text-[12px] font-bold flex items-center justify-end gap-0.5">
+                            {pnl >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                            ${Math.abs(pnl).toFixed(2)}
+                          </div>
+                          <div className="text-[10px]">{pnl >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <button onClick={() => deleteMutation.mutate(h.id)} className="p-1 rounded-md text-white/15 hover:text-destructive hover:bg-destructive/8 transition-all">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+
+        {/* Trade History Tab */}
+        {activeTab === 'history' && <TradeHistory />}
+
+        {/* Performance Tab */}
+        {activeTab === 'performance' && (
+          <div className="p-5">
+            <PortfolioPerformanceChart />
+          </div>
+        )}
+      </div>
 
       <AddHoldingDialog open={showAdd} onOpenChange={setShowAdd} />
     </div>
