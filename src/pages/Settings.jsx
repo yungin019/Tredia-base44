@@ -165,7 +165,7 @@ export default function Settings() {
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
         <SectionHeader title={t('settings.brokers')} />
-        <p className="text-[11px] text-white/30 mb-4">{t('settings.subscription')}</p>
+        <p className="text-[11px] text-white/30 mb-4">Connect your broker to track real positions. Coming soon.</p>
         <div className="space-y-2 mb-4">
           {[
             { name: 'eToro', desc: 'Social trading & investing', logo: '🟢', status: 'coming_soon' },
