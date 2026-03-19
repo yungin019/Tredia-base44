@@ -116,16 +116,20 @@ export default function TrediaAssistant() {
     
     // Translate keys to actual strings
     const greeting = typeof keysOrData.greeting === 'string' && keysOrData.greeting.startsWith('ai.')
-      ? (keysOrData.symbolForGreeting ? t(keysOrData.greeting, { symbol: keysOrData.symbolForGreeting }) : t(keysOrData.greeting))
+      ? (keysOrData.symbolForGreeting ? t(keysOrData.greeting, { symbol: keysOrData.symbolForGreeting }) || keysOrData.greeting : t(keysOrData.greeting) || keysOrData.greeting)
       : keysOrData.greeting;
     const intro = typeof keysOrData.intro === 'string' && keysOrData.intro.startsWith('ai.')
-      ? (keysOrData.symbolForIntro ? t(keysOrData.intro, { symbol: keysOrData.symbolForIntro }) : t(keysOrData.intro))
+      ? (keysOrData.symbolForIntro ? t(keysOrData.intro, { symbol: keysOrData.symbolForIntro }) || keysOrData.intro : t(keysOrData.intro) || keysOrData.intro)
       : keysOrData.intro;
-    const suggestions = keysOrData.suggestions.map((key, idx) => 
-      typeof key === 'string' && key.startsWith('ai.')
-        ? (keysOrData.symbolsForSuggests?.[idx] ? t(key, { symbol: keysOrData.symbolsForSuggests[idx] }) : t(key))
-        : key
-    );
+    const suggestions = keysOrData.suggestions.map((key, idx) => {
+      if (typeof key === 'string' && key.startsWith('ai.')) {
+        const symbol = keysOrData.symbolsForSuggests?.[idx];
+        const translated = symbol ? t(key, { symbol }) : t(key);
+        // Fallback: if translation key is returned instead of translated text, return key
+        return translated && !translated.startsWith('ai.') ? translated : key;
+      }
+      return key;
+    });
     
     return { greeting, intro, suggestions };
   };
