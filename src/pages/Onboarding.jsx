@@ -310,7 +310,7 @@ export default function Onboarding() {
 
           {/* STEP 4: TREK Introduction */}
           {step === 'trek' && (
-            <TrekIntro onEnter={() => navigate('/Dashboard')} />
+            <TrekIntro onEnter={() => navigate('/Home')} />
           )}
 
         </AnimatePresence>
