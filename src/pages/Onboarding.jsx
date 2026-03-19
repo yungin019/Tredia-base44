@@ -46,6 +46,7 @@ function OptionButton({ label, selected, onClick, color = '#F59E0B' }) {
 }
 
 function TrekIntro({ onEnter }) {
+  const { t } = useTranslation();
   return (
     <motion.div key="trek" {...fadeUp} transition={{ duration: 0.4 }}>
       <div className="rounded-2xl border border-[#F59E0B]/20 bg-[#111118] p-8 flex flex-col items-center gap-6 text-center">
