@@ -138,8 +138,8 @@ export default function Onboarding() {
           {step === 'choice' && (
             <motion.div key="choice" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="text-center mb-6">
-                  <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.title')}</h1>
-                  <p className="text-sm text-white/35">Tell us about your trading experience</p>
+                  <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.getStarted')}</h1>
+                  <p className="text-sm text-white/35">{t('onboarding.noRealMoney')}</p>
                 </div>
               <div className="grid grid-cols-2 gap-4">
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
@@ -250,7 +250,7 @@ export default function Onboarding() {
             <motion.div key="profile" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="text-center mb-6">
                 <div className="inline-flex items-center gap-1.5 bg-[#F59E0B]/10 border border-[#F59E0B]/20 rounded-full px-3 py-1 mb-3">
-                  <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">TREK AI Personalization</span>
+                <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">{t('onboarding.trekPersonalization')}</span>
                 </div>
                 <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.customizeIntelligence')}</h1>
                 <p className="text-sm text-white/35">{t('onboarding.trekAdapts')}</p>
@@ -258,7 +258,7 @@ export default function Onboarding() {
 
               <div className="space-y-5">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Investment Budget</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.budgetLabel') || 'Investment Budget'}</p>
                   <div className="grid grid-cols-2 gap-2">
                     {BUDGET_OPTIONS.map(opt => (
                       <OptionButton key={opt} label={opt} selected={budgetRange === opt} onClick={() => setBudgetRange(opt)} />
@@ -267,7 +267,7 @@ export default function Onboarding() {
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Risk Tolerance</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.riskLabel') || 'Risk Tolerance'}</p>
                   <div className="flex flex-col gap-2">
                     {RISK_OPTIONS.map(opt => (
                       <OptionButton key={opt} label={opt} selected={riskTolerance === opt} onClick={() => setRiskTolerance(opt)} />
@@ -276,7 +276,7 @@ export default function Onboarding() {
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Your Goal</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.goalLabel') || 'Your Goal'}</p>
                   <div className="flex flex-col gap-2">
                     {GOAL_OPTIONS.map(opt => (
                       <OptionButton key={opt} label={opt} selected={goal === opt} onClick={() => setGoal(opt)} />
@@ -285,7 +285,7 @@ export default function Onboarding() {
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Experience Level</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.experienceLabel') || 'Experience Level'}</p>
                   <div className="flex flex-col gap-2">
                     {EXPERIENCE_OPTIONS.map(opt => (
                       <OptionButton key={opt} label={opt} selected={experienceLevel === opt} onClick={() => setExperienceLevel(opt)} />
