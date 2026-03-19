@@ -22,10 +22,26 @@ export default function Portfolio() {
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
 
+  const [livePrices, setLivePrices] = useState({});
+
   const { data: holdings = [], isLoading } = useQuery({
     queryKey: ['portfolio'],
     queryFn: () => base44.entities.Portfolio.list(),
   });
+
+  useEffect(() => {
+    if (holdings.length === 0) return;
+    async function loadPrices() {
+      try {
+        const symbols = holdings.map(h => h.symbol);
+        const res = await base44.functions.invoke('stockPrices', { symbols });
+        if (res?.data?.prices) setLivePrices(res.data.prices);
+      } catch {
+        // keep avg_cost as fallback
+      }
+    }
+    loadPrices();
+  }, [holdings.length]);
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Portfolio.delete(id),
