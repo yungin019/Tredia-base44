@@ -288,7 +288,7 @@ Always end with a suggested next action or follow-up question.`;
             }}
           >
             <Sparkles className="h-5 w-5 text-black" />
-          </motion.button>
+          </motion.div>
         )}
       </AnimatePresence>
 
