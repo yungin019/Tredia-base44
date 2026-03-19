@@ -70,20 +70,20 @@ export default function Portfolio() {
       {/* AI Context Banner */}
       <ContextBanner
         storageKey="portfolio_v1"
-        title="Your Portfolio 📈"
-        body="Here you track all your positions. P&L shows your profit or loss. The TREK grade tells you how healthy your portfolio is. Ask me anything about what you see."
+        title={t('portfolio.contextTitle')}
+        body={t('portfolio.contextBody')}
         actions={[
-          { label: "Analyze my portfolio", onClick: () => {} },
-          { label: "Add my first position", onClick: () => setShowAdd(true) },
+          { label: t('portfolio.contextAnalyze'), onClick: () => {} },
+          { label: t('portfolio.contextAddFirst'), onClick: () => setShowAdd(true) },
         ]}
-        aiQuestion="Explain P&L, portfolio allocation, and risk in simple terms. I'm a beginner."
+        aiQuestion={t('portfolio.contextAI')}
       />
 
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('portfolio.title') || 'Portfolio'}</h1>
-           <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('portfolio.subtitle') || 'Your holdings and performance'}</p>
+           <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('portfolio.subtitle')}</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button
@@ -91,7 +91,7 @@ export default function Portfolio() {
             size="sm"
             className="h-8 text-[10px] font-bold bg-white/10 hover:bg-white/15 text-white/80 whitespace-nowrap"
           >
-            <Play className="h-3.5 w-3.5 mr-1.5" /> Trade
+            <Play className="h-3.5 w-3.5 mr-1.5" /> {t('common.trade')}
           </Button>
           <Button
             onClick={() => setShowAdd(true)}
@@ -116,14 +116,14 @@ export default function Portfolio() {
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Total Value', value: `$${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, color: 'text-white/90' },
+          { label: t('portfolio.totalValue'), value: `$${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, color: 'text-white/90' },
           {
-            label: 'Total P&L',
+            label: t('portfolio.totalPnL'),
             value: `${totalPnL >= 0 ? '+' : ''}$${totalPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
             color: totalPnL >= 0 ? 'text-chart-3' : 'text-destructive'
           },
           {
-            label: 'Return',
+            label: t('portfolio.return'),
             value: `${totalPnLPercent >= 0 ? '+' : ''}${totalPnLPercent.toFixed(2)}%`,
             color: totalPnLPercent >= 0 ? 'text-chart-3' : 'text-destructive'
           },
@@ -140,7 +140,7 @@ export default function Portfolio() {
         <div className="rounded-xl border border-white/[0.07] bg-[#111118] p-5">
           <div className="flex items-center gap-2 mb-4">
             <PieChart className="h-3.5 w-3.5 text-white/30" />
-            <span className="text-sm font-bold text-white/80">Allocation</span>
+            <span className="text-sm font-bold text-white/80">{t('portfolio.allocation')}</span>
           </div>
           <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -177,9 +177,9 @@ export default function Portfolio() {
         {/* Tab Bar */}
         <div className="flex border-b border-white/[0.05]">
           {[
-            { id: 'holdings', label: `Holdings (${holdings.length})` },
-            { id: 'history', label: 'Trade History' },
-            { id: 'performance', label: 'Performance' },
+            { id: 'holdings', label: `${t('portfolio.holdings')} (${holdings.length})` },
+            { id: 'history', label: t('portfolio.tradeHistory') },
+            { id: 'performance', label: t('portfolio.performance') },
           ].map(tab => (
             <button
               key={tab.id}
@@ -199,22 +199,22 @@ export default function Portfolio() {
         {/* Holdings Tab */}
         {activeTab === 'holdings' && (
           isLoading ? (
-            <div className="p-10 text-center text-white/25 text-[12px]">Loading...</div>
+            <div className="p-10 text-center text-white/25 text-[12px]">{t('common.loading')}</div>
           ) : holdings.length === 0 ? (
             <div className="p-12 flex flex-col items-center text-center gap-4">
               <div className="h-14 w-14 rounded-2xl border border-white/[0.06] bg-white/[0.03] flex items-center justify-center">
                 <Briefcase className="h-7 w-7 text-white/20" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white/60 mb-1">No positions yet</p>
-                <p className="text-[11px] text-white/25 max-w-xs">Track your investments here. Add a holding manually or simulate trades with paper trading.</p>
+                <p className="text-sm font-bold text-white/60 mb-1">{t('portfolio.noPositions')}</p>
+                <p className="text-[11px] text-white/25 max-w-xs">{t('portfolio.noPositionsDesc')}</p>
               </div>
               <div className="flex gap-3 flex-wrap justify-center mt-1">
                 <Button onClick={() => setShowAdd(true)} size="sm" className="h-9 px-5 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <Plus className="h-3.5 w-3.5 mr-1.5" /> Add First Position
+                  <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.addFirstPosition')}
                 </Button>
                 <Button onClick={() => navigate('/PaperTrading')} size="sm" variant="outline" className="h-9 px-5 text-[11px] font-bold border-white/[0.1] bg-white/[0.03] text-white/60 hover:bg-white/[0.06]">
-                  <Play className="h-3.5 w-3.5 mr-1.5" /> Start Paper Trading
+                  <Play className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.startPaperTrading')}
                 </Button>
               </div>
             </div>
@@ -223,7 +223,7 @@ export default function Portfolio() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/[0.05]">
-                    {['Symbol', 'Shares', 'Avg Cost', 'Current', 'Market Value', 'P&L', ''].map((h, i) => (
+                    {[t('portfolio.symbol'), t('portfolio.shares'), t('portfolio.avgCost'), t('portfolio.current'), t('portfolio.marketValue'), t('portfolio.pnl'), ''].map((h, i) => (
                       <th key={i} className={`${i === 0 ? 'text-left px-5' : i === 6 ? 'w-10' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>{h}</th>
                     ))}
                   </tr>
