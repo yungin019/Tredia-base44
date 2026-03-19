@@ -8,6 +8,7 @@ import { buildMarketContext } from '@/api/marketContext';
 import { base44 } from '@/api/base44Client';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import QueryLimitModal from './QueryLimitModal';
+import TrekResponseRenderer from './TrekResponseRenderer';
 
 const SUGGESTED = [
   'Is NVDA overbought?',
