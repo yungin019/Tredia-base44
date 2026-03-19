@@ -16,6 +16,15 @@ const NAV_ITEMS = [
 export default function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      base44.auth.redirectToLogin(location.pathname);
+    }
+  }, [user, isLoading]);
+
+  if (isLoading || !user) return null;
 
   const currentNav = NAV_ITEMS.find(n => location.pathname === n.path);
   const pageTitle = currentNav?.label || '';
