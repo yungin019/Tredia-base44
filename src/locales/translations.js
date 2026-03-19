@@ -33,9 +33,10 @@ const translations = {
        paperTrading: { title: "Papershandel", subtitle: "Simulera affärer med virtuella pengar", newOrder: "Ny Order", orderHistory: "Orderhistorik", buy: "KÖP", sell: "SÄLJ" },
        onboarding: { title: "Välkommen till TREDIA", selectBroker: "Välj din mäklare", setupComplete: "Konfiguration slutförd" },
        upgrade: { title: "Uppgradera din plan", elite: "Elite", pro: "Pro", foundingMember: "Grundande medlem" },
+       home: { alerts: "Varningar", timeSensitive: "Tidskänsliga", allSignals: "Alla signaler", forYou: "För dig", basedOnPortfolio: "Baserat på din portfölj", seeAll: "Se alla", recommended: "Rekommenderade tillgångar", topOpportunities: "Bästa AI-möjligheter", viewMarkets: "Visa marknader", latestJumps: "Senaste hopp", strongSignals: "Starka uppåtsignaler", riskWarnings: "Riskvarningar", assetsToAvoid: "Tillgångar att minska eller undvika", marketNews: "Marknadsnyheter", aiAnalyzed: "AI-analyserat" },
        common: { loading: "Laddar...", error: "Fel", success: "Framgång", emptyState: "Ingen data tillgänglig", tryAgain: "Försök igen", notAvailable: "Inte tillgänglig" }
-    }
-  },
+       }
+       },
   fr: {
      translation: {
        nav: { feed: "Flux IA", markets: "Marchés", portfolio: "Portefeuille", trek: "TREK ⚡", settings: "Paramètres" },
