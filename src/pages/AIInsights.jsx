@@ -324,7 +324,7 @@ export default function AIInsights() {
 
   return (
     <PullToRefresh onRefresh={fetchSignals}>
-      <div className="p-4 lg:p-6 space-y-5 max-w-[1800px] mx-auto pb-24">
+      <div className="min-h-screen bg-background p-4 lg:p-6 space-y-5 max-w-[1800px] mx-auto pb-24">
 
       {/* AI Context Banner */}
       <ContextBanner

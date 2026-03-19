@@ -61,7 +61,7 @@ export default function Trade() {
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-background p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('paperTrading.title') || 'Paper Trading'}</h1>
