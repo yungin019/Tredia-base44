@@ -180,8 +180,7 @@ export default function Home() {
     fetchFearGreed().then(fg => { if (fg) setFearGreed(fg); });
   }, []);
 
-  useEffect(() => {
-    async function loadNews() {
+  const loadNews = async () => {
       try {
         const res = await base44.functions.invoke('getMarketNews', {});
         const articles = res?.data?.articles;
