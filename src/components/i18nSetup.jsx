@@ -227,8 +227,8 @@ const resources = {
 
 if (!i18n.isInitialized) {
   i18n
-    .use(require('i18next-browser-languagedetector').default)
-    .use(require('react-i18next').initReactI18next)
+    .use(LanguageDetector)
+    .use(initReactI18next)
     .init({
       resources,
       fallbackLng: 'en',
@@ -236,7 +236,9 @@ if (!i18n.isInitialized) {
         escapeValue: false,
       },
       detection: {
-        order: ['localStorage', 'navigator', 'htmlTag'],
+        order: ['querystring', 'localStorage', 'navigator', 'htmlTag'],
+        lookupQuerystring: 'lang',
+        lookupLocalStorage: 'tredia_language',
         caches: ['localStorage'],
       },
     });

@@ -269,42 +269,53 @@ export default function Settings() {
 
       {/* LANGUAGE */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-       className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
+       className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
        <SectionHeader title={t('settings.language')} />
-       <div className="flex items-center justify-between">
-         <div className="flex items-center gap-3">
-           <Globe className="h-5 w-5 text-white/25" />
-           <span className="text-sm text-white/55">
-             {t('settings.language')}: <span className="text-white/80 font-semibold">{i18n.language.toUpperCase()}</span>
-           </span>
+       <div className="space-y-3">
+         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+           {[
+             { code: 'en', name: 'English', flag: '🇬🇧' },
+             { code: 'fr', name: 'Français', flag: '🇫🇷' },
+             { code: 'sv', name: 'Svenska', flag: '🇸🇪' },
+             { code: 'es', name: 'Español', flag: '🇪🇸' },
+             { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+             { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+             { code: 'pt', name: 'Português', flag: '🇵🇹' },
+             { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+             { code: 'ja', name: '日本語', flag: '🇯🇵' },
+             { code: 'zh', name: '中文', flag: '🇨🇳' },
+             { code: 'ko', name: '한국어', flag: '🇰🇷' },
+             { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+             { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
+             { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+             { code: 'pl', name: 'Polski', flag: '🇵🇱' },
+             { code: 'th', name: 'ภาษาไทย', flag: '🇹🇭' },
+             { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
+             { code: 'ro', name: 'Română', flag: '🇷🇴' },
+             { code: 'el', name: 'Ελληνικά', flag: '🇬🇷' },
+             { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
+             { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
+           ].map(lang => (
+             <button
+               key={lang.code}
+               onClick={() => {
+                 i18n.changeLanguage(lang.code);
+                 localStorage.setItem('tredia_language', lang.code);
+               }}
+               className={`p-3 rounded-lg border transition-all text-sm font-semibold flex items-center gap-2 justify-center ${
+                 i18n.language === lang.code
+                   ? 'bg-primary/15 border-primary/40 text-white/90'
+                   : 'bg-white/[0.04] border-white/[0.08] text-white/60 hover:border-white/[0.15]'
+               }`}
+             >
+               <span>{lang.flag}</span>
+               <span className="text-[11px]">{lang.name}</span>
+             </button>
+           ))}
          </div>
-         <select
-           value={i18n.language}
-           onChange={(e) => i18n.changeLanguage(e.target.value)}
-           className="bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/80 cursor-pointer"
-         >
-           <option value="en">English (EN)</option>
-           <option value="sv">Svenska (SV)</option>
-           <option value="fr">Français (FR)</option>
-           <option value="ar">العربية (AR)</option>
-           <option value="es">Español (ES)</option>
-           <option value="de">Deutsch (DE)</option>
-           <option value="it">Italiano (IT)</option>
-           <option value="pt">Português (PT)</option>
-           <option value="ja">日本語 (JA)</option>
-           <option value="zh">中文 (ZH)</option>
-           <option value="ko">한국어 (KO)</option>
-           <option value="ru">Русский (RU)</option>
-           <option value="tr">Türkçe (TR)</option>
-           <option value="nl">Nederlands (NL)</option>
-           <option value="pl">Polski (PL)</option>
-           <option value="th">ไทย (TH)</option>
-           <option value="id">Bahasa Indonesia (ID)</option>
-           <option value="ro">Română (RO)</option>
-           <option value="el">Ελληνικά (EL)</option>
-           <option value="vi">Tiếng Việt (VI)</option>
-           <option value="hi">हिन्दी (HI)</option>
-         </select>
+         <p style={{ color: '#6b7280', fontSize: '11px', marginTop: '8px', lineHeight: '1.4' }}>
+           Auto-detected from your browser. Select manually to override.
+         </p>
        </div>
       </motion.div>
 
