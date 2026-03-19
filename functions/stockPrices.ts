@@ -11,19 +11,22 @@ Deno.serve(async (req) => {
 
     const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY');
 
-    // OHLC chart data for a single symbol (last 30 days)
+    // OHLC chart data for a single symbol using Alpha Vantage (daily)
     if (mode === 'ohlc' && symbol) {
-      const to = Math.floor(Date.now() / 1000);
-      const from = to - 30 * 24 * 60 * 60;
+      const AV_KEY = Deno.env.get('ALPHAVANTAGE_API_KEY');
       const res = await fetch(
-        `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=D&from=${from}&to=${to}&token=${FINNHUB_KEY}`
+        `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${symbol}&outputsize=compact&apikey=${AV_KEY}`
       );
       const data = await res.json();
-      if (!data.c || data.s === 'no_data') return Response.json({ chartData: [] });
-      const chartData = data.c.map((close, i) => ({
-        date: new Date(data.t[i] * 1000).toISOString().split('T')[0],
-        close: parseFloat(close.toFixed(2)),
-      }));
+      const series = data['Time Series (Daily)'];
+      if (!series) return Response.json({ chartData: [] });
+      const chartData = Object.entries(series)
+        .slice(0, 30)
+        .reverse()
+        .map(([date, v]) => ({
+          date,
+          close: parseFloat(parseFloat(v['4. close']).toFixed(2)),
+        }));
       return Response.json({ chartData });
     }
 
