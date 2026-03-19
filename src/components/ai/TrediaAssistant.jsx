@@ -268,7 +268,7 @@ Always end with a suggested next action or follow-up question.`;
             <div className="flex items-center gap-1 mt-2 text-[10px] text-primary/70 font-bold">
               {t('common.live')} <ChevronRight className="h-3 w-3" />
             </div>
-          </motion.button>
+          </motion.div>
         )}
       </AnimatePresence>
 
