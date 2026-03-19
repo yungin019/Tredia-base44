@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -48,6 +49,7 @@ const STOCK_DATA = [
 
 export default function Markets() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('stocks');
   const [activeFilter, setActiveFilter] = useState(null);
   const [timeframe, setTimeframe] = useState('1D');
@@ -157,7 +159,7 @@ export default function Markets() {
                 </thead>
                 <tbody>
                   {filteredStocks.map((stock, i) => (
-                    <tr key={i} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0">
+                    <tr key={i} onClick={() => navigate(`/Asset/${stock.symbol}`)} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0 cursor-pointer">
                       <td className="px-5 py-3">
                         <div className="font-mono font-black text-[13px] text-white/85">{stock.symbol}</div>
                         <div className="text-[10px] text-white/30">{stock.name}</div>
