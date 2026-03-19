@@ -168,6 +168,7 @@ function NewsModal({ article, onClose }) {
 // ── MAIN PAGE ─────────────────────────────────────────────────────────────────
 export default function Home() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [fearGreed, setFearGreed] = useState(null);
   const [selectedNews, setSelectedNews] = useState(null);
   const [newsIdx, setNewsIdx] = useState(0);
