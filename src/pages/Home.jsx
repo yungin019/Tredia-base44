@@ -389,31 +389,30 @@ export default function Home() {
         {/* ── NEWS CAROUSEL ── */}
         <div>
           <SectionTitle icon="📰" label="Market News" sub="AI-analyzed" />
-          {/* Active card */}
           <AnimatePresence mode="wait">
             <motion.button
               key={newsIdx}
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              onClick={() => setSelectedNews(NEWS[newsIdx])}
+              onClick={() => setSelectedNews(newsItems[newsIdx])}
               className="w-full text-left rounded-2xl overflow-hidden tap-feedback"
               style={{ border: '1px solid rgba(255,255,255,0.08)' }}
             >
-              <img src={NEWS[newsIdx].image} alt="" className="w-full h-36 object-cover" style={{ opacity: 0.75 }} />
+              <img src={newsItems[newsIdx]?.image} alt="" className="w-full h-36 object-cover" style={{ opacity: 0.75 }} />
               <div className="p-4" style={{ background: '#111118' }}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
-                    style={{ color: NEWS[newsIdx].sentiment === 'BULLISH' ? '#22c55e' : '#ef4444', background: NEWS[newsIdx].sentiment === 'BULLISH' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.1)', border: `1px solid ${NEWS[newsIdx].sentiment === 'BULLISH' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.2)'}` }}>
-                    {NEWS[newsIdx].sentiment}
+                    style={{ color: newsItems[newsIdx]?.sentiment === 'BULLISH' ? '#22c55e' : newsItems[newsIdx]?.sentiment === 'BEARISH' ? '#ef4444' : '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                    {newsItems[newsIdx]?.sentiment}
                   </span>
-                  <span className="text-[9px] text-white/25 font-mono">Impact: {NEWS[newsIdx].impact}/10</span>
-                  <span className="text-[9px] text-white/20 font-mono ml-auto">{NEWS[newsIdx].age}</span>
+                  <span className="text-[9px] text-white/25 font-mono">Impact: {newsItems[newsIdx]?.impact}/10</span>
+                  <span className="text-[9px] text-white/20 font-mono ml-auto">{newsItems[newsIdx]?.age}</span>
                 </div>
-                <p className="text-[13px] font-bold text-white/90 leading-snug mb-2">{NEWS[newsIdx].headline}</p>
-                <p className="text-[11px] text-white/45 leading-relaxed mb-3">{NEWS[newsIdx].summary}</p>
+                <p className="text-[13px] font-bold text-white/90 leading-snug mb-2">{newsItems[newsIdx]?.headline}</p>
+                <p className="text-[11px] text-white/45 leading-relaxed mb-3">{newsItems[newsIdx]?.summary}</p>
                 <div className="flex items-center justify-between">
                   <div className="flex gap-1.5">
-                    {NEWS[newsIdx].tickers.map(t => (
+                    {(newsItems[newsIdx]?.tickers || []).map(t => (
                       <span key={t} className="text-[9px] font-bold font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">{t}</span>
                     ))}
                   </div>
@@ -422,9 +421,8 @@ export default function Home() {
               </div>
             </motion.button>
           </AnimatePresence>
-          {/* Dot nav */}
           <div className="flex items-center justify-center gap-2 mt-3">
-            {NEWS.map((_, i) => (
+            {newsItems.map((_, i) => (
               <button key={i} onClick={() => setNewsIdx(i)}
                 className="rounded-full transition-all"
                 style={{ width: i === newsIdx ? 20 : 6, height: 6, background: i === newsIdx ? '#F59E0B' : 'rgba(255,255,255,0.15)' }} />

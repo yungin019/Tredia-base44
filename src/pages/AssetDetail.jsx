@@ -55,6 +55,21 @@ function TradeModal({ asset, action, onClose }) {
 
   const shares = amount ? (parseFloat(amount) / asset.price).toFixed(4) : '—';
 
+  const handleConfirm = async () => {
+    if (!amount || parseFloat(amount) <= 0) return;
+    const sharesNum = parseFloat((parseFloat(amount) / asset.price).toFixed(4));
+    base44.entities.TradeLog.create({
+      symbol: asset.symbol,
+      name: asset.name || asset.symbol,
+      action: isBuy ? 'buy' : 'sell',
+      shares: sharesNum,
+      price: asset.price,
+      total: parseFloat(amount),
+      status: 'executed',
+    }).catch(() => {});
+    setConfirmed(true);
+  };
+
   if (confirmed) {
     return (
       <motion.div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
