@@ -100,6 +100,20 @@ export default function Markets() {
         </div>
       </motion.div>
 
+      {/* AI Context Banner */}
+      <ContextBanner
+        storageKey="markets_v1"
+        title="Live Markets 📊"
+        body="These are real-time market prices. Every asset has a TREK grade (Buy / Hold / Sell) powered by our AI engine. Tap any stock to get a full analysis."
+        steps={[
+          "Browse stocks, crypto, and your watchlist",
+          "Check the TREK grade to see AI-powered signals",
+          "Tap any asset for full analysis and chart",
+        ]}
+        actions={[{ label: "Find the best opportunity now", onClick: () => {} }]}
+        aiQuestion="What is the best opportunity in the market right now? Explain it simply."
+      />
+
       {/* Ticker Tape */}
       <TickerTape />
 

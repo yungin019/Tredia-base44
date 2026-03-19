@@ -86,6 +86,22 @@ export default function PaperTrading() {
 
   return (
     <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
+
+      {/* AI Context Banner */}
+      <ContextBanner
+        storageKey="paper_trading_v1"
+        title="Welcome to Paper Trading 🎯"
+        body="Practice trading with $100,000 of virtual money — zero real risk. This is the best place to learn how markets work before investing real money."
+        steps={[
+          "Type a stock ticker (e.g. AAPL, NVDA, MSFT)",
+          "Enter the number of shares you want to buy",
+          "Choose BUY or SELL, then hit Execute",
+          "Watch your portfolio grow and earn TREK grades",
+        ]}
+        actions={[{ label: "Guide me through my first trade", onClick: () => {} }]}
+        aiQuestion="Guide me step by step through my very first paper trade. I'm a beginner."
+      />
+
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div>
