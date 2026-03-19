@@ -128,13 +128,16 @@ export default function AppShell() {
       <TrediaAssistant />
 
       {/* ── Bottom Nav (Mobile) ───────────────────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 glass-dark border-t border-white/[0.06] lg:hidden z-50">
+      <nav className="fixed bottom-0 left-0 right-0 glass-dark border-t border-white/[0.06] lg:hidden z-50"
+        style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}>
         <div className="flex items-center justify-around py-1">
           {NAV_ITEMS.map((item) => {
             const isActive = location.pathname === item.path;
             const activeColor = item.isTrek ? '#F59E0B' : 'hsl(var(--primary))';
             return (
-              <Link key={item.path} to={item.path} className="flex flex-col items-center py-2 px-3 relative tap-feedback">
+              <Link key={item.path} to={item.path}
+                className="flex flex-col items-center py-2 px-3 relative tap-feedback"
+                style={{ userSelect: 'none', WebkitUserSelect: 'none', touchAction: 'manipulation' }}>
                 {isActive && (
                   <motion.div layoutId="mobile-nav"
                     className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-6 rounded-full"
