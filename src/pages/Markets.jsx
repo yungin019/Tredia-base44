@@ -202,6 +202,9 @@ export default function Markets() {
         </>
       )}
 
+      {/* Watchlist Tab */}
+      {activeTab === 'watchlist' && <WatchlistPanel />}
+
       {/* Crypto Tab */}
       {activeTab === 'crypto' && <CryptoAssets cryptoData={cryptoData} />}
 
