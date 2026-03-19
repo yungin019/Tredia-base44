@@ -374,14 +374,23 @@ export default function PaperTrading() {
         className="grid grid-cols-3 gap-4"
       >
         {[
-          { label: 'Total P&L', value: `${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`, color: totalPnL >= 0 ? 'text-chart-3' : 'text-destructive' },
-          { label: 'Win Rate', value: '73.2%', color: 'text-white/60' },
-          { label: 'Best Trade', value: '+$2,482.50', color: 'text-chart-3' },
+          { label: 'Total P&L', value: `${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`, sub: 'vs $100K start', color: totalPnL >= 0 ? '#22c55e' : '#ef4444', icon: TrendingUp },
+          { label: 'Win Rate', value: '73.2%', sub: '↑ vs 65% avg', color: '#F59E0B', icon: Target },
+          { label: 'Best Trade', value: '+$2,482.50', sub: 'NVDA · Jan 2025', color: '#22c55e', icon: Trophy },
         ].map((s, i) => (
-          <div key={i} className="rounded-xl border border-white/[0.07] bg-[#111118] p-4">
-            <div className="text-[10px] text-white/30 font-medium uppercase tracking-[0.1em] mb-2">{s.label}</div>
-            <div className={`text-lg font-bold font-mono ${s.color}`}>{s.value}</div>
-          </div>
+          <motion.div
+            key={i}
+            whileHover={{ scale: 1.02 }}
+            className="rounded-xl border border-white/[0.07] bg-[#111118] p-4 cursor-default"
+            style={{ borderColor: `${s.color}25` }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <s.icon className="h-3 w-3" style={{ color: s.color }} />
+              <div className="text-[10px] text-white/30 font-medium uppercase tracking-[0.1em]">{s.label}</div>
+            </div>
+            <div className="text-xl font-black font-mono mb-0.5" style={{ color: s.color }}>{s.value}</div>
+            <div className="text-[9px] text-white/20">{s.sub}</div>
+          </motion.div>
         ))}
       </motion.div>
     </div>
