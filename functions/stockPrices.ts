@@ -9,37 +9,39 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { symbols, symbol, mode } = body;
 
-    const API_KEY = Deno.env.get('TWELVEDATA_API_KEY');
+    const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY');
 
-    // OHLC chart data for a single symbol
+    // OHLC chart data for a single symbol (last 30 days)
     if (mode === 'ohlc' && symbol) {
+      const to = Math.floor(Date.now() / 1000);
+      const from = to - 30 * 24 * 60 * 60;
       const res = await fetch(
-        `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=1day&outputsize=30&apikey=${API_KEY}`
+        `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=D&from=${from}&to=${to}&token=${FINNHUB_KEY}`
       );
       const data = await res.json();
-      const chartData = (data.values || []).map(v => ({
-        date: v.datetime,
-        close: parseFloat(v.close),
-      })).reverse();
+      if (!data.c || data.s === 'no_data') return Response.json({ chartData: [] });
+      const chartData = data.c.map((close, i) => ({
+        date: new Date(data.t[i] * 1000).toISOString().split('T')[0],
+        close: parseFloat(close.toFixed(2)),
+      }));
       return Response.json({ chartData });
     }
 
-    // Batch price fetch for multiple symbols
+    // Batch price fetch for multiple symbols using Finnhub quote
     if (symbols && symbols.length > 0) {
       const results = {};
-      // TwelveData free tier: fetch one at a time to avoid batch issues
-      for (const sym of symbols) {
+      await Promise.all(symbols.map(async (sym) => {
         try {
           const res = await fetch(
-            `https://api.twelvedata.com/price?symbol=${sym}&apikey=${API_KEY}`
+            `https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`
           );
           const data = await res.json();
-          console.log(`TwelveData ${sym}:`, JSON.stringify(data));
-          results[sym] = data.price ? parseFloat(data.price) : null;
+          // c = current price
+          results[sym] = data.c > 0 ? parseFloat(data.c.toFixed(2)) : null;
         } catch {
           results[sym] = null;
         }
-      }
+      }));
       return Response.json({ prices: results });
     }
 
