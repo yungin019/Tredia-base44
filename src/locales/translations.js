@@ -16,6 +16,7 @@ const translations = {
       paperTrading: { title: "Paper Trading", subtitle: "Simulate trades with virtual funds", newOrder: "New Order", orderHistory: "Order History", buy: "BUY", sell: "SELL" },
       onboarding: { title: "Welcome to TREDIA", selectBroker: "Select Your Broker", setupComplete: "Setup Complete" },
       upgrade: { title: "Upgrade Your Plan", elite: "Elite", pro: "Pro", foundingMember: "Founding Member" },
+      home: { alerts: "Alerts", timeSensitive: "Time-sensitive", allSignals: "All signals", forYou: "For You", basedOnPortfolio: "Based on your portfolio", seeAll: "See all", recommended: "Recommended Assets", topOpportunities: "Top AI opportunities", viewMarkets: "View markets", latestJumps: "Latest Jumps", strongSignals: "Strong upward signals", riskWarnings: "Risk Warnings", assetsToAvoid: "Assets to reduce or avoid", marketNews: "Market News", aiAnalyzed: "AI-analyzed" },
       common: { loading: "Loading...", error: "Error", success: "Success", emptyState: "No data available", tryAgain: "Try Again", notAvailable: "Not available" }
     }
   },
