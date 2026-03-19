@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Zap, TrendingUp, TrendingDown, Eye, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Zap, TrendingUp, TrendingDown, Eye, ChevronRight, Clock, ShieldAlert, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const SIGNALS = [
@@ -8,12 +8,16 @@ const SIGNALS = [
     action: 'BUY',
     symbol: 'NVDA',
     message: 'Momentum breakout above $870. RSI 67 + volume 2.4× avg. AI infrastructure demand accelerating.',
+    whyNow: 'RSI just broke 60 after 3 weeks of consolidation. Volume 2.4× avg detected in last 2h.',
     confidence: 92,
     expectedMove: '+8.2%',
     timeframe: '2W',
     entry: '871',
     target: '942',
     stop: '848',
+    riskPct: '2.6',
+    detectedAgo: '7m ago',
+    conviction: 'HIGH',
     color: '#22c55e',
     bg: 'rgba(34,197,94,0.1)',
     border: 'rgba(34,197,94,0.2)',
@@ -22,13 +26,17 @@ const SIGNALS = [
   {
     action: 'WATCH',
     symbol: 'TSLA',
-    message: 'Approaching $175 key support. Unusual options activity — 340% above 20-day avg. Caution.',
+    message: 'Approaching $175 key support. Unusual options activity — 340% above 20-day avg.',
+    whyNow: 'Options flow spike detected in last 2 hours. Dark pool prints elevated.',
     confidence: 75,
     expectedMove: '±6.1%',
     timeframe: '1W',
     entry: null,
     target: null,
     stop: null,
+    riskPct: '4.8',
+    detectedAgo: '19m ago',
+    conviction: 'MEDIUM',
     color: '#F59E0B',
     bg: 'rgba(245,158,11,0.1)',
     border: 'rgba(245,158,11,0.2)',
@@ -38,12 +46,16 @@ const SIGNALS = [
     action: 'SELL',
     symbol: 'SPX',
     message: 'VIX term structure inversion. 73% probability of elevated volatility next 5 sessions.',
+    whyNow: 'VIX term inversion just triggered — first time since October. Historically 73% bearish within 5 sessions.',
     confidence: 78,
     expectedMove: '-2.4%',
     timeframe: '5D',
     entry: '5220',
     target: '5080',
     stop: '5280',
+    riskPct: '1.2',
+    detectedAgo: '31m ago',
+    conviction: 'MEDIUM',
     color: '#ef4444',
     bg: 'rgba(239,68,68,0.1)',
     border: 'rgba(239,68,68,0.2)',
