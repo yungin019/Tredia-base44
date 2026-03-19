@@ -279,7 +279,7 @@ export default function Home() {
                    {a.type}
                  </span>
                  <span className="font-mono font-black text-[12px] text-white/85 flex-shrink-0">{a.symbol}</span>
-                 <span className="text-[11px] text-white/55 flex-1 truncate">{t(a.note)}</span>
+                 <span className="text-[11px] text-white/55 flex-1 truncate">{a.note}</span>
                 <span className="flex items-center gap-1 text-[9px] text-white/20 font-mono flex-shrink-0">
                   <Clock className="h-2.5 w-2.5" />{a.age}
                 </span>
@@ -308,7 +308,7 @@ export default function Home() {
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ color: s.color, background: `${s.color}15`, border: `1px solid ${s.color}30` }}>
                    {s.signal}
                  </span>
-                 <p className="text-[10px] text-white/40 mt-2 leading-snug">{t(s.note)}</p>
+                 <p className="text-[10px] text-white/40 mt-2 leading-snug">{s.note}</p>
               </motion.button>
             ))}
           </div>
@@ -397,7 +397,7 @@ export default function Home() {
                       {w.severity}
                     </span>
                   </div>
-                  <p className="text-[10px] text-white/40 truncate">{t(w.reason)}</p>
+                  <p className="text-[10px] text-white/40 truncate">{w.reason}</p>
                 </div>
                 <ChevronRight className="h-3.5 w-3.5 text-white/20 flex-shrink-0" />
               </motion.button>

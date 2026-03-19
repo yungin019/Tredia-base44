@@ -231,8 +231,8 @@ export default function PaperTrading() {
             </div>
 
             {/* Market/Limit Toggle */}
-            <div>
-              <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-2">{t('paperTrading.symbol')}</label>
+             <div>
+               <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-2">{t('paperTrading.orderType')}</label>
               <div className="flex gap-2">
                 {[
                     { label: t('paperTrading.market'), value: 'market' },

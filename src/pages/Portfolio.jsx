@@ -223,7 +223,7 @@ export default function Portfolio() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/[0.05]">
-                    {[t('portfolio.symbol'), t('portfolio.shares'), t('portfolio.avgCost'), t('portfolio.current'), t('portfolio.marketValue'), t('portfolio.pnl'), ''].map((h, i) => (
+                    {[t('portfolio.symbol'), t('portfolio.shares'), t('portfolio.avgCost'), t('portfolio.currentPrice'), t('portfolio.marketValue'), t('portfolio.pnl'), ''].map((h, i) => (
                       <th key={i} className={`${i === 0 ? 'text-left px-5' : i === 6 ? 'w-10' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>{h}</th>
                     ))}
                   </tr>
