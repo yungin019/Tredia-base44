@@ -18,6 +18,7 @@ import LiveIntelligenceRibbon from '@/components/ai/LiveIntelligenceRibbon';
 import TrekMoodIndicator from '@/components/ai/TrekMoodIndicator';
 import NewsFeed from '@/components/ai/NewsFeed';
 import MarketCauseEffect from '@/components/ai/MarketCauseEffect';
+import ContextBanner from '@/components/ai/ContextBanner';
 
 const PREDEFINED_SIGNALS = [
   {
