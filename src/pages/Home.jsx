@@ -216,7 +216,7 @@ export default function Home() {
       await fetchFearGreed().then(fg => { if (fg) setFearGreed(fg); });
       await loadNews();
     }}>
-    <div className="w-full">
+      <div className="w-full">
       <TickerTape />
       <div className="p-4 lg:p-6 space-y-6 max-w-[900px] mx-auto pb-24">
         {/* AI Context Banner */}
@@ -451,7 +451,7 @@ export default function Home() {
       <AnimatePresence>
         {selectedNews && <NewsModal article={selectedNews} onClose={() => setSelectedNews(null)} />}
       </AnimatePresence>
-    </div>
+      </div>
     </PullToRefresh>
   );
 }
