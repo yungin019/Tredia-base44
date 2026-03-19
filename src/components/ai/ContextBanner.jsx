@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Sparkles, X, ChevronRight } from 'lucide-react';
 
 /**
@@ -23,6 +24,7 @@ export default function ContextBanner({
   aiQuestion,
   color = '#F59E0B',
 }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export default function ContextBanner({
                 <div className="h-6 w-6 rounded-full flex items-center justify-center" style={{ background: `${color}20` }}>
                   <Sparkles className="h-3.5 w-3.5" style={{ color }} />
                 </div>
-                <span className="text-[11px] font-black uppercase tracking-[0.1em]" style={{ color }}>TREDIA AI</span>
+                <span className="text-[11px] font-black uppercase tracking-[0.1em]" style={{ color }}>{t('home.contextTitle')}</span>
               </div>
               <button onClick={dismiss} className="text-white/20 hover:text-white/50 transition-colors flex-shrink-0 mt-0.5">
                 <X className="h-3.5 w-3.5" />
@@ -102,7 +104,7 @@ export default function ContextBanner({
                   style={{ background: `${color}15`, color, border: `1px solid ${color}30` }}
                 >
                   <Sparkles className="h-3 w-3" />
-                  Ask AI
+                   {t('trek.wow')}
                 </button>
               )}
             </div>

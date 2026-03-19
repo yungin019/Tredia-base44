@@ -1,15 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-
-const TABS = [
-  { id: 'stocks', label: 'Stocks' },
-  { id: 'crypto', label: 'Crypto' },
-  { id: 'watchlist', label: '⭐ Watchlist' },
-  { id: 'forex', label: 'Forex' },
-  { id: 'commodities', label: 'Commodities' },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function AssetClassTabs({ activeTab, onTabChange }) {
+  const { t } = useTranslation();
+  const TABS = [
+    { id: 'stocks', label: t('markets.stocks') },
+    { id: 'crypto', label: t('markets.crypto') },
+    { id: 'watchlist', label: `⭐ ${t('markets.watchlist')}` },
+    { id: 'forex', label: 'Forex' },
+    { id: 'commodities', label: t('markets.commodities') },
+  ];
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
