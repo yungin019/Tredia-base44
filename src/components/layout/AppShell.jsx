@@ -124,7 +124,7 @@ export default function AppShell() {
       </header>
 
       {/* ── Main Content ─────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto pb-20 lg:pb-6">
+      <main className="flex-1 overflow-y-auto pb-20 lg:pb-6 w-full">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -132,6 +132,7 @@ export default function AppShell() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
+            className="w-full"
           >
             <Outlet />
           </motion.div>
