@@ -141,7 +141,7 @@ function NewsModal({ article, onClose }) {
             <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ color: sentColor, background: `${sentColor}15`, border: `1px solid ${sentColor}30` }}>
               {article.sentiment}
             </span>
-            <span className="text-[9px] text-white/30 font-mono">Impact: {article.impact}/10</span>
+            <span className="text-[9px] text-white/30 font-mono">{t('common.impact')}: {article.impact}/10</span>
             <span className="text-[9px] text-white/20 font-mono ml-auto">{article.age}</span>
           </div>
           <h3 className="text-[15px] font-black text-white/95 leading-snug mb-3">{article.headline}</h3>
