@@ -334,14 +334,14 @@ export default function Settings() {
 
       {/* VERSION */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="text-center pb-4">
-        <span className="text-xs text-white/25 font-mono">TREDIA v6.0.0 · TestFlight Ready</span>
+        <span className="text-xs text-white/25 font-mono">{t('settings.version')}</span>
       </motion.div>
 
       {/* DANGER ZONE — Account Deletion */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
         className="pb-8"
         style={{ borderTop: '1px solid rgba(239,68,68,0.15)', paddingTop: '24px' }}>
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'rgba(239,68,68,0.5)' }}>Danger Zone</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'rgba(239,68,68,0.5)' }}>{t('settings.dangerZone')}</p>
           <button
             onClick={async () => {
               const confirmed = window.confirm(t('settings.deleteAccount'));
@@ -369,7 +369,7 @@ export default function Settings() {
           >
             {t('settings.deleteAccount')}
           </button>
-          <p className="text-[10px] text-white/20 text-center mt-2">{t('settings.deleteAccount')}</p>
+          <p className="text-[10px] text-white/20 text-center mt-2">{t('settings.deleteAccountWarning')}</p>
       </motion.div>
     </div>
   );

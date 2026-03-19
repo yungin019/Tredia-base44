@@ -30,7 +30,7 @@ export default function Trade() {
   });
 
   const handlePreview = () => {
-    if (!symbol || !shares) { toast.error('Enter symbol and number of shares'); return; }
+    if (!symbol || !shares) { toast.error(t('paperTrading.enterSymbolShares')); return; }
     const stockData = getStockPrice(symbol.toUpperCase());
     const price = stockData ? stockData.price : +(Math.random() * 200 + 50).toFixed(2);
     const name = stockData ? stockData.name : symbol.toUpperCase();

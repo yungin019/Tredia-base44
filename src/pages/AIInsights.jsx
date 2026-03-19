@@ -281,15 +281,15 @@ export default function AIInsights() {
 
   const generateTrekInsight = (fng, signals) => {
     if (!fng && (!signals || signals.length === 0)) return null;
-    const fngLabel = fng > 75 ? 'EXTREME GREED' :
-                     fng > 55 ? 'GREED' :
-                     fng > 45 ? 'NEUTRAL' :
-                     fng > 25 ? 'FEAR' : 'EXTREME FEAR';
+    const fngLabel = fng > 75 ? t('trek.extremeGreed') :
+                     fng > 55 ? t('trek.greed') :
+                     fng > 45 ? t('common.neutral') :
+                     fng > 25 ? t('trek.fear') : t('trek.extremeFear');
     const topBuy = signals?.find(s => s.signal === 'BUY');
     const topSell = signals?.find(s => s.signal === 'SELL');
-    return `Markets at ${fngLabel} (${fng}/100). ` +
-      (topBuy ? `Best setup: ${topBuy.symbol} — ${topBuy.oneLiner} ` : '') +
-      (topSell ? `Watch: ${topSell.symbol} showing risk signals.` : '');
+    return `${t('trek.marketsAt')} ${fngLabel} (${fng}/100). ` +
+      (topBuy ? `${t('trek.bestSetup')}: ${topBuy.symbol} — ${topBuy.oneLiner} ` : '') +
+      (topSell ? `${t('trek.watch')}: ${topSell.symbol} ${t('trek.showingRiskSignals')}.` : '');
   };
 
   const fetchSignals = async () => {
@@ -408,7 +408,7 @@ export default function AIInsights() {
         >
           <div style={{ color: fngValue !== null && fngValue > 75 ? '#EF4444' : '#F59E0B', fontWeight: 800, fontSize: 11, marginBottom: 6, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: fngValue !== null && fngValue > 75 ? '#EF4444' : '#F59E0B', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
-            ⚡ TREK INSIGHT · {fngValue !== null ? `FNG ${fngValue}` : 'Loading...'} · {lastUpdated ? lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            ⚡ {t('trek.wow')} · {fngValue !== null ? `FNG ${fngValue}` : t('common.loading')} · {lastUpdated ? lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
           <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, lineHeight: 1.6, fontWeight: 500 }}>
             {trekInsight}

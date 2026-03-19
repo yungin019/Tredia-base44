@@ -8,14 +8,14 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Zap, Trophy, Target, ShieldCheck, Star, ChevronUp } from 'lucide-react';
 
 const GRADES = ['A', 'B+', 'B', 'B-', 'C+', 'C'];
-const GRADE_EXPLANATIONS = {
-  'A': 'Excellent momentum entry - pristine technical setup',
-  'B+': 'Strong momentum entry - timing aligns with market trend',
-  'B': 'Good entry setup - fundamentals support move',
-  'B-': 'Fair entry point - risk/reward acceptable',
-  'C+': 'Moderate setup - consider better entry',
-  'C': 'Weak entry - unfavorable risk/reward',
-};
+const getGradeExplanations = (t) => ({
+  'A': t('paperTrading.gradeA'),
+  'B+': t('paperTrading.gradeB_plus'),
+  'B': t('paperTrading.gradeB'),
+  'B-': t('paperTrading.gradeB_minus'),
+  'C+': t('paperTrading.gradeC_plus'),
+  'C': t('paperTrading.gradeC'),
+});
 
 const MOCK_POSITIONS = [
   { ticker: 'AAPL', shares: 10, avgCost: 185.25, currentPrice: 192.50, grade: 'B+' },
@@ -51,6 +51,7 @@ export default function PaperTrading() {
     if (!ticker.trim() || !shares.trim()) return;
 
     const randomGrade = GRADES[Math.floor(Math.random() * GRADES.length)];
+    const GRADE_EXPLANATIONS = getGradeExplanations(t);
     setTradeGrade({
       grade: randomGrade,
       explanation: GRADE_EXPLANATIONS[randomGrade],
@@ -75,11 +76,11 @@ export default function PaperTrading() {
   const totalPnLPercent = totalCostValue > 0 ? (totalPnL / totalCostValue * 100) : 0;
 
   const TRADER_LEVELS = [
-    { level: 1, name: 'Rookie', minWin: 0, color: '#6b7280' },
-    { level: 2, name: 'Analyst', minWin: 50, color: '#60a5fa' },
-    { level: 3, name: 'Trader', minWin: 60, color: '#22c55e' },
-    { level: 4, name: 'Pro Trader', minWin: 70, color: '#F59E0B' },
-    { level: 5, name: 'Elite Trader', minWin: 80, color: '#a78bfa' },
+    { level: 1, name: t('paperTrading.rookieLevel'), minWin: 0, color: '#6b7280' },
+    { level: 2, name: t('paperTrading.analystLevel'), minWin: 50, color: '#60a5fa' },
+    { level: 3, name: t('paperTrading.traderLevel'), minWin: 60, color: '#22c55e' },
+    { level: 4, name: t('paperTrading.proTraderLevel'), minWin: 70, color: '#F59E0B' },
+    { level: 5, name: t('paperTrading.eliteTraderLevel'), minWin: 80, color: '#a78bfa' },
   ];
   const winRateNum = 73.2;
   const traderLevel = TRADER_LEVELS.slice().reverse().find(l => winRateNum >= l.minWin) || TRADER_LEVELS[0];

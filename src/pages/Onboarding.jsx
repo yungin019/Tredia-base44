@@ -59,12 +59,12 @@ function TrekIntro({ onEnter }) {
           <span className="text-2xl font-black" style={{ color: '#F59E0B' }}>T</span>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#F59E0B]/60 mb-2">Meet TREK</p>
-          <h2 className="text-xl font-black text-white/90 mb-1">Your Trading Intelligence</h2>
+          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#F59E0B]/60 mb-2">{t('onboarding.meetTrek')}</p>
+          <h2 className="text-xl font-black text-white/90 mb-1">{t('onboarding.trekIntelligence')}</h2>
         </motion.div>
         <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
           className="text-sm text-white/45 leading-relaxed max-w-sm">
-          "Hey, I'm TREK — your personal trading intelligence. I analyze markets 24/7 so you always know what's moving and why. Let's make you a better trader."
+          {t('onboarding.trekIntro')}
         </motion.p>
         <motion.button
           initial={{ opacity: 0, y: 8 }}
@@ -75,8 +75,8 @@ function TrekIntro({ onEnter }) {
           onClick={onEnter}
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mt-2"
           style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
-        >
-          Enter TREDIA <ArrowRight className="h-4 w-4" />
+          >
+          {t('onboarding.enterTredia')} <ArrowRight className="h-4 w-4" />
         </motion.button>
       </div>
     </motion.div>
@@ -148,8 +148,8 @@ export default function Onboarding() {
                     <TrendingUp className="h-6 w-6 text-[#F59E0B]" />
                   </div>
                   <div>
-                    <p className="font-bold text-white/90 text-base mb-1">I Already Trade</p>
-                    <p className="text-xs text-white/35 leading-relaxed">Connect your existing broker to get started instantly</p>
+                    <p className="font-bold text-white/90 text-base mb-1">{t('onboarding.alreadyTrade')}</p>
+                       <p className="text-xs text-white/35 leading-relaxed">{t('onboarding.connectBroker')}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-[#F59E0B]/50 self-end mt-auto" />
                 </motion.button>
@@ -161,8 +161,8 @@ export default function Onboarding() {
                     <Star className="h-6 w-6 text-[#60A5FA]" />
                   </div>
                   <div>
-                    <p className="font-bold text-white/90 text-base mb-1">New to Trading</p>
-                    <p className="text-xs text-white/35 leading-relaxed">Start with guided AI insights and paper trading</p>
+                    <p className="font-bold text-white/90 text-base mb-1">{t('onboarding.newTrading')}</p>
+                    <p className="text-xs text-white/35 leading-relaxed">{t('onboarding.startPaperTrading')}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-[#60A5FA]/50 self-end mt-auto" />
                 </motion.button>
@@ -174,8 +174,8 @@ export default function Onboarding() {
           {step === 'broker' && (
             <motion.div key="broker" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="text-center mb-6">
-                <h1 className="text-2xl font-black text-white/90 mb-1">Connect Your Broker</h1>
-                <p className="text-sm text-white/35 mb-2">Broker integrations coming in a future release</p>
+                <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.connectBrokerTitle')}</h1>
+                <p className="text-sm text-white/35 mb-2">{t('onboarding.brokerComingSoon')}</p>
                 <p className="text-[10px] text-white/15 px-4">
                   ⚠️ These are UI placeholders. Actual broker connections require OAuth API setup with Alpaca, IBKR, Robinhood, etc.
                   <br/><br/>
@@ -217,8 +217,8 @@ export default function Onboarding() {
           {step === 'paper' && (
             <motion.div key="paper" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="text-center mb-6">
-                <h1 className="text-2xl font-black text-white/90 mb-1">Let's Get You Started</h1>
-                <p className="text-sm text-white/35">No real money. No risk. Just learning.</p>
+                <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.getStarted')}</h1>
+                  <p className="text-sm text-white/35">{t('onboarding.noRealMoney')}</p>
               </div>
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
                 className="rounded-2xl border border-[#F59E0B]/20 bg-[#111118] p-6 mb-4"
@@ -237,7 +237,7 @@ export default function Onboarding() {
                   onClick={() => setStep('profile')}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                  Start Paper Trading <ArrowRight className="h-4 w-4" />
+                  {t('onboarding.startPaper')} <ArrowRight className="h-4 w-4" />
                 </motion.button>
               </motion.div>
               <button onClick={() => setStep('choice')} className="text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← Back</button>
@@ -251,8 +251,8 @@ export default function Onboarding() {
                 <div className="inline-flex items-center gap-1.5 bg-[#F59E0B]/10 border border-[#F59E0B]/20 rounded-full px-3 py-1 mb-3">
                   <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">TREK AI Personalization</span>
                 </div>
-                <h1 className="text-2xl font-black text-white/90 mb-1">Customize Your Intelligence</h1>
-                <p className="text-sm text-white/35">TREK adapts to your level and goals</p>
+                <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.customizeIntelligence')}</h1>
+                <p className="text-sm text-white/35">{t('onboarding.trekAdapts')}</p>
               </div>
 
               <div className="space-y-5">
@@ -300,8 +300,8 @@ export default function Onboarding() {
                 disabled={saving}
                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mt-6"
                 style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: saving ? 0.7 : 1 }}
-              >
-                {saving ? 'Saving...' : <>Continue <ArrowRight className="h-4 w-4" /></>}
+                >
+                {saving ? t('common.loading') : <>{t('onboarding.continue')} <ArrowRight className="h-4 w-4" /></>}
               </motion.button>
 
               <button onClick={() => setStep('choice')} className="mt-3 text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← Back</button>

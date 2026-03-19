@@ -123,10 +123,10 @@ export default function Upgrade() {
           <div className="flex items-start justify-between mb-5">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Zap className="h-4 w-4 text-[#F59E0B]" />
-                <span className="text-[10px] font-black tracking-[0.2em] uppercase text-[#F59E0B]">Founding Member Offer</span>
-              </div>
-              <p className="text-[10px] text-white/35 tracking-wider uppercase font-semibold">First 100 users only</p>
+                      <Zap className="h-4 w-4 text-[#F59E0B]" />
+                      <span className="text-[10px] font-black tracking-[0.2em] uppercase text-[#F59E0B]">{t('upgrade.foundingMember')}</span>
+                    </div>
+                    <p className="text-[10px] text-white/35 tracking-wider uppercase font-semibold">{t('upgrade.first100')}</p>
             </div>
             <div className="text-[8px] font-black px-2.5 py-1 rounded-full tracking-widest uppercase"
               style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.4)' }}>
@@ -203,7 +203,7 @@ export default function Upgrade() {
                 boxShadow: '0 0 30px rgba(245,158,11,0.2)',
               }}
             >
-              {joining ? 'Joining...' : '⚡ JOIN AS FOUNDING MEMBER →'}
+              {joining ? t('common.loading') : `⚡ ${t('upgrade.joinAsFounding')} →`}
             </motion.button>
           )}
         </div>
@@ -228,8 +228,8 @@ export default function Upgrade() {
               ? 'bg-[#F59E0B] text-[#0A0A0F]'
               : 'bg-white/[0.04] text-white/50 hover:bg-white/[0.06]'
           }`}>
-          Annual
-          <span className="absolute -top-5 right-0 text-[9px] text-[#F59E0B] font-black">Save 25%</span>
+          {t('upgrade.annual')}
+          <span className="absolute -top-5 right-0 text-[9px] text-[#F59E0B] font-black">{t('upgrade.save25')}</span>
         </button>
       </motion.div>
 
@@ -282,7 +282,7 @@ export default function Upgrade() {
         </p>
         <p className="text-xs text-white/30 mb-5">{t('home.title')}</p>
         <ul className="space-y-2.5 mb-6">
-          {['Unlimited TREK signals', 'Real-time price alerts', 'Advanced charts'].map(f => (
+          {[t('upgrade.proFeature1'), t('upgrade.proFeature2'), t('upgrade.proFeature3')].map(f => (
             <li key={f} className="flex items-center gap-2.5 text-sm text-white/55">
               <span className="text-white/30">✓</span> {f}
             </li>
