@@ -217,6 +217,12 @@ const PREDEFINED_SIGNALS = [
 function toSignalCardProps(s) {
   const signalMap = { bullish: 'BUY', bearish: 'SELL', hedge: 'SELL', alert: 'WATCH' };
   const ev = s.evidence || [];
+  // Extract entry/target/stop from targets array
+  const getTarget = (label) => {
+    const t = s.targets?.find(t => t.label.toLowerCase().includes(label.toLowerCase()));
+    return t?.value?.replace(/[$,]/g, '') || null;
+  };
+  const riskMap = { bullish: 'Medium', bearish: 'High', hedge: 'High', alert: 'Medium' };
   return {
     symbol: s.symbol,
     title: s.title,
@@ -225,13 +231,20 @@ function toSignalCardProps(s) {
     time: s.time,
     expectedMove: s.expectedPct ? `${s.expectedPct > 0 ? '+' : ''}${s.expectedPct}%` : undefined,
     timeframe: s.expectedDays,
+    oneLiner: s.message?.split('.')[0] + '.',
     technicalSummary: s.message,
+    entry: getTarget('entry') || getTarget('breakout') || null,
+    target: getTarget('target') || getTarget('downside') || null,
+    stopLoss: getTarget('stop') || null,
+    riskLevel: riskMap[s.type] || 'Medium',
     confidence_breakdown: {
       technical: ev[0]?.score ?? 0,
       sentiment: ev[1]?.score ?? 0,
       volume:    ev[2]?.score ?? 0,
       macro:     ev[3]?.score ?? 0,
     },
+    whyBuy: s.type === 'bullish' ? s.risks?.map(r => r) : undefined,
+    whySell: s.type !== 'bullish' ? s.risks : undefined,
   };
 }
 
