@@ -201,7 +201,7 @@ export default function Portfolio() {
                 </thead>
                 <tbody>
                   {holdings.map((h) => {
-                    const currentPrice = h.current_price || h.avg_cost;
+                    const currentPrice = livePrices[h.symbol] || h.current_price || h.avg_cost;
                     const pnl = (currentPrice - h.avg_cost) * h.shares;
                     const pnlPct = ((currentPrice - h.avg_cost) / h.avg_cost * 100);
                     const mktValue = currentPrice * h.shares;
