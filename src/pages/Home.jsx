@@ -222,10 +222,10 @@ export default function Home() {
         {/* AI Context Banner */}
         <ContextBanner
           storageKey="home_v1"
-          title="Welcome to TREDIA ⚡"
-          body="This is your command center. Alerts are ranked by urgency, signals are AI-powered, and news is analyzed for market impact. I'm here to guide you."
-          actions={[{ label: "What should I focus on today?", onClick: () => {} }]}
-          aiQuestion="I just opened TREDIA. What should I focus on today? Give me a quick briefing."
+          title={t('home.contextTitle')}
+          body={t('home.contextBody')}
+          actions={[{ label: t('home.contextAction'), onClick: () => {} }]}
+          aiQuestion={t('home.contextAI')}
         />
 
         {/* ── TREK INSIGHT ── */}
