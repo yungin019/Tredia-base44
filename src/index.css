@@ -30,6 +30,7 @@ html, body {
 @layer base {
   :root {
     --font-inter: 'Inter', sans-serif;
+
     --font-mono: 'JetBrains Mono', monospace;
 
     --background: 240 13% 5%;
@@ -76,6 +77,12 @@ html, body {
   body {
     @apply bg-background text-foreground font-inter antialiased;
     background-color: #0A0A0F;
+    padding-top: var(--safe-area-top);
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior: none;
   }
 }
 

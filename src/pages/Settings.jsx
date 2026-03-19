@@ -315,6 +315,41 @@ export default function Settings() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="text-center pb-4">
         <span className="text-xs text-white/25 font-mono">TREDIA v6.0.0 · TestFlight Ready</span>
       </motion.div>
+
+      {/* DANGER ZONE — Account Deletion */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+        className="pb-8"
+        style={{ borderTop: '1px solid rgba(239,68,68,0.15)', paddingTop: '24px' }}>
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'rgba(239,68,68,0.5)' }}>Danger Zone</p>
+        <button
+          onClick={async () => {
+            const confirmed = window.confirm('Are you sure you want to delete your account? This cannot be undone.');
+            if (!confirmed) return;
+            try {
+              await base44.entities.User.delete(user.id);
+              await base44.auth.logout();
+            } catch (err) {
+              console.error('Delete failed:', err);
+              window.alert('Account deletion failed. Please contact support.');
+            }
+          }}
+          style={{
+            width: '100%',
+            padding: '14px',
+            background: 'transparent',
+            border: '1px solid #EF4444',
+            borderRadius: '12px',
+            color: '#EF4444',
+            fontSize: '14px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            touchAction: 'manipulation',
+          }}
+        >
+          Delete Account
+        </button>
+        <p className="text-[10px] text-white/20 text-center mt-2">This will permanently delete your account and all data.</p>
+      </motion.div>
     </div>
   );
 }
