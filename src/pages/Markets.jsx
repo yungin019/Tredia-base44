@@ -105,23 +105,23 @@ export default function Markets() {
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div className="min-w-0">
-          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1 truncate">{t('markets.title') || 'Markets'}</h1>
-          <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('markets.subtitle') || 'Live Markets'}</p>
+          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1 truncate">{t('markets.title')}</h1>
+          <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('markets.subtitle')}</p>
         </div>
       </motion.div>
 
       {/* AI Context Banner */}
       <ContextBanner
         storageKey="markets_v1"
-        title="Live Markets 📊"
-        body="These are real-time market prices. Every asset has a TREK grade (Buy / Hold / Sell) powered by our AI engine. Tap any stock to get a full analysis."
+        title={t('markets.title')}
+        body={t('home.contextBody')}
         steps={[
-          "Browse stocks, crypto, and your watchlist",
-          "Check the TREK grade to see AI-powered signals",
-          "Tap any asset for full analysis and chart",
+          t('markets.stocks'),
+          t('trek.signals'),
+          t('asset.analysis'),
         ]}
-        actions={[{ label: "Find the best opportunity now", onClick: () => {} }]}
-        aiQuestion="What is the best opportunity in the market right now? Explain it simply."
+        actions={[{ label: t('home.contextAction'), onClick: () => {} }]}
+        aiQuestion={t('trek.contextAI')}
       />
 
       {/* Ticker Tape */}
@@ -185,13 +185,13 @@ export default function Markets() {
             className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden"
           >
             <div className="px-5 py-4 border-b border-white/[0.05]">
-              <h3 className="text-sm font-bold text-white/80">Top Stocks ({filteredStocks.length})</h3>
+              <h3 className="text-sm font-bold text-white/80">{t('markets.topStocks')} ({filteredStocks.length})</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/[0.05]">
-                    {['Symbol', 'Company', 'Price', 'Change', 'TREK Grade'].map((h, i) => (
+                    {[t('markets.symbol'), t('markets.company'), t('markets.price'), t('markets.change'), t('markets.trekGrade')].map((h, i) => (
                       <th key={i} className={`${i === 0 ? 'text-left px-5' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>
                         {h}
                       </th>
