@@ -223,6 +223,39 @@ export default function SignalCard({ signal }) {
                 </div>
               )}
 
+              {/* Trade Plan */}
+              {(signal.entry || signal.target || signal.stopLoss) && (
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 12px' }}>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>Trade Plan</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px' }}>
+                    {signal.entry && (
+                      <div>
+                        <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>Entry</span>
+                        <span style={{ fontSize: 12, fontFamily: 'monospace', fontWeight: 800, color: 'rgba(255,255,255,0.75)' }}>${signal.entry}</span>
+                      </div>
+                    )}
+                    {signal.target && (
+                      <div>
+                        <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>Target</span>
+                        <span style={{ fontSize: 12, fontFamily: 'monospace', fontWeight: 800, color: '#22c55e' }}>${signal.target}</span>
+                      </div>
+                    )}
+                    {signal.stopLoss && (
+                      <div>
+                        <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>Stop Loss</span>
+                        <span style={{ fontSize: 12, fontFamily: 'monospace', fontWeight: 800, color: '#ef4444' }}>${signal.stopLoss}</span>
+                      </div>
+                    )}
+                    {signal.riskLevel && (
+                      <div>
+                        <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>Risk</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: signal.riskLevel === 'Low' ? '#22c55e' : signal.riskLevel === 'High' ? '#ef4444' : '#F59E0B' }}>{signal.riskLevel}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Jump reason */}
               {signal.jumpReason && (
                 <div style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 10, padding: '10px 12px' }}>
