@@ -274,7 +274,7 @@ export default function Home() {
 
         {/* ── FOR YOU ── */}
         <div>
-          <SectionTitle icon="🎯" label="For You" sub="Based on your portfolio" action="See all" onAction={() => navigate('/AIInsights')} />
+          <SectionTitle icon="🎯" label={t('home.forYou')} sub={t('home.basedOnPortfolio')} action={t('home.seeAll')} onAction={() => navigate('/AIInsights')} />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {FOR_YOU.map((s, i) => (
               <motion.button
