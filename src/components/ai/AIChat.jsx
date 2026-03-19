@@ -172,12 +172,16 @@ export default function AIChat() {
                   <TrekAvatar size={5} />
                 </div>
               )}
-              <div className={`max-w-[85%] rounded-xl px-3 py-2 text-[11px] leading-relaxed ${
+              <div className={`max-w-[88%] rounded-xl px-3 py-2.5 ${
                 msg.role === 'user'
-                  ? 'bg-primary/15 border border-primary/25 text-white/85 font-medium'
-                  : 'bg-white/[0.04] border border-white/[0.07] text-white/65'
+                  ? 'bg-primary/15 border border-primary/25 text-white/85 text-[11px] font-medium leading-relaxed'
+                  : 'bg-white/[0.04] border border-white/[0.07]'
               }`}>
-                {msg.content}
+                {msg.role === 'ai' ? (
+                  <TrekResponseRenderer content={msg.content} />
+                ) : (
+                  msg.content
+                )}
               </div>
             </motion.div>
           ))}
