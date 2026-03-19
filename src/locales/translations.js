@@ -121,6 +121,7 @@ const translations = {
       'trek.greed': 'GREED',
       'trek.fear': 'FEAR',
       'trek.extremeFear': 'EXTREME FEAR',
+      'trek.extremeGreed': 'EXTREME GREED',
       'trek.strength': 'Strength',
       'trek.weakness': 'Weakness',
       'trek.momentum': 'Momentum',
