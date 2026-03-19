@@ -35,7 +35,6 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/" element={<Navigate to="/SplashScreen" replace />} />
       <Route path="/SplashScreen" element={<SplashScreen />} />
-      <Route path="/SignIn" element={<SignIn />} />
       <Route path="/Onboarding" element={<Onboarding />} />
       <Route element={<AppShell />}>
         <Route path="/Dashboard" element={<Dashboard />} />
