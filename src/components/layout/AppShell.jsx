@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
+import TrediaAssistant from '@/components/ai/TrediaAssistant';
 
 const NAV_ITEMS = [
   { path: '/Home',       icon: Home,      label: 'Home',     isTrek: false },
