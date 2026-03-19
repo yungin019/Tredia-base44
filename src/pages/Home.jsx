@@ -213,6 +213,10 @@ export default function Home() {
     : '#F59E0B';
 
   return (
+    <PullToRefresh onRefresh={async () => {
+      await fetchFearGreed().then(fg => { if (fg) setFearGreed(fg); });
+      await loadNews();
+    }}>
     <div className="w-full">
       <TickerTape />
       <div className="p-4 lg:p-6 space-y-6 max-w-[900px] mx-auto pb-24">

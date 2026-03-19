@@ -92,6 +92,15 @@ export default function Markets() {
   };
 
   return (
+    <PullToRefresh onRefresh={async () => {
+      const data = await fetchCryptoData();
+      if (data) setCryptoData(data);
+      try {
+        const symbols = STOCK_DATA.map(s => s.symbol);
+        const res = await base44.functions.invoke('stockPrices', { symbols });
+        if (res?.data?.prices) setLivePrices(res.data.prices);
+      } catch {}
+    }}>
     <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
