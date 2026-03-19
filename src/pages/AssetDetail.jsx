@@ -49,6 +49,7 @@ const DEFAULT_ASSET = {
 };
 
 function TradeModal({ asset, action, onClose }) {
+  const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const isBuy = action === 'BUY';
