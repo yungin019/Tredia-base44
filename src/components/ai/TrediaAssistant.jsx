@@ -4,6 +4,7 @@ import { X, Send, Sparkles, ChevronRight, Minimize2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
 import { useLocation } from 'react-router-dom';
+import aiTranslations from '@/locales/ai-translations';
 
 // Context-aware prompts per page (will use i18n keys)
 const PAGE_CONTEXT_KEYS = {
