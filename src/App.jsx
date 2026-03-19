@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import AppShell from './components/layout/AppShell';
 import SplashScreen from './pages/SplashScreen';
 import Onboarding from './pages/Onboarding';
+import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Markets from './pages/Markets';
 import AIInsights from './pages/AIInsights';
@@ -16,6 +17,7 @@ import Trade from './pages/Trade';
 import Settings from './pages/Settings';
 import PaperTrading from './pages/PaperTrading';
 import Upgrade from './pages/Upgrade';
+import AssetDetail from './pages/AssetDetail';
 
 const AuthenticatedApp = () => {
   const { isLoading } = useAuth();
@@ -37,6 +39,7 @@ const AuthenticatedApp = () => {
       <Route path="/SplashScreen" element={<SplashScreen />} />
       <Route path="/Onboarding" element={<Onboarding />} />
       <Route element={<AppShell />}>
+        <Route path="/Home" element={<Home />} />
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/Markets" element={<Markets />} />
         <Route path="/AIInsights" element={<AIInsights />} />
@@ -45,6 +48,7 @@ const AuthenticatedApp = () => {
         <Route path="/Settings" element={<Settings />} />
         <Route path="/Upgrade" element={<Upgrade />} />
         <Route path="/PaperTrading" element={<PaperTrading />} />
+        <Route path="/Asset/:symbol" element={<AssetDetail />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
