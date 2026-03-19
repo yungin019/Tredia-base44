@@ -309,7 +309,10 @@ export default function Settings() {
                key={lang.code}
                onClick={() => {
                  i18n.changeLanguage(lang.code);
-                 localStorage.setItem('tredia_language', lang.code);
+                 // i18next-browser-languagedetector stores under 'i18nextLng'
+                 localStorage.setItem('i18nextLng', lang.code);
+                 document.documentElement.lang = lang.code;
+                 document.documentElement.dir = lang.code === 'ar' ? 'rtl' : 'ltr';
                  setCurrentLang(lang.code);
                }}
                className={`p-3 rounded-lg border transition-all text-sm font-semibold flex items-center gap-2 justify-center ${
