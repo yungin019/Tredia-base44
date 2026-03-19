@@ -362,7 +362,7 @@ export default function Home() {
 
         {/* ── RISK WARNINGS ── */}
         <div>
-          <SectionTitle icon="⚠️" label="Risk Warnings" sub="Assets to reduce or avoid" />
+          <SectionTitle icon="⚠️" label={t('home.riskWarnings')} sub={t('home.assetsToAvoid')} />
           <div className="space-y-2">
             {WARNINGS.map((w, i) => (
               <motion.button
