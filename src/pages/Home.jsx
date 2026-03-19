@@ -264,18 +264,18 @@ export default function Home() {
           <SectionTitle icon="🚨" label={t('home.alerts')} sub={t('home.timeSensitive')} action={t('home.allSignals')} onAction={() => navigate('/AIInsights')} />
           <div className="space-y-2">
             {ALERTS.map((a, i) => (
-              <motion.button
-                key={a.id}
-                initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
-                onClick={() => navigate('/AIInsights')}
-                className="w-full text-left rounded-xl px-4 py-3 flex items-center gap-3 transition-all hover:scale-[1.01] tap-feedback"
-                style={{ background: a.bg, border: `1px solid ${a.border}`, borderLeft: `3px solid ${a.color}` }}
-              >
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style={{ color: a.color, background: `${a.color}20`, border: `1px solid ${a.color}40` }}>
-                  {a.type}
-                </span>
-                <span className="font-mono font-black text-[12px] text-white/85 flex-shrink-0">{a.symbol}</span>
-                <span className="text-[11px] text-white/55 flex-1 truncate">{a.note}</span>
+               <motion.button
+                 key={a.id}
+                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
+                 onClick={() => navigate('/AIInsights')}
+                 className="w-full text-left rounded-xl px-4 py-3 flex items-center gap-3 transition-all hover:scale-[1.01] tap-feedback"
+                 style={{ background: a.bg, border: `1px solid ${a.border}`, borderLeft: `3px solid ${a.color}` }}
+               >
+                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style={{ color: a.color, background: `${a.color}20`, border: `1px solid ${a.color}40` }}>
+                   {a.type}
+                 </span>
+                 <span className="font-mono font-black text-[12px] text-white/85 flex-shrink-0">{a.symbol}</span>
+                 <span className="text-[11px] text-white/55 flex-1 truncate">{t(a.note)}</span>
                 <span className="flex items-center gap-1 text-[9px] text-white/20 font-mono flex-shrink-0">
                   <Clock className="h-2.5 w-2.5" />{a.age}
                 </span>
@@ -302,9 +302,9 @@ export default function Home() {
                   <span className="text-[10px] font-black" style={{ color: s.color }}>{s.move}</span>
                 </div>
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ color: s.color, background: `${s.color}15`, border: `1px solid ${s.color}30` }}>
-                  {s.signal}
-                </span>
-                <p className="text-[10px] text-white/40 mt-2 leading-snug">{s.note}</p>
+                   {s.signal}
+                 </span>
+                 <p className="text-[10px] text-white/40 mt-2 leading-snug">{t(s.note)}</p>
               </motion.button>
             ))}
           </div>
@@ -393,7 +393,7 @@ export default function Home() {
                       {w.severity}
                     </span>
                   </div>
-                  <p className="text-[10px] text-white/40 truncate">{w.reason}</p>
+                  <p className="text-[10px] text-white/40 truncate">{t(w.reason)}</p>
                 </div>
                 <ChevronRight className="h-3.5 w-3.5 text-white/20 flex-shrink-0" />
               </motion.button>
@@ -420,11 +420,11 @@ export default function Home() {
                     style={{ color: newsItems[newsIdx]?.sentiment === 'BULLISH' ? '#22c55e' : newsItems[newsIdx]?.sentiment === 'BEARISH' ? '#ef4444' : '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
                     {newsItems[newsIdx]?.sentiment}
                   </span>
-                  <span className="text-[9px] text-white/25 font-mono">Impact: {newsItems[newsIdx]?.impact}/10</span>
+                  <span className="text-[9px] text-white/25 font-mono">{t('common.impact')}: {newsItems[newsIdx]?.impact}/10</span>
                   <span className="text-[9px] text-white/20 font-mono ml-auto">{newsItems[newsIdx]?.age}</span>
                 </div>
-                <p className="text-[13px] font-bold text-white/90 leading-snug mb-2">{newsItems[newsIdx]?.headline}</p>
-                <p className="text-[11px] text-white/45 leading-relaxed mb-3">{newsItems[newsIdx]?.summary}</p>
+                <p className="text-[13px] font-bold text-white/90 leading-snug mb-2">{t(newsItems[newsIdx]?.headline)}</p>
+                <p className="text-[11px] text-white/45 leading-relaxed mb-3">{t(newsItems[newsIdx]?.summary)}</p>
                 <div className="flex items-center justify-between">
                   <div className="flex gap-1.5">
                     {(newsItems[newsIdx]?.tickers || []).map(t => (
