@@ -11,16 +11,16 @@ import PullToRefresh from '@/components/ui/PullToRefresh';
 
 // ── ALERTS ──────────────────────────────────────────────────────────────────
 const ALERTS = [
-  { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'alert.nvda', age: '7m', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.25)' },
-  { id: 2, type: 'RISK', symbol: 'VIX',  note: 'alert.vix', age: '14m', color: '#ef4444', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)' },
-  { id: 3, type: 'SELL', symbol: 'META', note: 'alert.meta', age: '31m', color: '#F59E0B', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)' },
+  { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'Momentum breakout above $870 — volume 3.2× average', age: '7m', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.25)' },
+  { id: 2, type: 'RISK', symbol: 'VIX',  note: 'VIX term structure inversion — elevated market risk', age: '14m', color: '#ef4444', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)' },
+  { id: 3, type: 'SELL', symbol: 'META', note: 'Pre-earnings sentiment deteriorating — put/call 1.4', age: '31m', color: '#F59E0B', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)' },
 ];
 
 // ── FOR YOU ──────────────────────────────────────────────────────────────────
 const FOR_YOU = [
-  { symbol: 'NVDA', signal: 'BUY',   note: 'foryou.nvda', move: '+8.2%', color: '#22c55e' },
-  { symbol: 'JPM',  signal: 'WATCH', note: 'foryou.jpm', move: '+7%', color: '#F59E0B' },
-  { symbol: 'BTC',  signal: 'BUY',   note: 'foryou.btc', move: '+12%', color: '#22c55e' },
+  { symbol: 'NVDA', signal: 'BUY',   note: 'Institutional accumulation detected. Strong breakout setup.', move: '+8.2%', color: '#22c55e' },
+  { symbol: 'JPM',  signal: 'WATCH', note: 'Financial sector rotation. Rate curve steepening.', move: '+7%', color: '#F59E0B' },
+  { symbol: 'BTC',  signal: 'BUY',   note: 'Spot ETF inflows at record. Halving cycle momentum.', move: '+12%', color: '#22c55e' },
 ];
 
 // ── RECOMMENDED ──────────────────────────────────────────────────────────────
@@ -34,17 +34,17 @@ const RECOMMENDED = [
 
 // ── LATEST JUMPS ─────────────────────────────────────────────────────────────
 const JUMPS = [
-  { symbol: 'SMCI', name: 'Supermicro',    change: +18.4, reason: 'jumps.smci' },
-  { symbol: 'ARM',  name: 'ARM Holdings', change: +12.1, reason: 'jumps.arm' },
-  { symbol: 'PLTR', name: 'Palantir',      change: +9.7,  reason: 'jumps.pltr' },
-  { symbol: 'SOFI', name: 'SoFi',          change: +7.3,  reason: 'jumps.sofi' },
+  { symbol: 'SMCI', name: 'Supermicro',    change: +18.4, reason: 'AI server demand surge — NVIDIA GPU allocation confirmed' },
+  { symbol: 'ARM',  name: 'ARM Holdings', change: +12.1, reason: 'New chip licensing deal with major hyperscaler' },
+  { symbol: 'PLTR', name: 'Palantir',      change: +9.7,  reason: 'DoD contract expansion — AI platform adoption' },
+  { symbol: 'SOFI', name: 'SoFi',          change: +7.3,  reason: 'Student loan refinancing demand up 40% QoQ' },
 ];
 
 // ── RISK WARNINGS ────────────────────────────────────────────────────────────
 const WARNINGS = [
-  { symbol: 'TSLA', reason: 'warnings.tsla', severity: 'HIGH' },
-  { symbol: 'META', reason: 'warnings.meta', severity: 'MEDIUM' },
-  { symbol: 'RIVN', reason: 'warnings.rivn', severity: 'HIGH' },
+  { symbol: 'TSLA', reason: 'Delivery miss risk + margin compression. Bearish divergence on daily.', severity: 'HIGH' },
+  { symbol: 'META', reason: 'Ad revenue uncertainty. 3 analyst downgrades in 72h. Put/call elevated.', severity: 'MEDIUM' },
+  { symbol: 'RIVN', reason: 'Cash burn accelerating. Production ramp below target. EV demand softening.', severity: 'HIGH' },
 ];
 
 // ── NEWS ─────────────────────────────────────────────────────────────────────
