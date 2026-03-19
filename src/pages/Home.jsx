@@ -205,8 +205,8 @@ export default function Home() {
   useEffect(() => { loadNews(); }, []); // eslint-disable-line
 
   const sentimentLabel = fearGreed
-    ? fearGreed.value >= 70 ? 'GREED' : fearGreed.value >= 50 ? 'NEUTRAL' : fearGreed.value >= 30 ? 'FEAR' : 'EXTREME FEAR'
-    : 'NEUTRAL';
+    ? fearGreed.value >= 70 ? t('trek.greed') : fearGreed.value >= 50 ? t('common.neutral') : fearGreed.value >= 30 ? t('trek.fear') : t('trek.extremeFear')
+    : t('common.neutral');
   const sentimentColor = fearGreed
     ? fearGreed.value >= 70 ? '#22c55e' : fearGreed.value >= 50 ? '#F59E0B' : '#ef4444'
     : '#F59E0B';
