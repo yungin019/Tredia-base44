@@ -13,6 +13,7 @@ import CryptoAssets from '@/components/markets/CryptoAssets.jsx';
 import TimeframeSelector from '@/components/markets/TimeframeSelector.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
 import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
+import ContextBanner from '@/components/ai/ContextBanner';
 
 // Mock chart data for different timeframes
 const CHART_DATA = {
