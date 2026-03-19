@@ -10,11 +10,13 @@ import PerformanceChart from '../components/dashboard/PerformanceChart';
 import CryptoLiveCards from '../components/dashboard/CryptoLiveCards';
 import { fetchCryptoData, fetchFearGreed } from '../api/marketData';
 import NewsFeed from '../components/dashboard/NewsFeed';
-import TrekDailyBrief from '../components/dashboard/TrekDailyBrief';
 import GlobalSentimentMeter from '../components/dashboard/GlobalSentimentMeter';
 import SmartMoneyAlerts from '../components/dashboard/SmartMoneyAlerts';
 import EarningsCalendar from '../components/dashboard/EarningsCalendar';
 import TickerTape from '../components/dashboard/TickerTape';
+import TrekInsight from '../components/dashboard/TrekInsight';
+import TrendingAssets from '../components/dashboard/TrendingAssets';
+import QuickActions from '../components/dashboard/QuickActions';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -46,66 +48,72 @@ export default function Dashboard() {
 
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
 
   return (
     <div className="w-full">
       <TickerTape />
-      <div className="p-4 lg:p-6 space-y-4 max-w-[1600px] mx-auto">
-        {/* TREK Daily Brief */}
-        <TrekDailyBrief />
+      <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
 
-      {/* Header */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end justify-between pt-1">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('dashboard.title')}</h1>
+        {/* Header */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end justify-between pt-1">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('dashboard.title') || 'Command Center'}</h1>
+            </div>
+            <p className="text-[11px] text-white/30 font-medium tracking-wide">
+              {t('dashboard.subtitle') || 'Real-time AI market intelligence'}
+            </p>
           </div>
-          <p className="text-[11px] text-white/30 font-medium tracking-wide">
-            {t('dashboard.subtitle')}
-          </p>
-        </div>
-        <div className="text-right hidden sm:block">
-          <div className="text-xl font-mono font-bold text-primary/90">{timeStr}</div>
-          <div className="text-[10px] font-mono text-white/25 tracking-widest mt-0.5">{dateStr}</div>
-        </div>
-      </motion.div>
+          <div className="text-right hidden sm:block">
+            <div className="text-xl font-mono font-bold text-primary/90">{timeStr}</div>
+            <div className="text-[10px] font-mono text-white/25 tracking-widest mt-0.5">{dateStr}</div>
+          </div>
+        </motion.div>
 
-      {/* Crypto + Fear & Greed + Sentiment */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+        {/* 1. TREK INSIGHT — Command Center top */}
+        <TrekInsight fearGreedValue={fearGreed?.value} />
+
+        {/* 2. Quick Actions */}
+        <QuickActions />
+
+        {/* 3. Sentiment + Crypto */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <GlobalSentimentMeter fearGreed={fearGreed} />
           <CryptoLiveCards crypto={crypto} fearGreed={fearGreed} />
         </div>
-        <GlobalSentimentMeter fearGreed={fearGreed} />
-      </div>
 
-      {/* Indices */}
-      <IndexCards indices={indices} />
+        {/* 4. Trending Assets — Horizontal Scroll */}
+        <TrendingAssets stocks={stocks} />
 
-      {/* Portfolio Summary */}
-      <PortfolioSummary />
+        {/* 5. Market Indices */}
+        <IndexCards indices={indices} />
 
-      {/* Chart + Signals */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
-        <div className="xl:col-span-3">
-          <PerformanceChart />
+        {/* 6. Portfolio Summary */}
+        <PortfolioSummary />
+
+        {/* 7. Chart + Signals */}
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+          <div className="xl:col-span-3">
+            <PerformanceChart />
+          </div>
+          <div className="xl:col-span-2">
+            <AISignalCard />
+          </div>
         </div>
-        <div className="xl:col-span-2">
-          <AISignalCard />
+
+        {/* 8. Smart Money Alerts + Earnings */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SmartMoneyAlerts />
+          <EarningsCalendar />
         </div>
-      </div>
 
-      {/* Smart Money + Earnings */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SmartMoneyAlerts />
-        <EarningsCalendar />
-      </div>
+        {/* 9. Top Movers */}
+        <TopMovers stocks={stocks} />
 
-      {/* Top Movers */}
-      <TopMovers stocks={stocks} />
-
-        {/* Live News Feed */}
+        {/* 10. News Feed */}
         <NewsFeed />
+
       </div>
     </div>
   );
