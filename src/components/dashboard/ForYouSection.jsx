@@ -157,7 +157,26 @@ export default function ForYouSection() {
   const techHoldings = holdings.filter(h => h.sector === 'Technology' || ['AAPL','MSFT','NVDA','META','GOOGL'].includes(h.symbol));
   const techExposure = holdings.length > 0
     ? Math.round((techHoldings.length / holdings.length) * 100)
-    : 38; // default
+    : 38;
+
+  // Build "For You" signals based on actual holdings — complement what user already has
+  const heldSymbols = new Set(holdings.map(h => h.symbol));
+  const dynamicSignals = FOR_YOU_SIGNALS.filter(s => {
+    if (heldSymbols.has(s.symbol)) return true; // always show signals for held assets
+    return true; // also show complementary suggestions
+  }).slice(0, 3);
+
+  // Personalise the note for held assets
+  const signals = dynamicSignals.map(s => {
+    const holding = holdings.find(h => h.symbol === s.symbol);
+    if (holding) {
+      return {
+        ...s,
+        personalNote: `You hold ${holding.shares} shares at avg $${holding.avg_cost?.toFixed(2) ?? '—'}. ${s.personalNote}`,
+      };
+    }
+    return s;
+  });
 
   return (
     <motion.div
@@ -178,8 +197,12 @@ export default function ForYouSection() {
         </span>
       </div>
 
+      {holdings.length === 0 && (
+        <p className="text-[11px] text-white/30 mb-3">Add holdings to your portfolio for personalized signals.</p>
+      )}
+
       <div className="space-y-3">
-        {FOR_YOU_SIGNALS.map((s, i) => (
+        {signals.map((s, i) => (
           <SignalDecision key={s.symbol} s={s} i={i} />
         ))}
       </div>
