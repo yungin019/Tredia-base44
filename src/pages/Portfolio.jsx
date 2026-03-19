@@ -22,6 +22,7 @@ export default function Portfolio() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
+  const [activeTab, setActiveTab] = useState('holdings');
 
   const [livePrices, setLivePrices] = useState({});
 
