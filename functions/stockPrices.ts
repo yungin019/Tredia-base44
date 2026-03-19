@@ -26,20 +26,18 @@ Deno.serve(async (req) => {
 
     // Batch price fetch for multiple symbols
     if (symbols && symbols.length > 0) {
-      const joined = symbols.join(',');
-      const res = await fetch(
-        `https://api.twelvedata.com/price?symbol=${joined}&apikey=${API_KEY}`
-      );
-      const data = await res.json();
-
       const results = {};
-      if (symbols.length === 1) {
-        // Single symbol returns { price: "..." } directly
-        results[symbols[0]] = data.price ? parseFloat(data.price) : null;
-      } else {
-        // Multiple symbols returns { AAPL: { price: "..." }, ... }
-        for (const sym of symbols) {
-          results[sym] = data[sym]?.price ? parseFloat(data[sym].price) : null;
+      // TwelveData free tier: fetch one at a time to avoid batch issues
+      for (const sym of symbols) {
+        try {
+          const res = await fetch(
+            `https://api.twelvedata.com/price?symbol=${sym}&apikey=${API_KEY}`
+          );
+          const data = await res.json();
+          console.log(`TwelveData ${sym}:`, JSON.stringify(data));
+          results[sym] = data.price ? parseFloat(data.price) : null;
+        } catch {
+          results[sym] = null;
         }
       }
       return Response.json({ prices: results });
