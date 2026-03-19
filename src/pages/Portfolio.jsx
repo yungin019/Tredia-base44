@@ -98,7 +98,7 @@ export default function Portfolio() {
             size="sm"
             className="h-8 text-[10px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
           >
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add
+            <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('common.add')}
           </Button>
         </div>
       </motion.div>
