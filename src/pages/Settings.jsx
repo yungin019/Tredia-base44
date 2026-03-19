@@ -58,16 +58,20 @@ export default function Settings() {
 
   useEffect(() => {
     base44.auth.me()
-      .then(u => {
-        setUser(u);
-        const userId = u?.email || u?.id;
-        if (userId) {
-          getFoundingMemberInfo(userId)
-            .then(setFoundingMember)
-            .catch(() => {});
-        }
-      })
-      .catch(() => {});
+    .then(u => {
+      setUser(u);
+      if (u?.notification_prefs) {
+        setNotifications(prev => ({ ...prev, ...u.notification_prefs }));
+      }
+      setNotifLoaded(true);
+      const userId = u?.email || u?.id;
+      if (userId) {
+        getFoundingMemberInfo(userId)
+          .then(setFoundingMember)
+          .catch(() => {});
+      }
+    })
+    .catch(() => { setNotifLoaded(true); });
   }, []);
 
   const toggle = (key) => setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
