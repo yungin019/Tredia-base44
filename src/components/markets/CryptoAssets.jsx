@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function CryptoAssets({ cryptoData }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   if (!cryptoData || cryptoData.length === 0) {
     return (
       <motion.div
@@ -24,13 +26,13 @@ export default function CryptoAssets({ cryptoData }) {
       className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden"
     >
       <div className="px-5 py-4 border-b border-white/[0.05]">
-        <h3 className="text-sm font-bold text-white/80">Cryptocurrencies ({cryptoData.length})</h3>
+        <h3 className="text-sm font-bold text-white/80">{t('markets.cryptocurrencies')} ({cryptoData.length})</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.05]">
-              {['Asset', 'Price', '24h Change', 'Market Cap'].map((h, i) => (
+              {[t('markets.asset'), t('markets.price'), t('asset.change'), t('markets.marketCap')].map((h, i) => (
                 <th key={i} className={`${i === 0 ? 'text-left px-5' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>
                   {h}
                 </th>
