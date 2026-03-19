@@ -427,8 +427,8 @@ export default function Home() {
                   <span className="text-[9px] text-white/25 font-mono">{t('common.impact')}: {newsItems[newsIdx]?.impact}/10</span>
                   <span className="text-[9px] text-white/20 font-mono ml-auto">{newsItems[newsIdx]?.age}</span>
                 </div>
-                <p className="text-[13px] font-bold text-white/90 leading-snug mb-2">{t(newsItems[newsIdx]?.headline)}</p>
-                <p className="text-[11px] text-white/45 leading-relaxed mb-3">{t(newsItems[newsIdx]?.summary)}</p>
+                <p className="text-[13px] font-bold text-white/90 leading-snug mb-2">{newsItems[newsIdx]?.headline}</p>
+                <p className="text-[11px] text-white/45 leading-relaxed mb-3">{newsItems[newsIdx]?.summary}</p>
                 <div className="flex items-center justify-between">
                   <div className="flex gap-1.5">
                     {(newsItems[newsIdx]?.tickers || []).map(t => (
