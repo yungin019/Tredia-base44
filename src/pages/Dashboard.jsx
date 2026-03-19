@@ -124,7 +124,7 @@ export default function Dashboard() {
           <EarningsCalendar />
         </div>
 
-        {/* 9. Top Movers */}
+        {/* 10. Top Movers */}
         <TopMovers stocks={stocks} />
 
         {/* 10. News Feed */}
