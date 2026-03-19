@@ -74,7 +74,11 @@ export default function Settings() {
     .catch(() => { setNotifLoaded(true); });
   }, []);
 
-  const toggle = (key) => setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggle = (key) => {
+    const updated = { ...notifications, [key]: !notifications[key] };
+    setNotifications(updated);
+    base44.auth.updateMe({ notification_prefs: updated }).catch(() => {});
+  };
 
   return (
     <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-6">
