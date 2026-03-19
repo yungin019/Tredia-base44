@@ -72,10 +72,13 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* 1. TREK INSIGHT — Command Center top */}
+        {/* 1. TODAY'S BEST SETUP — Daily hook */}
+        <TodaysBestSetup />
+
+        {/* 2. TREK INSIGHT — Command Center */}
         <TrekInsight fearGreedValue={fearGreed?.value} />
 
-        {/* 2. Quick Actions */}
+        {/* 3. Quick Actions */}
         <QuickActions />
 
         {/* 3. Sentiment + Crypto */}
