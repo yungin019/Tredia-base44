@@ -54,6 +54,7 @@ export default function Markets() {
   const [activeFilter, setActiveFilter] = useState(null);
   const [timeframe, setTimeframe] = useState('1D');
   const [cryptoData, setCryptoData] = useState(null);
+  const [livePrices, setLivePrices] = useState({});
 
   useEffect(() => {
     const load = async () => {
@@ -61,6 +62,19 @@ export default function Markets() {
       if (data) setCryptoData(data);
     };
     load();
+  }, []);
+
+  useEffect(() => {
+    async function loadPrices() {
+      try {
+        const symbols = STOCK_DATA.map(s => s.symbol);
+        const res = await base44.functions.invoke('stockPrices', { symbols });
+        if (res?.data?.prices) setLivePrices(res.data.prices);
+      } catch {
+        // keep static fallback
+      }
+    }
+    loadPrices();
   }, []);
 
   const filteredStocks = activeFilter

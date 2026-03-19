@@ -141,7 +141,7 @@ function TradeModal({ asset, action, onClose }) {
         />
 
         <button
-          onClick={() => { if (amount && parseFloat(amount) > 0) setConfirmed(true); }}
+          onClick={handleConfirm}
           disabled={!amount || parseFloat(amount) <= 0}
           className="w-full py-3.5 rounded-xl font-black text-sm transition-all hover:opacity-90 disabled:opacity-30"
           style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)`, color: '#0A0A0F' }}>
