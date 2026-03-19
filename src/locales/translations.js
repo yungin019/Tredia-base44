@@ -39,6 +39,7 @@ const translations = {
       'home.assetsToAvoid': 'Assets to watch',
       'home.marketNews': 'Market News',
       'home.aiAnalyzed': 'AI-analyzed headlines',
+      'home.tapToRead': 'Tap to read',
 
       // Markets
       'markets.title': 'Markets',
