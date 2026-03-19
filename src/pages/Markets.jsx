@@ -12,6 +12,7 @@ import TrekScreener from '@/components/markets/TrekScreener.jsx';
 import CryptoAssets from '@/components/markets/CryptoAssets.jsx';
 import TimeframeSelector from '@/components/markets/TimeframeSelector.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
+import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
 
 // Mock chart data for different timeframes
 const CHART_DATA = {
