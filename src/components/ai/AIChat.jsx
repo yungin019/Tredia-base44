@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Loader2, Sparkles, RotateCcw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { askTrek } from '@/api/trek';
@@ -10,13 +11,13 @@ import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import QueryLimitModal from './QueryLimitModal';
 import TrekResponseRenderer from './TrekResponseRenderer';
 
-const SUGGESTED = [
-  'Is NVDA overbought?',
-  'Fed rate outlook 2025',
-  'Best sectors for Q2',
-  'Bitcoin next resistance',
-  'Explain VIX spike',
-  'Top defensive plays',
+const SUGGESTED_KEYS = [
+  'trek.suggest1',
+  'trek.suggest2',
+  'trek.suggest3',
+  'trek.suggest4',
+  'trek.suggest5',
+  'trek.suggest6',
 ];
 
 function TrekAvatar({ size = 5 }) {
@@ -60,6 +61,7 @@ function incrementQuestions() {
 }
 
 export default function AIChat() {
+  const { t } = useTranslation();
   const { tier } = useSubscriptionStatus();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -109,7 +111,7 @@ export default function AIChat() {
       historyRef.current = [...historyRef.current, { role: 'assistant', content: reply }];
       setMessages(prev => [...prev, { role: 'ai', content: reply }]);
     } catch (e) {
-      setError('TREK is temporarily unavailable. Please try again shortly.');
+      setError(t('trek.unavailable'));
     }
     setLoading(false);
   };
@@ -129,11 +131,11 @@ export default function AIChat() {
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05]">
         <TrekAvatar size={6} />
-        <span className="text-[11px] font-bold text-white/80">Ask TREK</span>
+        <span className="text-[11px] font-bold text-white/80">{t('trek.askTrek')}</span>
         <span className="text-[9px] font-mono font-bold text-primary/50 px-1.5 py-0.5 rounded border border-primary/15 ml-1 tracking-wider" style={{ background: 'rgba(245,158,11,0.05)' }}>GPT-4o · LIVE</span>
         {messages.length > 0 && (
           <button onClick={handleClear} className="ml-auto flex items-center gap-1 text-[9px] text-white/25 hover:text-white/50 transition-colors">
-            <RotateCcw className="h-3 w-3" /> Clear
+            <RotateCcw className="h-3 w-3" /> {t('common.clear')}
           </button>
         )}
       </div>
@@ -144,18 +146,18 @@ export default function AIChat() {
           <div className="flex flex-col items-center justify-center h-28 gap-2">
             <Sparkles className="h-6 w-6 text-primary/30" />
             <>
-              <p className="text-[11px] text-white/20 text-center">Ask anything about markets, stocks, or strategies</p>
-              <div className="flex flex-wrap gap-1.5 justify-center mt-2">
-                {SUGGESTED.map(s => (
-                  <button
-                    key={s}
-                    onClick={() => send(s)}
-                    className="text-[9px] text-white/35 hover:text-white/70 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.06] px-2 py-1 rounded-lg transition-colors"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
+              <p className="text-[11px] text-white/20 text-center">{t('trek.askAbout')}</p>
+               <div className="flex flex-wrap gap-1.5 justify-center mt-2">
+                 {SUGGESTED_KEYS.map(key => (
+                   <button
+                     key={key}
+                     onClick={() => send(t(key))}
+                     className="text-[9px] text-white/35 hover:text-white/70 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.06] px-2 py-1 rounded-lg transition-colors"
+                   >
+                     {t(key)}
+                   </button>
+                 ))}
+               </div>
             </>
           </div>
         )}
@@ -195,7 +197,7 @@ export default function AIChat() {
                 <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }} style={{ color: '#F59E0B' }}>●</motion.span>
                 <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }} style={{ color: '#F59E0B' }}>●</motion.span>
               </div>
-              <span className="text-[10px] text-white/30">TREK is analyzing...</span>
+              <span className="text-[10px] text-white/30">{t('trek.analyzing')}</span>
             </div>
           </motion.div>
         )}
@@ -216,7 +218,7 @@ export default function AIChat() {
         )}
         <div className="flex gap-2">
           <Input
-            placeholder="Ask about any stock, strategy, or macro event..."
+            placeholder={t('trek.askAboutAnything')}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !loading && send()}
@@ -233,7 +235,7 @@ export default function AIChat() {
           </Button>
         </div>
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: 8 }}>
-          ⚡ TREK Intelligence · For informational purposes · You make the final call.
+          ⚡ {t('trek.disclaimer')}
         </p>
       </div>
     </div>

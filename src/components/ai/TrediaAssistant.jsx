@@ -1,93 +1,57 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Sparkles, ChevronRight, Minimize2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
 import { useLocation } from 'react-router-dom';
 
-// Context-aware prompts per page
-const PAGE_CONTEXT = {
+// Context-aware prompts per page (will use i18n keys)
+const PAGE_CONTEXT_KEYS = {
   '/Home': {
-    greeting: "What should I focus on today?",
-    intro: "I'm tracking the market for you. Alerts are ranked by urgency — the top ones need your attention now.",
-    suggestions: [
-      "What should I focus on today?",
-      "Explain the top alert",
-      "Where is the best opportunity right now?",
-      "Is the market bullish or bearish today?",
-    ],
+    greeting: 'ai.homeGreeting',
+    intro: 'ai.homeIntro',
+    suggestions: ['ai.suggest1', 'ai.suggest2', 'ai.suggest3', 'ai.suggest4'],
   },
   '/Markets': {
-    greeting: "Want me to find opportunities?",
-    intro: "These are live market prices. Tap any asset to get a full analysis. I can help you spot opportunities.",
-    suggestions: [
-      "Find the best opportunity right now",
-      "Explain what TREK grades mean",
-      "What's moving the market today?",
-      "Which sector is strongest?",
-    ],
+    greeting: 'ai.marketsGreeting',
+    intro: 'ai.marketsIntro',
+    suggestions: ['ai.mktSuggest1', 'ai.mktSuggest2', 'ai.mktSuggest3', 'ai.mktSuggest4'],
   },
   '/PaperTrading': {
-    greeting: "Want me to guide your first trade?",
-    intro: "Paper trading lets you practice with virtual money — no real risk. I'll walk you through each step.",
-    suggestions: [
-      "Guide me through my first trade",
-      "What asset should I start with?",
-      "Explain the difference between buy and sell",
-      "How do I manage risk?",
-    ],
+    greeting: 'ai.ptGreeting',
+    intro: 'ai.ptIntro',
+    suggestions: ['ai.ptSuggest1', 'ai.ptSuggest2', 'ai.ptSuggest3', 'ai.ptSuggest4'],
   },
   '/Portfolio': {
-    greeting: "Want me to analyze your portfolio?",
-    intro: "Your portfolio shows all your positions. I can explain your P&L, risk level, and what to do next.",
-    suggestions: [
-      "Analyze my portfolio",
-      "Explain my P&L",
-      "Am I too concentrated in one sector?",
-      "What should I add or remove?",
-    ],
+    greeting: 'ai.pfGreeting',
+    intro: 'ai.pfIntro',
+    suggestions: ['ai.pfSuggest1', 'ai.pfSuggest2', 'ai.pfSuggest3', 'ai.pfSuggest4'],
   },
   '/AIInsights': {
-    greeting: "Want me to explain these signals?",
-    intro: "These are AI-generated trading signals based on real market data. I'll explain what each one means.",
-    suggestions: [
-      "Explain the strongest signal",
-      "What does a BUY signal mean?",
-      "How confident should I be in these?",
-      "Show me the best risk/reward setup",
-    ],
+    greeting: 'ai.aiGreeting',
+    intro: 'ai.aiIntro',
+    suggestions: ['ai.aiSuggest1', 'ai.aiSuggest2', 'ai.aiSuggest3', 'ai.aiSuggest4'],
   },
   '/Trade': {
-    greeting: "Need help placing a trade?",
-    intro: "I can explain how to place a trade, what price to target, and how to manage risk properly.",
-    suggestions: [
-      "How do I place my first trade?",
-      "Explain stop loss and take profit",
-      "What position size should I use?",
-      "What's the risk on this trade?",
-    ],
+    greeting: 'ai.tradeGreeting',
+    intro: 'ai.tradeIntro',
+    suggestions: ['ai.tradeSuggest1', 'ai.tradeSuggest2', 'ai.tradeSuggest3', 'ai.tradeSuggest4'],
   },
   default: {
-    greeting: "How can I help you?",
-    intro: "I'm TREDIA AI — your personal trading mentor. Ask me anything about markets, trading, or this screen.",
-    suggestions: [
-      "What should I do first?",
-      "Explain how this works",
-      "Where should I start?",
-      "What is TREK?",
-    ],
+    greeting: 'ai.defaultGreeting',
+    intro: 'ai.defaultIntro',
+    suggestions: ['ai.defSuggest1', 'ai.defSuggest2', 'ai.defSuggest3', 'ai.defSuggest4'],
   },
 };
 
-// Asset detail context
-const getAssetContext = (symbol) => ({
-  greeting: `Want me to analyze ${symbol}?`,
-  intro: `I can explain ${symbol}'s price movement, what the signals mean, and whether this fits your strategy.`,
-  suggestions: [
-    `What is the trend for ${symbol}?`,
-    `Explain the TREK signal for ${symbol}`,
-    `Is this a good time to buy ${symbol}?`,
-    `What are the risks with ${symbol}?`,
-  ],
+// Asset detail context (dynamic with symbol)
+const getAssetContextKeys = (symbol) => ({
+  greeting: 'ai.assetGreeting',
+  symbolForGreeting: symbol,
+  intro: 'ai.assetIntro',
+  symbolForIntro: symbol,
+  suggestions: ['ai.assetSuggest1', 'ai.assetSuggest2', 'ai.assetSuggest3', 'ai.assetSuggest4'],
+  symbolsForSuggests: [symbol, symbol, symbol, symbol],
 });
 
 function TypingDots() {
@@ -132,6 +96,7 @@ function Message({ msg }) {
 }
 
 export default function TrediaAssistant() {
+  const { t } = useTranslation();
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -145,11 +110,24 @@ export default function TrediaAssistant() {
   // Get context for current page
   const getContext = () => {
     const path = location.pathname;
-    if (path.startsWith('/Asset/')) {
-      const symbol = path.split('/Asset/')[1];
-      return getAssetContext(symbol);
-    }
-    return PAGE_CONTEXT[path] || PAGE_CONTEXT.default;
+    const keysOrData = path.startsWith('/Asset/') 
+      ? getAssetContextKeys(path.split('/Asset/')[1])
+      : PAGE_CONTEXT_KEYS[path] || PAGE_CONTEXT_KEYS.default;
+    
+    // Translate keys to actual strings
+    const greeting = typeof keysOrData.greeting === 'string' && keysOrData.greeting.startsWith('ai.')
+      ? (keysOrData.symbolForGreeting ? t(keysOrData.greeting, { symbol: keysOrData.symbolForGreeting }) : t(keysOrData.greeting))
+      : keysOrData.greeting;
+    const intro = typeof keysOrData.intro === 'string' && keysOrData.intro.startsWith('ai.')
+      ? (keysOrData.symbolForIntro ? t(keysOrData.intro, { symbol: keysOrData.symbolForIntro }) : t(keysOrData.intro))
+      : keysOrData.intro;
+    const suggestions = keysOrData.suggestions.map((key, idx) => 
+      typeof key === 'string' && key.startsWith('ai.')
+        ? (keysOrData.symbolsForSuggests?.[idx] ? t(key, { symbol: keysOrData.symbolsForSuggests[idx] }) : t(key))
+        : key
+    );
+    
+    return { greeting, intro, suggestions };
   };
 
   const ctx = getContext();
@@ -193,7 +171,7 @@ export default function TrediaAssistant() {
     if (messages.length === 0) {
       setMessages([{
         role: 'assistant',
-        content: `${ctx.intro}\n\nYou can ask me anything below, or pick a quick question:`,
+        content: `${ctx.intro}\n\n${t('ai.askOrPick')}`,
       }]);
     }
     setTimeout(() => inputRef.current?.focus(), 300);
@@ -325,9 +303,9 @@ Always end with a suggested next action or follow-up question.`;
               <div className="flex-1">
                 <p className="text-[13px] font-black text-white/90">TREDIA AI</p>
                 <div className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
-                  <span className="text-[10px] text-white/35">Your personal trading mentor</span>
-                </div>
+                       <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
+                       <span className="text-[10px] text-white/35">{t('ai.mentor')}</span>
+                     </div>
               </div>
               <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-all">
                 <Minimize2 className="h-4 w-4" />
@@ -377,7 +355,7 @@ Always end with a suggested next action or follow-up question.`;
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder="Ask TREDIA AI anything..."
+                placeholder={t('ai.askPlaceholder')}
                 className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-[12px] text-white/80 placeholder:text-white/25 outline-none focus:border-primary/40 transition-colors"
               />
               <button
