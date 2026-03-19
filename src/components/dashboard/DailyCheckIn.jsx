@@ -76,7 +76,7 @@ export default function DailyCheckIn() {
             <div style={{ padding: '0 16px 16px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
               {/* Best Setup */}
               <div style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 10, padding: '10px 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap 5, marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
                   <TrendingUp style={{ width: 11, height: 11, color: '#22c55e' }} />
                   <span style={{ fontSize: 9, fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Best Setup</span>
                 </div>

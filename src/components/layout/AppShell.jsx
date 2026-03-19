@@ -32,7 +32,7 @@ export default function AppShell() {
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="font-inter font-black text-base tracking-[0.08em] text-white">TREDIA</span>
-              <span className="text-[9px] font-mono font-bold text-primary/80 bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded tracking-wider">PRO</span>
+              <span className="text-[9px] font-mono font-bold text-primary/80 bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded tracking-wider" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(252,211,77,0.1))', borderColor: 'rgba(245,158,11,0.35)', color: '#F59E0B', boxShadow: '0 0 12px rgba(245,158,11,0.1)' }}>⚡ ELITE</span>
             </div>
           </div>
 
@@ -73,6 +73,11 @@ export default function AppShell() {
             <kbd className="text-[9px] bg-white/[0.06] px-1.5 py-0.5 rounded font-mono ml-2">⌘K</kbd>
           </div>
 
+          {/* Elite Intelligence Active */}
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border" style={{ background: 'rgba(245,158,11,0.07)', borderColor: 'rgba(245,158,11,0.2)', boxShadow: '0 0 16px rgba(245,158,11,0.06)' }}>
+            <span className="h-1.5 w-1.5 rounded-full live-pulse" style={{ background: '#F59E0B' }} />
+            <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: '#F59E0B' }}>Elite Intelligence Active</span>
+          </div>
           {/* Live indicator */}
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-chart-3/8 border border-chart-3/15">
             <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
