@@ -147,10 +147,32 @@ export default function Portfolio() {
           {isLoading ? (
             <div className="p-10 text-center text-white/25 text-[12px]">Loading...</div>
           ) : holdings.length === 0 ? (
-           <div className="p-10 text-center">
-             <Briefcase className="h-10 w-10 text-white/10 mx-auto mb-3" />
-             <p className="text-[12px] text-white/25">{t('portfolio.noHoldings')}</p>
-           </div>
+            <div className="p-12 flex flex-col items-center text-center gap-4">
+              <div className="h-14 w-14 rounded-2xl border border-white/[0.06] bg-white/[0.03] flex items-center justify-center">
+                <Briefcase className="h-7 w-7 text-white/20" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white/60 mb-1">No positions yet</p>
+                <p className="text-[11px] text-white/25 max-w-xs">Track your investments here. Add a holding manually or simulate trades with paper trading.</p>
+              </div>
+              <div className="flex gap-3 flex-wrap justify-center mt-1">
+                <Button
+                  onClick={() => setShowAdd(true)}
+                  size="sm"
+                  className="h-9 px-5 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" /> Add First Position
+                </Button>
+                <Button
+                  onClick={() => navigate('/PaperTrading')}
+                  size="sm"
+                  variant="outline"
+                  className="h-9 px-5 text-[11px] font-bold border-white/[0.1] bg-white/[0.03] text-white/60 hover:bg-white/[0.06]"
+                >
+                  <Play className="h-3.5 w-3.5 mr-1.5" /> Start Paper Trading
+                </Button>
+              </div>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
