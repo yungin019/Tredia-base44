@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, TrendingUp, Brain, Briefcase, Zap, Settings, Bell, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import TrediaAssistant from '@/components/ai/TrediaAssistant';
+import NotificationsPanel from '@/components/ui/NotificationsPanel';
 
 const NAV_ITEMS = [
   { path: '/Home',       icon: Home,      label: 'Home',     isTrek: false },
@@ -19,6 +20,7 @@ export default function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -102,10 +104,16 @@ export default function AppShell() {
           </div>
 
           {/* Notifications */}
-          <button className="relative p-2 rounded-lg hover:bg-white/[0.04] transition-colors">
-            <Bell className="h-4 w-4 text-muted-foreground" />
-            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              className="relative p-2 rounded-lg hover:bg-white/[0.04] transition-colors"
+            >
+              <Bell className="h-4 w-4 text-muted-foreground" />
+              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+            </button>
+            <NotificationsPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+          </div>
         </div>
       </header>
 
