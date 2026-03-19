@@ -14,6 +14,7 @@ import TimeframeSelector from '@/components/markets/TimeframeSelector.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
 import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
 import ContextBanner from '@/components/ai/ContextBanner';
+import PullToRefresh from '@/components/ui/PullToRefresh';
 
 // Mock chart data for different timeframes
 const CHART_DATA = {

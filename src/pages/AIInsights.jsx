@@ -19,6 +19,7 @@ import TrekMoodIndicator from '@/components/ai/TrekMoodIndicator';
 import NewsFeed from '@/components/ai/NewsFeed';
 import MarketCauseEffect from '@/components/ai/MarketCauseEffect';
 import ContextBanner from '@/components/ai/ContextBanner';
+import PullToRefresh from '@/components/ui/PullToRefresh';
 
 const PREDEFINED_SIGNALS = [
   {
