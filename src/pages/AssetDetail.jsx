@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, TrendingUp, TrendingDown, ShieldAlert, Target, Zap, CheckCircle2, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { base44 } from '@/api/base44Client';
@@ -154,6 +155,7 @@ function TradeModal({ asset, action, onClose }) {
 
 export default function AssetDetail() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const symbol = window.location.pathname.split('/Asset/')[1] || 'NVDA';
   const staticAsset = { ...(ASSET_DATA[symbol] || DEFAULT_ASSET), symbol };
 
@@ -198,7 +200,7 @@ export default function AssetDetail() {
     <div className="p-4 lg:p-6 max-w-[700px] mx-auto pb-24">
       {/* Back */}
       <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors mb-5 text-sm font-medium">
-        <ArrowLeft className="h-4 w-4" /> Back
+        <ArrowLeft className="h-4 w-4" /> {t('common.back')}
       </button>
 
       {/* Header */}
@@ -261,7 +263,7 @@ export default function AssetDetail() {
           className="text-[10px] font-bold flex items-center gap-1 transition-colors"
           style={{ color: asset.color, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           <Target className="h-3 w-3" />
-          {showPlan ? 'Hide Trade Plan' : 'View Trade Plan'}
+          {showPlan ? t('asset.tradeplan') : t('asset.tradeplan')}
         </button>
 
         <AnimatePresence>
@@ -270,10 +272,10 @@ export default function AssetDetail() {
               transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
               <div className="grid grid-cols-4 gap-3 mt-3 pt-3 border-t border-white/[0.06]">
                 {[
-                  { label: 'Entry', value: `$${asset.entry}`, color: 'rgba(255,255,255,0.8)' },
-                  { label: 'Target', value: `$${asset.target}`, color: '#22c55e' },
-                  { label: 'Stop', value: `$${asset.stop}`, color: '#ef4444' },
-                  { label: 'R:R', value: asset.reward, color: asset.color },
+                  { label: t('asset.entry'), value: `$${asset.entry}`, color: 'rgba(255,255,255,0.8)' },
+                  { label: t('asset.target'), value: `$${asset.target}`, color: '#22c55e' },
+                  { label: t('asset.stop'), value: `$${asset.stop}`, color: '#ef4444' },
+                  { label: t('asset.riskReward'), value: asset.reward, color: asset.color },
                 ].map(item => (
                   <div key={item.label} className="text-center rounded-lg py-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
                     <p className="text-[8px] text-white/25 uppercase tracking-wider mb-1">{item.label}</p>
@@ -283,7 +285,7 @@ export default function AssetDetail() {
               </div>
               <div className="flex items-center gap-2 mt-3">
                 <ShieldAlert className="h-3 w-3 text-destructive flex-shrink-0" />
-                <span className="text-[10px] text-white/35">Max downside: <span className="text-destructive font-bold">{asset.risk}</span> if stop is hit</span>
+                <span className="text-[10px] text-white/35">{t('asset.maxDownside')} <span className="text-destructive font-bold">{asset.risk}</span> {t('asset.ifStopHit')}</span>
               </div>
             </motion.div>
           )}
@@ -296,24 +298,24 @@ export default function AssetDetail() {
         <button onClick={() => setTradeAction('BUY')}
           className="py-4 rounded-2xl font-black text-sm tracking-wider transition-all hover:scale-[1.02] tap-feedback"
           style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#0A0A0F', boxShadow: '0 4px 20px rgba(34,197,94,0.2)' }}>
-          🟢 BUY
+          🟢 {t('asset.buy')}
         </button>
         <button onClick={() => setTradeAction('SELL')}
           className="py-4 rounded-2xl font-black text-sm tracking-wider transition-all hover:scale-[1.02] tap-feedback"
           style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', boxShadow: '0 4px 20px rgba(239,68,68,0.2)' }}>
-          🔴 SELL
+          🔴 {t('asset.sell')}
         </button>
       </motion.div>
 
-      <p className="text-[10px] text-white/20 text-center mb-6">Paper trading only — no real money involved</p>
+      <p className="text-[10px] text-white/20 text-center mb-6">{t('paperTrading.noRealMoney')}</p>
 
       {/* Key stats */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
         className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Signal', value: asset.signal, color: asset.color },
-          { label: 'Confidence', value: `${asset.confidence}%`, color: 'rgba(255,255,255,0.7)' },
-          { label: 'Conviction', value: asset.conviction, color: cvColor },
+          { label: t('trek.signal'), value: asset.signal, color: asset.color },
+          { label: t('trek.confidence'), value: `${asset.confidence}%`, color: 'rgba(255,255,255,0.7)' },
+          { label: t('trek.conviction'), value: asset.conviction, color: cvColor },
         ].map((s, i) => (
           <div key={i} className="rounded-xl p-3 text-center" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>
             <p className="text-[9px] text-white/25 uppercase tracking-wider mb-1">{s.label}</p>
