@@ -111,25 +111,46 @@ export default function TrediaAssistant() {
   // Get context for current page
   const getContext = () => {
     const path = location.pathname;
-    const keysOrData = path.startsWith('/Asset/') 
-      ? getAssetContextKeys(path.split('/Asset/')[1])
-      : PAGE_CONTEXT_KEYS[path] || PAGE_CONTEXT_KEYS.default;
+    const currentLang = i18n.language || 'en';
+    const langTranslations = aiTranslations[currentLang] || aiTranslations.en;
     
-    // Translate keys to actual strings
-    const greeting = typeof keysOrData.greeting === 'string' && keysOrData.greeting.startsWith('ai.')
-      ? (keysOrData.symbolForGreeting ? t(keysOrData.greeting, { symbol: keysOrData.symbolForGreeting }) || keysOrData.greeting : t(keysOrData.greeting) || keysOrData.greeting)
-      : keysOrData.greeting;
-    const intro = typeof keysOrData.intro === 'string' && keysOrData.intro.startsWith('ai.')
-      ? (keysOrData.symbolForIntro ? t(keysOrData.intro, { symbol: keysOrData.symbolForIntro }) || keysOrData.intro : t(keysOrData.intro) || keysOrData.intro)
-      : keysOrData.intro;
-    const suggestions = keysOrData.suggestions.map((key, idx) => {
-      if (typeof key === 'string' && key.startsWith('ai.')) {
-        const symbol = keysOrData.symbolsForSuggests?.[idx];
-        const translated = symbol ? t(key, { symbol }) : t(key);
-        // Fallback: if translation key is returned instead of translated text, return key
-        return translated && !translated.startsWith('ai.') ? translated : key;
-      }
-      return key;
+    // Determine which context to use
+    let contextKeys;
+    if (path.startsWith('/Asset/')) {
+      const symbol = path.split('/Asset/')[1];
+      contextKeys = {
+        greetingKey: 'assetGreeting',
+        introKey: 'assetIntro',
+        symbol: symbol,
+      };
+    } else if (PAGE_CONTEXT_KEYS[path]) {
+      const keys = PAGE_CONTEXT_KEYS[path];
+      contextKeys = {
+        greetingKey: keys.greetingKey || 'defaultGreeting',
+        introKey: keys.introKey || 'defaultIntro',
+      };
+    } else {
+      contextKeys = {
+        greetingKey: 'defaultGreeting',
+        introKey: 'defaultIntro',
+      };
+    }
+    
+    // Get translated strings directly
+    const greeting = contextKeys.symbol
+      ? (langTranslations[contextKeys.greetingKey] || '').replace('{{symbol}}', contextKeys.symbol)
+      : langTranslations[contextKeys.greetingKey] || '';
+    
+    const intro = contextKeys.symbol
+      ? (langTranslations[contextKeys.introKey] || '').replace('{{symbol}}', contextKeys.symbol)
+      : langTranslations[contextKeys.introKey] || '';
+    
+    // Get suggestions from translations
+    const suggestionKeys = PAGE_CONTEXT_KEYS[path]?.suggestionKeys || ['suggest1', 'suggest2', 'suggest3', 'suggest4'];
+    const suggestions = suggestionKeys.map((key, idx) => {
+      const fullKey = contextKeys.greetingKey.split('Greeting')[0] + key.charAt(0).toUpperCase() + key.slice(1);
+      const text = langTranslations[fullKey] || '';
+      return contextKeys.symbol ? text.replace('{{symbol}}', contextKeys.symbol) : text;
     });
     
     return { greeting, intro, suggestions };
