@@ -6,54 +6,39 @@ import { base44 } from '@/api/base44Client';
 import { useLocation } from 'react-router-dom';
 import aiTranslations from '@/locales/ai-translations';
 
-// Context-aware prompts per page (will use i18n keys)
+// Context-aware page keys (mapped to langTranslations)
 const PAGE_CONTEXT_KEYS = {
   '/Home': {
-    greeting: 'ai.homeGreeting',
-    intro: 'ai.homeIntro',
-    suggestions: ['ai.suggest1', 'ai.suggest2', 'ai.suggest3', 'ai.suggest4'],
+    greetingKey: 'homeGreeting',
+    introKey: 'homeIntro',
+    suggestionKeys: ['suggest1', 'suggest2', 'suggest3', 'suggest4'],
   },
   '/Markets': {
-    greeting: 'ai.marketsGreeting',
-    intro: 'ai.marketsIntro',
-    suggestions: ['ai.mktSuggest1', 'ai.mktSuggest2', 'ai.mktSuggest3', 'ai.mktSuggest4'],
+    greetingKey: 'marketsGreeting',
+    introKey: 'marketsIntro',
+    suggestionKeys: ['mktSuggest1', 'mktSuggest2', 'mktSuggest3', 'mktSuggest4'],
   },
   '/PaperTrading': {
-    greeting: 'ai.ptGreeting',
-    intro: 'ai.ptIntro',
-    suggestions: ['ai.ptSuggest1', 'ai.ptSuggest2', 'ai.ptSuggest3', 'ai.ptSuggest4'],
+    greetingKey: 'ptGreeting',
+    introKey: 'ptIntro',
+    suggestionKeys: ['ptSuggest1', 'ptSuggest2', 'ptSuggest3', 'ptSuggest4'],
   },
   '/Portfolio': {
-    greeting: 'ai.pfGreeting',
-    intro: 'ai.pfIntro',
-    suggestions: ['ai.pfSuggest1', 'ai.pfSuggest2', 'ai.pfSuggest3', 'ai.pfSuggest4'],
+    greetingKey: 'pfGreeting',
+    introKey: 'pfIntro',
+    suggestionKeys: ['pfSuggest1', 'pfSuggest2', 'pfSuggest3', 'pfSuggest4'],
   },
   '/AIInsights': {
-    greeting: 'ai.aiGreeting',
-    intro: 'ai.aiIntro',
-    suggestions: ['ai.aiSuggest1', 'ai.aiSuggest2', 'ai.aiSuggest3', 'ai.aiSuggest4'],
+    greetingKey: 'aiGreeting',
+    introKey: 'aiIntro',
+    suggestionKeys: ['aiSuggest1', 'aiSuggest2', 'aiSuggest3', 'aiSuggest4'],
   },
   '/Trade': {
-    greeting: 'ai.tradeGreeting',
-    intro: 'ai.tradeIntro',
-    suggestions: ['ai.tradeSuggest1', 'ai.tradeSuggest2', 'ai.tradeSuggest3', 'ai.tradeSuggest4'],
-  },
-  default: {
-    greeting: 'ai.defaultGreeting',
-    intro: 'ai.defaultIntro',
-    suggestions: ['ai.defSuggest1', 'ai.defSuggest2', 'ai.defSuggest3', 'ai.defSuggest4'],
+    greetingKey: 'tradeGreeting',
+    introKey: 'tradeIntro',
+    suggestionKeys: ['tradeSuggest1', 'tradeSuggest2', 'tradeSuggest3', 'tradeSuggest4'],
   },
 };
-
-// Asset detail context (dynamic with symbol)
-const getAssetContextKeys = (symbol) => ({
-  greeting: 'ai.assetGreeting',
-  symbolForGreeting: symbol,
-  intro: 'ai.assetIntro',
-  symbolForIntro: symbol,
-  suggestions: ['ai.assetSuggest1', 'ai.assetSuggest2', 'ai.assetSuggest3', 'ai.assetSuggest4'],
-  symbolsForSuggests: [symbol, symbol, symbol, symbol],
-});
 
 function TypingDots() {
   return (
