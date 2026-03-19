@@ -20,6 +20,7 @@ export default function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
+  const { t } = useTranslation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   useEffect(() => {
@@ -29,6 +30,11 @@ export default function AppShell() {
   }, [user, isLoading]);
 
   if (isLoading || !user) return null;
+
+  const NAV_ITEMS = NAV_CONFIG.map(nav => ({
+    ...nav,
+    label: t(nav.translationKey)
+  }));
 
   const currentNav = NAV_ITEMS.find(n => location.pathname === n.path);
   const pageTitle = currentNav?.label || '';
