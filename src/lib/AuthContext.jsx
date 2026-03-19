@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = () => {
-    base44.auth.logout();
+    base44.auth.logout('/');
   };
 
   return (
