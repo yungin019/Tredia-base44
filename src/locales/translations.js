@@ -16,7 +16,7 @@ const translations = {
       paperTrading: { title: "Paper Trading", subtitle: "Simulate trades with virtual funds", newOrder: "New Order", orderHistory: "Order History", buy: "BUY", sell: "SELL" },
       onboarding: { title: "Welcome to TREDIA", selectBroker: "Select Your Broker", setupComplete: "Setup Complete" },
       upgrade: { title: "Upgrade Your Plan", elite: "Elite", pro: "Pro", foundingMember: "Founding Member" },
-      home: { alerts: "Alerts", timeSensitive: "Time-sensitive", allSignals: "All signals", forYou: "For You", basedOnPortfolio: "Based on your portfolio", seeAll: "See all", recommended: "Recommended Assets", topOpportunities: "Top AI opportunities", viewMarkets: "View markets", latestJumps: "Latest Jumps", strongSignals: "Strong upward signals", riskWarnings: "Risk Warnings", assetsToAvoid: "Assets to reduce or avoid", marketNews: "Market News", aiAnalyzed: "AI-analyzed" },
+      home: { alerts: "Alerts", timeSensitive: "Time-sensitive", allSignals: "All signals", forYou: "For You", basedOnPortfolio: "Based on your portfolio", seeAll: "See all", recommended: "Recommended Assets", topOpportunities: "Top AI opportunities", viewMarkets: "View markets", latestJumps: "Latest Jumps", strongSignals: "Strong upward signals", riskWarnings: "Risk Warnings", assetsToAvoid: "Assets to reduce or avoid", marketNews: "Market News", aiAnalyzed: "AI-analyzed", contextTitle: "Welcome to TREDIA ⚡", contextBody: "This is your command center. Alerts are ranked by urgency, signals are AI-powered, and news is analyzed for market impact. I'm here to guide you.", contextAction: "What should I focus on today?", contextAI: "I just opened TREDIA. What should I focus on today? Give me a quick briefing." },
       common: { loading: "Loading...", error: "Error", success: "Success", emptyState: "No data available", tryAgain: "Try Again", notAvailable: "Not available" }
     }
   },
@@ -33,7 +33,7 @@ const translations = {
        paperTrading: { title: "Papershandel", subtitle: "Simulera affärer med virtuella pengar", newOrder: "Ny Order", orderHistory: "Orderhistorik", buy: "KÖP", sell: "SÄLJ" },
        onboarding: { title: "Välkommen till TREDIA", selectBroker: "Välj din mäklare", setupComplete: "Konfiguration slutförd" },
        upgrade: { title: "Uppgradera din plan", elite: "Elite", pro: "Pro", foundingMember: "Grundande medlem" },
-       home: { alerts: "Varningar", timeSensitive: "Tidskänsliga", allSignals: "Alla signaler", forYou: "För dig", basedOnPortfolio: "Baserat på din portfölj", seeAll: "Se alla", recommended: "Rekommenderade tillgångar", topOpportunities: "Bästa AI-möjligheter", viewMarkets: "Visa marknader", latestJumps: "Senaste hopp", strongSignals: "Starka uppåtsignaler", riskWarnings: "Riskvarningar", assetsToAvoid: "Tillgångar att minska eller undvika", marketNews: "Marknadsnyheter", aiAnalyzed: "AI-analyserat" },
+       home: { alerts: "Varningar", timeSensitive: "Tidskänsliga", allSignals: "Alla signaler", forYou: "För dig", basedOnPortfolio: "Baserat på din portfölj", seeAll: "Se alla", recommended: "Rekommenderade tillgångar", topOpportunities: "Bästa AI-möjligheter", viewMarkets: "Visa marknader", latestJumps: "Senaste hopp", strongSignals: "Starka uppåtsignaler", riskWarnings: "Riskvarningar", assetsToAvoid: "Tillgångar att minska eller undvika", marketNews: "Marknadsnyheter", aiAnalyzed: "AI-analyserat", contextTitle: "Välkommen till TREDIA ⚡", contextBody: "Det här är ditt kommandocenter. Varningar rankas efter brådskande, signaler är AI-drivna och nyheter analyseras för marknadseffekt. Jag är här för att vägleda dig.", contextAction: "Vad bör jag fokusera på idag?", contextAI: "Jag öppnade precis TREDIA. Vad bör jag fokusera på idag? Ge mig en snabb genomgång." },
        common: { loading: "Laddar...", error: "Fel", success: "Framgång", emptyState: "Ingen data tillgänglig", tryAgain: "Försök igen", notAvailable: "Inte tillgänglig" }
        }
        },
@@ -50,9 +50,10 @@ const translations = {
        paperTrading: { title: "Simulation de trading", subtitle: "Simulez des échanges avec des fonds virtuels", newOrder: "Nouvelle commande", orderHistory: "Historique des commandes", buy: "ACHETER", sell: "VENDRE" },
        onboarding: { title: "Bienvenue sur TREDIA", selectBroker: "Sélectionnez votre courtier", setupComplete: "Configuration complète" },
        upgrade: { title: "Améliorez votre plan", elite: "Elite", pro: "Pro", foundingMember: "Membre fondateur" },
+       home: { alerts: "Alertes", timeSensitive: "Temps sensible", allSignals: "Tous les signaux", forYou: "Pour vous", basedOnPortfolio: "Basé sur votre portefeuille", seeAll: "Voir tout", recommended: "Actifs recommandés", topOpportunities: "Meilleures opportunités IA", viewMarkets: "Voir les marchés", latestJumps: "Derniers sauts", strongSignals: "Signaux forts à la hausse", riskWarnings: "Avertissements de risque", assetsToAvoid: "Actifs à réduire ou à éviter", marketNews: "Actualités du marché", aiAnalyzed: "Analysé par l'IA", contextTitle: "Bienvenue sur TREDIA ⚡", contextBody: "Ceci est votre centre de commande. Les alertes sont classées par urgence, les signaux sont générés par l'IA et les actualités sont analysées pour l'impact du marché. Je suis là pour vous guider.", contextAction: "Sur quoi devrais-je me concentrer aujourd'hui?", contextAI: "Je viens d'ouvrir TREDIA. Sur quoi devrais-je me concentrer aujourd'hui? Donnez-moi un aperçu rapide." },
        common: { loading: "Chargement...", error: "Erreur", success: "Succès", emptyState: "Aucune donnée disponible", tryAgain: "Réessayer", notAvailable: "Non disponible" }
-    }
-  },
+       }
+       },
   ar: {
      translation: {
        nav: { feed: "تغذية الذكاء الاصطناعي", markets: "الأسواق", portfolio: "المحفظة", trek: "TREK ⚡", settings: "الإعدادات" },
