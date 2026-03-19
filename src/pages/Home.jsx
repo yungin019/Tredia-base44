@@ -247,8 +247,8 @@ export default function Home() {
           </p>
           <div className="flex gap-3 flex-wrap">
             {[
-              { label: 'Best Setup', value: 'NVDA BUY' },
-              { label: 'Biggest Risk', value: 'VIX spike' },
+              { label: t('home.bestSetup'), value: 'NVDA BUY' },
+              { label: t('home.biggestRisk'), value: 'VIX spike' },
               { label: t('trek.sentiment'), value: sentimentLabel },
             ].map(item => (
               <div key={item.label} className="rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
@@ -431,7 +431,7 @@ export default function Home() {
                       <span key={t} className="text-[9px] font-bold font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">{t}</span>
                     ))}
                   </div>
-                  <span className="text-[10px] font-bold text-primary/60">Tap to read →</span>
+                  <span className="text-[10px] font-bold text-primary/60">{t('home.tapToRead')} →</span>
                 </div>
               </div>
             </motion.button>
