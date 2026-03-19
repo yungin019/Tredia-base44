@@ -101,7 +101,7 @@ export default function Markets() {
         if (res?.data?.prices) setLivePrices(res.data.prices);
       } catch {}
     }}>
-      <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
+      <div className="min-h-screen bg-background p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div className="min-w-0">

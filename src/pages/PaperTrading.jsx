@@ -87,7 +87,7 @@ export default function PaperTrading() {
   const levelProgress = nextLevel ? ((winRateNum - traderLevel.minWin) / (nextLevel.minWin - traderLevel.minWin)) * 100 : 100;
 
   return (
-    <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-background p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
 
       {/* AI Context Banner */}
       <ContextBanner

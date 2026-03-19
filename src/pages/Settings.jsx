@@ -90,7 +90,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background p-4 lg:p-6 max-w-2xl mx-auto space-y-6">
       <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="text-2xl font-black text-white/95 tracking-tight">
         {t('settings.title')}
