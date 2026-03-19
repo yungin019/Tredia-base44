@@ -181,28 +181,28 @@ export default function Home() {
   }, []);
 
   const loadNews = async () => {
-      try {
-        const res = await base44.functions.invoke('getMarketNews', {});
-        const articles = res?.data?.articles;
-        if (articles && articles.length > 0) {
-          setNewsItems(articles.map((a, i) => ({
-            id: i,
-            headline: a.title,
-            summary: a.summary || '',
-            sentiment: 'NEUTRAL',
-            impact: 7,
-            tickers: [],
-            image: a.image || NEWS[i % NEWS.length].image,
-            url: a.url,
-            age: a.seendate ? new Date(a.seendate).toLocaleDateString() : '',
-          })));
-        }
-      } catch {
-        // keep hardcoded fallback
+    try {
+      const res = await base44.functions.invoke('getMarketNews', {});
+      const articles = res?.data?.articles;
+      if (articles && articles.length > 0) {
+        setNewsItems(articles.map((a, i) => ({
+          id: i,
+          headline: a.title,
+          summary: a.summary || '',
+          sentiment: 'NEUTRAL',
+          impact: 7,
+          tickers: [],
+          image: a.image || NEWS[i % NEWS.length].image,
+          url: a.url,
+          age: a.seendate ? new Date(a.seendate).toLocaleDateString() : '',
+        })));
       }
+    } catch {
+      // keep hardcoded fallback
     }
-    loadNews();
-  }, []);
+  };
+
+  useEffect(() => { loadNews(); }, []);
 
   const sentimentLabel = fearGreed
     ? fearGreed.value >= 70 ? 'GREED' : fearGreed.value >= 50 ? 'NEUTRAL' : fearGreed.value >= 30 ? 'FEAR' : 'EXTREME FEAR'
