@@ -48,14 +48,14 @@ export default function Portfolio() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio'] }),
   });
 
-  const totalValue = holdings.reduce((sum, h) => sum + (h.current_price || h.avg_cost) * h.shares, 0);
+  const totalValue = holdings.reduce((sum, h) => sum + (livePrices[h.symbol] || h.current_price || h.avg_cost) * h.shares, 0);
   const totalCost = holdings.reduce((sum, h) => sum + h.avg_cost * h.shares, 0);
   const totalPnL = totalValue - totalCost;
   const totalPnLPercent = totalCost > 0 ? (totalPnL / totalCost * 100) : 0;
 
   const pieData = holdings.map((h) => ({
     name: h.symbol,
-    value: +(((h.current_price || h.avg_cost) * h.shares)).toFixed(2),
+    value: +((livePrices[h.symbol] || h.current_price || h.avg_cost) * h.shares).toFixed(2),
   }));
 
   return (
