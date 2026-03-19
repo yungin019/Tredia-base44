@@ -124,6 +124,9 @@ export default function AppShell() {
         </AnimatePresence>
       </main>
 
+      {/* ── Global AI Assistant ──────────────────────────────────── */}
+      <TrediaAssistant />
+
       {/* ── Bottom Nav (Mobile) ───────────────────────────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 glass-dark border-t border-white/[0.06] lg:hidden z-50">
         <div className="flex items-center justify-around py-1">
