@@ -170,9 +170,35 @@ export default function Home() {
   const [fearGreed, setFearGreed] = useState(null);
   const [selectedNews, setSelectedNews] = useState(null);
   const [newsIdx, setNewsIdx] = useState(0);
+  const [newsItems, setNewsItems] = useState(NEWS);
 
   useEffect(() => {
     fetchFearGreed().then(fg => { if (fg) setFearGreed(fg); });
+  }, []);
+
+  useEffect(() => {
+    async function loadNews() {
+      try {
+        const res = await base44.functions.invoke('getMarketNews', {});
+        const articles = res?.data?.articles;
+        if (articles && articles.length > 0) {
+          setNewsItems(articles.map((a, i) => ({
+            id: i,
+            headline: a.title,
+            summary: a.summary || '',
+            sentiment: 'NEUTRAL',
+            impact: 7,
+            tickers: [],
+            image: a.image || NEWS[i % NEWS.length].image,
+            url: a.url,
+            age: a.seendate ? new Date(a.seendate).toLocaleDateString() : '',
+          })));
+        }
+      } catch {
+        // keep hardcoded fallback
+      }
+    }
+    loadNews();
   }, []);
 
   const sentimentLabel = fearGreed

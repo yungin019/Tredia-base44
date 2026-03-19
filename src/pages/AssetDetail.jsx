@@ -140,12 +140,42 @@ function TradeModal({ asset, action, onClose }) {
 export default function AssetDetail() {
   const navigate = useNavigate();
   const symbol = window.location.pathname.split('/Asset/')[1] || 'NVDA';
-  const asset = { ...(ASSET_DATA[symbol] || DEFAULT_ASSET), symbol };
+  const staticAsset = { ...(ASSET_DATA[symbol] || DEFAULT_ASSET), symbol };
 
   const [tradeAction, setTradeAction] = useState(null);
   const [showPlan, setShowPlan] = useState(false);
+  const [livePrice, setLivePrice] = useState(null);
+  const [liveChart, setLiveChart] = useState(null);
+  const [loadingData, setLoadingData] = useState(true);
 
-  const chartData = asset.chart.map((v, i) => ({ t: i, v }));
+  useEffect(() => {
+    async function loadAsset() {
+      setLoadingData(true);
+      try {
+        const [priceRes, ohlcRes] = await Promise.all([
+          base44.functions.invoke('stockPrices', { symbols: [symbol] }),
+          base44.functions.invoke('stockPrices', { symbol, mode: 'ohlc' }),
+        ]);
+        const price = priceRes?.data?.prices?.[symbol];
+        if (price) setLivePrice(price);
+        const chartData = ohlcRes?.data?.chartData;
+        if (chartData && chartData.length > 0) setLiveChart(chartData);
+      } catch {
+        // fall back to static data
+      } finally {
+        setLoadingData(false);
+      }
+    }
+    loadAsset();
+  }, [symbol]);
+
+  const asset = {
+    ...staticAsset,
+    price: livePrice || staticAsset.price,
+  };
+  const chartData = liveChart
+    ? liveChart.map((v, i) => ({ t: i, v: v.close }))
+    : staticAsset.chart.map((v, i) => ({ t: i, v }));
   const isUp = asset.change >= 0;
   const cvColor = asset.conviction === 'HIGH' ? '#22c55e' : asset.conviction === 'MEDIUM' ? '#F59E0B' : '#6b7280';
 
