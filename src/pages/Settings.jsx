@@ -47,6 +47,7 @@ export default function Settings() {
   const { restorePurchases, purchaseInProgress, purchaseError } = useRevenueCat();
   const [user, setUser] = useState(null);
   const [foundingMember, setFoundingMember] = useState(null);
+  const [currentLang, setCurrentLang] = useState(i18n.language);
   const [notifications, setNotifications] = useState({
     priceAlerts: true,
     trekSignals: true,
@@ -73,6 +74,14 @@ export default function Settings() {
     })
     .catch(() => { setNotifLoaded(true); });
   }, []);
+
+  useEffect(() => {
+    const handleLanguageChanged = () => {
+      setCurrentLang(i18n.language);
+    };
+    i18n.on('languageChanged', handleLanguageChanged);
+    return () => i18n.off('languageChanged', handleLanguageChanged);
+  }, [i18n]);
 
   const toggle = (key) => {
     const updated = { ...notifications, [key]: !notifications[key] };
@@ -301,9 +310,10 @@ export default function Settings() {
                onClick={() => {
                  i18n.changeLanguage(lang.code);
                  localStorage.setItem('tredia_language', lang.code);
+                 setCurrentLang(lang.code);
                }}
                className={`p-3 rounded-lg border transition-all text-sm font-semibold flex items-center gap-2 justify-center ${
-                 i18n.language === lang.code
+                 currentLang === lang.code
                    ? 'bg-primary/15 border-primary/40 text-white/90'
                    : 'bg-white/[0.04] border-white/[0.08] text-white/60 hover:border-white/[0.15]'
                }`}
