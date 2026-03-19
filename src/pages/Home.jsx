@@ -11,16 +11,16 @@ import PullToRefresh from '@/components/ui/PullToRefresh';
 
 // ── ALERTS ──────────────────────────────────────────────────────────────────
 const ALERTS = [
-  { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'Momentum breakout confirmed. Entry $871. Target $942.', age: '7m', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.25)' },
-  { id: 2, type: 'RISK', symbol: 'VIX',  note: 'Term structure inversion. Reduce equity exposure now.', age: '14m', color: '#ef4444', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)' },
-  { id: 3, type: 'SELL', symbol: 'META', note: 'Bearish divergence on daily. 78% confidence.', age: '31m', color: '#F59E0B', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)' },
+  { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'alert.nvda', age: '7m', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.25)' },
+  { id: 2, type: 'RISK', symbol: 'VIX',  note: 'alert.vix', age: '14m', color: '#ef4444', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)' },
+  { id: 3, type: 'SELL', symbol: 'META', note: 'alert.meta', age: '31m', color: '#F59E0B', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)' },
 ];
 
 // ── FOR YOU ──────────────────────────────────────────────────────────────────
 const FOR_YOU = [
-  { symbol: 'NVDA', signal: 'BUY',   note: 'Fits your momentum profile. High conviction.', move: '+8.2%', color: '#22c55e' },
-  { symbol: 'JPM',  signal: 'WATCH', note: 'Balances your 38% tech exposure.', move: '+7%', color: '#F59E0B' },
-  { symbol: 'BTC',  signal: 'BUY',   note: 'Aligns with your crypto allocation target.', move: '+12%', color: '#22c55e' },
+  { symbol: 'NVDA', signal: 'BUY',   note: 'foryou.nvda', move: '+8.2%', color: '#22c55e' },
+  { symbol: 'JPM',  signal: 'WATCH', note: 'foryou.jpm', move: '+7%', color: '#F59E0B' },
+  { symbol: 'BTC',  signal: 'BUY',   note: 'foryou.btc', move: '+12%', color: '#22c55e' },
 ];
 
 // ── RECOMMENDED ──────────────────────────────────────────────────────────────
@@ -34,25 +34,25 @@ const RECOMMENDED = [
 
 // ── LATEST JUMPS ─────────────────────────────────────────────────────────────
 const JUMPS = [
-  { symbol: 'SMCI', name: 'Supermicro',    change: +18.4, reason: 'AI server demand surge' },
-  { symbol: 'ARM',  name: 'ARM Holdings', change: +12.1, reason: 'Mobile AI chip cycle' },
-  { symbol: 'PLTR', name: 'Palantir',      change: +9.7,  reason: 'Government contract win' },
-  { symbol: 'SOFI', name: 'SoFi',          change: +7.3,  reason: 'Analyst upgrade + rates' },
+  { symbol: 'SMCI', name: 'Supermicro',    change: +18.4, reason: 'jumps.smci' },
+  { symbol: 'ARM',  name: 'ARM Holdings', change: +12.1, reason: 'jumps.arm' },
+  { symbol: 'PLTR', name: 'Palantir',      change: +9.7,  reason: 'jumps.pltr' },
+  { symbol: 'SOFI', name: 'SoFi',          change: +7.3,  reason: 'jumps.sofi' },
 ];
 
 // ── RISK WARNINGS ────────────────────────────────────────────────────────────
 const WARNINGS = [
-  { symbol: 'TSLA', reason: 'Volume drying up. Break below $165 = cascade to $145.', severity: 'HIGH' },
-  { symbol: 'META', reason: 'Bearish divergence on daily RSI. Weak relative strength.', severity: 'MEDIUM' },
-  { symbol: 'RIVN', reason: 'Cash burn accelerating. Avoid new positions.', severity: 'HIGH' },
+  { symbol: 'TSLA', reason: 'warnings.tsla', severity: 'HIGH' },
+  { symbol: 'META', reason: 'warnings.meta', severity: 'MEDIUM' },
+  { symbol: 'RIVN', reason: 'warnings.rivn', severity: 'HIGH' },
 ];
 
 // ── NEWS ─────────────────────────────────────────────────────────────────────
 const NEWS = [
   {
     id: 1,
-    headline: 'Fed signals pause — markets rally on rate cut hopes',
-    summary: 'Powell hints at possible rate cuts in H2 2025 as inflation cools toward 2% target. S&P 500 gains 1.4%.',
+    headline: 'news.fed.headline',
+    summary: 'news.fed.summary',
     sentiment: 'BULLISH',
     impact: 9.2,
     tickers: ['SPX', 'QQQ', 'TLT'],
@@ -62,8 +62,8 @@ const NEWS = [
   },
   {
     id: 2,
-    headline: 'NVIDIA data center revenue beats estimates by 18%',
-    summary: 'AI chip demand continues to outpace supply. NVDA raised FY2025 guidance above analyst consensus.',
+    headline: 'news.nvda.headline',
+    summary: 'news.nvda.summary',
     sentiment: 'BULLISH',
     impact: 9.8,
     tickers: ['NVDA', 'AMD', 'SMCI'],
@@ -73,8 +73,8 @@ const NEWS = [
   },
   {
     id: 3,
-    headline: 'China tech crackdown resurfaces — ADRs slide',
-    summary: 'Regulatory pressure on Chinese tech firms renews concerns. BABA, JD, PDD all down 3–5% pre-market.',
+    headline: 'news.china.headline',
+    summary: 'news.china.summary',
     sentiment: 'BEARISH',
     impact: 7.4,
     tickers: ['BABA', 'JD', 'PDD'],
@@ -84,8 +84,8 @@ const NEWS = [
   },
   {
     id: 4,
-    headline: 'Bitcoin breaks $68K as institutional flows accelerate',
-    summary: 'Spot BTC ETF inflows hit $900M in a single day. On-chain data shows whale accumulation at current levels.',
+    headline: 'news.bitcoin.headline',
+    summary: 'news.bitcoin.summary',
     sentiment: 'BULLISH',
     impact: 8.1,
     tickers: ['BTC', 'ETH', 'COIN'],
@@ -241,18 +241,18 @@ export default function Home() {
             </span>
           </div>
           <p className="text-[13px] text-white/75 leading-relaxed font-medium mb-3">
-            Markets in <span style={{ color: sentimentColor, fontWeight: 800 }}>{sentimentLabel}</span> territory
-            {fearGreed ? ` (${fearGreed.value}/100)` : ''}. AI detects institutional accumulation in semiconductors.
-            VIX term structure flagged — protect open positions.
+            {t('home.trekInsight')} <span style={{ color: sentimentColor, fontWeight: 800 }}>{sentimentLabel}</span> {t('home.territory')}
+            {fearGreed ? ` (${fearGreed.value}/100)` : ''}. {t('home.aiDetects')}
+            {t('home.vixFlag')}
           </p>
           <div className="flex gap-3 flex-wrap">
             {[
-              { label: '🟢 Best setup', value: 'NVDA BUY' },
-              { label: '🔴 Biggest risk', value: 'VIX spike' },
-              { label: '📊 Sentiment', value: sentimentLabel },
+              { label: t('home.bestSetup'), value: 'NVDA BUY' },
+              { label: t('home.biggestRisk'), value: 'VIX spike' },
+              { label: t('home.sentiment'), value: sentimentLabel },
             ].map(item => (
               <div key={item.label} className="rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <p className="text-[9px] text-white/30 mb-0.5">{item.label}</p>
+                <p className="text-[9px] text-white/30 mb-0.5">{typeof item.label === 'string' && item.label.startsWith('home.') ? item.label : item.label}</p>
                 <p className="text-[11px] font-black text-white/85 font-mono">{item.value}</p>
               </div>
             ))}
