@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, TrendingUp, Brain, Briefcase, Zap, Settings, Bell, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/lib/AuthContext';
 
 const NAV_ITEMS = [
   { path: '/Home',       icon: Home,      label: 'Home',     isTrek: false },
