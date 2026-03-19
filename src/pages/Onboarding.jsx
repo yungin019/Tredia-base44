@@ -205,12 +205,12 @@ export default function Onboarding() {
                         </div>
                         <p className="text-xs text-white/30 truncate">{broker.desc}</p>
                       </div>
-                      <span className="text-[9px] font-black px-2.5 py-1 rounded-lg flex-shrink-0 uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}>Coming Soon</span>
+                      <span className="text-[9px] font-black px-2.5 py-1 rounded-lg flex-shrink-0 uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}>{t('common.new')}</span>
                     </motion.button>
                   </motion.div>
                 ))}
               </div>
-              <button onClick={() => setStep('choice')} className="mt-4 text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← Back</button>
+              <button onClick={() => setStep('choice')} className="mt-4 text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← {t('common.back')}</button>
             </motion.div>
           )}
 
@@ -241,7 +241,7 @@ export default function Onboarding() {
                   {t('onboarding.startPaper')} <ArrowRight className="h-4 w-4" />
                 </motion.button>
               </motion.div>
-              <button onClick={() => setStep('choice')} className="text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← Back</button>
+              <button onClick={() => setStep('choice')} className="text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← {t('common.back')}</button>
             </motion.div>
           )}
 
@@ -305,7 +305,7 @@ export default function Onboarding() {
                 {saving ? t('common.loading') : <>{t('onboarding.continue')} <ArrowRight className="h-4 w-4" /></>}
               </motion.button>
 
-              <button onClick={() => setStep('choice')} className="mt-3 text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← Back</button>
+              <button onClick={() => setStep('choice')} className="mt-3 text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← {t('common.back')}</button>
             </motion.div>
           )}
 
