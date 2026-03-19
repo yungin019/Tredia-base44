@@ -239,12 +239,15 @@ Always end with a suggested next action or follow-up question.`;
       {/* Proactive bubble */}
       <AnimatePresence>
         {showProactiveBubble && !open && (
-          <motion.button
+          <motion.div
             initial={{ opacity: 0, y: 16, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.95 }}
             onClick={openWithGreeting}
-            className="fixed bottom-28 right-4 z-40 max-w-[220px] text-left rounded-2xl px-4 py-3 shadow-2xl"
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => e.key === 'Enter' && openWithGreeting()}
+            className="fixed bottom-28 right-4 z-40 max-w-[220px] text-left rounded-2xl px-4 py-3 shadow-2xl cursor-pointer"
             style={{
               background: 'linear-gradient(135deg, #1a1a2e, #111118)',
               border: '1px solid rgba(245,158,11,0.3)',
