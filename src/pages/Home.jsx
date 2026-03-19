@@ -51,8 +51,8 @@ const WARNINGS = [
 const NEWS = [
   {
     id: 1,
-    headline: 'news.fed.headline',
-    summary: 'news.fed.summary',
+    headline: 'Fed signals higher-for-longer rates — market digests hawkish pivot',
+    summary: 'Federal Reserve officials indicated rates will remain elevated through mid-year, citing persistent core inflation above 3%. Bond markets reacted with a sharp yield curve shift.',
     sentiment: 'BULLISH',
     impact: 9,
     tickers: ['SPX', 'QQQ', 'TLT'],
@@ -62,8 +62,8 @@ const NEWS = [
   },
   {
     id: 2,
-    headline: 'news.nvda.headline',
-    summary: 'news.nvda.summary',
+    headline: 'NVIDIA ships Blackwell GPUs ahead of schedule — data center demand surges',
+    summary: 'NVIDIA confirmed early delivery of next-gen Blackwell accelerators to hyperscalers. Cloud capex guidance raised across Microsoft, Google, and AWS.',
     sentiment: 'BULLISH',
     impact: 8,
     tickers: ['NVDA', 'AMD', 'SMCI'],
@@ -73,8 +73,8 @@ const NEWS = [
   },
   {
     id: 3,
-    headline: 'news.china.headline',
-    summary: 'news.china.summary',
+    headline: 'China trade tensions escalate — new tariffs threaten tech supply chain',
+    summary: 'Beijing announced retaliatory measures on semiconductor imports. US tech stocks with heavy China exposure face earnings risk heading into Q2.',
     sentiment: 'BEARISH',
     impact: 6,
     tickers: ['BABA', 'JD', 'PDD'],
@@ -84,8 +84,8 @@ const NEWS = [
   },
   {
     id: 4,
-    headline: 'news.bitcoin.headline',
-    summary: 'news.bitcoin.summary',
+    headline: 'Bitcoin spot ETFs record $1.2B inflows — halving cycle momentum builds',
+    summary: 'Institutional Bitcoin demand hit record levels as spot ETF inflows accelerated. On-chain data confirms whale accumulation phase ahead of the April halving.',
     sentiment: 'BULLISH',
     impact: 7,
     tickers: ['BTC', 'ETH', 'COIN'],
