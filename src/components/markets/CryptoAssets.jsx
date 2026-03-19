@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function CryptoAssets({ cryptoData }) {
+  const navigate = useNavigate();
   if (!cryptoData || cryptoData.length === 0) {
     return (
       <motion.div
@@ -37,7 +39,7 @@ export default function CryptoAssets({ cryptoData }) {
           </thead>
           <tbody>
             {cryptoData.map((crypto, i) => (
-              <tr key={i} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0">
+              <tr key={i} onClick={() => navigate(`/Asset/${crypto.symbol?.toUpperCase()}`)} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0 cursor-pointer">
                 <td className="px-5 py-3">
                   <div className="font-mono font-black text-[13px] text-white/85">{crypto.symbol?.toUpperCase()}</div>
                   <div className="text-[10px] text-white/30">{crypto.name}</div>
