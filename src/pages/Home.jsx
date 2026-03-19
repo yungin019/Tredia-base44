@@ -452,5 +452,6 @@ export default function Home() {
         {selectedNews && <NewsModal article={selectedNews} onClose={() => setSelectedNews(null)} />}
       </AnimatePresence>
     </div>
+    </PullToRefresh>
   );
 }

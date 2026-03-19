@@ -462,5 +462,6 @@ export default function AIInsights() {
       </motion.div>
 
     </div>
+    </PullToRefresh>
   );
 }

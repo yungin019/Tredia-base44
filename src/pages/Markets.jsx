@@ -249,5 +249,6 @@ export default function Markets() {
         </motion.div>
       )}
     </div>
+    </PullToRefresh>
   );
 }
