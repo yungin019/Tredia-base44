@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ContextBanner from '@/components/ai/ContextBanner';
@@ -38,12 +39,13 @@ const CHART_DATA = [
 ];
 
 export default function PaperTrading() {
-  const [ticker, setTicker] = useState('');
-  const [shares, setShares] = useState('');
-  const [action, setAction] = useState('buy');
-  const [orderType, setOrderType] = useState('market');
-  const [tradeGrade, setTradeGrade] = useState(null);
-  const [executedTrades, setExecutedTrades] = useState([]);
+   const { t } = useTranslation();
+   const [ticker, setTicker] = useState('');
+   const [shares, setShares] = useState('');
+   const [action, setAction] = useState('buy');
+   const [orderType, setOrderType] = useState('market');
+   const [tradeGrade, setTradeGrade] = useState(null);
+   const [executedTrades, setExecutedTrades] = useState([]);
 
   const handleExecuteTrade = () => {
     if (!ticker.trim() || !shares.trim()) return;
@@ -90,26 +92,26 @@ export default function PaperTrading() {
       {/* AI Context Banner */}
       <ContextBanner
         storageKey="paper_trading_v1"
-        title="Welcome to Paper Trading 🎯"
-        body="Practice trading with $100,000 of virtual money — zero real risk. This is the best place to learn how markets work before investing real money."
+        title={t('paperTrading.title')}
+        body={t('paperTrading.guidance')}
         steps={[
-          "Type a stock ticker (e.g. AAPL, NVDA, MSFT)",
-          "Enter the number of shares you want to buy",
-          "Choose BUY or SELL, then hit Execute",
-          "Watch your portfolio grow and earn TREK grades",
+          t('paperTrading.symbol'),
+          t('paperTrading.shares'),
+          t('paperTrading.preview'),
+          t('trek.signals'),
         ]}
-        actions={[{ label: "Guide me through my first trade", onClick: () => {} }]}
-        aiQuestion="Guide me step by step through my very first paper trade. I'm a beginner."
+        actions={[{ label: t('paperTrading.confirm'), onClick: () => {} }]}
+        aiQuestion={t('trek.contextAI')}
       />
 
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">Paper Trading</h1>
-          <p className="text-[11px] text-white/40 font-medium tracking-wide">Virtual Portfolio — Train Without Risk</p>
+          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('paperTrading.title')}</h1>
+          <p className="text-[11px] text-white/40 font-medium tracking-wide">{t('paperTrading.balance')}</p>
         </div>
         <div className="text-right">
-          <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-1">Virtual Balance</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-1">{t('paperTrading.balance')}</div>
           <div className="text-3xl font-black font-mono" style={{ color: '#F59E0B' }}>$100,000.00</div>
         </div>
       </motion.div>
@@ -177,12 +179,12 @@ export default function PaperTrading() {
           transition={{ delay: 0.05 }}
           className="rounded-xl border border-white/[0.07] bg-[#111118] p-5 xl:col-span-1"
         >
-          <h2 className="text-sm font-bold text-white/80 mb-4">Place Trade</h2>
+          <h2 className="text-sm font-bold text-white/80 mb-4">{t('paperTrading.preview')}</h2>
 
-          <div className="space-y-3">
-            {/* Ticker Input */}
-            <div>
-              <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-1.5">Ticker</label>
+           <div className="space-y-3">
+             {/* Ticker Input */}
+             <div>
+               <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-1.5">{t('paperTrading.symbol')}</label>
               <Input
                 placeholder="AAPL"
                 value={ticker}
@@ -193,7 +195,7 @@ export default function PaperTrading() {
 
             {/* Shares Input */}
             <div>
-              <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-1.5">Shares</label>
+              <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-1.5">{t('paperTrading.shares')}</label>
               <Input
                 type="number"
                 placeholder="10"
@@ -205,11 +207,11 @@ export default function PaperTrading() {
 
             {/* BUY/SELL Toggle */}
             <div>
-              <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-2">Action</label>
+              <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-2">{t('portfolio.action')}</label>
               <div className="flex gap-2">
                 {[
-                  { label: 'BUY', value: 'buy', color: '#22C55E' },
-                  { label: 'SELL', value: 'sell', color: '#EF4444' },
+                  { label: t('asset.buy'), value: 'buy', color: '#22C55E' },
+                  { label: t('asset.sell'), value: 'sell', color: '#EF4444' },
                 ].map(({ label, value, color }) => (
                   <button
                     key={value}
@@ -229,7 +231,7 @@ export default function PaperTrading() {
 
             {/* Market/Limit Toggle */}
             <div>
-              <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-2">Order Type</label>
+              <label className="text-[10px] uppercase tracking-[0.1em] text-white/40 block mb-2">{t('paperTrading.symbol')}</label>
               <div className="flex gap-2">
                 {[
                   { label: 'Market', value: 'market' },
@@ -256,7 +258,7 @@ export default function PaperTrading() {
               onClick={handleExecuteTrade}
               className="w-full mt-4 h-10 font-bold text-sm bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              EXECUTE TRADE
+              {t('portfolio.action')}
             </Button>
           </div>
 
@@ -271,7 +273,7 @@ export default function PaperTrading() {
                 style={{ background: 'rgba(245,158,11,0.05)', borderRadius: 10, padding: '12px 14px' }}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.1em] text-white/30">TREK Trade Grade</div>
+                  <div className="text-[10px] font-bold uppercase tracking-[0.1em] text-white/30">{t('trek.wow')}</div>
                   <Zap className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <div className="flex items-center gap-3 mb-2">
@@ -296,13 +298,13 @@ export default function PaperTrading() {
             className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden"
           >
             <div className="px-5 py-4 border-b border-white/[0.05]">
-              <h3 className="text-sm font-bold text-white/80">Open Positions ({MOCK_POSITIONS.length})</h3>
-            </div>
+               <h3 className="text-sm font-bold text-white/80">{t('portfolio.holdings')} ({MOCK_POSITIONS.length})</h3>
+             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/[0.05]">
-                    {['Ticker', 'Shares', 'Avg Cost', 'Current', 'P&L ($)', 'P&L (%)', 'TREK Grade'].map((h, i) => (
+                    {[t('markets.symbol'), t('paperTrading.shares'), t('portfolio.avgCost'), t('portfolio.currentPrice'), 'P&L ($)', 'P&L (%)', t('trek.wow')].map((h, i) => (
                       <th key={i} className={`${i === 0 ? 'text-left px-5' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>{h}</th>
                     ))}
                   </tr>
@@ -342,7 +344,7 @@ export default function PaperTrading() {
             transition={{ delay: 0.15 }}
             className="rounded-xl border border-white/[0.07] bg-[#111118] p-5"
           >
-            <h3 className="text-sm font-bold text-white/80 mb-4">Your Performance vs S&P 500</h3>
+            <h3 className="text-sm font-bold text-white/80 mb-4">{t('paperTrading.balance')}</h3>
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 mb-4">

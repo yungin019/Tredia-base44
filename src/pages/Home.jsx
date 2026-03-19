@@ -235,9 +235,9 @@ export default function Home() {
             <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}>
               <Zap className="h-4 w-4 text-primary" />
             </motion.div>
-            <span className="text-[11px] font-black text-primary uppercase tracking-[0.12em]">⚡ TREK Insight</span>
+            <span className="text-[11px] font-black text-primary uppercase tracking-[0.12em]">⚡ {t('trek.wow')}</span>
             <span className="ml-auto flex items-center gap-1 text-[9px] text-chart-3 font-bold">
-              <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" /> LIVE
+              <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" /> {t('common.live')}
             </span>
           </div>
           <p className="text-[13px] text-white/75 leading-relaxed font-medium mb-3">

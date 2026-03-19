@@ -103,9 +103,9 @@ export default function Upgrade() {
   return (
     <div className="p-4 lg:p-6 max-w-2xl mx-auto pb-24 space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('upgrade.title') || 'Upgrade Your Plan'}</h1>
-        <p className="text-sm text-white/35 mt-1">Unlock the full power of TREDIA</p>
-      </motion.div>
+         <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('upgrade.title')}</h1>
+         <p className="text-sm text-white/35 mt-1">{t('home.title')}</p>
+       </motion.div>
 
       {/* OG100 FOUNDING MEMBER BLOCK */}
       <motion.div
@@ -219,7 +219,7 @@ export default function Upgrade() {
               ? 'bg-[#F59E0B] text-[#0A0A0F]'
               : 'bg-white/[0.04] text-white/50 hover:bg-white/[0.06]'
           }`}>
-          Monthly
+          {t('upgrade.month')}
         </button>
         <button
           onClick={() => setBillingCycle('annual')}
@@ -238,15 +238,15 @@ export default function Upgrade() {
         className="rounded-xl border border-white/[0.08] bg-[#111118] p-6">
         <div className="flex items-center gap-2 mb-1">
           <Crown className="h-4 w-4 text-[#F59E0B]" />
-          <span className="text-[10px] font-black tracking-[0.18em] uppercase text-[#F59E0B]">Elite Plan</span>
+          <span className="text-[10px] font-black tracking-[0.18em] uppercase text-[#F59E0B]">{t('upgrade.elite')}</span>
         </div>
         <p className="text-2xl font-black text-white/90 mb-1">
           {billingCycle === 'monthly' ? '$49.99' : '$449.99'}
           <span className="text-sm font-medium text-white/35">
-            {billingCycle === 'monthly' ? '/mo' : '/yr'}
+            {billingCycle === 'monthly' ? t('upgrade.month') : '/yr'}
           </span>
         </p>
-        <p className="text-xs text-white/30 mb-5">Full TREDIA intelligence, zero limits.</p>
+        <p className="text-xs text-white/30 mb-5">{t('trek.subtitle')}</p>
         <ul className="space-y-2.5 mb-6">
           {ELITE_FEATURES.map(f => (
             <li key={f} className="flex items-center gap-2.5 text-sm text-white/55">
@@ -266,21 +266,21 @@ export default function Upgrade() {
           disabled={purchaseInProgress || !isInitialized}
           className="w-full py-3 rounded-xl font-black text-sm tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50"
           style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-          {purchaseInProgress ? 'Processing...' : '⚡ Subscribe to Elite'}
-        </button>
+          {purchaseInProgress ? t('common.loading') : `⚡ ${t('upgrade.upgrade')}`}
+          </button>
       </motion.div>
 
       {/* Pro Plan */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-6">
-        <span className="text-[10px] font-black tracking-[0.18em] uppercase text-white/40">Pro Plan</span>
+        <span className="text-[10px] font-black tracking-[0.18em] uppercase text-white/40">{t('upgrade.pro')}</span>
         <p className="text-2xl font-black text-white/90 mb-1 mt-1">
           {billingCycle === 'monthly' ? '$19.99' : '$179.99'}
           <span className="text-sm font-medium text-white/35">
-            {billingCycle === 'monthly' ? '/mo' : '/yr'}
+            {billingCycle === 'monthly' ? t('upgrade.month') : '/yr'}
           </span>
         </p>
-        <p className="text-xs text-white/30 mb-5">For serious traders who want more.</p>
+        <p className="text-xs text-white/30 mb-5">{t('home.title')}</p>
         <ul className="space-y-2.5 mb-6">
           {['Unlimited TREK signals', 'Real-time price alerts', 'Advanced charts'].map(f => (
             <li key={f} className="flex items-center gap-2.5 text-sm text-white/55">
@@ -293,7 +293,7 @@ export default function Upgrade() {
           disabled={purchaseInProgress || !isInitialized}
           className="w-full py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55 disabled:opacity-50"
         >
-          {purchaseInProgress ? 'Processing...' : `Subscribe to Pro`}
+          {purchaseInProgress ? t('common.loading') : `${t('upgrade.upgrade')} ${t('upgrade.pro')}`}
         </button>
       </motion.div>
     </div>
