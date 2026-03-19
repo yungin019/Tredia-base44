@@ -3,6 +3,7 @@ import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import translations from '../locales/translations';
+import enExtra from '../locales/en-extra';
 
 // RTL language codes
 const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];
@@ -11,9 +12,10 @@ const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];
 const buildResources = () => {
   const resources = {};
   Object.keys(translations).forEach(lang => {
-    resources[lang] = {
-      translation: translations[lang].translation
-    };
+    const t = translations[lang].translation;
+    // Merge extra EN keys into English (other langs fall back via fallbackLng: 'en')
+    const merged = lang === 'en' ? { ...t, ...enExtra } : t;
+    resources[lang] = { translation: merged };
   });
   return resources;
 };
