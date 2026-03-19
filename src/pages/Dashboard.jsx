@@ -15,6 +15,7 @@ import SmartMoneyAlerts from '../components/dashboard/SmartMoneyAlerts';
 import EarningsCalendar from '../components/dashboard/EarningsCalendar';
 import TickerTape from '../components/dashboard/TickerTape';
 import TrekInsight from '../components/dashboard/TrekInsight';
+// TrekDailyBrief deprecated — merged into TrekInsight
 import TrendingAssets from '../components/dashboard/TrendingAssets';
 import QuickActions from '../components/dashboard/QuickActions';
 
