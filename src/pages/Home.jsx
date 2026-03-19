@@ -247,9 +247,9 @@ export default function Home() {
           </p>
           <div className="flex gap-3 flex-wrap">
             {[
-              { label: t('home.bestSetup'), value: 'NVDA BUY' },
-              { label: t('home.biggestRisk'), value: 'VIX spike' },
-              { label: t('home.sentiment'), value: sentimentLabel },
+              { label: 'Best Setup', value: 'NVDA BUY' },
+              { label: 'Biggest Risk', value: 'VIX spike' },
+              { label: t('trek.sentiment'), value: sentimentLabel },
             ].map(item => (
               <div key={item.label} className="rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                 <p className="text-[9px] text-white/30 mb-0.5">{typeof item.label === 'string' && item.label.startsWith('home.') ? item.label : item.label}</p>
