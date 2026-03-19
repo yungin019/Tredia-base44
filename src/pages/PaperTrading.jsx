@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Zap, Trophy, Target, ShieldCheck, Star, ChevronUp } from 'lucide-react';
 
 const GRADES = ['A', 'B+', 'B', 'B-', 'C+', 'C'];
 const GRADE_EXPLANATIONS = {
@@ -71,17 +71,84 @@ export default function PaperTrading() {
   const totalPnL = totalPositionValue - totalCostValue;
   const totalPnLPercent = totalCostValue > 0 ? (totalPnL / totalCostValue * 100) : 0;
 
+  const TRADER_LEVELS = [
+    { level: 1, name: 'Rookie', minWin: 0, color: '#6b7280' },
+    { level: 2, name: 'Analyst', minWin: 50, color: '#60a5fa' },
+    { level: 3, name: 'Trader', minWin: 60, color: '#22c55e' },
+    { level: 4, name: 'Pro Trader', minWin: 70, color: '#F59E0B' },
+    { level: 5, name: 'Elite Trader', minWin: 80, color: '#a78bfa' },
+  ];
+  const winRateNum = 73.2;
+  const traderLevel = TRADER_LEVELS.slice().reverse().find(l => winRateNum >= l.minWin) || TRADER_LEVELS[0];
+  const nextLevel = TRADER_LEVELS.find(l => l.minWin > winRateNum);
+  const levelProgress = nextLevel ? ((winRateNum - traderLevel.minWin) / (nextLevel.minWin - traderLevel.minWin)) * 100 : 100;
+
   return (
     <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
       {/* Header */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">Paper Trading</h1>
-          <p className="text-[11px] text-white/40 font-medium tracking-wide">Virtual Portfolio - No Real Money</p>
+          <p className="text-[11px] text-white/40 font-medium tracking-wide">Virtual Portfolio — Train Without Risk</p>
         </div>
         <div className="text-right">
-          <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Virtual Balance</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-1">Virtual Balance</div>
           <div className="text-3xl font-black font-mono" style={{ color: '#F59E0B' }}>$100,000.00</div>
+        </div>
+      </motion.div>
+
+      {/* TRADER LEVEL + GAMIFICATION */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.03 }}
+        style={{
+          background: 'linear-gradient(135deg, #0f0f1a, #111118)',
+          border: `1px solid ${traderLevel.color}40`,
+          borderRadius: 16,
+          padding: '16px 20px',
+          boxShadow: `0 0 30px ${traderLevel.color}10`,
+        }}
+      >
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          {/* Level badge */}
+          <div className="flex items-center gap-4">
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: `${traderLevel.color}15`, border: `2px solid ${traderLevel.color}40`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <Star style={{ width: 18, height: 18, color: traderLevel.color }} />
+              <span style={{ fontSize: 9, fontWeight: 900, color: traderLevel.color, letterSpacing: '0.06em' }}>LVL {traderLevel.level}</span>
+            </div>
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 900, color: 'rgba(255,255,255,0.92)', marginBottom: 2 }}>{traderLevel.name}</div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>
+                {nextLevel ? `${(nextLevel.minWin - winRateNum).toFixed(1)}% win rate to reach ${nextLevel.name}` : 'Max level reached 🏆'}
+              </div>
+              {/* Progress bar */}
+              <div style={{ width: 160, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${levelProgress}%` }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
+                  style={{ height: '100%', background: traderLevel.color, borderRadius: 99 }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="flex items-center gap-6">
+            {[
+              { icon: Trophy, label: 'Win Rate', value: `${winRateNum}%`, color: '#22c55e' },
+              { icon: Target, label: 'Best Trade', value: '+$2,482', color: '#F59E0B' },
+              { icon: ShieldCheck, label: 'Trades', value: '23', color: '#60a5fa' },
+              { icon: ChevronUp, label: 'Streak', value: '4W 🔥', color: '#a78bfa' },
+            ].map((s, i) => (
+              <div key={i} className="text-center">
+                <s.icon className="h-3.5 w-3.5 mx-auto mb-1" style={{ color: s.color }} />
+                <div className="text-[14px] font-black font-mono" style={{ color: s.color }}>{s.value}</div>
+                <div className="text-[8px] text-white/30 uppercase tracking-wider">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </motion.div>
 
@@ -180,14 +247,23 @@ export default function PaperTrading() {
           <AnimatePresence>
             {tradeGrade && (
               <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="mt-4 pt-4 border-t border-white/[0.05] text-center"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="mt-4 pt-4 border-t border-white/[0.05]"
+                style={{ background: 'rgba(245,158,11,0.05)', borderRadius: 10, padding: '12px 14px' }}
               >
-                <div className="text-[10px] font-bold uppercase tracking-[0.1em] text-white/30 mb-2">TREK Grade</div>
-                <div className="text-4xl font-black mb-2" style={{ color: '#F59E0B' }}>{tradeGrade.grade}</div>
-                <p className="text-xs text-white/40">{tradeGrade.explanation}</p>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.1em] text-white/30">TREK Trade Grade</div>
+                  <Zap className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="text-5xl font-black font-mono" style={{ color: ['A'].includes(tradeGrade.grade) ? '#22c55e' : tradeGrade.grade.startsWith('B') ? '#F59E0B' : '#ef4444' }}>{tradeGrade.grade}</div>
+                  <div>
+                    <p className="text-xs text-white/55 leading-relaxed">{tradeGrade.explanation}</p>
+                    <p className="text-[10px] text-primary/60 mt-1 font-semibold">+XP added to your Trader Level</p>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
