@@ -18,6 +18,9 @@ import TrekInsight from '../components/dashboard/TrekInsight';
 import TrendingAssets from '../components/dashboard/TrendingAssets';
 import QuickActions from '../components/dashboard/QuickActions';
 import TodaysBestSetup from '../components/dashboard/TodaysBestSetup';
+import DailyCheckIn from '../components/dashboard/DailyCheckIn';
+import ForYouSection from '../components/dashboard/ForYouSection';
+import AITrackRecord from '../components/dashboard/AITrackRecord';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -72,13 +75,16 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* 1. TODAY'S BEST SETUP — Daily hook */}
+        {/* 1. DAILY CHECK-IN — habit loop */}
+        <DailyCheckIn />
+
+        {/* 2. TODAY'S BEST SETUP — Daily hook */}
         <TodaysBestSetup />
 
-        {/* 2. TREK INSIGHT — Command Center */}
+        {/* 3. TREK INSIGHT — Command Center */}
         <TrekInsight fearGreedValue={fearGreed?.value} />
 
-        {/* 3. Quick Actions */}
+        {/* 4. Quick Actions */}
         <QuickActions />
 
         {/* 3. Sentiment + Crypto */}
@@ -106,7 +112,13 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 8. Smart Money Alerts + Earnings */}
+        {/* 8. For You + Track Record */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <ForYouSection />
+          <AITrackRecord />
+        </div>
+
+        {/* 9. Smart Money Alerts + Earnings */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SmartMoneyAlerts />
           <EarningsCalendar />
