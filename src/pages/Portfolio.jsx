@@ -15,6 +15,7 @@ import SectorWarning from '../components/portfolio/SectorWarning';
 import PortfolioPerformanceChart from '../components/portfolio/PortfolioPerformanceChart';
 import TradeHistory from '../components/portfolio/TradeHistory';
 import ContextBanner from '@/components/ai/ContextBanner';
+import PullToRefresh from '@/components/ui/PullToRefresh';
 
 const COLORS = ['#F59E0B', '#3B82F6', '#22C55E', '#A855F7', '#EF4444', '#06B6D4'];
 
@@ -62,6 +63,9 @@ export default function Portfolio() {
   }));
 
   return (
+    <PullToRefresh onRefresh={async () => {
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+    }}>
     <div className="p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
       {/* AI Context Banner */}
       <ContextBanner
@@ -274,5 +278,6 @@ export default function Portfolio() {
 
       <AddHoldingDialog open={showAdd} onOpenChange={setShowAdd} />
     </div>
+    </PullToRefresh>
   );
 }
