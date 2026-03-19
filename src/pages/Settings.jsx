@@ -200,10 +200,10 @@ export default function Settings() {
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
         <SectionHeader title={t('settings.notifications')} />
         {[
-          { key: 'priceAlerts', label: t('settings.priceAlerts'), desc: t('settings.priceAlerts') },
-          { key: 'trekSignals', label: t('settings.trekSignals'), desc: t('settings.trekSignals') },
-          { key: 'newsAlerts', label: t('settings.newsAlerts'), desc: t('settings.newsAlerts') },
-          { key: 'earningsCalendar', label: t('settings.earningsCalendar'), desc: t('settings.earningsCalendar') },
+          { key: 'priceAlerts', label: t('settings.priceAlerts'), desc: 'Get notified when price targets are hit' },
+          { key: 'trekSignals', label: t('settings.trekSignals'), desc: 'Receive live AI trading signal alerts' },
+          { key: 'newsAlerts', label: t('settings.newsAlerts'), desc: 'Breaking market news and earnings updates' },
+          { key: 'earningsCalendar', label: t('settings.earningsCalendar'), desc: 'Reminders before key earnings releases' },
         ].map(({ key, label, desc }) => (
           <div key={key} className="flex items-center justify-between gap-4 py-2 border-b border-white/[0.04] last:border-0">
             <div>
