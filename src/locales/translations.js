@@ -1719,8 +1719,49 @@ const translations = {
       'common.save': 'सहेजें',
       'common.cancel': 'रद्द करें',
       'common.back': 'वापस',
-    }
-  }
-}
+      'trek.extremeGreed': 'अत्यधिक लालच',
+      'upgrade.annual': 'सालाना',
+      'upgrade.save25': '25% बचाएं',
+      'upgrade.foundingMember': 'संस्थापक सदस्य ऑफर',
+      'upgrade.first100': 'केवल पहले 100 उपयोगकर्ता',
+      'upgrade.joinAsFounding': 'संस्थापक सदस्य के रूप में शामिल हों',
+      'upgrade.proFeature1': 'असीमित TREK संकेत',
+      'upgrade.proFeature2': 'वास्तविक समय मूल्य सतर्कता',
+      'upgrade.proFeature3': 'उन्नत चार्ट',
+      'settings.version': 'TREDIA v6.0.0 · TestFlight तैयार',
+      'settings.dangerZone': 'खतरे का क्षेत्र',
+      'settings.deleteAccountWarning': 'अपने खाते और सभी संबंधित डेटा को स्थायी रूप से हटाएं',
+      'paperTrading.enterSymbolShares': 'प्रतीक और शेयरों की संख्या दर्ज करें',
+      'paperTrading.rookieLevel': 'नौसिखिया',
+      'paperTrading.analystLevel': 'विश्लेषक',
+      'paperTrading.traderLevel': 'व्यापारी',
+      'paperTrading.proTraderLevel': 'पेशेवर व्यापारी',
+      'paperTrading.eliteTraderLevel': 'अभिजात व्यापारी',
+      'paperTrading.gradeA': 'उत्कृष्ट गति प्रवेश - निर्मल तकनीकी सेटअप',
+      'paperTrading.gradeB_plus': 'मजबूत गति प्रवेश - समय बाजार प्रवृत्ति के साथ संरेखित',
+      'paperTrading.gradeB': 'अच्छा प्रवेश सेटअप - मौलिकता चाल का समर्थन करता है',
+      'paperTrading.gradeB_minus': 'उचित प्रवेश बिंदु - जोखिम/इनाम स्वीकार्य',
+      'paperTrading.gradeC_plus': 'मध्यम सेटअप - बेहतर प्रवेश पर विचार करें',
+      'paperTrading.gradeC': 'कमजोर प्रवेश - प्रतिकूल जोखिम/इनाम',
+      'onboarding.meetTrek': 'TREK से मिलें',
+      'onboarding.trekIntelligence': 'आपकी ट्रेडिंग बुद्धिमत्ता',
+      'onboarding.trekIntro': '"अरे, मैं TREK हूं — आपकी व्यक्तिगत ट्रेडिंग बुद्धिमत्ता। मैं 24/7 बाजारों का विश्लेषण करता हूं ताकि आप हमेशा जान सकें कि क्या चल रहा है और क्यों। आइए आपको एक बेहतर व्यापारी बनाएं।"',
+      'onboarding.enterTredia': 'TREDIA दर्ज करें',
+      'onboarding.alreadyTrade': 'मैं पहले से व्यापार करता हूं',
+      'onboarding.connectBroker': 'तुरंत शुरू करने के लिए अपने मौजूदा ब्रोकर को कनेक्ट करें',
+      'onboarding.newTrading': 'ट्रेडिंग में नया',
+      'onboarding.startPaperTrading': 'निर्देशित एआई अंतर्दृष्टि और कागज व्यापार के साथ शुरू करें',
+      'onboarding.connectBrokerTitle': 'अपने ब्रोकर को कनेक्ट करें',
+      'onboarding.brokerComingSoon': 'ब्रोकर इंटीग्रेशन भविष्य के रिलीज में आ रहा है',
+      'onboarding.getStarted': 'चलिए आपको शुरू करते हैं',
+      'onboarding.noRealMoney': 'असली पैसा नहीं. कोई जोखिम नहीं। सिर्फ सीखना।',
+      'onboarding.startPaper': 'कागज व्यापार शुरू करें',
+      'onboarding.trekPersonalization': 'TREK एआई व्यक्तिगतकरण',
+      'onboarding.customizeIntelligence': 'अपनी बुद्धिमत्ता को अनुकूलित करें',
+      'onboarding.trekAdapts': 'TREK आपके स्तर और लक्ष्यों को अनुकूलित करता है',
+      'onboarding.continue': 'जारी रखें',
+      }
+      }
+      }
 
-export default translations
+      export default translations
