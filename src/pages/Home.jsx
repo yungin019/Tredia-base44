@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Zap, Bell, Target, TrendingUp, TrendingDown, AlertTriangle, ChevronRight, Clock, ExternalLink, X } from 'lucide-react';
 import { fetchCryptoData, fetchFearGreed } from '@/api/marketData';
 import TickerTape from '@/components/dashboard/TickerTape';
+import { base44 } from '@/api/base44Client';
 
 // ── ALERTS ──────────────────────────────────────────────────────────────────
 const ALERTS = [
