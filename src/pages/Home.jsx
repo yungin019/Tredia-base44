@@ -390,7 +390,7 @@ export default function Home() {
 
         {/* ── NEWS CAROUSEL ── */}
         <div>
-          <SectionTitle icon="📰" label="Market News" sub="AI-analyzed" />
+          <SectionTitle icon="📰" label={t('home.marketNews')} sub={t('home.aiAnalyzed')} />
           <AnimatePresence mode="wait">
             <motion.button
               key={newsIdx}
