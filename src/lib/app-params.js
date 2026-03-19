@@ -39,6 +39,13 @@ const getAppParams = () => {
 		storage.removeItem('base44_access_token');
 		storage.removeItem('token');
 	}
+	// Clear any corrupted from_url (e.g. "[object Object]") from localStorage
+	if (!isNode) {
+		const storedFromUrl = storage.getItem('base44_from_url');
+		if (storedFromUrl && (!storedFromUrl.startsWith('/') && !storedFromUrl.startsWith('http'))) {
+			storage.removeItem('base44_from_url');
+		}
+	}
 	return {
 		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID }),
 		token: getAppParamValue("access_token", { removeFromUrl: true }),
