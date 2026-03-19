@@ -106,20 +106,20 @@ export default function Settings() {
       {/* PROFILE */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-4">
-        <SectionHeader title="Profile" />
+        <SectionHeader title={t('settings.profile')} />
         <div className="flex items-center gap-4">
           <div className="h-20 w-20 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center flex-shrink-0">
             <User className="h-9 w-9 text-white/25" />
           </div>
           <div className="flex-1 space-y-2">
             <div>
-              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">Name</label>
+              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.name')}</label>
               <div className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85">
                 {user?.full_name || '—'}
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">Email</label>
+              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.email')}</label>
               <div className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85">
                 {user?.email || '—'}
               </div>
@@ -130,7 +130,7 @@ export default function Settings() {
         {/* AI Profile Summary */}
         {(user?.budget_range || user?.experience_level) && (
           <div className="pt-3 border-t border-white/[0.05]">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/25 mb-2">AI Personalization</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/25 mb-2">{t('settings.aiPersonalization')}</p>
             <div className="flex flex-wrap gap-2">
               {user.budget_range && (
                 <span className="text-[10px] px-2 py-1 rounded-lg font-semibold"
@@ -164,8 +164,8 @@ export default function Settings() {
       {/* CONNECTED BROKERS */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
-        <SectionHeader title="Connect Broker" />
-        <p className="text-[11px] text-white/30 mb-4">Connect your broker to enable real-money execution. Paper trading is always available.</p>
+        <SectionHeader title={t('settings.brokers')} />
+        <p className="text-[11px] text-white/30 mb-4">{t('settings.subscription')}</p>
         <div className="space-y-2 mb-4">
           {[
             { name: 'eToro', desc: 'Social trading & investing', logo: '🟢', status: 'coming_soon' },
@@ -181,7 +181,7 @@ export default function Settings() {
               </div>
               <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-1 rounded-full flex-shrink-0"
                 style={{ color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                <Clock className="h-2.5 w-2.5" /> Soon
+                <Clock className="h-2.5 w-2.5" /> {t('common.new')}
               </span>
             </div>
           ))}
@@ -189,8 +189,8 @@ export default function Settings() {
         <div className="flex items-center gap-2 p-3 rounded-xl" style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.18)' }}>
           <CheckCircle2 className="h-4 w-4 text-chart-3 flex-shrink-0" />
           <div>
-            <p className="text-[11px] font-bold text-chart-3">Paper Trading Active</p>
-            <p className="text-[10px] text-white/40">Practice with $100,000 virtual balance — no real money.</p>
+            <p className="text-[11px] font-bold text-chart-3">{t('settings.paperTradingActive')}</p>
+            <p className="text-[10px] text-white/40">{t('settings.virtualBalance')}</p>
           </div>
         </div>
       </motion.div>
@@ -198,12 +198,12 @@ export default function Settings() {
       {/* NOTIFICATIONS */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
-        <SectionHeader title="Notifications" />
+        <SectionHeader title={t('settings.notifications')} />
         {[
-          { key: 'priceAlerts', label: 'Price Alerts', desc: 'Get notified when assets hit your target price' },
-          { key: 'trekSignals', label: 'TREK Signals', desc: 'AI-generated trading signals and opportunities' },
-          { key: 'newsAlerts', label: 'News Alerts', desc: 'Breaking market news affecting your holdings' },
-          { key: 'earningsCalendar', label: 'Earnings Calendar', desc: 'Upcoming earnings reports for watched stocks' },
+          { key: 'priceAlerts', label: t('settings.priceAlerts'), desc: t('settings.priceAlerts') },
+          { key: 'trekSignals', label: t('settings.trekSignals'), desc: t('settings.trekSignals') },
+          { key: 'newsAlerts', label: t('settings.newsAlerts'), desc: t('settings.newsAlerts') },
+          { key: 'earningsCalendar', label: t('settings.earningsCalendar'), desc: t('settings.earningsCalendar') },
         ].map(({ key, label, desc }) => (
           <div key={key} className="flex items-center justify-between gap-4 py-2 border-b border-white/[0.04] last:border-0">
             <div>
@@ -218,19 +218,19 @@ export default function Settings() {
       {/* ACCOUNT TIER */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-4">
-        <SectionHeader title="Account Tier" />
+        <SectionHeader title={t('settings.subscription')} />
         <div className="flex items-center gap-3 mb-2">
           <span className={`text-xs font-black px-3 py-1 rounded-full tracking-widest uppercase ${
             tier === 'elite' ? 'bg-[#F59E0B]/15 border border-[#F59E0B]/40 text-[#F59E0B]' :
             tier === 'pro' ? 'bg-blue-500/15 border border-blue-500/40 text-blue-400' :
             'bg-white/[0.06] border border-white/[0.1] text-white/40'
           }`}>
-            {tier ? tier.toUpperCase() : 'FREE'}
+            {tier ? tier.toUpperCase() : t('upgrade.free')}
           </span>
-          <span className="text-xs text-white/25">Current plan</span>
+          <span className="text-xs text-white/25">{t('settings.current')}</span>
         </div>
         <ul className="space-y-2 mb-4">
-          {PRO_FEATURES.map(f => (
+          {[t('settings.unlimited'), t('settings.realtimeAlerts'), t('settings.advancedAnalytics'), t('settings.prioritySupport')].map(f => (
             <li key={f} className="flex items-center gap-2 text-sm text-white/50">
               <span style={{ color: '#F59E0B' }}>⚡</span>{f}
             </li>
@@ -256,22 +256,22 @@ export default function Settings() {
             onClick={() => navigate('/Upgrade')}
             className="py-3 rounded-xl font-black text-sm tracking-wide transition-opacity hover:opacity-90"
             style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#0A0A0F' }}>
-            ⚡ Upgrade
+            ⚡ {t('upgrade.upgrade')}
           </button>
           <button
             onClick={async () => {
               setRestoreMessage(null);
               const success = await restorePurchases();
               if (success) {
-                setRestoreMessage({ type: 'success', text: 'Purchases restored successfully!' });
+                setRestoreMessage({ type: 'success', text: t('settings.restorePurchases') });
               } else {
-                setRestoreMessage({ type: 'error', text: purchaseError || 'Restore failed. Try again.' });
+                setRestoreMessage({ type: 'error', text: purchaseError || t('common.error') });
               }
             }}
             disabled={purchaseInProgress}
             className="py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55 disabled:opacity-50"
-            title="Restores your purchases from RevenueCat">
-            {purchaseInProgress ? 'Restoring...' : 'Restore'}
+            title={t('settings.restorePurchases')}>
+            {purchaseInProgress ? t('common.loading') : t('settings.restorePurchases')}
           </button>
         </div>
       </motion.div>
@@ -324,7 +324,7 @@ export default function Settings() {
            ))}
          </div>
          <p style={{ color: '#6b7280', fontSize: '11px', marginTop: '8px', lineHeight: '1.4' }}>
-           Auto-detected from your browser. Select manually to override.
+           {t('settings.languageNote')}
          </p>
        </div>
       </motion.div>
@@ -342,34 +342,34 @@ export default function Settings() {
         className="pb-8"
         style={{ borderTop: '1px solid rgba(239,68,68,0.15)', paddingTop: '24px' }}>
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'rgba(239,68,68,0.5)' }}>Danger Zone</p>
-        <button
-          onClick={async () => {
-            const confirmed = window.confirm('Are you sure you want to delete your account? This cannot be undone.');
-            if (!confirmed) return;
-            try {
-              await base44.entities.User.delete(user.id);
-              await base44.auth.logout();
-            } catch (err) {
-              console.error('Delete failed:', err);
-              window.alert('Account deletion failed. Please contact support.');
-            }
-          }}
-          style={{
-            width: '100%',
-            padding: '14px',
-            background: 'transparent',
-            border: '1px solid #EF4444',
-            borderRadius: '12px',
-            color: '#EF4444',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            touchAction: 'manipulation',
-          }}
-        >
-          Delete Account
-        </button>
-        <p className="text-[10px] text-white/20 text-center mt-2">This will permanently delete your account and all data.</p>
+          <button
+            onClick={async () => {
+              const confirmed = window.confirm(t('settings.deleteAccount'));
+              if (!confirmed) return;
+              try {
+                await base44.entities.User.delete(user.id);
+                await base44.auth.logout();
+              } catch (err) {
+                console.error('Delete failed:', err);
+                window.alert(t('common.error'));
+              }
+            }}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: 'transparent',
+              border: '1px solid #EF4444',
+              borderRadius: '12px',
+              color: '#EF4444',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              touchAction: 'manipulation',
+            }}
+          >
+            {t('settings.deleteAccount')}
+          </button>
+          <p className="text-[10px] text-white/20 text-center mt-2">{t('settings.deleteAccount')}</p>
       </motion.div>
     </div>
   );
