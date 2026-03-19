@@ -340,7 +340,7 @@ export default function Home() {
 
         {/* ── LATEST JUMPS ── */}
         <div>
-          <SectionTitle icon="🚀" label="Latest Jumps" sub="Strong upward signals" />
+          <SectionTitle icon="🚀" label={t('home.latestJumps')} sub={t('home.strongSignals')} />
           <div className="grid grid-cols-2 gap-2">
             {JUMPS.map((j, i) => (
               <motion.button
