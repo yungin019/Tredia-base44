@@ -1,31 +1,52 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Mail, Apple, ArrowRight } from 'lucide-react';
+import { Mail, Apple, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function SignIn() {
   const { t } = useTranslation();
-  const [mode, setMode] = useState(null); // null | 'email'
+  const navigate = useNavigate();
+  const [mode, setMode] = useState(null);
+  const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleGoogle = () => {
-    base44.auth.redirectToLogin('/Dashboard');
+    base44.auth.redirectToLogin('/Home');
   };
 
   const handleApple = () => {
-    base44.auth.redirectToLogin('/Dashboard');
+    base44.auth.redirectToLogin('/Home');
   };
 
-  const handleEmail = async (e) => {
+  const handleEmailAuth = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    base44.auth.redirectToLogin('/Dashboard');
+
+    try {
+      if (isRegister) {
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+        await base44.auth.register(email, password);
+        navigate('/Home', { replace: true });
+      } else {
+        await base44.auth.signInWithEmail(email, password);
+        navigate('/Home', { replace: true });
+      }
+    } catch (err) {
+      setError(err.message || 'Authentication failed. Please try again.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -111,27 +132,59 @@ export default function SignIn() {
               {t('signin.emailAuth') || 'Continue with Email'}
             </button>
           ) : (
-            <form onSubmit={handleEmail} className="flex flex-col gap-3">
+            <form onSubmit={handleEmailAuth} className="flex flex-col gap-3">
               <input
                type="email"
-               placeholder={t('signin.enterEmail') || 'Enter your email'}
+               placeholder={t('signin.enterEmail') || 'Email'}
                value={email}
                onChange={e => setEmail(e.target.value)}
                required
                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-[#F59E0B]/40 transition-colors"
               />
-              {error && <p className="text-xs text-red-400/70">{error}</p>}
+              <div className="relative">
+                <input
+                 type={showPass ? 'text' : 'password'}
+                 placeholder={t('signin.password') || 'Password'}
+                 value={password}
+                 onChange={e => setPassword(e.target.value)}
+                 required
+                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-[#F59E0B]/40 transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/50 transition-colors"
+                >
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {isRegister && (
+                <input
+                 type={showPass ? 'text' : 'password'}
+                 placeholder={t('signin.confirmPassword') || 'Confirm Password'}
+                 value={confirmPassword}
+                 onChange={e => setConfirmPassword(e.target.value)}
+                 required
+                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-[#F59E0B]/40 transition-colors"
+                />
+              )}
+              {error && <p className="text-xs text-red-400/80">{error}</p>}
               <button
                 type="submit"
                 disabled={loading}
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-bold text-sm transition-all"
                 style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: loading ? 0.7 : 1 }}
               >
-                {loading ? (t('common.loading') || 'Loading...') : <><span>{t('signin.sendLink') || 'Send Magic Link'}</span><ArrowRight className="h-4 w-4" /></>}
+                {loading ? (t('common.loading') || 'Loading...') : <><span>{isRegister ? 'Create Account' : 'Sign In'}</span><ArrowRight className="h-4 w-4" /></>}
               </button>
-              <button type="button" onClick={() => setMode(null)} className="text-[10px] text-white/25 hover:text-white/45 transition-colors text-center">
-                ← Back
-              </button>
+              <div className="flex items-center justify-between text-[10px]">
+                <button type="button" onClick={() => setMode(null)} className="text-white/25 hover:text-white/45 transition-colors">
+                  ← Back
+                </button>
+                <button type="button" onClick={() => { setIsRegister(!isRegister); setError(null); }} className="text-primary/70 hover:text-primary transition-colors">
+                  {isRegister ? 'Already have an account?' : "Don't have an account?"}
+                </button>
+              </div>
             </form>
           )}
         </motion.div>

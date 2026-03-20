@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/lib/AuthContext';
 
 const TICKER_ITEMS = [
   { symbol: 'AAPL', change: '+1.2%', up: true },
@@ -16,13 +17,20 @@ const repeated = [...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_I
 export default function SplashScreen() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
+    if (isLoading) return;
+
     const timer = setTimeout(() => {
-      navigate('/Home', { replace: true });
+      if (user) {
+        navigate('/Home', { replace: true });
+      } else {
+        navigate('/SignIn', { replace: true });
+      }
     }, 2500);
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, user, isLoading]);
 
   return (
     <div

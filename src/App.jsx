@@ -21,6 +21,7 @@ import Settings from './pages/Settings';
 import PaperTrading from './pages/PaperTrading';
 import Upgrade from './pages/Upgrade';
 import AssetDetail from './pages/AssetDetail';
+import Notifications from './pages/Notifications';
 
 const AuthenticatedApp = () => {
   const { isLoading } = useAuth();
@@ -54,6 +55,7 @@ const AuthenticatedApp = () => {
           <Route path="/Settings" element={<PageTransition><Settings /></PageTransition>} />
           <Route path="/Upgrade" element={<PageTransition><Upgrade /></PageTransition>} />
           <Route path="/PaperTrading" element={<PageTransition><PaperTrading /></PageTransition>} />
+          <Route path="/Notifications" element={<PageTransition><Notifications /></PageTransition>} />
           <Route path="/Asset/:symbol" element={<PageTransition><AssetDetail /></PageTransition>} />
         </Route>
         <Route path="*" element={<PageNotFound />} />

@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, Bell, ChevronRight } from 'lucide-react';
 
 const MOCK_NOTIFICATIONS = [
-  { id: 1, title: 'NVDA Buy Signal', message: 'Momentum breakout confirmed. Entry $871.', time: '5m ago', type: 'signal' },
-  { id: 2, title: 'Portfolio Alert', message: 'Tech sector now 62% of portfolio.', time: '1h ago', type: 'warning' },
-  { id: 3, title: 'Market Update', message: 'Fed signals possible rate cuts in H2 2025.', time: '3h ago', type: 'news' },
+  { id: 1, title: 'NVDA Buy Signal', message: 'Momentum breakout confirmed. Entry $871.', time: '5m ago', type: 'signal', route: '/Asset/NVDA' },
+  { id: 2, title: 'Portfolio Alert', message: 'Tech sector now 62% of portfolio.', time: '1h ago', type: 'warning', route: '/Portfolio' },
+  { id: 3, title: 'Market Update', message: 'Fed signals possible rate cuts in H2 2025.', time: '3h ago', type: 'news', route: '/AIInsights' },
 ];
 
 export default function NotificationsPanel({ isOpen, onClose }) {
+  const navigate = useNavigate();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -44,7 +46,21 @@ export default function NotificationsPanel({ isOpen, onClose }) {
                   key={notif.id}
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="px-4 py-3 border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0"
+                  onClick={() => {
+                    onClose();
+                    navigate(notif.route);
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.transform = 'scale(0.98)';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  className="px-4 py-3 border-b border-white/[0.04] hover:bg-white/[0.04] transition-all last:border-0 cursor-pointer"
+                  style={{ transition: 'transform 0.1s, background-color 0.2s' }}
                 >
                   <div className="flex items-start gap-3">
                     <div
@@ -63,6 +79,7 @@ export default function NotificationsPanel({ isOpen, onClose }) {
                       <p className="text-xs text-white/50 leading-snug mt-0.5">{notif.message}</p>
                       <span className="text-[10px] text-white/30 mt-1 block">{notif.time}</span>
                     </div>
+                    <ChevronRight className="h-4 w-4 text-white/20 flex-shrink-0 mt-1" />
                   </div>
                 </motion.div>
               ))}
@@ -70,7 +87,12 @@ export default function NotificationsPanel({ isOpen, onClose }) {
 
             {/* Footer */}
             <div className="px-4 py-3 border-t border-white/[0.06] text-center">
-              <button className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
+              <button
+                onClick={() => {
+                  onClose();
+                  navigate('/Notifications');
+                }}
+                className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
                 View All Notifications
               </button>
             </div>

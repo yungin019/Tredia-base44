@@ -338,6 +338,24 @@ export default function Settings() {
       {/* LEGAL */}
       <LegalLinksSection />
 
+      {/* LOGOUT BUTTON */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
+        <button
+          onClick={async () => {
+            try {
+              await base44.auth.signOut();
+              navigate('/SignIn');
+            } catch (err) {
+              console.error('Logout failed:', err);
+            }
+          }}
+          className="w-full py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/70 hover:text-white/90"
+        >
+          {t('settings.logout') || 'Sign Out'}
+        </button>
+      </motion.div>
+
       {/* VERSION */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="text-center pb-4">
         <span className="text-xs text-white/25 font-mono">{t('settings.version')}</span>
@@ -354,7 +372,8 @@ export default function Settings() {
               if (!confirmed) return;
               try {
                 await base44.entities.User.delete(user.id);
-                await base44.auth.logout();
+                await base44.auth.signOut();
+                navigate('/SignIn');
               } catch (err) {
                 console.error('Delete failed:', err);
                 window.alert(t('common.error'));
