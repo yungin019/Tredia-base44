@@ -7,6 +7,16 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { base44 } from '@/api/base44Client';
 import { sendPushNotification } from '@/api/notifications';
 
+// ── Name/sector map for known symbols ────────────────────────────────────────
+const ASSET_MAP = {
+  AAPL: { name: 'Apple Inc.', sector: 'Technology' },
+  NVDA: { name: 'NVIDIA Corp', sector: 'Technology' },
+  MSFT: { name: 'Microsoft Corp', sector: 'Technology' },
+  TSLA: { name: 'Tesla Inc.', sector: 'Automotive' },
+  BTC:  { name: 'Bitcoin', sector: 'Crypto' },
+  ETH:  { name: 'Ethereum', sector: 'Crypto' },
+};
+
 // ── Static data store per symbol ─────────────────────────────────────────────
 const ASSET_DATA = {
   NVDA: { name: 'NVIDIA Corp', price: 871.20, change: 5.1, signal: 'BUY', confidence: 92, sector: 'Technology',
