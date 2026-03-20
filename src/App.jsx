@@ -23,7 +23,7 @@ import Upgrade from './pages/Upgrade';
 import AssetDetail from './pages/AssetDetail';
 
 const AuthenticatedApp = () => {
-  const { user, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -37,14 +37,10 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (!user && location.pathname !== '/SignIn') {
-    return <Navigate to="/SignIn" replace />;
-  }
-
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Navigate to={user ? "/SplashScreen" : "/SignIn"} replace />} />
+        <Route path="/" element={<Navigate to="/SplashScreen" replace />} />
         <Route path="/SignIn" element={<PageTransition><SignIn /></PageTransition>} />
         <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
         <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
