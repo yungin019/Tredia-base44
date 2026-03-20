@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import TrediaAssistant from '@/components/ai/TrediaAssistant';
 import NotificationsPanel from '@/components/ui/NotificationsPanel';
+import SearchModal from '@/components/ui/SearchModal';
 
 const NAV_CONFIG = [
   { path: '/Home',       icon: Home,      translationKey: 'nav.feed',     isTrek: false },
@@ -22,12 +23,28 @@ export default function AppShell() {
   const { user, isLoading } = useAuth();
   const { t } = useTranslation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
       base44.auth.redirectToLogin(location.pathname);
     }
   }, [user, isLoading]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+      if (e.key === 'Escape' && searchOpen) {
+        setSearchOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [searchOpen]);
 
   if (isLoading || !user) return null;
 
@@ -90,11 +107,22 @@ export default function AppShell() {
 
         <div className="flex items-center gap-2">
           {/* Search */}
-          <div className="hidden sm:flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-muted-foreground cursor-pointer transition-colors">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="hidden sm:flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-muted-foreground cursor-pointer transition-colors tap-feedback min-h-[44px]"
+          >
             <Search className="h-3 w-3" />
             <span>{t('common.search')}...</span>
             <kbd className="text-[9px] bg-white/[0.06] px-1.5 py-0.5 rounded font-mono ml-2">⌘K</kbd>
-          </div>
+          </button>
+
+          {/* Mobile Search */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="sm:hidden flex items-center justify-center h-10 w-10 rounded-lg bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.06] transition-colors tap-feedback"
+          >
+            <Search className="h-4 w-4 text-white/50" />
+          </button>
 
           {/* Elite Intelligence Active */}
           <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border"
@@ -181,6 +209,9 @@ export default function AppShell() {
           })}
         </div>
       </nav>
+
+      {/* Search Modal */}
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }
