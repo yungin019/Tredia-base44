@@ -170,7 +170,7 @@ export default function AssetDetail() {
   const { t } = useTranslation();
   const { symbol: routeSymbol } = useParams();
   const symbol = (routeSymbol || 'NVDA').toUpperCase();
-  const staticAsset = { ...(ASSET_DATA[symbol] || DEFAULT_ASSET), symbol };
+  const staticAsset = { ...(ASSET_DATA[symbol] || DEFAULT_ASSET), ...(ASSET_MAP[symbol] || {}), symbol };
 
   const [tradeAction, setTradeAction] = useState(null);
   const [showPlan, setShowPlan] = useState(false);
