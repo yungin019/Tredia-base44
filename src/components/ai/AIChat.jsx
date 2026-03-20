@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Loader2, Sparkles, RotateCcw } from 'lucide-react';
+import { Send, Loader2, Sparkles, RotateCcw, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { base44 } from '@/api/base44Client';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import QueryLimitModal from './QueryLimitModal';
 import TrekResponseRenderer from './TrekResponseRenderer';
+import SuperAIPanel from './SuperAIPanel';
 
 const SUGGESTED_KEYS = [
   'trek.suggest1',
