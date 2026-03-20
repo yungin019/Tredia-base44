@@ -2,11 +2,11 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 export default function SectorWarning({ holdings }) {
-  if (!holdings || holdings.length === 0) return null;
+  if (!Array.isArray(holdings) || holdings.length === 0) return null;
 
   const sectorTotals = {};
   let total = 0;
-  holdings.forEach(h => {
+  (Array.isArray(holdings) ? holdings : []).forEach(h => {
     const val = (h.current_price || h.avg_cost) * h.shares;
     const sector = h.sector || 'Technology';
     sectorTotals[sector] = (sectorTotals[sector] || 0) + val;

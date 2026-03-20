@@ -14,7 +14,7 @@ export default function TradeHistory() {
     return <div className="p-8 text-center text-white/25 text-[12px]">Loading trade history...</div>;
   }
 
-  if (trades.length === 0) {
+  if (!Array.isArray(trades) || trades.length === 0) {
     return (
       <div className="p-12 flex flex-col items-center text-center gap-3">
         <div className="h-14 w-14 rounded-2xl border border-white/[0.06] bg-white/[0.03] flex items-center justify-center">
@@ -41,7 +41,7 @@ export default function TradeHistory() {
           </tr>
         </thead>
         <tbody>
-          {trades.map((trade, i) => {
+          {(Array.isArray(trades) ? trades : []).map((trade, i) => {
             const isBuy = trade.action === 'buy';
             const date = trade.created_date ? new Date(trade.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : '—';
             return (

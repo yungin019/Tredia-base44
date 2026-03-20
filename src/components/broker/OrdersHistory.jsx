@@ -40,14 +40,14 @@ export default function OrdersHistory({ orders, onRefresh, loading }) {
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-bold text-white/80">Order History</h3>
-          <span className="text-[10px] text-white/25 bg-white/[0.04] px-2 py-0.5 rounded-full">{orders.length}</span>
+          <span className="text-[10px] text-white/25 bg-white/[0.04] px-2 py-0.5 rounded-full">{(Array.isArray(orders) ? orders : []).length}</span>
         </div>
         <button onClick={onRefresh} disabled={loading} className="text-white/20 hover:text-white/50 transition-colors">
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
-      {orders.length === 0 ? (
+      {(!Array.isArray(orders) || orders.length === 0) ? (
         <div className="p-12 text-center">
           <Clock className="h-10 w-10 text-white/8 mx-auto mb-3" />
           <p className="text-[12px] text-white/20">No orders yet</p>
@@ -63,7 +63,7 @@ export default function OrdersHistory({ orders, onRefresh, loading }) {
               </tr>
             </thead>
             <tbody>
-              {orders.map((o) => {
+              {(Array.isArray(orders) ? orders : []).map((o) => {
                 const sc = STATUS_CONFIG[o.status] || STATUS_CONFIG.new;
                 const Icon = sc.icon;
                 const canCancel = cancellable.includes(o.status);

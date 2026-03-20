@@ -13,10 +13,10 @@ export default function PaperTradeHistory({ trades }) {
       <div className="px-5 py-3.5 border-b border-white/[0.05] flex items-center gap-2">
         <Clock className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-bold text-white/80">Paper Order History</h3>
-        <span className="text-[10px] text-white/25 bg-white/[0.04] px-2 py-0.5 rounded-full">{trades.length}</span>
+        <span className="text-[10px] text-white/25 bg-white/[0.04] px-2 py-0.5 rounded-full">{(Array.isArray(trades) ? trades : []).length}</span>
       </div>
 
-      {trades.length === 0 ? (
+      {(!Array.isArray(trades) || trades.length === 0) ? (
         <div className="p-12 text-center">
           <Clock className="h-10 w-10 text-white/8 mx-auto mb-3" />
           <p className="text-[12px] text-white/20">No paper trades yet</p>
@@ -32,7 +32,7 @@ export default function PaperTradeHistory({ trades }) {
               </tr>
             </thead>
             <tbody>
-              {trades.map((trade) => {
+              {(Array.isArray(trades) ? trades : []).map((trade) => {
                 const sc = STATUS_CONFIG[trade.status] || STATUS_CONFIG.executed;
                 const Icon = sc.icon;
                 return (

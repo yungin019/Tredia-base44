@@ -37,7 +37,7 @@ export default function Portfolio() {
     if (!Array.isArray(holdings) || holdings.length === 0) return;
     async function loadPrices() {
       try {
-        const symbols = holdings.map(h => h.symbol);
+        const symbols = (Array.isArray(holdings) ? holdings : []).map(h => h.symbol);
         const res = await base44.functions.invoke('stockPrices', { symbols });
         if (res?.data?.prices) setLivePrices(res.data.prices);
       } catch {
@@ -229,7 +229,7 @@ export default function Portfolio() {
                   </tr>
                 </thead>
                 <tbody>
-                  {holdings.map((h) => {
+                  {(Array.isArray(holdings) ? holdings : []).map((h) => {
                     const currentPrice = livePrices[h.symbol] || h.current_price || h.avg_cost;
                     const pnl = (currentPrice - h.avg_cost) * h.shares;
                     const pnlPct = ((currentPrice - h.avg_cost) / h.avg_cost * 100);

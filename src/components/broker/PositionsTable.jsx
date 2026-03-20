@@ -2,8 +2,8 @@ import React from 'react';
 import { TrendingUp, RefreshCw } from 'lucide-react';
 
 export default function PositionsTable({ positions, onRefresh, loading }) {
-  const totalPL = positions.reduce((sum, p) => sum + parseFloat(p.unrealized_pl || 0), 0);
-  const totalValue = positions.reduce((sum, p) => sum + parseFloat(p.market_value || 0), 0);
+  const totalPL = (Array.isArray(positions) ? positions : []).reduce((sum, p) => sum + parseFloat(p.unrealized_pl || 0), 0);
+  const totalValue = (Array.isArray(positions) ? positions : []).reduce((sum, p) => sum + parseFloat(p.market_value || 0), 0);
 
   return (
     <div className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden">
@@ -11,10 +11,10 @@ export default function PositionsTable({ positions, onRefresh, loading }) {
         <div className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-chart-3" />
           <h3 className="text-sm font-bold text-white/80">Open Positions</h3>
-          <span className="text-[10px] text-white/25 bg-white/[0.04] px-2 py-0.5 rounded-full">{positions.length}</span>
+          <span className="text-[10px] text-white/25 bg-white/[0.04] px-2 py-0.5 rounded-full">{(Array.isArray(positions) ? positions : []).length}</span>
         </div>
         <div className="flex items-center gap-4">
-          {positions.length > 0 && (
+          {(Array.isArray(positions) ? positions : []).length > 0 && (
             <div className="text-right">
               <div className="text-[9px] text-white/25 uppercase tracking-[0.1em]">Total Unrealized P&L</div>
               <div className={`text-[13px] font-mono font-black ${totalPL >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
@@ -28,7 +28,7 @@ export default function PositionsTable({ positions, onRefresh, loading }) {
         </div>
       </div>
 
-      {positions.length === 0 ? (
+      {(!Array.isArray(positions) || positions.length === 0) ? (
         <div className="p-12 text-center">
           <TrendingUp className="h-10 w-10 text-white/8 mx-auto mb-3" />
           <p className="text-[12px] text-white/20">No open positions</p>
@@ -44,7 +44,7 @@ export default function PositionsTable({ positions, onRefresh, loading }) {
               </tr>
             </thead>
             <tbody>
-              {positions.map((pos) => {
+              {(Array.isArray(positions) ? positions : []).map((pos) => {
                 const pl = parseFloat(pos.unrealized_pl || 0);
                 const plPct = parseFloat(pos.unrealized_plpc || 0) * 100;
                 const isPos = pl >= 0;
