@@ -157,7 +157,8 @@ function TradeModal({ asset, action, onClose }) {
 export default function AssetDetail() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const symbol = window.location.pathname.split('/Asset/')[1] || 'NVDA';
+  const { symbol: routeSymbol } = useParams();
+  const symbol = (routeSymbol || 'NVDA').toUpperCase();
   const staticAsset = { ...(ASSET_DATA[symbol] || DEFAULT_ASSET), symbol };
 
   const [tradeAction, setTradeAction] = useState(null);
