@@ -167,6 +167,21 @@ export default function AssetDetail() {
   const [livePrice, setLivePrice] = useState(null);
   const [liveChart, setLiveChart] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [toast, setToast] = useState(null);
+  const [watchlistEntry, setWatchlistEntry] = useState(null);
+  const prevPriceRef = useRef(null);
+
+  const showToast = (msg, type = 'info') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 5000);
+  };
+
+  // Load watchlist entry for this symbol (to get alert_price)
+  useEffect(() => {
+    base44.entities.Watchlist.filter({ symbol }).then(results => {
+      if (results?.length > 0) setWatchlistEntry(results[0]);
+    }).catch(() => {});
+  }, [symbol]);
 
   useEffect(() => {
     async function loadAsset() {
@@ -177,7 +192,25 @@ export default function AssetDetail() {
           base44.functions.invoke('stockPrices', { symbol, mode: 'ohlc' }),
         ]);
         const price = priceRes?.data?.prices?.[symbol];
-        if (price) setLivePrice(price);
+        if (price) {
+          setLivePrice(price);
+
+          // Price target alert: check if we crossed the watchlist alert_price
+          if (watchlistEntry?.alert_price && prevPriceRef.current !== null) {
+            const prev = prevPriceRef.current;
+            const target = watchlistEntry.alert_price;
+            const crossed = (prev < target && price >= target) || (prev > target && price <= target);
+            if (crossed) {
+              const dir = price >= target ? '🟢 Hit target' : '🔴 Hit stop';
+              showToast(`${dir}: ${symbol} reached $${target.toLocaleString()}`, price >= target ? 'success' : 'danger');
+              base44.auth.me().then(user => {
+                sendPushNotification({ signal: price >= target ? 'BUY' : 'SELL', symbol, confidence: 90, technicalSummary: `Price alert triggered at $${target}` }, user).catch(() => {});
+              }).catch(() => {});
+            }
+          }
+          prevPriceRef.current = price;
+        }
+
         const chartData = ohlcRes?.data?.chartData;
         if (chartData && chartData.length > 0) setLiveChart(chartData);
       } catch {
@@ -187,7 +220,21 @@ export default function AssetDetail() {
       }
     }
     loadAsset();
-  }, [symbol]);
+  }, [symbol, watchlistEntry]);
+
+  // TREK signal notification: fire once on load if watchlisted and signal is BUY/SELL
+  useEffect(() => {
+    if (!watchlistEntry || !staticAsset) return;
+    if (!['BUY', 'SELL'].includes(staticAsset.signal)) return;
+    const key = `trek_notif_${symbol}_${staticAsset.signal}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+    const icon = staticAsset.signal === 'BUY' ? '⚡' : '⚠️';
+    showToast(`${icon} TREK ${staticAsset.signal} signal for ${symbol} — ${staticAsset.confidence}% confidence`, staticAsset.signal === 'BUY' ? 'success' : 'danger');
+    base44.auth.me().then(user => {
+      sendPushNotification({ signal: staticAsset.signal, symbol, confidence: staticAsset.confidence, technicalSummary: staticAsset.whyNow }, user).catch(() => {});
+    }).catch(() => {});
+  }, [watchlistEntry]);
 
   const asset = {
     ...staticAsset,
