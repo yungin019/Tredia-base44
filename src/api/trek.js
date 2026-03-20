@@ -54,6 +54,18 @@ function buildSystemPrompt(marketContext, user) {
 
 export async function askTrek(messages, marketContext, user = null) {
   const systemPrompt = buildSystemPrompt(marketContext, user);
-  const res = await base44.functions.invoke('trekChat', { messages, systemPrompt });
+
+  // Build enriched context object for Claude
+  const enrichedContext = marketContext ? {
+    fearGreed: `${marketContext.fng_value ?? '—'} (${marketContext.fng_label ?? '—'})`,
+    btcPrice: `$${marketContext.btc_price ?? '—'} (${marketContext.btc_change_24h ?? '—'}% 24h)`,
+    spxPrice: marketContext.spx_price ? `$${marketContext.spx_price}` : '—',
+    topGainers: marketContext.top_gainers || '—',
+    topLosers: marketContext.top_losers || '—',
+    userPortfolio: marketContext.portfolio || 'not provided',
+    recentNews: marketContext.recent_news || '—',
+  } : null;
+
+  const res = await base44.functions.invoke('trekChat', { messages, systemPrompt, marketContext: enrichedContext });
   return res.data?.reply || '';
 }
