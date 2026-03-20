@@ -128,6 +128,19 @@ export default function AIChat() {
   return (
     <>
       <QueryLimitModal isOpen={showLimitModal} onClose={() => setShowLimitModal(false)} />
+
+      {/* Super AI Panel - shown above the chat when active */}
+      <AnimatePresence>
+        {showSuperAI && (
+          <div className="mb-3">
+            <SuperAIPanel
+              question={superAIQuestion}
+              isElite={tier === 'elite'}
+              onClose={() => { setShowSuperAI(false); setSuperAIQuestion(null); }}
+            />
+          </div>
+        )}
+      </AnimatePresence>
       <div className="rounded-xl border border-primary/20 bg-[#0e0e16] overflow-hidden flex flex-col glow-gold h-full" style={{ minHeight: 320 }}>
       <div className="h-[1px] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
