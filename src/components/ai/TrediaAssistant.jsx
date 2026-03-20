@@ -280,7 +280,7 @@ Always end with a suggested next action or follow-up question.`;
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={openWithGreeting}
-            className="fixed bottom-20 right-4 z-40 h-13 w-13 rounded-full flex items-center justify-center shadow-2xl"
+            className="fixed bottom-20 right-4 z-40 rounded-full flex items-center justify-center shadow-2xl"
             style={{
               width: 52, height: 52,
               background: 'linear-gradient(135deg, #F59E0B, #D97706)',
@@ -288,7 +288,7 @@ Always end with a suggested next action or follow-up question.`;
             }}
           >
             <Sparkles className="h-5 w-5 text-black" />
-          </motion.div>
+          </motion.button>
         )}
       </AnimatePresence>
 
