@@ -17,7 +17,8 @@ Deno.serve(async (req) => {
     const secretKey = Deno.env.get('ALPACA_SECRET_KEY');
 
     // Submit order to Alpaca
-    const orderRes = await fetch(`${baseUrl}/v2/orders`, {
+    const base = baseUrl.replace(/\/v2\/?$/, '').replace(/\/$/, '');
+    const orderRes = await fetch(`${base}/v2/orders`, {
       method: 'POST',
       headers: {
         'APCA-API-KEY-ID': apiKey,
