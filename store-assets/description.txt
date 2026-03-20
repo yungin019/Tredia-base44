@@ -1,0 +1,110 @@
+TREDIA - AI-Powered Trading Intelligence
+
+Transform your trading with TREDIA, the most advanced AI-powered trading intelligence platform designed for modern investors. Whether you're a beginner or seasoned trader, TREDIA gives you institutional-grade market insights powered by our proprietary TREK AI engine.
+
+WHAT IS TREDIA?
+
+TREDIA combines cutting-edge artificial intelligence with real-time market data to deliver actionable trading signals, portfolio analysis, and risk management tools directly to your mobile device. Our platform analyzes millions of data points across stocks, crypto, forex, and commodities to identify high-probability trading opportunities before the market moves.
+
+KEY FEATURES:
+
+⚡ TREK AI ENGINE - Our proprietary AI analyzes technical indicators, sentiment, institutional flow, volume patterns, and macroeconomic data to generate precise buy/sell/hold signals with confidence scores. TREK learns from market behavior and adapts to changing conditions in real-time.
+
+📊 REAL-TIME MARKET SIGNALS - Get instant notifications when TREK identifies high-conviction trading opportunities. Each signal includes entry points, price targets, stop-loss levels, risk/reward ratios, and detailed analysis explaining why now is the time to act.
+
+🎯 PORTFOLIO INTELLIGENCE - Upload your holdings and receive AI-powered portfolio analysis including sector diversification warnings, risk scoring, correlation analysis, and optimization recommendations. Know exactly where you're overexposed and how to balance your positions.
+
+📈 ADVANCED CHARTING - Interactive price charts with 20+ technical indicators, multiple timeframes (1D, 1W, 1M, 3M, 1Y), and visual signal overlays. See exactly where TREK identified key support/resistance levels and trend reversals.
+
+📰 AI NEWS ANALYSIS - Never miss market-moving news again. TREK scans thousands of sources per second and delivers sentiment-analyzed headlines with impact scores. Understand how each story affects your watchlist and portfolio in real-time.
+
+💬 TREK CHAT - Ask TREK anything about markets, specific stocks, trading strategies, or portfolio decisions. Get instant, personalized responses based on current market conditions and your risk profile. It's like having a professional trader available 24/7.
+
+⚡ SUPER AI - Unlock multi-model consensus analysis where three specialized AI models (GPT-4, Claude, Gemini) analyze the same question and deliver a unified verdict with confidence breakdown. See where AI agrees and disagrees for maximum conviction.
+
+🎓 PAPER TRADING - Practice strategies risk-free with $100,000 virtual balance. Test TREK signals, refine your timing, and build confidence before risking real capital. Track your simulated P&L and learn from every trade.
+
+🌐 MULTI-LANGUAGE SUPPORT - Trade in your native language with full support for English, Spanish, French, German, Portuguese, Italian, Dutch, Russian, Japanese, Korean, Chinese (Simplified & Traditional), Arabic, Hindi, and Turkish.
+
+🔔 SMART ALERTS - Set custom price alerts, volatility triggers, and signal notifications. Get push notifications when your watchlist hits key levels or TREK detects new opportunities.
+
+📅 EARNINGS CALENDAR - Never miss earnings again. Track upcoming reports for your portfolio with countdowns, historical beat/miss data, and pre-earnings volatility analysis.
+
+🔍 MARKET SCANNER - Discover trending stocks, sector movers, and unusual volume spikes. Filter by signal type, timeframe, sector, and confidence level to find exactly what you're looking for.
+
+🌡️ FEAR & GREED METER - Real-time sentiment gauge showing market emotion with detailed breakdown of VIX levels, put/call ratios, and institutional positioning. Know when to be greedy and when to be fearful.
+
+SUBSCRIPTION TIERS:
+
+FREE - Get started with 5 TREK chat questions per day, delayed market data (15min), basic signals, and portfolio tracking. Perfect for exploring the platform and learning how AI-powered trading works.
+
+PRO ($29/month) - Unlock unlimited TREK chat, real-time market data, 10 Super AI queries per day, full confidence breakdowns showing RSI, volume, trend, sentiment, and institutional flow factors. Advanced portfolio analytics and priority signal delivery.
+
+ELITE ($99/month) - Everything in PRO plus unlimited Super AI access, institutional smart money flow data, Level 2 order book insights, pre-market/after-hours signals, dedicated support, and early access to new features. For serious traders who demand the edge.
+
+WHY CHOOSE TREDIA?
+
+• NO CONFLICTS OF INTEREST - We don't trade against you, sell your orders, or earn commissions. TREDIA makes money only through subscriptions, keeping our incentives aligned with your success.
+
+• TRANSPARENT AI - Every signal includes detailed reasoning. No black boxes. You always know why TREK recommends a trade and can verify the logic yourself.
+
+• PRIVACY FIRST - Your portfolio data, chat history, and trading strategies are encrypted and never sold to third parties. What you trade is your business.
+
+• CONTINUOUS LEARNING - TREK improves daily by analyzing millions of historical patterns and real-time market behavior. The AI that serves you today is smarter than yesterday's version.
+
+• COMMUNITY DRIVEN - We listen to traders. Feature requests from users drive our roadmap. If you need it, we'll build it.
+
+• MOBILE FIRST - Designed for traders on the go. Lightning-fast interface, offline mode for saved data, and optimized for one-handed use. Trade from anywhere.
+
+HOW IT WORKS:
+
+1. Download TREDIA and complete your 2-minute onboarding to personalize TREK for your risk tolerance, goals, and experience level.
+
+2. Browse daily signals curated for your profile or ask TREK specific questions about stocks you're watching.
+
+3. Review detailed analysis including chart patterns, volume confirmation, institutional activity, and risk levels.
+
+4. Execute trades in your brokerage account using TREK's entry points and stop-loss guidance.
+
+5. Track performance, adjust your portfolio based on AI recommendations, and refine your strategy over time.
+
+IMPORTANT DISCLAIMERS:
+
+TREDIA provides educational information and AI-generated analysis. All trading involves risk of loss. Past performance does not guarantee future results. TREK signals are probabilities, not certainties. You alone are responsible for your trading decisions. Always trade with capital you can afford to lose. Consult a licensed financial advisor before making investment decisions.
+
+TREDIA does not provide personalized investment advice, brokerage services, or custody of funds. We are a technology platform delivering market intelligence tools.
+
+WHO IS TREDIA FOR?
+
+• Active traders seeking an edge in fast-moving markets
+• Long-term investors looking for optimal entry/exit timing
+• Crypto enthusiasts navigating volatile 24/7 markets
+• Portfolio managers wanting AI-powered risk analysis
+• Trading students learning technical and fundamental analysis
+• Anyone tired of missing opportunities or holding losers too long
+
+WHAT USERS ARE SAYING:
+
+"TREK called the NVDA breakout 2 days before it happened. Made 8% in one swing. This AI is unreal." - Michael R.
+
+"Finally, an app that explains WHY, not just WHAT to buy. The confidence breakdowns are game-changing." - Sarah K.
+
+"Paper trading feature let me test strategies without risk. Now I'm trading real money with confidence." - David L.
+
+"Super AI saved me from a bad earnings play. Three models agreed it was too risky. Dodged a 15% loss." - Jennifer T.
+
+GET STARTED TODAY:
+
+Download TREDIA now and experience the future of trading intelligence. Start with our generous FREE tier - no credit card required. See how AI can transform your market edge.
+
+Join thousands of traders who trust TREK to navigate volatile markets, identify opportunities, and manage risk with precision. The market waits for no one. Neither should you.
+
+Trade smarter. Trade with TREK. Trade with TREDIA.
+
+---
+
+Customer Support: support@tredia.app
+Privacy Policy: https://tredia.app/privacy
+Terms of Service: https://tredia.app/terms
+
+TREDIA - Where artificial intelligence meets trading intelligence.
