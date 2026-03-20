@@ -246,12 +246,50 @@ export default function AssetDetail() {
   const isUp = asset.change >= 0;
   const cvColor = asset.conviction === 'HIGH' ? '#22c55e' : asset.conviction === 'MEDIUM' ? '#F59E0B' : '#6b7280';
 
+  const handleAddToWatchlist = async () => {
+    if (watchlistEntry) return;
+    const entry = await base44.entities.Watchlist.create({ symbol, name: asset.name, alert_price: asset.price });
+    setWatchlistEntry(entry);
+    showToast(`${symbol} added to watchlist. You'll be alerted at $${asset.price.toLocaleString()}.`, 'success');
+  };
+
   return (
     <div className="p-4 lg:p-6 max-w-[700px] mx-auto pb-24">
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-xl text-sm font-bold shadow-xl flex items-center gap-2 max-w-xs text-center"
+            style={{
+              background: toast.type === 'success' ? 'rgba(34,197,94,0.15)' : toast.type === 'danger' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+              border: `1px solid ${toast.type === 'success' ? 'rgba(34,197,94,0.35)' : toast.type === 'danger' ? 'rgba(239,68,68,0.35)' : 'rgba(245,158,11,0.35)'}`,
+              color: toast.type === 'success' ? '#22c55e' : toast.type === 'danger' ? '#ef4444' : '#F59E0B',
+              backdropFilter: 'blur(12px)',
+            }}>
+            <BellRing className="h-4 w-4 flex-shrink-0" />
+            {toast.msg}
+            <button onClick={() => setToast(null)} className="ml-1 opacity-50 hover:opacity-100"><X className="h-3.5 w-3.5" /></button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Back */}
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors mb-5 text-sm font-medium">
-        <ArrowLeft className="h-4 w-4" /> {t('common.back')}
-      </button>
+      <div className="flex items-center justify-between mb-5">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors text-sm font-medium">
+          <ArrowLeft className="h-4 w-4" /> {t('common.back')}
+        </button>
+        <button onClick={handleAddToWatchlist}
+          className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full transition-all"
+          style={{
+            background: watchlistEntry ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.05)',
+            color: watchlistEntry ? '#F59E0B' : 'rgba(255,255,255,0.4)',
+            border: `1px solid ${watchlistEntry ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.1)'}`,
+          }}>
+          {watchlistEntry ? <BellRing className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />}
+          {watchlistEntry ? 'Watching' : 'Watch'}
+        </button>
+      </div>
 
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
