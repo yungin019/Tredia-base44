@@ -179,7 +179,21 @@ export default function AssetDetail() {
   const [loadingData, setLoadingData] = useState(true);
   const [toast, setToast] = useState(null);
   const [watchlistEntry, setWatchlistEntry] = useState(null);
+  const [trekAnalysis, setTrekAnalysis] = useState(null);
+  const [trekLoading, setTrekLoading] = useState(false);
   const prevPriceRef = useRef(null);
+
+  // Auto-trigger TREK analysis on mount
+  useEffect(() => {
+    setTrekLoading(true);
+    base44.functions.invoke('trekChat', {
+      message: `Give me a concise TREK analysis for ${symbol}. Include signal (BUY/SELL/HOLD), confidence %, key driver, and a brief trade plan.`,
+      symbol,
+    }).then(res => {
+      const text = res?.data?.reply || res?.data?.message || res?.data?.response || null;
+      if (text) setTrekAnalysis(text);
+    }).catch(() => {}).finally(() => setTrekLoading(false));
+  }, [symbol]);
 
   const showToast = (msg, type = 'info') => {
     setToast({ msg, type });
