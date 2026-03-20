@@ -86,7 +86,7 @@ export default function Notifications() {
           </button>
           <div className="flex-1">
             <h1 className="text-lg font-black text-white/95 tracking-tight">
-              {t('notifications.title') || 'Notifications'}
+              Notifications
             </h1>
             <p className="text-[10px] text-white/30 mt-0.5">
               {ALL_NOTIFICATIONS.length} notifications

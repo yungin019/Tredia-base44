@@ -79,7 +79,7 @@ export default function SignIn() {
             </svg>
           </div>
           <span className="text-3xl font-black tracking-tight" style={{ color: '#F59E0B', letterSpacing: '-0.03em' }}>TREDIA</span>
-           <p className="text-[11px] text-white/30 tracking-widest uppercase">{t('splash.tagline')}</p>
+           <p className="text-[11px] text-white/30 tracking-widest uppercase">AI-Powered Trading Intelligence</p>
         </motion.div>
 
         {/* Card */}
@@ -129,7 +129,7 @@ export default function SignIn() {
               className="flex items-center justify-center gap-3 w-full py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
             >
               <Mail className="h-4 w-4" />
-              {t('signin.emailAuth') || 'Continue with Email'}
+              Continue with Email
             </button>
           ) : (
             <form onSubmit={handleEmailAuth} className="flex flex-col gap-3">
