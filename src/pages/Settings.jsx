@@ -310,14 +310,10 @@ export default function Settings() {
                key={lang.code}
                onClick={async () => {
                  try {
-                   // i18next-browser-languagedetector stores under 'i18nextLng'
-                   localStorage.setItem('i18nextLng', lang.code);
                    document.documentElement.lang = lang.code;
                    document.documentElement.dir = lang.code === 'ar' ? 'rtl' : 'ltr';
                    await i18n.changeLanguage(lang.code);
                    setCurrentLang(lang.code);
-                   // Reload after a short delay to ensure state is saved
-                   setTimeout(() => window.location.reload(), 100);
                  } catch (e) {
                    console.error('Language change failed:', e);
                  }
