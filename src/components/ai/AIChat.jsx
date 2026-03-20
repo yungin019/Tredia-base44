@@ -228,6 +228,22 @@ export default function AIChat() {
             disabled={tier === 'free' && questionsToday >= FREE_LIMIT}
             className="bg-white/[0.04] border-white/[0.07] h-9 text-[12px] text-white/80 placeholder:text-white/20 focus:border-primary/40 disabled:opacity-50"
           />
+          {/* Super AI Button */}
+          <button
+            onClick={() => {
+              if (!input.trim()) return;
+              if (tier === 'free') { setShowLimitModal(true); return; }
+              setSuperAIQuestion(input.trim());
+              setInput('');
+              setShowSuperAI(true);
+            }}
+            disabled={!input.trim() || loading}
+            title="⚡ Super AI — 3 models analyze simultaneously"
+            className="h-9 px-2.5 rounded-lg flex items-center gap-1 text-[10px] font-black transition-all disabled:opacity-30 flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.08))', border: '1px solid rgba(245,158,11,0.4)', color: '#F59E0B' }}
+          >
+            <Zap className="h-3.5 w-3.5" />
+          </button>
           <Button
             onClick={() => send()}
             disabled={loading || !input.trim() || (tier === 'free' && questionsToday >= FREE_LIMIT)}
@@ -237,8 +253,8 @@ export default function AIChat() {
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
           </Button>
         </div>
-        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: 8 }}>
-          ⚡ {t('trek.disclaimer')}
+        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: 6 }}>
+          ⚡ TREK (Claude) · <span style={{ color: 'rgba(245,158,11,0.5)' }}>⚡ = Super AI (3 models)</span> · {t('trek.disclaimer')}
         </p>
       </div>
     </div>
