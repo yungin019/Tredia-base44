@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Loader2, Sparkles, RotateCcw, Zap } from 'lucide-react';
+import { Send, Loader2, Sparkles, RotateCcw, Zap, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -39,7 +40,10 @@ function TrekAvatar({ size = 5 }) {
 
 const QUERY_LIMIT_KEY = 'trek_daily_queries';
 const QUERY_LIMIT_DATE_KEY = 'trek_query_date';
+const SUPER_AI_LIMIT_KEY = 'superai_daily_queries';
+const SUPER_AI_DATE_KEY = 'superai_query_date';
 const FREE_LIMIT = 5;
+const PRO_SUPER_AI_LIMIT = 10;
 
 function getQuestionsToday() {
   const today = new Date().toDateString();
@@ -61,9 +65,30 @@ function incrementQuestions() {
   return next;
 }
 
+function getSuperAIToday() {
+  const today = new Date().toDateString();
+  const storedDate = localStorage.getItem(SUPER_AI_DATE_KEY);
+  if (storedDate !== today) {
+    localStorage.setItem(SUPER_AI_DATE_KEY, today);
+    localStorage.setItem(SUPER_AI_LIMIT_KEY, '0');
+    return 0;
+  }
+  return parseInt(localStorage.getItem(SUPER_AI_LIMIT_KEY) || '0', 10);
+}
+
+function incrementSuperAI() {
+  const today = new Date().toDateString();
+  localStorage.setItem(SUPER_AI_DATE_KEY, today);
+  const current = getSuperAIToday();
+  const next = current + 1;
+  localStorage.setItem(SUPER_AI_LIMIT_KEY, next.toString());
+  return next;
+}
+
 export default function AIChat() {
   const { t } = useTranslation();
   const { tier } = useSubscriptionStatus();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -71,6 +96,7 @@ export default function AIChat() {
   const [marketContext, setMarketContext] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [questionsToday, setQuestionsToday] = useState(0);
+  const [superAIToday, setSuperAIToday] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [superAIQuestion, setSuperAIQuestion] = useState(null);
   const [showSuperAI, setShowSuperAI] = useState(false);
@@ -79,6 +105,7 @@ export default function AIChat() {
 
   useEffect(() => {
     setQuestionsToday(getQuestionsToday());
+    setSuperAIToday(getSuperAIToday());
   }, []);
 
   useEffect(() => {
@@ -237,7 +264,12 @@ export default function AIChat() {
       <div className="sticky bottom-0 px-4 py-3 border-t border-white/[0.05] bg-[#0e0e16] safe-bottom">
         {tier === 'free' && (
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: 8, background: 'rgba(245,158,11,0.1)', borderRadius: 6, padding: '6px' }}>
-            {questionsToday}/{FREE_LIMIT} {t('trek.questionsLeft')}
+            TREK Chat: {questionsToday}/{FREE_LIMIT} questions today
+          </div>
+        )}
+        {tier === 'pro' && (
+          <div style={{ fontSize: 10, color: 'rgba(34,197,94,0.6)', textAlign: 'center', marginBottom: 8, background: 'rgba(34,197,94,0.08)', borderRadius: 6, padding: '6px' }}>
+            TREK Chat: Unlimited
           </div>
         )}
         <div className="flex gap-2">
@@ -253,17 +285,26 @@ export default function AIChat() {
           <button
             onClick={() => {
               if (!input.trim()) return;
+              // FREE: show lock and upgrade modal
               if (tier === 'free') { setShowLimitModal(true); return; }
+              // PRO: check limit (10/day)
+              if (tier === 'pro' && superAIToday >= PRO_SUPER_AI_LIMIT) { setShowLimitModal(true); return; }
+              // ELITE: unlimited
               setSuperAIQuestion(input.trim());
               setInput('');
               setShowSuperAI(true);
+              if (tier === 'pro') {
+                const next = incrementSuperAI();
+                setSuperAIToday(next);
+              }
             }}
             disabled={!input.trim() || loading}
-            title="⚡ Super AI — 3 models analyze simultaneously"
-            className="h-9 px-2.5 rounded-lg flex items-center gap-1 text-[10px] font-black transition-all disabled:opacity-30 flex-shrink-0"
+            title={tier === 'free' ? '🔒 Super AI (PRO/ELITE only)' : tier === 'pro' ? `⚡ Super AI (${superAIToday}/${PRO_SUPER_AI_LIMIT} today)` : '⚡ Super AI (Unlimited)'}
+            className="h-9 px-2.5 rounded-lg flex items-center gap-1 text-[10px] font-black transition-all disabled:opacity-30 flex-shrink-0 relative"
             style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.08))', border: '1px solid rgba(245,158,11,0.4)', color: '#F59E0B' }}
           >
-            <Zap className="h-3.5 w-3.5" />
+            {tier === 'free' ? <Lock className="h-3.5 w-3.5" /> : <Zap className="h-3.5 w-3.5" />}
+            {tier === 'pro' && <span className="text-[8px] ml-0.5">{superAIToday}/{PRO_SUPER_AI_LIMIT}</span>}
           </button>
           <Button
             onClick={() => send()}

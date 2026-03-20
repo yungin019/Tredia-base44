@@ -224,7 +224,8 @@ export default function Settings() {
             tier === 'elite' ? 'bg-[#F59E0B]/15 border border-[#F59E0B]/40 text-[#F59E0B]' :
             tier === 'pro' ? 'bg-blue-500/15 border border-blue-500/40 text-blue-400' :
             'bg-white/[0.06] border border-white/[0.1] text-white/40'
-          }`}>
+          }`}
+          style={tier === 'elite' ? { animation: 'eliteGoldGlow 2s ease-in-out infinite' } : {}}>
             {tier ? tier.toUpperCase() : t('upgrade.free')}
           </span>
           <span className="text-xs text-white/25">{t('settings.current')}</span>

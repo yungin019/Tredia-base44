@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, TrendingUp, TrendingDown, ShieldAlert, Target, Zap, CheckCircle2, X, Bell, BellRing } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, ShieldAlert, Target, Zap, CheckCircle2, X, Bell, BellRing, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { base44 } from '@/api/base44Client';
 import { sendPushNotification } from '@/api/notifications';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
@@ -24,36 +25,54 @@ const ASSET_DATA = {
     whyNow: 'AI integration driving earnings beat. Strong institutional buying. Services revenue accelerating. iPhone 16 cycle ahead.',
     conviction: 'HIGH', color: '#22c55e',
     chart: [192,194,193,196,195,198,196,199,197,195,196,198,194,196,197,195],
+    keyMetrics: { high52w: '$199', low52w: '$164', avgVol: '58M', marketCap: '$3.1T', pe: '29x' },
+    whyBullish: ['AI integration across product lineup driving margin expansion', 'Services segment accelerating (25% growth YoY)', 'iPhone 16 super-cycle expected with AI features'],
+    nextCatalyst: 'Earnings: Jan 30 | Product event expected Q1',
   },
   NVDA: { name: 'NVIDIA Corp', price: 871.20, change: 5.1, signal: 'BUY', confidence: 92, sector: 'Technology',
     entry: '871', target: '942', stop: '848', risk: '-2.6%', reward: '+8.2%',
     whyNow: 'RSI broke 60 after 3 weeks of consolidation. Volume 2.4× avg. Institutional accumulation pattern confirmed on 4H chart.',
     conviction: 'HIGH', color: '#22c55e',
     chart: [870,874,869,878,882,876,884,891,886,880,887,895,871,875,882,890],
+    keyMetrics: { high52w: '$974', low52w: '$402', avgVol: '42M', marketCap: '$2.4T', pe: '68x' },
+    whyBullish: ['Blackwell GPU demand exceeding supply by 3-4 quarters', 'Cloud capex guidance raised by all hyperscalers', 'AI infrastructure buildout in early innings (2-3 year cycle)'],
+    nextCatalyst: 'Earnings: Feb 26 | GTC Conference March',
   },
   TSLA: { name: 'Tesla Inc.', price: 175.30, change: -2.4, signal: 'SELL', confidence: 74, sector: 'Automotive',
     entry: '175', target: '148', stop: '186', risk: '+6.3%', reward: '-15.4%',
     whyNow: 'Volume drying up. Bearish divergence on daily. Break below $165 opens path to $145 support.',
     conviction: 'MEDIUM', color: '#ef4444',
     chart: [182,179,177,180,178,174,176,173,177,175,172,175,178,173,176,175],
+    keyMetrics: { high52w: '$299', low52w: '$138', avgVol: '102M', marketCap: '$558B', pe: '71x' },
+    whyBearish: ['Delivery guidance miss risk as demand softens in China', 'Margin compression from price cuts not offset by volume', 'Technical breakdown below 200-day MA with weak RSI'],
+    nextCatalyst: 'Earnings: Jan 24 | Cybertruck production update',
   },
   META: { name: 'Meta Platforms', price: 520.15, change: -1.2, signal: 'AVOID', confidence: 71, sector: 'Technology',
     entry: null, target: null, stop: null, risk: '-8%', reward: null,
     whyNow: 'Bearish divergence on daily RSI. Weak relative strength vs sector peers. Await cleaner setup.',
     conviction: 'MEDIUM', color: '#ef4444',
     chart: [535,528,532,525,521,524,519,523,518,522,520,517,521,519,520,520],
+    keyMetrics: { high52w: '$602', low52w: '$279', avgVol: '16M', marketCap: '$1.3T', pe: '26x' },
+    whyBearish: ['Ad revenue uncertainty as consumer spending moderates', 'Metaverse/Reality Labs burning $4B+ per quarter', 'Three analyst downgrades in 72 hours citing valuation'],
+    nextCatalyst: 'Earnings: Feb 1 | Q1 ad guidance critical',
   },
   JPM: { name: 'JPMorgan Chase', price: 201.50, change: 1.5, signal: 'WATCH', confidence: 81, sector: 'Finance',
     entry: '200', target: '216', stop: '193', risk: '-3.5%', reward: '+7.2%',
     whyNow: 'Sector rotation into financials. Rate cut expectations boosting bank margins. Accumulation at $195–202 range.',
     conviction: 'MEDIUM', color: '#F59E0B',
     chart: [195,197,198,200,199,201,203,200,202,204,201,203,205,202,201,202],
+    keyMetrics: { high52w: '$218', low52w: '$135', avgVol: '11M', marketCap: '$589B', pe: '12x' },
+    whyBullish: ['Net interest income expanding as rates stay elevated', 'Credit quality stable despite macro concerns', 'Trading desk outperforming in volatile environment'],
+    nextCatalyst: 'Earnings: Jan 12 | NII guidance key metric',
   },
   BTC: { name: 'Bitcoin', price: 67420, change: 4.8, signal: 'BUY', confidence: 87, sector: 'Crypto',
     entry: '67000', target: '78500', stop: '61200', risk: '-8.6%', reward: '+16.8%',
     whyNow: 'Spot ETF inflows at record levels. On-chain data shows whale accumulation. Halving cycle momentum.',
     conviction: 'HIGH', color: '#22c55e',
     chart: [64200,65100,63800,66000,65400,67100,66200,68100,67300,66800,67900,68400,67100,67600,68000,67420],
+    keyMetrics: { high52w: '$73,800', low52w: '$38,500', avgVol: '24B', marketCap: '$1.3T', pe: null },
+    whyBullish: ['Spot ETF inflows hitting $1.2B daily (institutional FOMO)', 'April halving historically bullish (supply shock)', 'On-chain metrics show whale accumulation at $60-68K zone'],
+    nextCatalyst: 'Halving cycle: next major resistance $80k',
   },
 };
 
@@ -177,6 +196,7 @@ export default function AssetDetail() {
   const { symbol: routeSymbol } = useParams();
   const symbol = (routeSymbol || 'NVDA').toUpperCase();
   const staticAsset = { ...(ASSET_DATA[symbol] || DEFAULT_ASSET), ...(ASSET_MAP[symbol] || {}), symbol };
+  const { tier } = useSubscriptionStatus();
 
   const [tradeAction, setTradeAction] = useState(null);
   const [showPlan, setShowPlan] = useState(false);
@@ -188,6 +208,7 @@ export default function AssetDetail() {
   const [trekAnalysis, setTrekAnalysis] = useState(null);
   const [trekLoading, setTrekLoading] = useState(false);
   const [timeframe, setTimeframe] = useState('1D');
+  const [showConfidenceBreakdown, setShowConfidenceBreakdown] = useState(false);
   const prevPriceRef = useRef(null);
 
   // Auto-trigger TREK analysis on mount
@@ -336,7 +357,19 @@ export default function AssetDetail() {
             <p className="text-[12px] text-white/40">{asset.name} · {asset.sector}</p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-black font-mono text-white/95">${asset.price.toLocaleString()}</div>
+            <div className="flex items-center justify-end gap-2 mb-1">
+              <div className="text-2xl font-black font-mono text-white/95">${asset.price.toLocaleString()}</div>
+              {tier === 'free' && (
+                <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                  Delayed 15min
+                </span>
+              )}
+              {(tier === 'pro' || tier === 'elite') && (
+                <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+                  Real-time
+                </span>
+              )}
+            </div>
             <div className={`flex items-center justify-end gap-1 text-[13px] font-bold font-mono ${isUp ? 'text-chart-3' : 'text-destructive'}`}>
               {isUp ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
               {isUp ? '+' : ''}{asset.change}%
@@ -401,6 +434,76 @@ export default function AssetDetail() {
           ) : trekAnalysis || asset.whyNow}
         </p>
 
+        {/* Confidence Breakdown - Collapsible */}
+        <button
+          onClick={() => setShowConfidenceBreakdown(v => !v)}
+          className="text-[10px] font-bold flex items-center gap-1 transition-colors mb-2"
+          style={{ color: asset.color, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          {showConfidenceBreakdown ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          Why {asset.confidence}%?
+        </button>
+
+        <AnimatePresence>
+          {showConfidenceBreakdown && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{ overflow: 'hidden' }}
+              className="mb-3">
+              <div className="space-y-2 pt-2 border-t border-white/[0.06]">
+                {/* FREE tier: show first 2 clearly, blur 3-5 */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-white/60">RSI Score</span>
+                  <span className="text-[10px] font-bold text-white/85">85/100</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-white/60">Volume</span>
+                  <span className="text-[10px] font-bold text-white/85">2.4× avg</span>
+                </div>
+
+                {/* Blur factors 3-5 for FREE tier */}
+                <div className={tier === 'free' ? 'relative' : ''}>
+                  {tier === 'free' && (
+                    <div className="absolute inset-0 backdrop-blur-sm bg-black/20 rounded-lg flex items-center justify-center z-10">
+                      <div className="text-center">
+                        <Lock className="h-4 w-4 text-primary mx-auto mb-1" />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigate('/Upgrade'); }}
+                          className="text-[9px] font-bold text-primary hover:text-primary/80 transition-colors">
+                          Unlock with PRO
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-white/60">Trend</span>
+                      <span className="text-[10px] font-bold text-white/85">Above 50MA</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-white/60">Sentiment</span>
+                      <span className="text-[10px] font-bold text-white/85">Bullish</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-white/60">Institutional Flow</span>
+                      <span className="text-[10px] font-bold text-white/85">Accumulating</span>
+                    </div>
+                    {/* ELITE: show smart money row */}
+                    {tier === 'elite' && (
+                      <div className="flex items-center justify-between pt-2 border-t border-primary/20">
+                        <span className="text-[10px] text-primary font-bold">Smart Money</span>
+                        <span className="text-[10px] font-bold text-primary">Heavy Buy</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <button onClick={() => setShowPlan(v => !v)}
           className="text-[10px] font-bold flex items-center gap-1 transition-colors"
           style={{ color: asset.color, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -453,7 +556,7 @@ export default function AssetDetail() {
 
       {/* Key stats */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-        className="grid grid-cols-3 gap-3">
+        className="grid grid-cols-3 gap-3 mb-4">
         {[
           { label: t('trek.signal'), value: asset.signal, color: asset.color },
           { label: t('trek.confidence'), value: `${asset.confidence}%`, color: 'rgba(255,255,255,0.7)' },
@@ -465,6 +568,70 @@ export default function AssetDetail() {
           </div>
         ))}
       </motion.div>
+
+      {/* Key Metrics */}
+      {staticAsset.keyMetrics && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
+          className="rounded-xl p-4 mb-4" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <h3 className="text-[11px] font-black text-white/70 uppercase tracking-wider mb-3">Key Metrics</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-[9px] text-white/30 mb-0.5">52W High</p>
+              <p className="text-[12px] font-mono font-bold text-white/85">{staticAsset.keyMetrics.high52w}</p>
+            </div>
+            <div>
+              <p className="text-[9px] text-white/30 mb-0.5">52W Low</p>
+              <p className="text-[12px] font-mono font-bold text-white/85">{staticAsset.keyMetrics.low52w}</p>
+            </div>
+            <div>
+              <p className="text-[9px] text-white/30 mb-0.5">Avg Volume</p>
+              <p className="text-[12px] font-mono font-bold text-white/85">{staticAsset.keyMetrics.avgVol}</p>
+            </div>
+            <div>
+              <p className="text-[9px] text-white/30 mb-0.5">Market Cap</p>
+              <p className="text-[12px] font-mono font-bold text-white/85">{staticAsset.keyMetrics.marketCap}</p>
+            </div>
+            {staticAsset.keyMetrics.pe && (
+              <div>
+                <p className="text-[9px] text-white/30 mb-0.5">P/E Ratio</p>
+                <p className="text-[12px] font-mono font-bold text-white/85">{staticAsset.keyMetrics.pe}</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Why TREK is Bullish/Bearish */}
+      {(staticAsset.whyBullish || staticAsset.whyBearish) && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+          className="rounded-xl p-4 mb-4"
+          style={{ background: `${asset.color}08`, border: `1px solid ${asset.color}20` }}>
+          <h3 className="text-[11px] font-black uppercase tracking-wider mb-3" style={{ color: asset.color }}>
+            Why TREK is {asset.signal === 'BUY' ? 'Bullish' : asset.signal === 'SELL' ? 'Bearish' : 'Watching'}
+          </h3>
+          <ul className="space-y-2">
+            {(staticAsset.whyBullish || staticAsset.whyBearish || []).map((point, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="text-[10px] mt-0.5" style={{ color: asset.color }}>▸</span>
+                <span className="text-[11px] text-white/70 leading-relaxed">{point}</span>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      )}
+
+      {/* Next Catalyst */}
+      {staticAsset.nextCatalyst && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+          className="rounded-xl p-4"
+          style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Target className="h-3.5 w-3.5 text-primary" />
+            <h3 className="text-[11px] font-black text-primary uppercase tracking-wider">Next Catalyst</h3>
+          </div>
+          <p className="text-[12px] text-white/80 leading-relaxed">{staticAsset.nextCatalyst}</p>
+        </motion.div>
+      )}
 
       {/* Trade Modal */}
       <AnimatePresence>

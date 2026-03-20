@@ -244,50 +244,61 @@ export default function Home() {
               <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" /> {t('common.live')}
             </span>
           </div>
-          <p className="text-[13px] text-white/75 leading-relaxed font-medium mb-3">
-            {t('home.trekInsight')} <span style={{ color: sentimentColor, fontWeight: 800 }}>{sentimentLabel}</span> {t('home.territory')}
-            {fearGreed ? ` (${fearGreed.value}/100)` : ''}. {t('home.aiDetects')}
-            {t('home.vixFlag')}
-          </p>
-          <div className="flex gap-3 flex-wrap">
-            {[
-              { label: t('home.bestSetup'), value: 'NVDA BUY' },
-              { label: t('home.biggestRisk'), value: 'VIX spike' },
-              { label: t('trek.sentiment'), value: sentimentLabel },
-            ].map(item => (
-              <div key={item.label} className="rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <p className="text-[9px] text-white/30 mb-0.5">{typeof item.label === 'string' && item.label.startsWith('home.') ? item.label : item.label}</p>
-                <p className="text-[11px] font-black text-white/85 font-mono">{item.value}</p>
+
+          {/* Expanded TREK Insight with 4 sections */}
+          <div className="space-y-2.5">
+            {/* Line 1: Score label */}
+            <div>
+              <span className="text-[13px] font-black text-primary">
+                {fearGreed?.value < 20 ? 'EXTREME FEAR' : fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value < 60 ? 'NEUTRAL' : fearGreed?.value < 80 ? 'GREED' : 'EXTREME GREED'} territory ({fearGreed?.value || 50}/100)
+              </span>
+            </div>
+
+            {/* Line 2: Why */}
+            <div className="flex items-start gap-2">
+              <span className="text-[11px] font-bold text-white/50">Why:</span>
+              <p className="text-[11px] text-white/75 leading-relaxed">
+                {fearGreed?.value < 20
+                  ? 'Fed hawkish stance + tech selloff driving institutional exit. VIX spiking.'
+                  : fearGreed?.value < 40
+                  ? 'Market uncertainty as earnings disappoint. Volatility elevated.'
+                  : fearGreed?.value < 60
+                  ? 'Mixed signals across sectors. Awaiting clearer direction.'
+                  : 'Optimism driven by strong earnings and AI momentum. Dip-buying active.'}
+              </p>
+            </div>
+
+            {/* Line 3: Most at risk */}
+            <div className="flex items-start gap-2">
+              <span className="text-[11px] font-bold text-white/50">Most at risk:</span>
+              <p className="text-[11px] text-white/75 leading-relaxed">
+                {fearGreed?.value < 20
+                  ? 'Tech, Growth stocks, Crypto'
+                  : fearGreed?.value < 40
+                  ? 'Small-caps, Consumer Discretionary'
+                  : fearGreed?.value < 60
+                  ? 'Balanced exposure'
+                  : 'Defensive sectors lagging'}
+              </p>
+            </div>
+
+            {/* Line 4: TREK says */}
+            <div className="rounded-lg px-3 py-2.5" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.15)' }}>
+              <div className="flex items-start gap-2">
+                <span className="text-[11px] font-black text-primary">TREK says:</span>
+                <p className="text-[11px] text-white/85 leading-relaxed font-medium">
+                  {fearGreed?.value < 20
+                    ? 'Reduce exposure, hold cash, watch for reversal signals.'
+                    : fearGreed?.value < 40
+                    ? 'Tighten stops, avoid new longs. Defensive posture.'
+                    : fearGreed?.value < 60
+                    ? 'Stay selective. Quality over quantity.'
+                    : 'Lean long on momentum, set trailing stops. Ride the wave.'}
+                </p>
               </div>
-            ))}
+            </div>
           </div>
         </motion.div>
-
-        {/* ── ALERTS ── */}
-        <div>
-          <SectionTitle icon="🚨" label={t('home.alerts')} sub={t('home.timeSensitive')} action={t('home.allSignals')} onAction={() => navigate('/AIInsights')} />
-          <div className="space-y-2">
-            {ALERTS.map((a, i) => (
-               <motion.button
-                 key={a.id}
-                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
-                 onClick={() => navigate('/AIInsights')}
-                 className="w-full text-left rounded-xl px-4 py-3 flex items-center gap-3 transition-all hover:scale-[1.01] tap-feedback"
-                 style={{ background: a.bg, border: `1px solid ${a.border}`, borderLeft: `3px solid ${a.color}` }}
-               >
-                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style={{ color: a.color, background: `${a.color}20`, border: `1px solid ${a.color}40` }}>
-                   {a.type}
-                 </span>
-                 <span className="font-mono font-black text-[12px] text-white/85 flex-shrink-0">{a.symbol}</span>
-                 <span className="text-[11px] text-white/55 flex-1 truncate">{a.note}</span>
-                <span className="flex items-center gap-1 text-[9px] text-white/20 font-mono flex-shrink-0">
-                  <Clock className="h-2.5 w-2.5" />{a.age}
-                </span>
-                <ChevronRight className="h-3.5 w-3.5 text-white/20 flex-shrink-0" />
-              </motion.button>
-            ))}
-          </div>
-        </div>
 
         {/* ── FOR YOU ── */}
         <div>
@@ -377,6 +388,72 @@ export default function Home() {
           </div>
         </div>
 
+        {/* ── ALERTS (moved after signals) ── */}
+        <div>
+          <SectionTitle icon="🚨" label={t('home.alerts')} sub={t('home.timeSensitive')} action={t('home.allSignals')} onAction={() => navigate('/AIInsights')} />
+          <div className="space-y-2">
+            {ALERTS.map((a, i) => (
+               <motion.button
+                 key={a.id}
+                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
+                 onClick={() => navigate('/AIInsights')}
+                 className="w-full text-left rounded-xl px-4 py-3 flex items-center gap-3 transition-all hover:scale-[1.01] tap-feedback"
+                 style={{ background: a.bg, border: `1px solid ${a.border}`, borderLeft: `3px solid ${a.color}` }}
+               >
+                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style={{ color: a.color, background: `${a.color}20`, border: `1px solid ${a.color}40` }}>
+                   {a.type}
+                 </span>
+                 <span className="font-mono font-black text-[12px] text-white/85 flex-shrink-0">{a.symbol}</span>
+                 <span className="text-[11px] text-white/55 flex-1 truncate">{a.note}</span>
+                <span className="flex items-center gap-1 text-[9px] text-white/20 font-mono flex-shrink-0">
+                  <Clock className="h-2.5 w-2.5" />{a.age}
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 text-white/20 flex-shrink-0" />
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── NEWS HORIZONTAL CAROUSEL ── */}
+        <div>
+          <SectionTitle icon="📰" label={t('home.marketNews')} sub={t('home.aiAnalyzed')} />
+          <div className="overflow-x-auto -mx-4 px-4" style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="flex gap-3">
+              {newsItems.map((article, i) => (
+                <motion.button
+                  key={i}
+                  initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                  onClick={() => setSelectedNews(article)}
+                  className="flex-shrink-0 text-left rounded-2xl overflow-hidden tap-feedback"
+                  style={{ width: '85vw', maxWidth: '400px', border: '1px solid rgba(255,255,255,0.08)', scrollSnapAlign: 'start' }}
+                >
+                  <img src={article.image} alt="" className="w-full h-36 object-cover" style={{ opacity: 0.75 }} />
+                  <div className="p-4" style={{ background: '#111118' }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
+                        style={{ color: article.sentiment === 'BULLISH' ? '#22c55e' : article.sentiment === 'BEARISH' ? '#ef4444' : '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                        {article.sentiment}
+                      </span>
+                      <span className="text-[9px] text-white/25 font-mono">{t('common.impact')}: {article.impact}/10</span>
+                      <span className="text-[9px] text-white/20 font-mono ml-auto">{article.age}</span>
+                    </div>
+                    <p className="text-[13px] font-bold text-white/90 leading-snug mb-2 line-clamp-2">{article.headline}</p>
+                    <p className="text-[11px] text-white/45 leading-relaxed mb-3 line-clamp-2">{article.summary}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-1.5 flex-wrap">
+                        {(article.tickers || []).slice(0, 3).map(t => (
+                          <span key={t} className="text-[9px] font-bold font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">{t}</span>
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-bold text-primary/60">{t('home.tapToRead')} →</span>
+                    </div>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* ── RISK WARNINGS ── */}
         <div>
           <SectionTitle icon="⚠️" label={t('home.riskWarnings')} sub={t('home.assetsToAvoid')} />
@@ -401,50 +478,6 @@ export default function Home() {
                 </div>
                 <ChevronRight className="h-3.5 w-3.5 text-white/20 flex-shrink-0" />
               </motion.button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── NEWS CAROUSEL ── */}
-        <div>
-          <SectionTitle icon="📰" label={t('home.marketNews')} sub={t('home.aiAnalyzed')} />
-          <AnimatePresence mode="wait">
-            <motion.button
-              key={newsIdx}
-              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => setSelectedNews(newsItems[newsIdx])}
-              className="w-full text-left rounded-2xl overflow-hidden tap-feedback"
-              style={{ border: '1px solid rgba(255,255,255,0.08)' }}
-            >
-              <img src={newsItems[newsIdx]?.image} alt="" className="w-full h-36 object-cover" style={{ opacity: 0.75 }} />
-              <div className="p-4" style={{ background: '#111118' }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
-                    style={{ color: newsItems[newsIdx]?.sentiment === 'BULLISH' ? '#22c55e' : newsItems[newsIdx]?.sentiment === 'BEARISH' ? '#ef4444' : '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                    {newsItems[newsIdx]?.sentiment}
-                  </span>
-                  <span className="text-[9px] text-white/25 font-mono">{t('common.impact')}: {newsItems[newsIdx]?.impact}/10</span>
-                  <span className="text-[9px] text-white/20 font-mono ml-auto">{newsItems[newsIdx]?.age}</span>
-                </div>
-                <p className="text-[13px] font-bold text-white/90 leading-snug mb-2">{newsItems[newsIdx]?.headline}</p>
-                <p className="text-[11px] text-white/45 leading-relaxed mb-3">{newsItems[newsIdx]?.summary}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-1.5">
-                    {(newsItems[newsIdx]?.tickers || []).map(t => (
-                      <span key={t} className="text-[9px] font-bold font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">{t}</span>
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-bold text-primary/60">{t('home.tapToRead')} →</span>
-                </div>
-              </div>
-            </motion.button>
-          </AnimatePresence>
-          <div className="flex items-center justify-center gap-2 mt-3">
-            {newsItems.map((_, i) => (
-              <button key={i} onClick={() => setNewsIdx(i)}
-                className="rounded-full transition-all"
-                style={{ width: i === newsIdx ? 20 : 6, height: 6, background: i === newsIdx ? '#F59E0B' : 'rgba(255,255,255,0.15)' }} />
             ))}
           </div>
         </div>
