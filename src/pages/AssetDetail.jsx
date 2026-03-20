@@ -19,6 +19,12 @@ const ASSET_MAP = {
 
 // ── Static data store per symbol ─────────────────────────────────────────────
 const ASSET_DATA = {
+  AAPL: { name: 'Apple Inc.', price: 195.30, change: 1.2, signal: 'BUY', confidence: 84, sector: 'Technology',
+    entry: '195', target: '210', stop: '188', risk: '-3.6%', reward: '+7.7%',
+    whyNow: 'AI integration driving earnings beat. Strong institutional buying. Services revenue accelerating. iPhone 16 cycle ahead.',
+    conviction: 'HIGH', color: '#22c55e',
+    chart: [192,194,193,196,195,198,196,199,197,195,196,198,194,196,197,195],
+  },
   NVDA: { name: 'NVIDIA Corp', price: 871.20, change: 5.1, signal: 'BUY', confidence: 92, sector: 'Technology',
     entry: '871', target: '942', stop: '848', risk: '-2.6%', reward: '+8.2%',
     whyNow: 'RSI broke 60 after 3 weeks of consolidation. Volume 2.4× avg. Institutional accumulation pattern confirmed on 4H chart.',
@@ -181,6 +187,7 @@ export default function AssetDetail() {
   const [watchlistEntry, setWatchlistEntry] = useState(null);
   const [trekAnalysis, setTrekAnalysis] = useState(null);
   const [trekLoading, setTrekLoading] = useState(false);
+  const [timeframe, setTimeframe] = useState('1D');
   const prevPriceRef = useRef(null);
 
   // Auto-trigger TREK analysis on mount
@@ -341,6 +348,25 @@ export default function AssetDetail() {
       {/* Chart */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.07 }}
         className="rounded-xl border border-white/[0.07] bg-[#111118] p-4 mb-4">
+        {/* Timeframe Selector */}
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Price Chart</span>
+          <div className="flex items-center gap-1 bg-white/[0.03] rounded-lg p-0.5 border border-white/[0.06]">
+            {['1D', '1W', '1M', '3M', '1Y'].map((tf) => (
+              <button
+                key={tf}
+                onClick={() => setTimeframe(tf)}
+                className={`px-2.5 py-1 rounded-md text-[9px] font-bold transition-all ${
+                  timeframe === tf
+                    ? 'bg-primary/15 text-primary border border-primary/25'
+                    : 'text-white/30 hover:text-white/50'
+                }`}
+              >
+                {tf}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="h-[160px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>

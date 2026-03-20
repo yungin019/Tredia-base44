@@ -170,9 +170,9 @@ export default function NewsFeed() {
                 {a.tickers?.length > 0 && (
                   <div className="flex items-center gap-1.5">
                     <span className="text-[8px] text-white/20 uppercase tracking-wider">Affects:</span>
-                    {a.tickers.map(t => (
-                      <span key={t} className="text-[8px] font-black font-mono px-1.5 py-0.5 rounded bg-white/[0.05] border border-white/[0.08] text-white/45">
-                        {t}
+                    {a.tickers.map((ticker, tickerIdx) => (
+                      <span key={`${i}-${tickerIdx}`} className="text-[8px] font-black font-mono px-1.5 py-0.5 rounded bg-white/[0.05] border border-white/[0.08] text-white/45">
+                        {ticker}
                       </span>
                     ))}
                   </div>

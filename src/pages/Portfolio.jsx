@@ -34,7 +34,7 @@ export default function Portfolio() {
   });
 
   useEffect(() => {
-    if (holdings.length === 0) return;
+    if (!Array.isArray(holdings) || holdings.length === 0) return;
     async function loadPrices() {
       try {
         const symbols = holdings.map(h => h.symbol);
@@ -52,15 +52,15 @@ export default function Portfolio() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio'] }),
   });
 
-  const totalValue = holdings.reduce((sum, h) => sum + (livePrices[h.symbol] || h.current_price || h.avg_cost) * h.shares, 0);
-  const totalCost = holdings.reduce((sum, h) => sum + h.avg_cost * h.shares, 0);
+  const totalValue = Array.isArray(holdings) ? holdings.reduce((sum, h) => sum + (livePrices[h.symbol] || h.current_price || h.avg_cost) * h.shares, 0) : 0;
+  const totalCost = Array.isArray(holdings) ? holdings.reduce((sum, h) => sum + h.avg_cost * h.shares, 0) : 0;
   const totalPnL = totalValue - totalCost;
   const totalPnLPercent = totalCost > 0 ? (totalPnL / totalCost * 100) : 0;
 
-  const pieData = holdings.map((h) => ({
+  const pieData = Array.isArray(holdings) ? holdings.map((h) => ({
     name: h.symbol,
     value: +((livePrices[h.symbol] || h.current_price || h.avg_cost) * h.shares).toFixed(2),
-  }));
+  })) : [];
 
   return (
     <PullToRefresh onRefresh={async () => {
@@ -136,7 +136,7 @@ export default function Portfolio() {
       </div>
 
       {/* Pie Chart - only show when holdings exist */}
-      {holdings.length > 0 && (
+      {Array.isArray(holdings) && holdings.length > 0 && (
         <div className="rounded-xl border border-white/[0.07] bg-[#111118] p-5">
           <div className="flex items-center gap-2 mb-4">
             <PieChart className="h-3.5 w-3.5 text-white/30" />

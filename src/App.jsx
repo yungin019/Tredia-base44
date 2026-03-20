@@ -9,6 +9,7 @@ import PageTransition from '@/components/ui/page-transition';
 
 import AppShell from './components/layout/AppShell';
 import SplashScreen from './pages/SplashScreen';
+import SignIn from './pages/SignIn';
 import Onboarding from './pages/Onboarding';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -22,7 +23,7 @@ import Upgrade from './pages/Upgrade';
 import AssetDetail from './pages/AssetDetail';
 
 const AuthenticatedApp = () => {
-  const { isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -36,10 +37,15 @@ const AuthenticatedApp = () => {
     );
   }
 
+  if (!user && location.pathname !== '/SignIn') {
+    return <Navigate to="/SignIn" replace />;
+  }
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Navigate to="/SplashScreen" replace />} />
+        <Route path="/" element={<Navigate to={user ? "/SplashScreen" : "/SignIn"} replace />} />
+        <Route path="/SignIn" element={<PageTransition><SignIn /></PageTransition>} />
         <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
         <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
         <Route element={<AppShell />}>

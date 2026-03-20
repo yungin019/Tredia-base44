@@ -307,14 +307,19 @@ export default function Settings() {
            ].map(lang => (
              <button
                key={lang.code}
-               onClick={() => {
-                 i18n.changeLanguage(lang.code);
-                 window.location.reload();
-                 // i18next-browser-languagedetector stores under 'i18nextLng'
-                 localStorage.setItem('i18nextLng', lang.code);
-                 document.documentElement.lang = lang.code;
-                 document.documentElement.dir = lang.code === 'ar' ? 'rtl' : 'ltr';
-                 setCurrentLang(lang.code);
+               onClick={async () => {
+                 try {
+                   // i18next-browser-languagedetector stores under 'i18nextLng'
+                   localStorage.setItem('i18nextLng', lang.code);
+                   document.documentElement.lang = lang.code;
+                   document.documentElement.dir = lang.code === 'ar' ? 'rtl' : 'ltr';
+                   await i18n.changeLanguage(lang.code);
+                   setCurrentLang(lang.code);
+                   // Reload after a short delay to ensure state is saved
+                   setTimeout(() => window.location.reload(), 100);
+                 } catch (e) {
+                   console.error('Language change failed:', e);
+                 }
                }}
                className={`p-3 rounded-lg border transition-all text-sm font-semibold flex items-center gap-2 justify-center ${
                  currentLang === lang.code
