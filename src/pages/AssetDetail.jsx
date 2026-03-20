@@ -369,7 +369,11 @@ export default function AssetDetail() {
             {asset.confidence}% confidence · {asset.conviction}
           </span>
         </div>
-        <p className="text-[12px] text-white/70 leading-relaxed mb-3">{asset.whyNow}</p>
+        <p className="text-[12px] text-white/70 leading-relaxed mb-3">
+          {trekLoading ? (
+            <span className="text-white/30 italic">Fetching live TREK analysis…</span>
+          ) : trekAnalysis || asset.whyNow}
+        </p>
 
         <button onClick={() => setShowPlan(v => !v)}
           className="text-[10px] font-bold flex items-center gap-1 transition-colors"
