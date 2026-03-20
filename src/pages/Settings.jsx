@@ -309,6 +309,7 @@ export default function Settings() {
                key={lang.code}
                onClick={() => {
                  i18n.changeLanguage(lang.code);
+                 window.location.reload();
                  // i18next-browser-languagedetector stores under 'i18nextLng'
                  localStorage.setItem('i18nextLng', lang.code);
                  document.documentElement.lang = lang.code;
