@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { endpoint = 'account' } = await req.json();
+    const { endpoint = 'account', order_id, action: orderAction } = await req.json();
 
     const baseUrl = Deno.env.get('ALPACA_BASE_URL');
     const apiKey = Deno.env.get('ALPACA_API_KEY');
@@ -15,17 +15,32 @@ Deno.serve(async (req) => {
     const headers = {
       'APCA-API-KEY-ID': apiKey,
       'APCA-API-SECRET-KEY': secretKey,
+      'Content-Type': 'application/json',
     };
 
-    // Strip trailing slash and /v2 suffix if already included in base URL
     const base = baseUrl.replace(/\/v2\/?$/, '').replace(/\/$/, '');
+
     let url = `${base}/v2/account`;
+    let method = 'GET';
+
     if (endpoint === 'positions') url = `${base}/v2/positions`;
-    if (endpoint === 'orders') url = `${base}/v2/orders?status=all&limit=50`;
+    if (endpoint === 'orders') url = `${base}/v2/orders?status=all&limit=100&direction=desc`;
+    if (endpoint === 'open_orders') url = `${base}/v2/orders?status=open&limit=50`;
+    if (endpoint === 'portfolio_history') url = `${base}/v2/account/portfolio/history?period=1W&timeframe=1D`;
+    if (endpoint === 'cancel_order' && order_id) {
+      url = `${base}/v2/orders/${order_id}`;
+      method = 'DELETE';
+    }
 
-    const res = await fetch(url, { headers });
+    const res = await fetch(url, { method, headers });
+
+    if (method === 'DELETE') {
+      if (res.status === 204) return Response.json({ success: true });
+      const t = await res.text();
+      return Response.json({ error: t }, { status: res.status });
+    }
+
     const text = await res.text();
-
     let data;
     try {
       data = JSON.parse(text);

@@ -6,7 +6,8 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { action, symbol, qty, order_type = 'market', time_in_force = 'gtc' } = await req.json();
+    const body = await req.json();
+    const { action, symbol, qty, order_type = 'market', time_in_force = 'day', limit_price, stop_price } = body;
 
     if (!action || !symbol || !qty) {
       return Response.json({ error: 'Missing required fields: action, symbol, qty' }, { status: 400 });
@@ -16,8 +17,27 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get('ALPACA_API_KEY');
     const secretKey = Deno.env.get('ALPACA_SECRET_KEY');
 
-    // Submit order to Alpaca
     const base = baseUrl.replace(/\/v2\/?$/, '').replace(/\/$/, '');
+
+    const orderPayload = {
+      symbol: symbol.toUpperCase(),
+      qty: String(qty),
+      side: action,
+      type: order_type,
+      time_in_force,
+    };
+
+    if (order_type === 'limit' && limit_price) {
+      orderPayload.limit_price = String(limit_price);
+    }
+    if (order_type === 'stop' && stop_price) {
+      orderPayload.stop_price = String(stop_price);
+    }
+    if (order_type === 'stop_limit' && limit_price && stop_price) {
+      orderPayload.limit_price = String(limit_price);
+      orderPayload.stop_price = String(stop_price);
+    }
+
     const orderRes = await fetch(`${base}/v2/orders`, {
       method: 'POST',
       headers: {
@@ -25,16 +45,12 @@ Deno.serve(async (req) => {
         'APCA-API-SECRET-KEY': secretKey,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        symbol: symbol.toUpperCase(),
-        qty: String(qty),
-        side: action, // 'buy' or 'sell'
-        type: order_type,
-        time_in_force,
-      }),
+      body: JSON.stringify(orderPayload),
     });
 
-    const order = await orderRes.json();
+    const text = await orderRes.text();
+    let order;
+    try { order = JSON.parse(text); } catch { return Response.json({ error: `Non-JSON: ${text}` }, { status: 500 }); }
 
     if (!orderRes.ok) {
       return Response.json({ error: order.message || 'Alpaca order failed', details: order }, { status: orderRes.status });
