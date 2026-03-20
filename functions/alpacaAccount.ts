@@ -17,9 +17,11 @@ Deno.serve(async (req) => {
       'APCA-API-SECRET-KEY': secretKey,
     };
 
-    let url = `${baseUrl}/v2/account`;
-    if (endpoint === 'positions') url = `${baseUrl}/v2/positions`;
-    if (endpoint === 'orders') url = `${baseUrl}/v2/orders?status=all&limit=50`;
+    // Strip trailing slash and /v2 suffix if already included in base URL
+    const base = baseUrl.replace(/\/v2\/?$/, '').replace(/\/$/, '');
+    let url = `${base}/v2/account`;
+    if (endpoint === 'positions') url = `${base}/v2/positions`;
+    if (endpoint === 'orders') url = `${base}/v2/orders?status=all&limit=50`;
 
     const res = await fetch(url, { headers });
     const text = await res.text();
