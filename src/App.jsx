@@ -13,7 +13,7 @@ import Dashboard from './pages/Dashboard';
 import Markets from './pages/Markets';
 import AIInsights from './pages/AIInsights';
 import Portfolio from './pages/Portfolio';
-import Trade from './pages/Trade.jsx';
+import Trade from './pages/Trade';
 import Settings from './pages/Settings';
 import PaperTrading from './pages/PaperTrading';
 import Upgrade from './pages/Upgrade';
