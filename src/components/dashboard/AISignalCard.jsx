@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, TrendingUp, TrendingDown, Eye, ChevronRight, Clock, ShieldAlert, Target } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const SIGNALS = [
   {
@@ -71,6 +71,7 @@ const CONVICTION_COLORS = {
 
 export default function AISignalCard() {
   const [openIdx, setOpenIdx] = useState(null);
+  const navigate = useNavigate();
 
   return (
     <div className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden h-full flex flex-col">
@@ -110,7 +111,13 @@ export default function AISignalCard() {
                   <div className="h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
                     <s.Icon className="h-3.5 w-3.5" style={{ color: s.color }} />
                   </div>
-                  <span className="text-[13px] font-black font-mono text-white/90">{s.symbol}</span>
+                  <button
+                    onClick={() => navigate(`/Asset/${s.symbol}`)}
+                    className="text-[13px] font-black font-mono text-white/90 hover:text-primary transition-colors tap-feedback"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >
+                    {s.symbol}
+                  </button>
                   <span className="text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider" style={{ color: s.color, background: s.bg, borderColor: s.border }}>
                     {s.action}
                   </span>

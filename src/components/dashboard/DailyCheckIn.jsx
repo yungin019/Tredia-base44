@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, TrendingUp, AlertTriangle, Activity, ChevronDown, ChevronUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const today = new Date();
 const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -13,6 +14,7 @@ const CHECKIN = {
 
 export default function DailyCheckIn() {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <motion.div
@@ -31,8 +33,9 @@ export default function DailyCheckIn() {
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '12px 16px', background: 'none', border: 'none', cursor: 'pointer',
-          textAlign: 'left',
+          textAlign: 'left', minHeight: '56px',
         }}
+        className="card-press"
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <motion.div
@@ -75,7 +78,14 @@ export default function DailyCheckIn() {
           >
             <div style={{ padding: '0 16px 16px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
               {/* Best Setup */}
-              <div style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 10, padding: '10px 12px' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/Asset/${CHECKIN.bestSetup.symbol}`);
+                }}
+                className="card-press"
+                style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 10, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', width: '100%' }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
                   <TrendingUp style={{ width: 11, height: 11, color: '#22c55e' }} />
                   <span style={{ fontSize: 9, fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Best Setup</span>
@@ -84,7 +94,7 @@ export default function DailyCheckIn() {
                   {CHECKIN.bestSetup.symbol} {CHECKIN.bestSetup.signal}
                 </p>
                 <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>{CHECKIN.bestSetup.note}</p>
-              </div>
+              </button>
 
               {/* Biggest Risk */}
               <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 10, padding: '10px 12px' }}>

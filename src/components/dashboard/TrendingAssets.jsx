@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import MiniSparkline from './MiniSparkline';
 
 const TRENDING = [
@@ -20,6 +21,8 @@ const SIGNAL_STYLE = {
 };
 
 export default function TrendingAssets({ stocks = [] }) {
+  const navigate = useNavigate();
+
   // Merge live stock data if available
   const assets = TRENDING.map(t => {
     const live = stocks.find(s => s.symbol === t.symbol);
@@ -42,7 +45,8 @@ export default function TrendingAssets({ stocks = [] }) {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="flex-shrink-0 rounded-xl border bg-[#111118] p-4 cursor-pointer hover:border-white/[0.15] transition-all"
+              onClick={() => navigate(`/Asset/${asset.symbol}`)}
+              className="flex-shrink-0 rounded-xl border bg-[#111118] p-4 cursor-pointer hover:border-white/[0.15] transition-all card-press"
               style={{ minWidth: 130, borderColor: 'rgba(255,255,255,0.07)' }}
             >
               <div className="flex items-center justify-between mb-2">

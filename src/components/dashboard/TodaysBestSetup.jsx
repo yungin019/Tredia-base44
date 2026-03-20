@@ -91,9 +91,13 @@ export default function TodaysBestSetup() {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-              <span style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: 28, color: 'rgba(255,255,255,0.95)', lineHeight: 1 }}>
+              <button
+                onClick={() => navigate(`/Asset/${SETUP.symbol}`)}
+                className="tap-feedback"
+                style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: 28, color: 'rgba(255,255,255,0.95)', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
                 {SETUP.symbol}
-              </span>
+              </button>
               <span style={{ fontSize: 13, fontWeight: 800, color: cv.color, background: cv.bg, border: `1px solid ${cv.border}`, borderRadius: 99, padding: '5px 14px', letterSpacing: '0.06em' }}>
                 {SETUP.signal}
               </span>

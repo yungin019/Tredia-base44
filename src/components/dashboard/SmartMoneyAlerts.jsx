@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, TrendingDown, Waves, BarChart2, ChevronDown, ChevronUp, Building2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ALERTS = [
   {
@@ -61,7 +62,7 @@ const ALERTS = [
   },
 ];
 
-function AlertRow({ alert, i }) {
+function AlertRow({ alert, i, onSymbolClick }) {
   const [open, setOpen] = useState(false);
   const Icon = alert.icon;
 
@@ -83,8 +84,9 @@ function AlertRow({ alert, i }) {
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 10,
           padding: '11px 14px', background: 'none', border: 'none',
-          cursor: 'pointer', textAlign: 'left',
+          cursor: 'pointer', textAlign: 'left', minHeight: '56px',
         }}
+        className="card-press"
       >
         {/* Icon */}
         <div style={{ width: 32, height: 32, borderRadius: 9, background: `${alert.color}20`, border: `1px solid ${alert.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
@@ -97,7 +99,16 @@ function AlertRow({ alert, i }) {
         {/* Content */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-            <span style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>{alert.symbol}</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSymbolClick(alert.symbol);
+              }}
+              className="tap-feedback"
+              style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: 12, color: 'rgba(255,255,255,0.9)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              {alert.symbol}
+            </button>
             <span style={{ fontSize: 8, fontWeight: 800, color: alert.color, letterSpacing: '0.1em', background: `${alert.color}15`, border: `1px solid ${alert.color}30`, borderRadius: 99, padding: '1px 6px' }}>{alert.label}</span>
             {alert.fresh && (
               <span style={{ fontSize: 8, color: '#F59E0B', fontWeight: 700 }}>NEW</span>
@@ -141,6 +152,12 @@ function AlertRow({ alert, i }) {
 }
 
 export default function SmartMoneyAlerts() {
+  const navigate = useNavigate();
+
+  const handleSymbolClick = (symbol) => {
+    navigate(`/Asset/${symbol}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -163,7 +180,7 @@ export default function SmartMoneyAlerts() {
       </div>
       <div className="space-y-2">
         {ALERTS.map((alert, i) => (
-          <AlertRow key={i} alert={alert} i={i} />
+          <AlertRow key={i} alert={alert} i={i} onSymbolClick={handleSymbolClick} />
         ))}
       </div>
     </motion.div>
