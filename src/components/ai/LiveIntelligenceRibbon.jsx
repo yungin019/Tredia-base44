@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, TrendingUp, AlertCircle, Activity } from 'lucide-react';
+import { X, Activity } from 'lucide-react';
 
 const INTEL_ITEMS = [
   { id: 1, text: 'TSLA insider sold $2.3M shares', tag: 'INSIDER', ticker: 'TSLA', type: 'bearish' },

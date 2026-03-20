@@ -1,12 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import MobileSelect from '@/components/ui/mobile-select';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', flag: '🇺🇸' },
@@ -36,37 +31,25 @@ export default function LanguageSelector() {
     document.documentElement.lang = code;
   };
 
+  const options = LANGUAGES.map(lang => ({
+    value: lang.code,
+    label: lang.label,
+    icon: lang.flag
+  }));
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.07] transition-colors text-white/50 hover:text-white/80">
-          <Globe className="h-3.5 w-3.5" />
-          <span className="text-[11px] font-mono font-medium hidden sm:inline">{current.flag} {current.code.toUpperCase()}</span>
-          <span className="text-[11px] font-mono font-medium sm:hidden">{current.flag}</span>
+    <MobileSelect
+      trigger={
+        <button className="flex items-center gap-1.5 h-10 px-3 rounded-lg bg-white/[0.04] border border-white/[0.07] active:bg-white/[0.07] transition-colors text-white/50">
+          <Globe className="h-4 w-4" />
+          <span className="text-sm font-medium hidden sm:inline">{current.flag} {current.label}</span>
+          <span className="text-sm font-medium sm:hidden">{current.flag}</span>
         </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="bg-[#111118] border-white/[0.08] w-44 max-h-[340px] overflow-y-auto"
-      >
-        {LANGUAGES.map((lang) => (
-          <DropdownMenuItem
-            key={lang.code}
-            onClick={() => handleChange(lang.code)}
-            className={`flex items-center gap-2.5 text-[12px] cursor-pointer ${
-              current.code === lang.code
-                ? 'text-primary bg-primary/8'
-                : 'text-white/60 hover:text-white/90'
-            }`}
-          >
-            <span>{lang.flag}</span>
-            <span>{lang.label}</span>
-            {current.code === lang.code && (
-              <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
-            )}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      }
+      options={options}
+      value={current.code}
+      onChange={handleChange}
+      title="Select Language"
+    />
   );
 }

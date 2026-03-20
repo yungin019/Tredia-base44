@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
-import { Mail, Chrome, Apple, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Mail, Apple, ArrowRight } from 'lucide-react';
 
 export default function SignIn() {
   const { t } = useTranslation();

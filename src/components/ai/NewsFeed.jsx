@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Newspaper } from 'lucide-react';
 import HeroNewsCarousel from './HeroNewsCarousel';
 import MarketImpactBanner from './MarketImpactBanner';

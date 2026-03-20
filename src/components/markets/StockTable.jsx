@@ -1,9 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, ArrowDownRight, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import MiniSparkline from '../dashboard/MiniSparkline';
 
 export default function StockTable({ stocks, onAddWatchlist }) {
+  const navigate = useNavigate();
   return (
     <div className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden">
       <div className="overflow-x-auto">
@@ -27,7 +29,9 @@ export default function StockTable({ stocks, onAddWatchlist }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: i * 0.02 }}
-                className="border-b border-white/[0.04] hover:bg-white/[0.025] transition-colors cursor-pointer group last:border-0"
+                onClick={() => navigate(`/Asset/${stock.symbol}`)}
+                className="border-b border-white/[0.04] hover:bg-white/[0.025] active:bg-white/[0.04] transition-colors cursor-pointer group last:border-0"
+                style={{ minHeight: '56px' }}
               >
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-3">

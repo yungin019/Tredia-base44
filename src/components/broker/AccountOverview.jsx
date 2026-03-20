@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, TrendingUp, DollarSign, Shield, RefreshCw } from 'lucide-react';
+import { Wallet, RefreshCw } from 'lucide-react';
 
 const Stat = ({ label, value, color = 'text-white/90', sub }) => (
   <div>

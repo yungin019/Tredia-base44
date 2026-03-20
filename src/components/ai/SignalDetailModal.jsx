@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X, ChevronLeft, ChevronRight, ExternalLink, Plus, Bell, Share2,
-  MessageSquare, BarChart2, Activity, TrendingUp, TrendingDown, Target, Shield
+  X, ExternalLink, Plus, Bell, Share2,
+  MessageSquare, Target
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -145,21 +145,38 @@ Be direct, use precise numbers, and write like a top-tier hedge fund analyst. Un
         </div>
 
         {/* TREK Verdict Bar */}
-        <div className="flex-shrink-0 mx-4 -mt-2 mb-4 bg-[#111118] border border-primary/20 rounded-xl p-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[9px] text-white/40 uppercase tracking-widest font-bold">TREK Verdict</span>
+        <div className="flex-shrink-0 mx-4 -mt-2 mb-4 bg-[#111118] border border-primary/20 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">TREK AI Verdict</span>
             <button
               onClick={() => {/* open confidence modal */}}
-              className="text-[11px] font-black font-mono text-primary hover:opacity-70 transition-opacity"
+              className="text-[12px] font-black font-mono text-primary hover:opacity-70 transition-opacity tap-feedback min-h-[44px] flex items-center"
             >
               {signal.confidence}% confidence ›
             </button>
           </div>
-          <p className="text-[13px] font-black text-white mb-2">
-            {signal.type === 'bullish' ? '🚀 HIGH PROBABILITY BREAKOUT' :
-             signal.type === 'bearish' ? '📉 HIGH PROBABILITY DECLINE' :
-             signal.type === 'alert' ? '⚡ CATALYST DETECTED — ACT NOW' :
-             '🛡️ HEDGE RECOMMENDED'}
+
+          {/* Action Badge */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className={`px-4 py-2 rounded-lg font-black text-base ${
+              signal.type === 'bullish' ? 'bg-[#22C55E]/20 text-[#22C55E] border-2 border-[#22C55E]/40' :
+              signal.type === 'bearish' ? 'bg-[#EF4444]/20 text-[#EF4444] border-2 border-[#EF4444]/40' :
+              'bg-primary/20 text-primary border-2 border-primary/40'
+            }`}>
+              {signal.type === 'bullish' ? 'BUY' : signal.type === 'bearish' ? 'SELL' : 'ALERT'}
+            </div>
+            <div className="flex-1">
+              <p className="text-[11px] text-white/60 leading-tight">
+                {signal.type === 'bullish' ? 'High probability upside move detected' :
+                 signal.type === 'bearish' ? 'High probability downside move detected' :
+                 'Critical market catalyst identified'}
+              </p>
+            </div>
+          </div>
+
+          {/* Short Reasoning */}
+          <p className="text-[12px] font-medium text-white/70 leading-relaxed mb-3">
+            {signal.message || 'Tap "TREK Analysis" below for full reasoning and trade plan.'}
           </p>
           <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
             <motion.div

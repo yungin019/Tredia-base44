@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, TrendingDown, Minus, Eye, Zap, AlertTriangle, ChevronDown, ChevronUp, Clock, ShieldAlert, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Eye, Zap, Clock, ShieldAlert, Target } from 'lucide-react';
 
 const SIGNAL_CONFIG = {
   BUY:   { label: 'BUY',   color: '#22c55e', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.25)',  icon: TrendingUp },

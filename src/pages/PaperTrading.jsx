@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ContextBanner from '@/components/ai/ContextBanner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Zap, Trophy, Target, ShieldCheck, Star, ChevronUp } from 'lucide-react';
+import { TrendingUp, ArrowUpRight, ArrowDownRight, Zap, Trophy, Target, ShieldCheck, Star, ChevronUp } from 'lucide-react';
 
 const GRADES = ['A', 'B+', 'B', 'B-', 'C+', 'C'];
 const getGradeExplanations = (t) => ({

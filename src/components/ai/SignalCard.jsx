@@ -57,11 +57,12 @@ export default function SignalCard({ signal, index }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.06 }}
         onClick={() => setShowDetail(true)}
-        className={`card-hover cursor-pointer rounded-xl border ${cfg.border} bg-[#111118] p-4 flex flex-col gap-3 relative`}
+        className={`card-press cursor-pointer rounded-xl border ${cfg.border} bg-[#111118] p-4 flex flex-col gap-3 relative`}
         style={cfg.leftBorder ? {
           borderLeft: `3px solid ${cfg.leftBorderColor}`,
-          boxShadow: `inset 0 0 12px ${cfg.leftBorderColor}22, inset -4px 0 12px ${cfg.leftBorderColor}15`
-        } : {}}
+          boxShadow: `inset 0 0 12px ${cfg.leftBorderColor}22, inset -4px 0 12px ${cfg.leftBorderColor}15`,
+          minHeight: '120px'
+        } : { minHeight: '120px' }}
       >
         {/* Top row */}
         <div className="flex items-start justify-between gap-2">
@@ -101,27 +102,33 @@ export default function SignalCard({ signal, index }) {
         {/* Message */}
         <p className="text-[10px] text-white/40 leading-relaxed line-clamp-2">{signal.message}</p>
 
-        {/* Footer */}
+        {/* Action + Confidence */}
         <div className="flex items-center justify-between pt-3 border-t border-white/[0.05]">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Action */}
+            <div className={`px-3 py-1.5 rounded-lg font-black text-sm ${
+              signal.type === 'bullish' ? 'bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30' :
+              signal.type === 'bearish' ? 'bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30' :
+              'bg-primary/20 text-primary border border-primary/30'
+            }`}>
+              {signal.type === 'bullish' ? 'BUY' : signal.type === 'bearish' ? 'SELL' : 'WATCH'}
+            </div>
+
             {/* Confidence */}
-            <button
-              onClick={e => { e.stopPropagation(); setShowConfidence(true); }}
-              className={`text-4xl font-black font-mono ${cfg.color} hover:opacity-70 transition-opacity leading-none`}
-            >
-              {signal.confidence}<span className="text-sm">%</span>
-            </button>
-            {/* Expected move */}
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col">
               <span className="text-[9px] text-white/30 uppercase tracking-wider font-mono">Confidence</span>
-              <span className={`text-[12px] font-bold font-mono ${signal.expectedPct > 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
-                {signal.expectedPct > 0 ? '+' : ''}{signal.expectedPct}% · {signal.expectedDays}
-              </span>
+              <button
+                onClick={e => { e.stopPropagation(); setShowConfidence(true); }}
+                className={`text-[16px] font-black font-mono ${cfg.color} hover:opacity-70 transition-opacity leading-none text-left tap-feedback`}
+              >
+                {signal.confidence}%
+              </button>
             </div>
           </div>
-          <div className={`flex items-center gap-0.5 text-[9px] font-bold ${cfg.color}`}>
-            <span>View</span>
-            <ChevronRight className="h-3 w-3" />
+
+          <div className={`flex items-center gap-1 text-[10px] font-bold ${cfg.color}`}>
+            <span>Tap for details</span>
+            <ChevronRight className="h-3.5 w-3.5" />
           </div>
         </div>
       </motion.div>

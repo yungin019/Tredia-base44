@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { TrendingUp, RefreshCw } from 'lucide-react';
 
 export default function PositionsTable({ positions, onRefresh, loading }) {
   const totalPL = positions.reduce((sum, p) => sum + parseFloat(p.unrealized_pl || 0), 0);

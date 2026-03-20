@@ -7,6 +7,7 @@ import { AlertTriangle, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 import { getStockPrice } from '../MarketData';
+import MobileSelect from '@/components/ui/mobile-select';
 
 const ORDER_TYPES = [
   { value: 'market', label: 'Market' },
@@ -143,23 +144,33 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Order Type</Label>
-              <select
+              <MobileSelect
+                trigger={
+                  <button className="mt-1.5 w-full h-11 bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 text-[13px] font-mono font-bold text-white/80 text-left flex items-center justify-between active:bg-white/[0.07] transition-colors">
+                    <span>{ORDER_TYPES.find(t => t.value === orderType)?.label}</span>
+                    <span className="text-white/30">▼</span>
+                  </button>
+                }
+                options={ORDER_TYPES}
                 value={orderType}
-                onChange={(e) => { setOrderType(e.target.value); setPreview(null); }}
-                className="mt-1.5 w-full h-10 bg-white/[0.04] border border-white/[0.07] rounded-md px-3 text-[12px] font-mono font-bold text-white/80 focus:outline-none focus:border-primary/40"
-              >
-                {ORDER_TYPES.map((o) => <option key={o.value} value={o.value} className="bg-[#111118]">{o.label}</option>)}
-              </select>
+                onChange={(val) => { setOrderType(val); setPreview(null); }}
+                title="Select Order Type"
+              />
             </div>
             <div>
               <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Time in Force</Label>
-              <select
+              <MobileSelect
+                trigger={
+                  <button className="mt-1.5 w-full h-11 bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 text-[13px] font-mono font-bold text-white/80 text-left flex items-center justify-between active:bg-white/[0.07] transition-colors">
+                    <span>{TIF_OPTIONS.find(t => t.value === tif)?.label}</span>
+                    <span className="text-white/30">▼</span>
+                  </button>
+                }
+                options={TIF_OPTIONS}
                 value={tif}
-                onChange={(e) => setTif(e.target.value)}
-                className="mt-1.5 w-full h-10 bg-white/[0.04] border border-white/[0.07] rounded-md px-3 text-[12px] font-mono font-bold text-white/80 focus:outline-none focus:border-primary/40"
-              >
-                {TIF_OPTIONS.map((o) => <option key={o.value} value={o.value} className="bg-[#111118]">{o.label}</option>)}
-              </select>
+                onChange={(val) => { setTif(val); setPreview(null); }}
+                title="Select Time in Force"
+              />
             </div>
           </div>
 

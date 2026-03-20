@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import NewsArticleModal from './NewsArticleModal';
 
 const SENTIMENT_STYLES = {
@@ -20,7 +20,8 @@ export default function NewsCard({ article, index }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
         onClick={() => setOpen(true)}
-        className="bg-[#111118] border border-white/[0.07] rounded-xl overflow-hidden cursor-pointer hover:border-white/[0.14] transition-all duration-200 hover:-translate-y-0.5"
+        className="bg-[#111118] border border-white/[0.07] rounded-xl overflow-hidden cursor-pointer hover:border-white/[0.14] transition-all duration-200 card-press"
+        style={{ minHeight: '100px' }}
       >
         <div className="flex gap-3 p-3">
           {/* Thumbnail */}

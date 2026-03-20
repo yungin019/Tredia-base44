@@ -1,9 +1,11 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import PageTransition from '@/components/ui/page-transition';
 
 import AppShell from './components/layout/AppShell';
 import SplashScreen from './pages/SplashScreen';
@@ -21,6 +23,7 @@ import AssetDetail from './pages/AssetDetail';
 
 const AuthenticatedApp = () => {
   const { isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -34,24 +37,26 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/SplashScreen" replace />} />
-      <Route path="/SplashScreen" element={<SplashScreen />} />
-      <Route path="/Onboarding" element={<Onboarding />} />
-      <Route element={<AppShell />}>
-        <Route path="/Home" element={<Home />} />
-        <Route path="/Dashboard" element={<Navigate to="/Home" replace />} />
-        <Route path="/Markets" element={<Markets />} />
-        <Route path="/AIInsights" element={<AIInsights />} />
-        <Route path="/Portfolio" element={<Portfolio />} />
-        <Route path="/Trade" element={<Trade />} />
-        <Route path="/Settings" element={<Settings />} />
-        <Route path="/Upgrade" element={<Upgrade />} />
-        <Route path="/PaperTrading" element={<PaperTrading />} />
-        <Route path="/Asset/:symbol" element={<AssetDetail />} />
-      </Route>
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<Navigate to="/SplashScreen" replace />} />
+        <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
+        <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
+        <Route element={<AppShell />}>
+          <Route path="/Home" element={<PageTransition><Home /></PageTransition>} />
+          <Route path="/Dashboard" element={<Navigate to="/Home" replace />} />
+          <Route path="/Markets" element={<PageTransition><Markets /></PageTransition>} />
+          <Route path="/AIInsights" element={<PageTransition><AIInsights /></PageTransition>} />
+          <Route path="/Portfolio" element={<PageTransition><Portfolio /></PageTransition>} />
+          <Route path="/Trade" element={<PageTransition><Trade /></PageTransition>} />
+          <Route path="/Settings" element={<PageTransition><Settings /></PageTransition>} />
+          <Route path="/Upgrade" element={<PageTransition><Upgrade /></PageTransition>} />
+          <Route path="/PaperTrading" element={<PageTransition><PaperTrading /></PageTransition>} />
+          <Route path="/Asset/:symbol" element={<PageTransition><AssetDetail /></PageTransition>} />
+        </Route>
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </AnimatePresence>
   );
 };
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Lock, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Eye } from 'lucide-react';
+import { Zap, Lock, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const SIGNAL_COLORS = {
@@ -203,7 +203,7 @@ export function SuperAICard({ result, isElite = false }) {
         <>
           <button
             onClick={() => setExpanded(v => !v)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '7px 0', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'none', border: 'none', borderTop: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', fontSize: 10, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, transition: 'color 0.15s' }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '7px 0', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, transition: 'color 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.color = 'rgba(245,158,11,0.7)'}
             onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}
           >

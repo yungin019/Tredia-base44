@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, TrendingUp, Brain, Briefcase, Zap, Settings, Bell, Search } from 'lucide-react';
+import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/AuthContext';

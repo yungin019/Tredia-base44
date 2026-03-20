@@ -21,16 +21,18 @@ i18n
   .use(initReactI18next)
   .init({
     resources: buildResources(),
+    lng: 'en',
     fallbackLng: 'en',
     interpolation: { escapeValue: false },
     detection: {
-      order: ['querystring', 'localStorage', 'navigator', 'htmlTag'],
-      lookupQuerystring: 'lang',
+      order: ['localStorage'],
       lookupLocalStorage: 'tredia_language',
       caches: ['localStorage'],
     },
   })
   .catch(() => {})
+
+i18n.changeLanguage('en')
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <I18nextProvider i18n={i18n}>

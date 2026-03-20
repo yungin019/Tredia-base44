@@ -1,9 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import MiniSparkline from './MiniSparkline';
 
 export default function TopMovers({ stocks }) {
+  const navigate = useNavigate();
   const sorted = [...stocks].sort((a, b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 7);
 
   return (
@@ -22,7 +24,9 @@ export default function TopMovers({ stocks }) {
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.04 }}
-            className="flex items-center justify-between px-5 py-3 border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors cursor-pointer last:border-0 group"
+            onClick={() => navigate(`/Asset/${stock.symbol}`)}
+            className="flex items-center justify-between px-5 py-3 border-b border-white/[0.04] hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors cursor-pointer last:border-0 group card-press"
+            style={{ minHeight: '60px' }}
           >
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-[10px] font-black font-mono text-white/60 group-hover:border-primary/20 transition-colors">

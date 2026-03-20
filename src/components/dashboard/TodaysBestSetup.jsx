@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, TrendingUp, Target, ShieldAlert, Clock, ChevronRight } from 'lucide-react';
+import { ShieldAlert, Clock, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const SETUP = {

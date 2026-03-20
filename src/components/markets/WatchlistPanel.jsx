@@ -51,12 +51,34 @@ export default function WatchlistPanel() {
 
   const addMutation = useMutation({
     mutationFn: (data) => base44.entities.Watchlist.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['watchlist'] }),
+    onMutate: async (newItem) => {
+      await queryClient.cancelQueries({ queryKey: ['watchlist'] });
+      const previousItems = queryClient.getQueryData(['watchlist']);
+      queryClient.setQueryData(['watchlist'], old => [...(old || []), { ...newItem, id: Date.now() }]);
+      return { previousItems };
+    },
+    onError: (err, newItem, context) => {
+      queryClient.setQueryData(['watchlist'], context.previousItems);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Watchlist.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['watchlist'] }),
+    onMutate: async (deletedId) => {
+      await queryClient.cancelQueries({ queryKey: ['watchlist'] });
+      const previousItems = queryClient.getQueryData(['watchlist']);
+      queryClient.setQueryData(['watchlist'], old => old?.filter(item => item.id !== deletedId) || []);
+      return { previousItems };
+    },
+    onError: (err, deletedId, context) => {
+      queryClient.setQueryData(['watchlist'], context.previousItems);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+    },
   });
 
   return (

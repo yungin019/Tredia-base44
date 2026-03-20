@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Zap, Target, AlertTriangle, ChevronRight, Clock, ExternalLink, X } from 'lucide-react';
+import { Zap, AlertTriangle, ChevronRight, Clock, ExternalLink, X } from 'lucide-react';
 import { fetchFearGreed } from '@/api/marketData';
 import TickerTape from '@/components/dashboard/TickerTape';
 import { base44 } from '@/api/base44Client';
@@ -206,7 +206,7 @@ export default function Home() {
     }
   };
 
-  useEffect(() => { loadNews(); }, []); // eslint-disable-line
+  useEffect(() => { loadNews(); }, []);  
 
   const sentimentLabel = fearGreed
     ? fearGreed.value >= 70 ? t('trek.greed') : fearGreed.value >= 50 ? t('common.neutral') : fearGreed.value >= 30 ? t('trek.fear') : t('trek.extremeFear')

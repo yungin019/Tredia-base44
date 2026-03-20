@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingDown, DollarSign, ArrowRight, Zap } from 'lucide-react';
+import { TrendingDown, DollarSign, ArrowRight } from 'lucide-react';
 
 const NODES = [
   { label: 'Fed Hawkish', icon: TrendingDown, color: 'text-destructive' },
