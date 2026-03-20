@@ -292,7 +292,7 @@ Always end with a suggested next action or follow-up question.`;
         )}
       </AnimatePresence>
 
-      {/* Chat Panel */}
+      {/* Chat Panel - opens when FAB tapped */}
       <AnimatePresence>
         {open && (
           <motion.div
