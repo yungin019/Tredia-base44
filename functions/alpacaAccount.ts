@@ -22,10 +22,17 @@ Deno.serve(async (req) => {
     if (endpoint === 'orders') url = `${baseUrl}/v2/orders?status=all&limit=50`;
 
     const res = await fetch(url, { headers });
-    const data = await res.json();
+    const text = await res.text();
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return Response.json({ error: `Non-JSON response: ${text}`, url, status: res.status }, { status: 500 });
+    }
 
     if (!res.ok) {
-      return Response.json({ error: data.message || 'Alpaca request failed' }, { status: res.status });
+      return Response.json({ error: data.message || 'Alpaca request failed', details: data }, { status: res.status });
     }
 
     return Response.json({ success: true, data });
