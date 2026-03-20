@@ -72,6 +72,8 @@ export default function AIChat() {
   const [currentUser, setCurrentUser] = useState(null);
   const [questionsToday, setQuestionsToday] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [superAIQuestion, setSuperAIQuestion] = useState(null);
+  const [showSuperAI, setShowSuperAI] = useState(false);
   const bottomRef = useRef(null);
   const historyRef = useRef([]);
 
