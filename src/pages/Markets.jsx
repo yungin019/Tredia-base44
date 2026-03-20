@@ -10,6 +10,7 @@ import AssetClassTabs from '@/components/markets/AssetClassTabs.jsx';
 import SectorHeatmap from '@/components/markets/SectorHeatmap.jsx';
 import TrekScreener from '@/components/markets/TrekScreener.jsx';
 import CryptoAssets from '@/components/markets/CryptoAssets.jsx';
+import CommoditiesTab from '@/components/markets/CommoditiesTab.jsx';
 import TimeframeSelector from '@/components/markets/TimeframeSelector.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
 import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
@@ -242,12 +243,7 @@ export default function Markets() {
       )}
 
       {/* Commodities Tab */}
-      {activeTab === 'commodities' && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-white/[0.07] bg-[#111118] p-8 text-center">
-          <p className="text-white/30 text-sm">{t('markets.commoditiesComingSoon')}</p>
-          <p className="text-white/15 text-xs mt-2">{t('markets.commoditiesAPIs')}</p>
-        </motion.div>
-      )}
+      {activeTab === 'commodities' && <CommoditiesTab />}
       </div>
     </PullToRefresh>
   );
