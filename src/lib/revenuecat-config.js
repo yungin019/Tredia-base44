@@ -1,9 +1,9 @@
 /**
- * TREDIA RevenueCat Configuration
- * 
+ * TREDIO RevenueCat Configuration
+ *
  * Matches exactly with RevenueCat Dashboard:
- * - Elite Monthly → identifier: elite_monthly → product: tredia_elite_monthly
- * - Monthly (Pro) → identifier: $rc_monthly → product: tredia_pro_monthly
+ * - Elite Monthly → identifier: elite_monthly → product: tredio_elite_monthly
+ * - Monthly (Pro) → identifier: $rc_monthly → product: tredio_pro_monthly
  * - Yearly → identifier: $rc_annual → product: yearly
  * - Lifetime → identifier: $rc_lifetime → product: lifetime
  */
@@ -17,8 +17,8 @@ export const REVENUECAT_CONFIG = {
     lifetime: '$rc_lifetime'
   },
   productIds: {
-    elite: 'tredia_elite_monthly',
-    pro: 'tredia_pro_monthly',
+    elite: 'tredio_elite_monthly',
+    pro: 'tredio_pro_monthly',
     yearly: 'yearly',
     lifetime: 'lifetime'
   },

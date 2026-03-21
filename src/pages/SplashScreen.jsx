@@ -67,7 +67,7 @@ export default function SplashScreen() {
             </svg>
           </motion.div>
 
-          {/* TREDIA wordmark */}
+          {/* TREDIO wordmark */}
           <motion.span
             initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
@@ -75,7 +75,7 @@ export default function SplashScreen() {
             className="text-4xl font-black tracking-tight"
             style={{ color: '#F59E0B', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.03em' }}
           >
-            TREDIA
+            TREDIO
           </motion.span>
         </motion.div>
 

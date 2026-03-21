@@ -2,7 +2,7 @@
 // These are merged in the layout file
 const enExtra = {
   'splash.tagline': 'The Edge Every Trader Needs',
-  'onboarding.title': 'Welcome to TREDIA',
+  'onboarding.title': 'Welcome to TREDIO',
   'onboarding.budgetLabel': 'Investment Budget',
   'onboarding.riskLabel': 'Risk Tolerance',
   'onboarding.goalLabel': 'Your Goal',

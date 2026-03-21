@@ -1,4 +1,4 @@
-# TREDIA Final Release QA Checklist
+# TREDIO Final Release QA Checklist
 
 **Status**: ✅ ALL INTERNAL SYSTEMS FINALIZED  
 **Date**: March 18, 2026  
@@ -11,7 +11,7 @@
 ### Implementation Complete
 - ✅ `useRevenueCat()` hook: full purchase/restore flow with localStorage fallback
 - ✅ `useSubscriptionStatus()` hook: unified source of truth combining RevenueCat + local tier
-- ✅ Product ID mapping: 4 Apple IAP products configured (`com.tredia.pro_monthly/annual`, `com.tredia.elite_monthly/annual`)
+- ✅ Product ID mapping: 4 Apple IAP products configured (`com.tredio.pro_monthly/annual`, `com.tredio.elite_monthly/annual`)
 - ✅ Entitlements system: "pro" and "elite" entitlements wired
 - ✅ Purchase error handling: clear error messages, retry logic
 - ✅ Restore purchases: working in Settings with success/error feedback
@@ -183,7 +183,7 @@
 - ✅ Fallback: English if translation missing
 
 ### Critical Screens Verified
-- ✅ Splash: TREDIA brand only (no language)
+- ✅ Splash: TREDIO brand only (no language)
 - ✅ SignIn: translated
 - ✅ Onboarding: fully translated
 - ✅ Dashboard: fully translated
@@ -290,9 +290,9 @@
 ## 11. LEGAL / COMPLIANCE ✅
 
 ### Legal Links Section
-- ✅ Privacy Policy placeholder: https://tredia.app/privacy
-- ✅ Terms of Service placeholder: https://tredia.app/terms
-- ✅ Cookie Policy placeholder: https://tredia.app/cookies
+- ✅ Privacy Policy placeholder: https://tredio.app/privacy
+- ✅ Terms of Service placeholder: https://tredio.app/terms
+- ✅ Cookie Policy placeholder: https://tredio.app/cookies
 - ✅ Links appear in Settings
 - ✅ Links are clickable and open in new tab
 

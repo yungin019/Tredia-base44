@@ -28,12 +28,12 @@ export default function ContextBanner({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const seen = localStorage.getItem(`tredia_banner_${storageKey}`);
+    const seen = localStorage.getItem(`tredio_banner_${storageKey}`);
     if (!seen) setVisible(true);
   }, [storageKey]);
 
   const dismiss = () => {
-    localStorage.setItem(`tredia_banner_${storageKey}`, '1');
+    localStorage.setItem(`tredio_banner_${storageKey}`, '1');
     setVisible(false);
   };
 

@@ -77,7 +77,7 @@ function TrekIntro({ onEnter }) {
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mt-2"
           style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
           >
-          {t('onboarding.enterTredia')} <ArrowRight className="h-4 w-4" />
+          {t('onboarding.enterTredio')} <ArrowRight className="h-4 w-4" />
         </motion.button>
       </div>
     </motion.div>
@@ -129,7 +129,7 @@ export default function Onboarding() {
       <div className="relative w-full max-w-xl">
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-center gap-2 mb-8">
-          <span className="text-2xl font-black" style={{ color: '#F59E0B', letterSpacing: '-0.03em' }}>TREDIA</span>
+          <span className="text-2xl font-black" style={{ color: '#F59E0B', letterSpacing: '-0.03em' }}>TREDIO</span>
         </motion.div>
 
         <AnimatePresence mode="wait">

@@ -78,7 +78,7 @@ export default function SignIn() {
               <circle cx="20" cy="8" r="1.5" fill="#F59E0B" />
             </svg>
           </div>
-          <span className="text-3xl font-black tracking-tight" style={{ color: '#F59E0B', letterSpacing: '-0.03em' }}>TREDIA</span>
+          <span className="text-3xl font-black tracking-tight" style={{ color: '#F59E0B', letterSpacing: '-0.03em' }}>TREDIO</span>
            <p className="text-[11px] text-white/30 tracking-widest uppercase">AI-Powered Trading Intelligence</p>
         </motion.div>
 
@@ -91,8 +91,8 @@ export default function SignIn() {
           style={{ boxShadow: '0 0 40px rgba(0,0,0,0.4)' }}
         >
           <div className="text-center mb-1">
-            <h1 className="text-lg font-black text-white/90">{t('signin.title') || 'Welcome to TREDIA'}</h1>
-             <p className="text-xs text-white/30 mt-0.5">{t('signin.subtitle') || 'Access your TREDIA account'}</p>
+            <h1 className="text-lg font-black text-white/90">{t('signin.title') || 'Welcome to TREDIO'}</h1>
+             <p className="text-xs text-white/30 mt-0.5">{t('signin.subtitle') || 'Access your TREDIO account'}</p>
           </div>
 
           {/* OAuth buttons */}

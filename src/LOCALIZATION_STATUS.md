@@ -52,7 +52,7 @@
    - No nested object dependencies
    - Direct language → keys mapping
 
-2. **components/ai/TrediaAssistant** (UPDATED)
+2. **components/ai/TredioAssistant** (UPDATED)
    - Uses new `aiTranslations` import
    - Dynamically retrieves current language from i18n
    - Safe fallback to English if language not found

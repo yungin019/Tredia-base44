@@ -88,7 +88,7 @@ export default function SuperAIPanel({ question, onClose, isElite }) {
 
   const share = () => {
     if (!result) return;
-    const text = `⚡ SUPER AI ANALYSIS\n${question}\n\nVerdict: ${result.master?.action}\nConfidence: ${result.master?.confidence}%\nConsensus: ${result.master?.consensus}\n\nPowered by TREDIA`;
+    const text = `⚡ SUPER AI ANALYSIS\n${question}\n\nVerdict: ${result.master?.action}\nConfidence: ${result.master?.confidence}%\nConsensus: ${result.master?.consensus}\n\nPowered by TREDIO`;
     navigator.share?.({ text }) || navigator.clipboard?.writeText(text);
   };
 

@@ -26,7 +26,7 @@ i18n
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage'],
-      lookupLocalStorage: 'tredia_language',
+      lookupLocalStorage: 'tredio_language',
       caches: ['localStorage'],
     },
   })

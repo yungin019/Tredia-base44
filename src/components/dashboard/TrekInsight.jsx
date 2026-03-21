@@ -22,7 +22,7 @@ export default function TrekInsight({ fearGreedValue }) {
     setLoading(true);
     try {
       const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are TREK, TREDIA's AI market brain. Generate 3 sharp market insights for right now.
+        prompt: `You are TREK, TREDIO's AI market brain. Generate 3 sharp market insights for right now.
 Fear & Greed Index: ${fgVal} (${fgLabel}).
 
 Return JSON exactly:

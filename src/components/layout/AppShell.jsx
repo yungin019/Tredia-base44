@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
-import TrediaAssistant from '@/components/ai/TrediaAssistant';
+import TredioAssistant from '@/components/ai/TredioAssistant';
 import NotificationsPanel from '@/components/ui/NotificationsPanel';
 import SearchModal from '@/components/ui/SearchModal';
 
@@ -70,7 +70,7 @@ export default function AppShell() {
               </div>
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="font-inter font-black text-base tracking-[0.08em] text-white">TREDIA</span>
+              <span className="font-inter font-black text-base tracking-[0.08em] text-white">TREDIO</span>
               <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded tracking-wider"
                 style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(252,211,77,0.1))', borderColor: 'rgba(245,158,11,0.35)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.35)', boxShadow: '0 0 12px rgba(245,158,11,0.1)' }}>
                 ⚡ ELITE
@@ -168,7 +168,7 @@ export default function AppShell() {
       </main>
 
       {/* ── Global AI Assistant ──────────────────────────────────── */}
-      <TrediaAssistant />
+      <TredioAssistant />
 
       {/* ── Bottom Nav (Mobile) ───────────────────────────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 glass-dark border-t border-white/[0.06] lg:hidden z-50"

@@ -1,4 +1,4 @@
-# TREDIA Multilingual Support Status
+# TREDIO Multilingual Support Status
 **Last Updated:** 2026-03-18  
 **Version:** v6.0.0
 
@@ -367,7 +367,7 @@ export default function MyComponent() {
 
 ## ✨ STATUS: PRODUCTION-READY
 
-The TREDIA platform is now fully multilingual with:
+The TREDIO platform is now fully multilingual with:
 - **21 languages** supported
 - **100% UI coverage** for critical screens
 - **Auto-detection** of device language

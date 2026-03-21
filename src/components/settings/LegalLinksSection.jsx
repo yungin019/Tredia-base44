@@ -4,17 +4,17 @@ import { ExternalLink } from 'lucide-react';
 const LEGAL_LINKS = [
   {
     label: 'Privacy Policy',
-    href: 'https://tredia.app/privacy', // Update this to your actual privacy policy URL
+    href: 'https://tredio.app/privacy', // Update this to your actual privacy policy URL
     icon: '🔒',
   },
   {
     label: 'Terms of Service',
-    href: 'https://tredia.app/terms', // Update this to your actual terms URL
+    href: 'https://tredio.app/terms', // Update this to your actual terms URL
     icon: '📋',
   },
   {
     label: 'Cookie Policy',
-    href: 'https://tredia.app/cookies', // Update this to your actual cookie policy URL
+    href: 'https://tredio.app/cookies', // Update this to your actual cookie policy URL
     icon: '🍪',
   },
 ];

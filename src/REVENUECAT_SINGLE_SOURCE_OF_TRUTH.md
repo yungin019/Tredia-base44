@@ -214,10 +214,10 @@ if (!isElite) return <LockedCard />;
 
 ### Apple IAP Products (Must be created in App Store Connect)
 ```javascript
-pro_monthly: 'com.tredia.pro_monthly'      // $19.99/mo
-pro_annual: 'com.tredia.pro_annual'        // $179.99/yr
-elite_monthly: 'com.tredia.elite_monthly'  // $49.99/mo
-elite_annual: 'com.tredia.elite_annual'    // $449.99/yr
+pro_monthly: 'com.tredio.pro_monthly'      // $19.99/mo
+pro_annual: 'com.tredio.pro_annual'        // $179.99/yr
+elite_monthly: 'com.tredio.elite_monthly'  // $49.99/mo
+elite_annual: 'com.tredio.elite_annual'    // $449.99/yr
 ```
 
 ### Entitlements (Must be created in RevenueCat Dashboard)
@@ -338,10 +338,10 @@ Before going to production, ensure:
 
 - [ ] `VITE_REVENUECAT_API_KEY` secret is set
 - [ ] 4 Apple IAP products created in App Store Connect:
-  - [ ] `com.tredia.pro_monthly`
-  - [ ] `com.tredia.pro_annual`
-  - [ ] `com.tredia.elite_monthly`
-  - [ ] `com.tredia.elite_annual`
+  - [ ] `com.tredio.pro_monthly`
+  - [ ] `com.tredio.pro_annual`
+  - [ ] `com.tredio.elite_monthly`
+  - [ ] `com.tredio.elite_annual`
 - [ ] 2 Entitlements created in RevenueCat Dashboard:
   - [ ] `pro` entitlement
   - [ ] `elite` entitlement
