@@ -18,11 +18,11 @@ export default function SignIn() {
   const [error, setError] = useState(null);
 
   const handleGoogle = () => {
-    base44.auth.signInWithGoogle('/Home');
+    base44.auth.loginWithProvider('google', '/Home');
   };
 
   const handleApple = () => {
-    base44.auth.signInWithApple('/Home');
+    base44.auth.loginWithProvider('apple', '/Home');
   };
 
   const handleEmailAuth = async (e) => {
@@ -37,11 +37,11 @@ export default function SignIn() {
           setLoading(false);
           return;
         }
-        await base44.auth.signUpWithEmail(email, password);
-        navigate('/Home', { replace: true });
+        await base44.auth.register({ email, password });
+        window.location.href = '/Home';
       } else {
-        await base44.auth.signInWithEmail(email, password);
-        navigate('/Home', { replace: true });
+        await base44.auth.loginViaEmailPassword(email, password);
+        window.location.href = '/Home';
       }
     } catch (err) {
       setError(err.message || t('signin.authFailed') || 'Authentication failed. Please try again.');
