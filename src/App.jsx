@@ -128,12 +128,12 @@ function App() {
   }, []);
 
   const handleLogout = async () => {
+    setUser(null);
     try {
       localStorage.removeItem('base44_access_token');
       localStorage.removeItem('token');
       await base44.auth.logout('/SignIn');
     } catch (error) {
-      setUser(null);
       window.location.href = '/SignIn';
     }
   };
