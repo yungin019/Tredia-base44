@@ -25,7 +25,7 @@ import AssetDetail from './pages/AssetDetail';
 import Notifications from './pages/Notifications';
 import Traders from './pages/Traders';
 import TradingSetup from './pages/TradingSetup';
-import Admin from './pages/Admin';
+import Admin from './pages/Admin.jsx';
 import AlpacaConnect from './pages/AlpacaConnect';
 import AlpacaCallback from './pages/AlpacaCallback';
 import TrekPortfolioWelcome from './pages/TrekPortfolioWelcome';
