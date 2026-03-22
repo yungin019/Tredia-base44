@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, TrendingUp, TrendingDown, ShieldAlert, Target, Zap, CheckCircle2, X, Bell, BellRing, ChevronDown, ChevronUp, Lock } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { base44 } from '@/api/base44Client';
 import { sendPushNotification } from '@/api/notifications';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
+import CandlestickChart from '@/components/markets/CandlestickChart';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
@@ -293,8 +293,20 @@ export default function AssetDetail() {
     price: livePrice || staticAsset.price,
   };
   const chartData = liveChart
-    ? liveChart.map((v, i) => ({ t: i, v: v.close }))
-    : staticAsset.chart.map((v, i) => ({ t: i, v }));
+    ? liveChart.map((v, i) => ({
+        index: i,
+        open: v.open || v.close * 0.995,
+        high: v.high || v.close * 1.005,
+        low: v.low || v.close * 0.99,
+        close: v.close
+      }))
+    : staticAsset.chart.map((v, i) => ({
+        index: i,
+        open: v * 0.995,
+        high: v * 1.005,
+        low: v * 0.99,
+        close: v
+      }));
   const isUp = asset.change >= 0;
   const cvColor = asset.conviction === 'HIGH' ? '#22c55e' : asset.conviction === 'MEDIUM' ? '#F59E0B' : '#6b7280';
 
@@ -400,21 +412,7 @@ export default function AssetDetail() {
             ))}
           </div>
         </div>
-        <div className="h-[160px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="t" hide />
-              <YAxis tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.25)' }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ background: '#111118', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 10 }}
-                labelStyle={{ display: 'none' }}
-                formatter={v => [`$${v.toLocaleString()}`, '']}
-              />
-              <Line type="monotone" dataKey="v" stroke={asset.color} strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <CandlestickChart data={chartData} timeframe={timeframe} />
       </motion.div>
 
       {/* TREK Signal */}

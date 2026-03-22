@@ -13,6 +13,7 @@ import CryptoAssets from '@/components/markets/CryptoAssets.jsx';
 import CommoditiesTab from '@/components/markets/CommoditiesTab.jsx';
 import TimeframeSelector from '@/components/markets/TimeframeSelector.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
+import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
 import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
@@ -110,6 +111,9 @@ export default function Markets() {
           <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('markets.subtitle')}</p>
         </div>
       </motion.div>
+
+      {/* Index Cards */}
+      <IndexCardsSection />
 
       {/* AI Context Banner */}
       <ContextBanner

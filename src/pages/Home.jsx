@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Zap, TrendingUp, TrendingDown, AlertTriangle, ChevronRight, Clock, ExternalLink, X, Sparkles, ArrowUpRight } from 'lucide-react';
 import { fetchFearGreed } from '@/api/marketData';
 import TickerTape from '@/components/dashboard/TickerTape';
+import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import { base44 } from '@/api/base44Client';
 import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
@@ -238,6 +239,7 @@ export default function Home() {
     }}>
       <div className="w-full min-h-screen bg-gradient-to-b from-background via-background to-card/20">
         <TickerTape />
+        <IndexCardsSection />
 
         <div className="p-4 lg:p-6 space-y-6 max-w-[900px] mx-auto pb-24">
           <ContextBanner
