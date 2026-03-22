@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabaseClient';
+import { User } from '@/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,22 +41,17 @@ export default function Admin() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await User.list();
 
       setUsers(data || []);
 
       // Calculate stats
       const totalUsers = data?.length || 0;
-      const ogClaimed = data?.filter(u => u.og_number !== null).length || 0;
+      const ogClaimed = data?.filter(u => u.ogNumber !== null).length || 0;
       const tierCounts = {
-        FREE: data?.filter(u => u.subscription_tier === 'FREE').length || 0,
-        PRO: data?.filter(u => u.subscription_tier === 'PRO').length || 0,
-        ELITE: data?.filter(u => u.subscription_tier === 'ELITE').length || 0
+        FREE: data?.filter(u => u.subscriptionTier === 'FREE').length || 0,
+        PRO: data?.filter(u => u.subscriptionTier === 'PRO').length || 0,
+        ELITE: data?.filter(u => u.subscriptionTier === 'ELITE').length || 0
       };
       const totalRevenue =
         (tierCounts.PRO * TIER_PRICES.PRO) +
@@ -73,12 +68,9 @@ export default function Admin() {
 
   const changeTier = async (userId, newTier) => {
     try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ subscription_tier: newTier })
-        .eq('id', userId);
-
-      if (error) throw error;
+      await User.update(userId, {
+        subscriptionTier: newTier
+      });
 
       toast.success(`Tier updated to ${newTier}`);
       fetchUsers();
@@ -89,6 +81,7 @@ export default function Admin() {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -202,24 +195,24 @@ export default function Admin() {
                   {users.map((user) => (
                     <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                       <td className="py-3 px-4 text-sm text-white/80">{user.email}</td>
-                      <td className="py-3 px-4 text-sm text-white/60">{formatDate(user.created_at)}</td>
+                      <td className="py-3 px-4 text-sm text-white/60">{formatDate(user.createdAt)}</td>
                       <td className="py-3 px-4">
                         <Badge
                           variant="outline"
                           className={
-                            user.subscription_tier === 'FREE' ? 'border-white/20 text-white/60' :
-                            user.subscription_tier === 'PRO' ? 'border-blue-400/30 text-blue-400' :
+                            user.subscriptionTier === 'FREE' ? 'border-white/20 text-white/60' :
+                            user.subscriptionTier === 'PRO' ? 'border-blue-400/30 text-blue-400' :
                             'border-[#F59E0B]/30 text-[#F59E0B]'
                           }
                         >
-                          {user.subscription_tier}
+                          {user.subscriptionTier}
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
-                        {user.og_number ? (
+                        {user.ogNumber ? (
                           <div className="flex items-center gap-1">
                             <Crown className="h-3 w-3 text-[#F59E0B]" />
-                            <span className="text-sm font-semibold text-[#F59E0B]">#{user.og_number}</span>
+                            <span className="text-sm font-semibold text-[#F59E0B]">#{user.ogNumber}</span>
                           </div>
                         ) : (
                           <span className="text-white/30 text-xs">-</span>
@@ -229,27 +222,27 @@ export default function Admin() {
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            variant={user.subscription_tier === 'FREE' ? 'default' : 'outline'}
+                            variant={user.subscriptionTier === 'FREE' ? 'default' : 'outline'}
                             onClick={() => changeTier(user.id, 'FREE')}
-                            disabled={user.subscription_tier === 'FREE'}
+                            disabled={user.subscriptionTier === 'FREE'}
                             className="h-7 px-3 text-xs"
                           >
                             FREE
                           </Button>
                           <Button
                             size="sm"
-                            variant={user.subscription_tier === 'PRO' ? 'default' : 'outline'}
+                            variant={user.subscriptionTier === 'PRO' ? 'default' : 'outline'}
                             onClick={() => changeTier(user.id, 'PRO')}
-                            disabled={user.subscription_tier === 'PRO'}
+                            disabled={user.subscriptionTier === 'PRO'}
                             className="h-7 px-3 text-xs"
                           >
                             PRO
                           </Button>
                           <Button
                             size="sm"
-                            variant={user.subscription_tier === 'ELITE' ? 'default' : 'outline'}
+                            variant={user.subscriptionTier === 'ELITE' ? 'default' : 'outline'}
                             onClick={() => changeTier(user.id, 'ELITE')}
-                            disabled={user.subscription_tier === 'ELITE'}
+                            disabled={user.subscriptionTier === 'ELITE'}
                             className="h-7 px-3 text-xs"
                           >
                             ELITE
