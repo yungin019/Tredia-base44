@@ -122,6 +122,7 @@ function App() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
       } catch (error) {
+        console.error('Auth check error:', error);
         setUser(null);
       } finally {
         setLoading(false);
