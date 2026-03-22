@@ -57,6 +57,7 @@ import Settings from './pages/Settings';
 import SignIn from './pages/SignIn';
 import SplashScreen from './pages/SplashScreen';
 import Trade from './pages/Trade';
+import Traders from './pages/Traders';
 import Upgrade from './pages/Upgrade';
 import __Layout from './Layout.jsx';
 
@@ -72,6 +73,7 @@ export const PAGES = {
     "SignIn": SignIn,
     "SplashScreen": SplashScreen,
     "Trade": Trade,
+    "Traders": Traders,
     "Upgrade": Upgrade,
 }
 

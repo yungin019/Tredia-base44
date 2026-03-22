@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search } from 'lucide-react';
+import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/AuthContext';
@@ -12,9 +12,9 @@ import SearchModal from '@/components/ui/SearchModal';
 const NAV_CONFIG = [
   { path: '/Home',       icon: Home,      translationKey: 'nav.feed',     isTrek: false },
   { path: '/Markets',    icon: TrendingUp, translationKey: 'nav.markets',  isTrek: false },
-  { path: '/Portfolio',  icon: Briefcase,  translationKey: 'nav.portfolio', isTrek: false },
   { path: '/AIInsights', icon: Zap,        translationKey: 'nav.trek',     isTrek: true  },
-  { path: '/Settings',   icon: Settings,   translationKey: 'nav.settings', isTrek: false },
+  { path: '/Traders',    icon: Users,      translationKey: 'nav.traders',  isTrek: false },
+  { path: '/Portfolio',  icon: Briefcase,  translationKey: 'nav.portfolio', isTrek: false },
 ];
 
 export default function AppShell() {

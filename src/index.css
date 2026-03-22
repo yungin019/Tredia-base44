@@ -32,11 +32,11 @@ html, body {
     --font-inter: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
-    --background: 222 47% 3%;
+    --background: 216 33% 6%;
     --foreground: 0 0% 98%;
-    --card: 222 47% 5%;
+    --card: 217 28% 7%;
     --card-foreground: 0 0% 98%;
-    --popover: 222 47% 5%;
+    --popover: 217 28% 7%;
     --popover-foreground: 0 0% 98%;
     --primary: 142 86% 28%;
     --primary-foreground: 0 0% 100%;
@@ -46,27 +46,31 @@ html, body {
     --muted-foreground: 215 20% 65%;
     --accent: 142 86% 28%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 91% 61%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142 86% 28%;
-    --warning: 45 93% 47%;
-    --border: 217 33% 12%;
+    --success: 158 64% 52%;
+    --warning: 38 92% 50%;
+    --gold: 38 92% 50%;
+    --border: 0 0% 100% / 0.06;
     --input: 222 30% 10%;
     --ring: 142 86% 28%;
-    --chart-1: 142 86% 28%;
+    --chart-1: 158 64% 52%;
     --chart-2: 217 91% 60%;
     --chart-3: 142 76% 36%;
     --chart-4: 262 83% 58%;
-    --chart-5: 0 84% 60%;
+    --chart-5: 0 91% 61%;
     --radius: 0.75rem;
-    --sidebar-background: 222 47% 2%;
+    --sidebar-background: 216 33% 6%;
     --sidebar-foreground: 215 20% 65%;
     --sidebar-primary: 142 86% 28%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 222 30% 10%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 217 33% 12%;
+    --sidebar-border: 0 0% 100% / 0.06;
     --sidebar-ring: 142 86% 28%;
+
+    --spacing-section: 24px;
+    --padding-card: 20px;
   }
 }
 
@@ -76,7 +80,7 @@ html, body {
   }
   body {
     @apply bg-background text-foreground font-inter antialiased;
-    background: linear-gradient(to bottom, #04070c 0%, #070a11 100%);
+    background: #080B12;
     padding-top: var(--safe-area-top);
     padding-left: var(--safe-area-left);
     padding-right: var(--safe-area-right);
@@ -112,7 +116,16 @@ html, body {
   box-shadow: 0 0 24px rgba(239,68,68,0.15);
 }
 .glow-gold {
-  box-shadow: 0 0 24px rgba(251,191,36,0.12);
+  box-shadow: 0 0 20px rgba(245,158,11,0.15);
+}
+
+.glow-gold-pulse {
+  animation: goldPulse 2s ease-in-out infinite;
+}
+
+@keyframes goldPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.15); }
+  50% { box-shadow: 0 0 30px rgba(245,158,11,0.25); }
 }
 
 /* Premium card shadows */

@@ -7,7 +7,11 @@
     "markets": "Markets",
     "ai_insights": "AI Insights",
     "portfolio": "Portfolio",
-    "trade": "Trade"
+    "trade": "Trade",
+    "traders": "Traders",
+    "feed": "Feed",
+    "trek": "TREK",
+    "settings": "Settings"
   },
   "dashboard": {
     "title": "Market Intelligence",
