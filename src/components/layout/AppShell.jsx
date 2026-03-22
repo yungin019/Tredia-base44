@@ -3,8 +3,6 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '@/lib/AuthContext';
-import { base44 } from '@/api/base44Client';
 import TredioAssistant from '@/components/ai/TredioAssistant';
 import NotificationsPanel from '@/components/ui/NotificationsPanel';
 import SearchModal from '@/components/ui/SearchModal';
@@ -16,19 +14,12 @@ const NAV_CONFIG = [
   { path: '/Portfolio',  icon: Briefcase,  translationKey: 'nav.portfolio', isTrek: false },
 ];
 
-export default function AppShell() {
+export default function AppShell({ onLogout }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
   const { t } = useTranslation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      base44.auth.redirectToLogin(location.pathname);
-    }
-  }, [user, isLoading]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -44,8 +35,6 @@ export default function AppShell() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [searchOpen]);
-
-  if (isLoading || !user) return null;
 
   const NAV_ITEMS = NAV_CONFIG.map(nav => ({
     ...nav,

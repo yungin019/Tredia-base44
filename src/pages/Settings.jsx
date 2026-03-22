@@ -40,7 +40,7 @@ const PRO_FEATURES = [
   'Priority support',
 ];
 
-export default function Settings() {
+export default function Settings({ onLogout }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { tier } = useSubscriptionStatus();
@@ -419,11 +419,15 @@ export default function Settings() {
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
         <button
           onClick={async () => {
-            try {
-              await base44.auth.signOut();
-              navigate('/SignIn');
-            } catch (err) {
-              console.error('Logout failed:', err);
+            if (onLogout) {
+              await onLogout();
+            } else {
+              try {
+                await base44.auth.signOut();
+                navigate('/SignIn');
+              } catch (err) {
+                console.error('Logout failed:', err);
+              }
             }
           }}
           className="w-full py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/70 hover:text-white/90"

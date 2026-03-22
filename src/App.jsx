@@ -1,11 +1,12 @@
-import { Toaster } from "@/components/ui/toaster"
-import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from '@/lib/query-client'
+import { useState, useEffect } from 'react';
+import { Toaster } from "@/components/ui/toaster";
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClientInstance } from '@/lib/query-client';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import PageTransition from '@/components/ui/page-transition';
+import { base44 } from '@/api/base44Client';
 
 import AppShell from './components/layout/AppShell';
 import SplashScreen from './pages/SplashScreen';
@@ -25,86 +26,61 @@ import Notifications from './pages/Notifications';
 import Traders from './pages/Traders';
 import TradingSetup from './pages/TradingSetup';
 
-const ProtectedRoute = ({ children }) => {
-  const { user, isLoading } = useAuth();
+const LoadingSpinner = () => (
+  <div style={{
+    background: '#080B12',
+    height: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column',
+    gap: '16px'
+  }}>
+    <div style={{
+      fontSize: '28px',
+      fontWeight: '900',
+      color: '#F59E0B',
+      letterSpacing: '6px'
+    }}>TREDIO</div>
+    <div style={{
+      width: 32,
+      height: 32,
+      border: '3px solid #F59E0B',
+      borderTopColor: 'transparent',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite'
+    }} />
+    <style>{`
+      @keyframes spin {
+        to { transform: rotate(360deg) }
+      }
+    `}</style>
+  </div>
+);
 
-  if (isLoading) {
-    return (
-      <div style={{
-        background: '#080B12',
-        height: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '16px'
-      }}>
-        <div style={{
-          fontSize: '28px',
-          fontWeight: '900',
-          color: '#F59E0B',
-          letterSpacing: '6px'
-        }}>TREDIO</div>
-        <div style={{
-          width: 32,
-          height: 32,
-          border: '3px solid #F59E0B',
-          borderTopColor: 'transparent',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/SignIn" replace />;
-  }
-
-  return children;
-};
-
-const AuthenticatedApp = () => {
-  const { user, isLoading } = useAuth();
+const AppRoutes = ({ user, onLogout }) => {
   const location = useLocation();
 
-  if (isLoading) {
+  if (!user) {
     return (
-      <div style={{
-        background: '#080B12',
-        height: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '16px'
-      }}>
-        <div style={{
-          fontSize: '28px',
-          fontWeight: '900',
-          color: '#F59E0B',
-          letterSpacing: '6px'
-        }}>TREDIO</div>
-        <div style={{
-          width: 32,
-          height: 32,
-          border: '3px solid #F59E0B',
-          borderTopColor: 'transparent',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
-      </div>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/SignIn" element={<PageTransition><SignIn /></PageTransition>} />
+          <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
+          <Route path="*" element={<Navigate to="/SignIn" replace />} />
+        </Routes>
+      </AnimatePresence>
     );
   }
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={user ? <Navigate to="/Home" replace /> : <Navigate to="/SignIn" replace />} />
-        <Route path="/SignIn" element={user ? <Navigate to="/Home" replace /> : <PageTransition><SignIn /></PageTransition>} />
+        <Route path="/" element={<Navigate to="/Home" replace />} />
+        <Route path="/SignIn" element={<Navigate to="/Home" replace />} />
         <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
-        <Route path="/Onboarding" element={<ProtectedRoute><PageTransition><Onboarding /></PageTransition></ProtectedRoute>} />
-        <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+        <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
+        <Route element={<AppShell onLogout={onLogout} />}>
           <Route path="/Home" element={<PageTransition><Home /></PageTransition>} />
           <Route path="/Dashboard" element={<Navigate to="/Home" replace />} />
           <Route path="/Markets" element={<PageTransition><Markets /></PageTransition>} />
@@ -112,7 +88,7 @@ const AuthenticatedApp = () => {
           <Route path="/Traders" element={<PageTransition><Traders /></PageTransition>} />
           <Route path="/Portfolio" element={<PageTransition><Portfolio /></PageTransition>} />
           <Route path="/Trade" element={<PageTransition><Trade /></PageTransition>} />
-          <Route path="/Settings" element={<PageTransition><Settings /></PageTransition>} />
+          <Route path="/Settings" element={<PageTransition><Settings onLogout={onLogout} /></PageTransition>} />
           <Route path="/Upgrade" element={<PageTransition><Upgrade /></PageTransition>} />
           <Route path="/PaperTrading" element={<PageTransition><PaperTrading /></PageTransition>} />
           <Route path="/Notifications" element={<PageTransition><Notifications /></PageTransition>} />
@@ -126,16 +102,45 @@ const AuthenticatedApp = () => {
 };
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await base44.auth.signOut();
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      setUser(null);
+    }
+  };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <QueryClientProvider client={queryClientInstance}>
       <Router>
-        <AuthProvider>
-          <AuthenticatedApp />
-        </AuthProvider>
+        <AppRoutes user={user} onLogout={handleLogout} />
         <Toaster />
       </Router>
     </QueryClientProvider>
-  )
+  );
 }
 
-export default App
+export default App;
