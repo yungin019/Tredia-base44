@@ -17,8 +17,9 @@
  */
 
 import { useRevenueCat } from './useRevenueCat';
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { REVENUECAT_CONFIG } from '@/lib/revenuecat-config';
+import { base44 } from '@/api/base44Client';
 
 export function useSubscriptionStatus() {
   const { getCurrentTier: getRevenueCatTier, hasActiveSubscription, checkEntitlement } = useRevenueCat();
