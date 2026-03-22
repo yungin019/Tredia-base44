@@ -256,7 +256,15 @@ export default function Home() {
         <IndexCardsSection />
 
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
-          <NextJumpDetector />
+          <NextJumpDetector
+            signal={{
+              asset: 'NVDA',
+              direction: 'LONG',
+              confidence: 87,
+              quote: 'AI infrastructure demand accelerating. Jensen Huang confirmed record Blackwell orders from hyperscalers.'
+            }}
+            onSeeWhy={() => navigate('/AIInsights')}
+          />
 
           <TrekIntelligenceCard
             sentiment={fearGreed?.value || 50}
