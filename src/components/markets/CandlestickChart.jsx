@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function CandlestickChart({ data = [], timeframe = '1D' }) {
   const [chartType, setChartType] = useState('line');

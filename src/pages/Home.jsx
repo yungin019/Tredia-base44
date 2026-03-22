@@ -9,7 +9,6 @@ import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import { base44 } from '@/api/base44Client';
 import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
-import { Card } from '@/components/ui/card';
 
 const ALERTS = [
   { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'Momentum breakout above $870 — volume 3.2× average', age: '7m', color: 'hsl(142, 86%, 28%)', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)' },

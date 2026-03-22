@@ -1,4 +1,7 @@
 {
+  "app": {
+    "tagline": "AI-Powered Trading Intelligence"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "markets": "Markets",
@@ -133,7 +136,142 @@
     "top_movers": "Top Movers",
     "portfolio_performance": "Portfolio Performance",
     "ai_signals": "AI Signals",
-    "view_all": "View all"
+    "view_all": "View all",
+    "cancel": "Cancel",
+    "back": "← Back",
+    "add": "Add",
+    "new": "New",
+    "recommended": "⭐ Recommended",
+    "shares": "shares",
+    "analyzing": "Analyzing...",
+    "adding": "Adding...",
+    "read": "Read",
+    "neutral": "Neutral",
+    "or": "OR",
+    "symbolPlaceholder": "AAPL",
+    "sharesPlaceholder": "100",
+    "quantityPlaceholder": "100"
+  },
+  "actions": {
+    "buy": "BUY",
+    "sell": "SELL"
+  },
+  "signals": {
+    "buy": "Buy",
+    "sell": "Sell",
+    "hold": "Hold",
+    "watch": "Watch"
+  },
+  "signin": {
+    "title": "Welcome to TREDIO",
+    "subtitle": "Access your TREDIO account",
+    "google": "Continue with Google",
+    "apple": "Continue with Apple",
+    "email": "Continue with Email",
+    "or": "OR",
+    "enterEmail": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "signIn": "Sign In",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "noAccount": "Don't have an account?",
+    "terms": "By signing in, you agree to our Terms of Service & Privacy Policy",
+    "passwordMismatch": "Passwords do not match",
+    "authFailed": "Authentication failed. Please try again."
+  },
+  "home": {
+    "contextTitle": "Welcome to TREDIO",
+    "contextBody": "Your AI-powered trading intelligence platform",
+    "contextAction": "Get Started",
+    "contextAI": "What can TREK AI do for me?",
+    "forYou": "For You",
+    "basedOnPortfolio": "Based on your portfolio",
+    "seeAll": "See All",
+    "recommended": "Recommended",
+    "topOpportunities": "Top opportunities",
+    "viewMarkets": "View Markets",
+    "latestJumps": "Latest Jumps",
+    "strongSignals": "Strong signals today",
+    "alerts": "Alerts",
+    "timeSensitive": "Time-sensitive",
+    "allSignals": "All Signals",
+    "marketNews": "Market News",
+    "aiAnalyzed": "AI-analyzed",
+    "riskWarnings": "Risk Warnings",
+    "assetsToAvoid": "Assets to avoid"
+  },
+  "trek": {
+    "intelligence": "TREK Intelligence",
+    "aiAnalysis": "AI Market Analysis",
+    "preTradeAnalysis": "TREK Pre-Trade Analysis",
+    "analyzingButton": "ANALYZING...",
+    "executeTrade": "EXECUTE TRADE",
+    "greed": "Greed",
+    "fear": "Fear",
+    "extremeFear": "Extreme Fear",
+    "extremeGreed": "Extreme Greed",
+    "why": "Why:",
+    "atRisk": "At Risk:",
+    "trekSays": "TREK says:"
+  },
+  "orders": {
+    "newOrder": "New Order",
+    "market": "Market",
+    "limit": "Limit",
+    "stop": "Stop",
+    "stopLimit": "Stop Limit",
+    "dayOrder": "Day",
+    "gtc": "GTC",
+    "ioc": "IOC",
+    "fok": "FOK",
+    "executedSuccess": "{{action}} {{qty}} {{symbol}} — {{orderType}} order submitted",
+    "paperExecutedSuccess": "{{action}} {{qty}} {{symbol}} (paper) executed"
+  },
+  "forms": {
+    "symbol": "Symbol",
+    "quantity": "Quantity",
+    "orderType": "Order Type"
+  },
+  "errors": {
+    "symbolRequired": "Enter symbol and quantity",
+    "limitPriceRequired": "Enter limit price",
+    "stopPriceRequired": "Enter stop price",
+    "limitStopPriceRequired": "Enter both limit and stop prices",
+    "orderFailed": "Order failed"
+  },
+  "settings": {
+    "brokerComingSoon": "Connect your broker to track real positions. Coming soon.",
+    "broker_etoro_desc": "Social trading & investing",
+    "broker_binance_desc": "Crypto & spot trading",
+    "broker_ib_desc": "Professional trading platform",
+    "broker_alpaca_desc": "Commission-free US stocks",
+    "priceAlerts_desc": "Get notified when price targets are hit",
+    "trekSignals_desc": "Receive live AI trading signal alerts",
+    "marketNews_desc": "Breaking news affecting your holdings",
+    "portfolioUpdates_desc": "Daily performance summary",
+    "lang_english": "English",
+    "lang_spanish": "Español",
+    "lang_swedish": "Svenska",
+    "lang_french": "Français",
+    "lang_german": "Deutsch",
+    "lang_dutch": "Nederlands",
+    "lang_arabic": "العربية",
+    "lang_portuguese": "Português",
+    "lang_italian": "Italiano",
+    "lang_turkish": "Türkçe",
+    "lang_chinese": "中文",
+    "lang_japanese": "日本語",
+    "lang_korean": "한국어"
+  },
+  "paperTrading": {
+    "market": "Market",
+    "limit": "Limit"
+  },
+  "onboarding": {
+    "brokerPlaceholderWarning": "⚠️ These are UI placeholders. Broker integrations are not yet live.",
+    "virtualPortfolio": "Virtual Portfolio",
+    "paperTradingDesc": "Start with $100k in paper trading. Learn with zero risk."
   },
   "language": {
     "select": "Language"
