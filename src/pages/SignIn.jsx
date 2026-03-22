@@ -12,7 +12,6 @@ export default function SignIn() {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -32,15 +31,16 @@ export default function SignIn() {
 
     try {
       if (isRegister) {
-        if (password !== confirmPassword) {
-          setError(t('signin.passwordMismatch') || 'Passwords do not match');
-          setLoading(false);
-          return;
-        }
-        await base44.auth.register({ email, password });
+        const result = await base44.auth.register({
+          email: email,
+          password: password
+        });
         window.location.href = '/Home';
       } else {
-        await base44.auth.loginViaEmailPassword(email, password);
+        const result = await base44.auth.loginViaEmailPassword(
+          email,
+          password
+        );
         window.location.href = '/Home';
       }
     } catch (err) {
@@ -158,16 +158,6 @@ export default function SignIn() {
                   {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {isRegister && (
-                <input
-                 type={showPass ? 'text' : 'password'}
-                 placeholder={t('signin.confirmPassword') || 'Confirm Password'}
-                 value={confirmPassword}
-                 onChange={e => setConfirmPassword(e.target.value)}
-                 required
-                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-[#F59E0B]/40 transition-colors"
-                />
-              )}
               {error && <p className="text-xs text-red-400/80">{error}</p>}
               <button
                 type="submit"
