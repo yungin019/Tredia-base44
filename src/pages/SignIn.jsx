@@ -79,7 +79,7 @@ export default function SignIn() {
             </svg>
           </div>
           <span className="text-3xl font-black tracking-tight" style={{ color: '#F59E0B', letterSpacing: '-0.03em' }}>TREDIO</span>
-           <p className="text-[11px] text-white/30 tracking-widest uppercase">AI-Powered Trading Intelligence</p>
+           <p className="text-[11px] text-white/30 tracking-widest uppercase">{t('signin.subtitle') || 'Your AI Trading Studio'}</p>
         </motion.div>
 
         {/* Card */}

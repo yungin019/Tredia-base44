@@ -159,10 +159,21 @@ const translations = {
 
       // Auth / Sign In
       'signin.title': 'Welcome to TREDIO',
-      'signin.subtitle': 'Your AI Trading Edge',
+      'signin.subtitle': 'Your AI Trading Studio',
       'signin.google': 'Continue with Google',
       'signin.apple': 'Continue with Apple',
       'signin.email': 'Continue with Email',
+      'signin.enterEmail': 'Email',
+      'signin.password': 'Password',
+      'signin.confirmPassword': 'Confirm Password',
+      'signin.signIn': 'Sign In',
+      'signin.createAccount': 'Create Account',
+      'signin.alreadyHaveAccount': 'Already have an account?',
+      'signin.noAccount': "Don't have an account?",
+      'signin.or': 'OR',
+      'signin.terms': 'By signing in, you agree to our Terms of Service & Privacy Policy',
+      'signin.passwordMismatch': 'Passwords do not match',
+      'signin.authFailed': 'Authentication failed. Please try again.',
 
       // Paper Trading
       'paperTrading.title': 'Paper Trading',

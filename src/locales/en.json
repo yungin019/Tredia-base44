@@ -1,6 +1,6 @@
 {
   "app": {
-    "tagline": "AI-Powered Trading Intelligence"
+    "tagline": "Your AI Trading Studio"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -168,7 +168,7 @@
   },
   "signin": {
     "title": "Welcome to TREDIO",
-    "subtitle": "Access your TREDIO account",
+    "subtitle": "Your AI Trading Studio",
     "google": "Continue with Google",
     "apple": "Continue with Apple",
     "email": "Continue with Email",
