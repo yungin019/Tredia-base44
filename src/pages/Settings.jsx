@@ -504,23 +504,25 @@ export default function Settings({ onLogout }) {
 
       {/* LOGOUT BUTTON */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
+        className="rounded-xl border border-red-500/20 bg-[#111118] p-5">
         <button
           onClick={async () => {
-            if (onLogout) {
-              await onLogout();
-            } else {
-              try {
-                await base44.auth.signOut();
-                navigate('/SignIn');
-              } catch (err) {
-                console.error('Logout failed:', err);
+            try {
+              localStorage.removeItem('base44_access_token');
+              localStorage.removeItem('token');
+              if (onLogout) {
+                await onLogout();
+              } else {
+                await base44.auth.logout('/SignIn');
               }
+            } catch (err) {
+              window.location.href = '/SignIn';
             }
           }}
-          className="w-full py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/70 hover:text-white/90"
+          className="w-full py-3.5 rounded-xl font-black text-sm tracking-wide transition-all hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff' }}
         >
-          {t('settings.logout') || 'Sign Out'}
+          Sign Out
         </button>
       </motion.div>
 
