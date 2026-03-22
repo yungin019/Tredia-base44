@@ -101,23 +101,111 @@ export default function Settings({ onLogout }) {
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
         className="rounded-xl border border-[#F59E0B]/20 bg-[#111118] p-5 space-y-4">
         <SectionHeader title="TRADING" />
-        <div className="flex items-start gap-3">
-          <div className="w-2 h-2 rounded-full bg-[#F59E0B] mt-2" />
-          <div className="flex-1">
-            <p className="text-sm font-bold text-white mb-1">Practice Mode</p>
-            <p className="text-xs text-white/60 mb-3">Trading with virtual money</p>
-            <p className="text-xs text-white/40 mb-4">Account value: $100,000</p>
-            <div className="space-y-2">
-              <p className="text-xs font-bold text-white">Ready for real trading?</p>
-              <button
-                onClick={() => navigate('/TradingSetup')}
-                className="w-full px-4 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white"
-              >
-                SET UP REAL TRADING →
-              </button>
+
+        {user?.alpaca_connected ? (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 rounded-full bg-[#22c55e] mt-2" />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-white mb-1">Alpaca Connected</p>
+                <p className="text-xs text-white/60 mb-3">TREK is watching your portfolio</p>
+
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+                    <p className="text-[10px] text-white/40 mb-1">Buying Power</p>
+                    <p className="text-sm font-bold text-white">${(user.alpaca_buying_power || 0).toLocaleString()}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+                    <p className="text-[10px] text-white/40 mb-1">Positions</p>
+                    <p className="text-sm font-bold text-white">{user.alpaca_position_count || 0}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+                    <p className="text-[10px] text-white/40 mb-1">Today P&L</p>
+                    <p className={`text-sm font-bold ${(user.alpaca_daily_pnl || 0) >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
+                      {(user.alpaca_daily_pnl || 0) >= 0 ? '+' : ''}${(user.alpaca_daily_pnl || 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => navigate('/Portfolio')}
+                    className="flex-1 px-4 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white"
+                  >
+                    VIEW PORTFOLIO →
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (window.confirm('Disconnect Alpaca? TREK will stop monitoring your real portfolio.')) {
+                        try {
+                          await base44.auth.updateMe({
+                            alpaca_connected: false,
+                            alpaca_token: null,
+                            alpaca_refresh_token: null
+                          });
+                          setUser(prev => ({ ...prev, alpaca_connected: false }));
+                        } catch (err) {
+                          console.error('Disconnect failed:', err);
+                        }
+                      }
+                    }}
+                    className="px-4 py-3 rounded-lg font-bold text-sm border border-white/[0.1] hover:border-white/20 transition-colors text-white/55"
+                  >
+                    DISCONNECT
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 rounded-full bg-[#F59E0B] mt-2" />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-white mb-2">Unlock Real Trading</p>
+                <p className="text-xs text-white/60 mb-3">Connect Alpaca and TREK starts monitoring YOUR real portfolio immediately. Commission-free.</p>
+
+                <div className="space-y-1.5 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
+                    <p className="text-xs text-white/70">Zero hidden fees</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
+                    <p className="text-xs text-white/70">TREK analyzes your positions</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
+                    <p className="text-xs text-white/70">Real-time alerts on YOUR actual holdings</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
+                    <p className="text-xs text-white/70">Takes 30 seconds</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => navigate('/alpaca-connect')}
+                  className="w-full px-4 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white mb-3"
+                >
+                  CONNECT ALPACA - FREE →
+                </button>
+
+                <div className="text-center">
+                  <p className="text-[11px] text-white/40 mb-1">New to Alpaca?</p>
+                  <a
+                    href="https://alpaca.markets"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-[#F59E0B] hover:underline"
+                  >
+                    Create free account → Commission-free · Takes 5 min
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* FOUNDING MEMBER BADGE */}

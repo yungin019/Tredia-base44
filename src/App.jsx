@@ -26,6 +26,9 @@ import Notifications from './pages/Notifications';
 import Traders from './pages/Traders';
 import TradingSetup from './pages/TradingSetup';
 import Admin from './pages/Admin';
+import AlpacaConnect from './pages/AlpacaConnect';
+import AlpacaCallback from './pages/AlpacaCallback';
+import TrekPortfolioWelcome from './pages/TrekPortfolioWelcome';
 
 const LoadingSpinner = () => (
   <div style={{
@@ -82,6 +85,9 @@ const AppRoutes = ({ user, onLogout }) => {
         <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
         <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
         <Route path="/Admin" element={<PageTransition><Admin /></PageTransition>} />
+        <Route path="/alpaca-connect" element={<PageTransition><AlpacaConnect /></PageTransition>} />
+        <Route path="/alpaca-callback" element={<AlpacaCallback />} />
+        <Route path="/trek-portfolio-welcome" element={<PageTransition><TrekPortfolioWelcome /></PageTransition>} />
         <Route element={<AppShell onLogout={onLogout} />}>
           <Route path="/Home" element={<PageTransition><Home /></PageTransition>} />
           <Route path="/Dashboard" element={<Navigate to="/Home" replace />} />

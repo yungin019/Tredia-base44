@@ -25,12 +25,32 @@ export default function Portfolio() {
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [activeTab, setActiveTab] = useState('holdings');
+  const [user, setUser] = useState(null);
+  const [alpacaPositions, setAlpacaPositions] = useState([]);
+  const [loadingAlpaca, setLoadingAlpaca] = useState(false);
 
   const [livePrices, setLivePrices] = useState({});
+
+  useEffect(() => {
+    base44.auth.me()
+      .then(u => {
+        setUser(u);
+        if (u?.alpaca_connected && u?.alpaca_positions) {
+          try {
+            const positions = JSON.parse(u.alpaca_positions);
+            setAlpacaPositions(Array.isArray(positions) ? positions : []);
+          } catch (err) {
+            console.error('Failed to parse Alpaca positions:', err);
+          }
+        }
+      })
+      .catch(err => console.error('Failed to load user:', err));
+  }, []);
 
   const { data: holdings = [], isLoading } = useQuery({
     queryKey: ['portfolio'],
     queryFn: () => base44.entities.Portfolio.list(),
+    enabled: !user?.alpaca_connected,
   });
 
   useEffect(() => {
@@ -52,15 +72,32 @@ export default function Portfolio() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio'] }),
   });
 
-  const totalValue = Array.isArray(holdings) ? holdings.reduce((sum, h) => sum + (livePrices[h.symbol] || h.current_price || h.avg_cost) * h.shares, 0) : 0;
-  const totalCost = Array.isArray(holdings) ? holdings.reduce((sum, h) => sum + h.avg_cost * h.shares, 0) : 0;
-  const totalPnL = totalValue - totalCost;
+  const displayPositions = user?.alpaca_connected ? alpacaPositions : holdings;
+  const isAlpacaMode = user?.alpaca_connected && alpacaPositions.length > 0;
+
+  const totalValue = isAlpacaMode
+    ? alpacaPositions.reduce((sum, p) => sum + parseFloat(p.market_value || 0), 0)
+    : Array.isArray(holdings) ? holdings.reduce((sum, h) => sum + (livePrices[h.symbol] || h.current_price || h.avg_cost) * h.shares, 0) : 0;
+
+  const totalCost = isAlpacaMode
+    ? alpacaPositions.reduce((sum, p) => sum + (parseFloat(p.avg_entry_price || 0) * parseFloat(p.qty || 0)), 0)
+    : Array.isArray(holdings) ? holdings.reduce((sum, h) => sum + h.avg_cost * h.shares, 0) : 0;
+
+  const totalPnL = isAlpacaMode
+    ? alpacaPositions.reduce((sum, p) => sum + parseFloat(p.unrealized_pl || 0), 0)
+    : totalValue - totalCost;
+
   const totalPnLPercent = totalCost > 0 ? (totalPnL / totalCost * 100) : 0;
 
-  const pieData = Array.isArray(holdings) ? holdings.map((h) => ({
-    name: h.symbol,
-    value: +((livePrices[h.symbol] || h.current_price || h.avg_cost) * h.shares).toFixed(2),
-  })) : [];
+  const pieData = isAlpacaMode
+    ? alpacaPositions.map((p) => ({
+        name: p.symbol,
+        value: parseFloat(p.market_value || 0),
+      }))
+    : Array.isArray(holdings) ? holdings.map((h) => ({
+        name: h.symbol,
+        value: +((livePrices[h.symbol] || h.current_price || h.avg_cost) * h.shares).toFixed(2),
+      })) : [];
 
   return (
     <PullToRefresh onRefresh={async () => {
@@ -81,11 +118,34 @@ export default function Portfolio() {
 
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1">{t('portfolio.title') || 'Portfolio'}</h1>
-           <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('portfolio.subtitle')}</p>
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('portfolio.title') || 'Portfolio'}</h1>
+            {isAlpacaMode && (
+              <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#22c55e]/15 border border-[#22c55e]/40 text-[#22c55e]">
+                LIVE
+              </span>
+            )}
+            {!user?.alpaca_connected && (
+              <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#F59E0B]/15 border border-[#F59E0B]/40 text-[#F59E0B]">
+                PRACTICE
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-white/30 font-medium tracking-wide">
+            {isAlpacaMode ? 'TREK is monitoring your real positions' : t('portfolio.subtitle')}
+          </p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          {!user?.alpaca_connected && (
+            <Button
+              onClick={() => navigate('/alpaca-connect')}
+              size="sm"
+              className="h-8 text-[10px] font-bold bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white whitespace-nowrap"
+            >
+              CONNECT ALPACA
+            </Button>
+          )}
           <Button
             onClick={() => navigate('/PaperTrading')}
             size="sm"
@@ -93,13 +153,15 @@ export default function Portfolio() {
           >
             <Play className="h-3.5 w-3.5 mr-1.5" /> {t('common.trade')}
           </Button>
-          <Button
-            onClick={() => setShowAdd(true)}
-            size="sm"
-            className="h-8 text-[10px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
-          >
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('common.add')}
-          </Button>
+          {!isAlpacaMode && (
+            <Button
+              onClick={() => setShowAdd(true)}
+              size="sm"
+              className="h-8 text-[10px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
+            >
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('common.add')}
+            </Button>
+          )}
         </div>
       </motion.div>
 
@@ -198,38 +260,80 @@ export default function Portfolio() {
 
         {/* Holdings Tab */}
         {activeTab === 'holdings' && (
-          isLoading ? (
+          (isLoading || loadingAlpaca) ? (
             <div className="p-10 text-center text-white/25 text-[12px]">{t('common.loading')}</div>
-          ) : holdings.length === 0 ? (
+          ) : displayPositions.length === 0 ? (
             <div className="p-12 flex flex-col items-center text-center gap-4">
               <div className="h-14 w-14 rounded-2xl border border-white/[0.06] bg-white/[0.03] flex items-center justify-center">
                 <Briefcase className="h-7 w-7 text-white/20" />
               </div>
               <div>
                 <p className="text-sm font-bold text-white/60 mb-1">{t('portfolio.noPositions')}</p>
-                <p className="text-[11px] text-white/25 max-w-xs">{t('portfolio.noPositionsDesc')}</p>
+                <p className="text-[11px] text-white/25 max-w-xs">
+                  {!user?.alpaca_connected
+                    ? t('portfolio.noPositionsDesc')
+                    : 'No positions found in your Alpaca account'}
+                </p>
               </div>
-              <div className="flex gap-3 flex-wrap justify-center mt-1">
-                <Button onClick={() => setShowAdd(true)} size="sm" className="h-9 px-5 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.addFirstPosition')}
-                </Button>
-                <Button onClick={() => navigate('/PaperTrading')} size="sm" variant="outline" className="h-9 px-5 text-[11px] font-bold border-white/[0.1] bg-white/[0.03] text-white/60 hover:bg-white/[0.06]">
-                  <Play className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.startPaperTrading')}
-                </Button>
-              </div>
+              {!user?.alpaca_connected && (
+                <div className="flex gap-3 flex-wrap justify-center mt-1">
+                  <Button onClick={() => navigate('/alpaca-connect')} size="sm" className="h-9 px-5 text-[11px] font-bold bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white">
+                    CONNECT ALPACA
+                  </Button>
+                  <Button onClick={() => setShowAdd(true)} size="sm" className="h-9 px-5 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
+                    <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.addFirstPosition')}
+                  </Button>
+                  <Button onClick={() => navigate('/PaperTrading')} size="sm" variant="outline" className="h-9 px-5 text-[11px] font-bold border-white/[0.1] bg-white/[0.03] text-white/60 hover:bg-white/[0.06]">
+                    <Play className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.startPaperTrading')}
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/[0.05]">
-                    {[t('portfolio.symbol'), t('portfolio.shares'), t('portfolio.avgCost'), t('portfolio.currentPrice'), t('portfolio.marketValue'), t('portfolio.pnl'), ''].map((h, i) => (
+                    {[t('portfolio.symbol'), t('portfolio.shares'), t('portfolio.avgCost'), t('portfolio.currentPrice'), t('portfolio.marketValue'), t('portfolio.pnl'), isAlpacaMode ? 'TREK' : ''].map((h, i) => (
                       <th key={i} className={`${i === 0 ? 'text-left px-5' : i === 6 ? 'w-10' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {(Array.isArray(holdings) ? holdings : []).map((h) => {
+                  {isAlpacaMode ? alpacaPositions.map((p) => {
+                    const pnl = parseFloat(p.unrealized_pl || 0);
+                    const pnlPct = parseFloat(p.unrealized_plpc || 0) * 100;
+                    const currentPrice = parseFloat(p.current_price || 0);
+                    const avgPrice = parseFloat(p.avg_entry_price || 0);
+                    const qty = parseFloat(p.qty || 0);
+                    const mktValue = parseFloat(p.market_value || 0);
+                    const trekSignal = pnl >= 0 ? 'HOLD' : 'WATCH';
+
+                    return (
+                      <tr key={p.asset_id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0" style={{ borderLeft: pnl >= 0 ? '3px solid #22c55e' : '3px solid #ef4444' }}>
+                        <td className="px-5 py-3">
+                          <div className="font-mono font-black text-[13px] text-white/85">{p.symbol}</div>
+                          <div className="text-[10px] text-white/30">{parseFloat(qty).toFixed(2)} shares</div>
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-[12px] text-white/60">{parseFloat(qty).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right font-mono text-[12px] text-white/60">${avgPrice.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right font-mono text-[12px] text-white/85 font-bold">${currentPrice.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right font-mono text-[12px] text-white/60">${mktValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+                        <td className={`px-4 py-3 text-right font-mono ${pnl >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
+                          <div className="text-[12px] font-bold flex items-center justify-end gap-0.5">
+                            {pnl >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                            <span>${Math.abs(pnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="text-[10px] opacity-70">{pnl >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className={`text-[9px] font-black px-2 py-1 rounded ${pnl >= 0 ? 'bg-chart-3/15 text-chart-3' : 'bg-[#F59E0B]/15 text-[#F59E0B]'}`}>
+                            {trekSignal}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }) : (Array.isArray(holdings) ? holdings : []).map((h) => {
                     const currentPrice = livePrices[h.symbol] || h.current_price || h.avg_cost;
                     const pnl = (currentPrice - h.avg_cost) * h.shares;
                     const pnlPct = ((currentPrice - h.avg_cost) / h.avg_cost * 100);
