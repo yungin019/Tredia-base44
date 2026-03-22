@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
 export default function SignIn() {
@@ -9,6 +9,8 @@ export default function SignIn() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [step, setStep] = useState('form'); // 'form' | 'verify'
+  const [verifyCode, setVerifyCode] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,13 +19,30 @@ export default function SignIn() {
     try {
       if (mode === 'register') {
         await base44.auth.register({ email, password, full_name: name });
-        await base44.auth.loginViaEmailPassword(email, password);
+        // After register, show verification step
+        setStep('verify');
       } else {
         await base44.auth.loginViaEmailPassword(email, password);
+        window.location.href = '/Home';
       }
-      window.location.href = '/Home';
     } catch (err) {
       setError(err?.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await base44.auth.verifyEmail(email, verifyCode);
+      // After verification, log in
+      await base44.auth.loginViaEmailPassword(email, password);
+      window.location.href = '/Home';
+    } catch (err) {
+      setError(err?.message || 'Invalid code. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -69,80 +88,136 @@ export default function SignIn() {
           borderRadius: '16px',
           padding: '28px',
         }}>
-          {/* Tab Toggle */}
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '4px' }}>
-            {['login', 'register'].map(m => (
-              <button key={m} onClick={() => { setMode(m); setError(''); }}
-                style={{
-                  flex: 1, padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: '700',
-                  border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                  background: mode === m ? '#F59E0B' : 'transparent',
-                  color: mode === m ? '#0A0A0F' : 'rgba(255,255,255,0.4)',
-                }}>
-                {m === 'login' ? 'Sign In' : 'Register'}
-              </button>
-            ))}
-          </div>
+          <AnimatePresence mode="wait">
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {mode === 'register' && (
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                required
-                style={inputStyle}
-              />
-            )}
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              style={inputStyle}
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              style={inputStyle}
-            />
+            {/* VERIFY STEP */}
+            {step === 'verify' ? (
+              <motion.div key="verify" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📧</div>
+                  <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>Check your email</p>
+                  <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>
+                    We sent a verification code to<br />
+                    <span style={{ color: '#F59E0B', fontWeight: '600' }}>{email}</span>
+                  </p>
+                </div>
 
-            {error && (
-              <div style={{ fontSize: '12px', color: '#ef4444', padding: '8px 12px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)' }}>
-                {error}
+                <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <input
+                    type="text"
+                    placeholder="Enter verification code"
+                    value={verifyCode}
+                    onChange={e => setVerifyCode(e.target.value)}
+                    required
+                    autoFocus
+                    style={{ ...inputStyle, textAlign: 'center', fontSize: '18px', letterSpacing: '4px', fontWeight: '700' }}
+                  />
+
+                  {error && (
+                    <div style={{ fontSize: '12px', color: '#ef4444', padding: '8px 12px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)' }}>
+                      {error}
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={loading || !verifyCode} style={{
+                    padding: '13px', borderRadius: '12px', fontWeight: '800', fontSize: '14px',
+                    background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F',
+                    border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: (loading || !verifyCode) ? 0.6 : 1,
+                  }}>
+                    {loading ? 'Verifying...' : 'Verify & Sign In'}
+                  </button>
+                </form>
+
+                <button
+                  onClick={() => { setStep('form'); setError(''); setVerifyCode(''); }}
+                  style={{ width: '100%', marginTop: '12px', padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer' }}
+                >
+                  ← Back
+                </button>
+              </motion.div>
+            ) : (
+
+            /* FORM STEP */
+            <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              {/* Tab Toggle */}
+              <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '4px' }}>
+                {['login', 'register'].map(m => (
+                  <button key={m} onClick={() => { setMode(m); setError(''); }}
+                    style={{
+                      flex: 1, padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: '700',
+                      border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                      background: mode === m ? '#F59E0B' : 'transparent',
+                      color: mode === m ? '#0A0A0F' : 'rgba(255,255,255,0.4)',
+                    }}>
+                    {m === 'login' ? 'Sign In' : 'Register'}
+                  </button>
+                ))}
               </div>
+
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {mode === 'register' && (
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    required
+                    style={inputStyle}
+                  />
+                )}
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  style={inputStyle}
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  style={inputStyle}
+                />
+
+                {error && (
+                  <div style={{ fontSize: '12px', color: '#ef4444', padding: '8px 12px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)' }}>
+                    {error}
+                  </div>
+                )}
+
+                <button type="submit" disabled={loading} style={{
+                  padding: '13px', borderRadius: '12px', fontWeight: '800', fontSize: '14px',
+                  background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F',
+                  border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1, marginTop: '4px',
+                  letterSpacing: '0.5px',
+                }}>
+                  {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+                </button>
+              </form>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
+                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>OR</span>
+                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button onClick={handleGoogle} style={socialBtnStyle}>
+                  <span>G</span> Continue with Google
+                </button>
+                <button onClick={handleApple} style={socialBtnStyle}>
+                  <span>🍎</span> Continue with Apple
+                </button>
+              </div>
+            </motion.div>
             )}
 
-            <button type="submit" disabled={loading} style={{
-              padding: '13px', borderRadius: '12px', fontWeight: '800', fontSize: '14px',
-              background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F',
-              border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1, marginTop: '4px',
-              letterSpacing: '0.5px',
-            }}>
-              {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
-            </button>
-          </form>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>OR</span>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <button onClick={handleGoogle} style={socialBtnStyle}>
-              <span>G</span> Continue with Google
-            </button>
-            <button onClick={handleApple} style={socialBtnStyle}>
-              <span>🍎</span> Continue with Apple
-            </button>
-          </div>
+          </AnimatePresence>
         </div>
 
         <p style={{ textAlign: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '20px' }}>
