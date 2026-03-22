@@ -140,7 +140,9 @@ function App() {
         <LoadingSpinner />
       ) : (
         <Router>
-          <AppRoutes user={user} onLogout={handleLogout} />
+          <NavigationProvider>
+            <AppRoutes user={user} onLogout={handleLogout} />
+          </NavigationProvider>
           <Toaster />
         </Router>
       )}
