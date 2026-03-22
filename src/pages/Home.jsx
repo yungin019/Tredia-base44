@@ -258,274 +258,6 @@ export default function Home() {
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
           <NextJumpDetector />
 
-          <TrekIntelligenceCard
-            sentiment={fearGreed?.value || 50}
-            regime={fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value > 60 ? 'GREED' : 'NEUTRAL'}
-          />
-          {/* OG100 Compact Card */}
-          {!isOgMember && ogStats && !ogStats.isSoldOut && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={() => navigate('/Upgrade')}
-              className="rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.01]"
-              style={{
-                background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05))',
-                border: '1px solid rgba(245,158,11,0.3)',
-                borderLeft: '4px solid #F59E0B'
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Zap className="h-4 w-4 text-[#F59E0B]" />
-                    <span className="text-xs font-black tracking-wider uppercase text-[#F59E0B]">FOUNDING MEMBER OFFER</span>
-                  </div>
-                  <p className="text-sm text-white/80 font-semibold mb-2">
-                    🔴 LIVE — {ogStats.foundingSpotsRemaining} of 100 spots left
-                  </p>
-                  <ul className="space-y-1 text-xs text-white/60">
-                    <li className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-[#F59E0B]" /> Elite FREE for 30 days
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-[#F59E0B]" /> Then 89 SEK/month for life
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-[#F59E0B]" /> OG badge + referral link
-                    </li>
-                  </ul>
-                </div>
-                <ArrowUpRight className="h-5 w-5 text-[#F59E0B] flex-shrink-0" />
-              </div>
-            </motion.div>
-          )}
-
-          <ContextBanner
-            storageKey="home_v1"
-            title={t('home.contextTitle')}
-            body={t('home.contextBody')}
-            actions={[{ label: t('home.contextAction'), onClick: () => {} }]}
-            aiQuestion={t('home.contextAI')}
-          />
-
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl p-6 glass-card border-2 border-primary/20"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-
-            <div className="relative space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <motion.div
-                    animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="h-10 w-10 rounded-2xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center shadow-lg"
-                  >
-                    <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
-                  </motion.div>
-                  <div>
-                    <h3 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center gap-2">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      TREK Intelligence
-                    </h3>
-                    <p className="text-xs text-muted-foreground">AI Market Analysis</p>
-                  </div>
-                </div>
-                <span className="flex items-center gap-1.5 text-xs text-success font-semibold px-3 py-1 rounded-full bg-success/10 border border-success/20">
-                  <span className="h-2 w-2 rounded-full bg-success live-pulse" />
-                  LIVE
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <span className="text-base font-bold text-gradient-primary">
-                    {fearGreed?.value < 20 ? 'EXTREME FEAR' : fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value < 60 ? 'NEUTRAL' : fearGreed?.value < 80 ? 'GREED' : 'EXTREME GREED'} territory ({fearGreed?.value || 50}/100)
-                  </span>
-                </div>
-
-                <div className="grid gap-3">
-                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-background/40 border border-border/50">
-                    <span className="text-xs font-bold text-primary/70 min-w-[60px]">Why:</span>
-                    <p className="text-xs text-foreground/80 leading-relaxed">
-                      {fearGreed?.value < 20
-                        ? 'Fed hawkish stance + tech selloff driving institutional exit. VIX spiking.'
-                        : fearGreed?.value < 40
-                        ? 'Market uncertainty as earnings disappoint. Volatility elevated.'
-                        : fearGreed?.value < 60
-                        ? 'Mixed signals across sectors. Awaiting clearer direction.'
-                        : 'Optimism driven by strong earnings and AI momentum. Dip-buying active.'}
-                    </p>
-                  </div>
-
-                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-background/40 border border-border/50">
-                    <span className="text-xs font-bold text-warning/70 min-w-[60px]">At Risk:</span>
-                    <p className="text-xs text-foreground/80 leading-relaxed">
-                      {fearGreed?.value < 20
-                        ? 'Tech, Growth stocks, Crypto'
-                        : fearGreed?.value < 40
-                        ? 'Small-caps, Consumer Discretionary'
-                        : fearGreed?.value < 60
-                        ? 'Balanced exposure'
-                        : 'Defensive sectors lagging'}
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-emerald-500/10 border border-primary/20">
-                    <div className="flex items-start gap-2.5">
-                      <span className="text-sm font-bold text-primary">TREK says:</span>
-                      <p className="text-sm text-foreground leading-relaxed font-medium">
-                        {fearGreed?.value < 20
-                          ? 'Reduce exposure, hold cash, watch for reversal signals.'
-                          : fearGreed?.value < 40
-                          ? 'Tighten stops, avoid new longs. Defensive posture.'
-                          : fearGreed?.value < 60
-                          ? 'Stay selective. Quality over quantity.'
-                          : 'Lean long on momentum, set trailing stops. Ride the wave.'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <div>
-            <SectionTitle
-              icon="🎯"
-              label={t('home.forYou')}
-              sub={t('home.basedOnPortfolio')}
-              action={t('home.seeAll')}
-              onAction={() => navigate('/AIInsights')}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {FOR_YOU.map((s, i) => (
-                <motion.button
-                  key={s.symbol}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  onClick={() => navigate(`/Asset/${s.symbol}`)}
-                  className="group text-left rounded-2xl p-5 transition-all hover:scale-[1.03] active:scale-[0.98] glass-card border border-border hover:border-primary/30 card-shadow"
-                  style={{ borderTop: `3px solid ${s.color}` }}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-mono font-black text-base text-foreground">{s.symbol}</span>
-                    <span className="text-xs font-bold" style={{ color: s.color }}>{s.move}</span>
-                  </div>
-                  <span
-                    className="inline-flex text-xs font-bold px-3 py-1 rounded-lg"
-                    style={{
-                      color: s.color,
-                      background: `${s.color}15`,
-                      border: `1px solid ${s.color}30`
-                    }}
-                  >
-                    {s.signal}
-                  </span>
-                  <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{s.note}</p>
-                  <ArrowUpRight className="absolute top-4 right-4 h-4 w-4 text-foreground/20 group-hover:text-primary/60 transition-colors" />
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <SectionTitle
-              icon="📈"
-              label={t('home.recommended')}
-              sub={t('home.topOpportunities')}
-              action={t('home.viewMarkets')}
-              onAction={() => navigate('/Markets')}
-            />
-            <div className="space-y-2">
-              {RECOMMENDED.map((s, i) => (
-                <motion.button
-                  key={s.symbol}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.06 }}
-                  onClick={() => navigate(`/Asset/${s.symbol}`)}
-                  className="w-full text-left rounded-2xl px-5 py-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.99] glass-card border border-border hover:border-primary/30 card-shadow group"
-                >
-                  <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15 transition-colors">
-                    <span className="text-xs font-black text-primary font-mono">{s.symbol.slice(0, 2)}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-mono font-bold text-sm text-foreground">{s.symbol}</span>
-                      <span className="text-xs text-muted-foreground">{s.name}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground/70">{s.sector}</span>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="font-mono font-bold text-sm text-foreground">${s.price.toLocaleString()}</div>
-                    <div className={`text-xs font-bold font-mono ${s.change >= 0 ? 'text-success' : 'text-destructive'}`}>
-                      {s.change >= 0 ? <TrendingUp className="inline h-3 w-3 mr-0.5" /> : <TrendingDown className="inline h-3 w-3 mr-0.5" />}
-                      {s.change >= 0 ? '+' : ''}{s.change}%
-                    </div>
-                  </div>
-                  <span
-                    className="text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0"
-                    style={{
-                      color: s.signal === 'BUY' ? 'hsl(142, 86%, 28%)' : s.signal === 'SELL' ? 'hsl(0, 84%, 60%)' : 'hsl(45, 93%, 47%)',
-                      background: s.signal === 'BUY' ? 'rgba(16,185,129,0.1)' : s.signal === 'SELL' ? 'rgba(239,68,68,0.1)' : 'rgba(251,191,36,0.1)',
-                      border: `1px solid ${s.signal === 'BUY' ? 'rgba(16,185,129,0.25)' : s.signal === 'SELL' ? 'rgba(239,68,68,0.2)' : 'rgba(251,191,36,0.2)'}`,
-                    }}
-                  >
-                    {s.signal}
-                  </span>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <SectionTitle icon="🚀" label={t('home.latestJumps')} sub={t('home.strongSignals')} />
-            <div className="grid grid-cols-2 gap-3">
-              {JUMPS.map((j, i) => (
-                <motion.button
-                  key={j.symbol}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.07 }}
-                  onClick={() => navigate(`/Asset/${j.symbol}`)}
-                  className="text-left rounded-2xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98] glass-card border border-success/20 bg-success/5 hover:border-success/30 card-shadow"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono font-black text-sm text-foreground">{j.symbol}</span>
-                    <span className="font-mono font-black text-sm text-success">+{j.change}%</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-snug">{j.reason}</p>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <SectionTitle
-              icon="🚨"
-              label={t('home.alerts')}
-              sub={t('home.timeSensitive')}
-              action={t('home.allSignals')}
-              onAction={() => navigate('/AIInsights')}
-            />
-            <div className="space-y-3">
-              {ALERTS.map((a, i) => (
-                <AlertRow
-                  key={a.id}
-                  type={a.type === 'BUY' ? 'green' : a.type === 'SELL' ? 'red' : 'yellow'}
-                  title={`${a.symbol}: ${a.note}`}
-                  timestamp={a.age}
-                  onClick={() => navigate('/AIInsights')}
-                />
-              ))}
-            </div>
-          </div>
-
           <div>
             <SectionTitle icon="📰" label={t('home.marketNews')} sub={t('home.aiAnalyzed')} />
             <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
@@ -581,6 +313,101 @@ export default function Home() {
                   </motion.button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <TrekIntelligenceCard
+            sentiment={fearGreed?.value || 50}
+            regime={fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value > 60 ? 'GREED' : 'NEUTRAL'}
+          />
+
+          {/* OG100 Compact Card */}
+          {!isOgMember && ogStats && !ogStats.isSoldOut && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={() => navigate('/Upgrade')}
+              className="rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.01]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05))',
+                border: '1px solid rgba(245,158,11,0.3)',
+                borderLeft: '4px solid #F59E0B'
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="h-4 w-4 text-[#F59E0B]" />
+                    <span className="text-xs font-black tracking-wider uppercase text-[#F59E0B]">FOUNDING MEMBER OFFER</span>
+                  </div>
+                  <p className="text-sm text-white/80 font-semibold mb-2">
+                    🔴 LIVE — {ogStats.foundingSpotsRemaining} of 100 spots left
+                  </p>
+                  <ul className="space-y-1 text-xs text-white/60">
+                    <li className="flex items-center gap-2">
+                      <Check className="h-3 w-3 text-[#F59E0B]" /> Elite FREE for 30 days
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="h-3 w-3 text-[#F59E0B]" /> Then 89 SEK/month for life
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="h-3 w-3 text-[#F59E0B]" /> OG badge + referral link
+                    </li>
+                  </ul>
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-[#F59E0B] flex-shrink-0" />
+              </div>
+            </motion.div>
+          )}
+
+          <ContextBanner
+            storageKey="home_v1"
+            title={t('home.contextTitle')}
+            body={t('home.contextBody')}
+            actions={[{ label: t('home.contextAction'), onClick: () => {} }]}
+            aiQuestion={t('home.contextAI')}
+          />
+
+          <div>
+            <SectionTitle
+              icon="🚨"
+              label={t('home.alerts')}
+              sub={t('home.timeSensitive')}
+              action={t('home.allSignals')}
+              onAction={() => navigate('/AIInsights')}
+            />
+            <div className="space-y-3">
+              {ALERTS.map((a, i) => (
+                <AlertRow
+                  key={a.id}
+                  type={a.type === 'BUY' ? 'green' : a.type === 'SELL' ? 'red' : 'yellow'}
+                  title={`${a.symbol}: ${a.note}`}
+                  timestamp={a.age}
+                  onClick={() => navigate('/AIInsights')}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <SectionTitle icon="🚀" label={t('home.latestJumps')} sub={t('home.strongSignals')} />
+            <div className="grid grid-cols-2 gap-3">
+              {JUMPS.map((j, i) => (
+                <motion.button
+                  key={j.symbol}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.07 }}
+                  onClick={() => navigate(`/Asset/${j.symbol}`)}
+                  className="text-left rounded-2xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98] glass-card border border-success/20 bg-success/5 hover:border-success/30 card-shadow"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-mono font-black text-sm text-foreground">{j.symbol}</span>
+                    <span className="font-mono font-black text-sm text-success">+{j.change}%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-snug">{j.reason}</p>
+                </motion.button>
+              ))}
             </div>
           </div>
 
