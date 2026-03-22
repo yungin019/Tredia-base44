@@ -9,8 +9,8 @@ import PageTransition from '@/components/ui/page-transition';
 import { base44 } from '@/api/base44Client';
 
 import AppShell from './components/layout/AppShell';
-import SplashScreen from './pages/SplashScreen';
-import SignIn from './pages/SignIn';
+import SplashScreen from './pages/SplashScreen.jsx';
+import SignIn from './pages/SignIn.jsx';
 import Onboarding from './pages/Onboarding';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
