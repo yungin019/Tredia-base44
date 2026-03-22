@@ -108,6 +108,15 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        const token = localStorage.getItem('base44_access_token')
+          || localStorage.getItem('token');
+
+        if (!token) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
         const currentUser = await base44.auth.me();
         setUser(currentUser);
       } catch (error) {
