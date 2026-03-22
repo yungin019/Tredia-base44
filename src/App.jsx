@@ -23,8 +23,29 @@ import Upgrade from './pages/Upgrade';
 import AssetDetail from './pages/AssetDetail';
 import Notifications from './pages/Notifications';
 
+const ProtectedRoute = ({ children }) => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+          <span className="text-xs text-muted-foreground font-mono">TREDIO</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/SignIn" replace />;
+  }
+
+  return children;
+};
+
 const AuthenticatedApp = () => {
-  const { isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -41,11 +62,11 @@ const AuthenticatedApp = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Navigate to="/SplashScreen" replace />} />
-        <Route path="/SignIn" element={<PageTransition><SignIn /></PageTransition>} />
+        <Route path="/" element={user ? <Navigate to="/Home" replace /> : <Navigate to="/SignIn" replace />} />
+        <Route path="/SignIn" element={user ? <Navigate to="/Home" replace /> : <PageTransition><SignIn /></PageTransition>} />
         <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
-        <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
-        <Route element={<AppShell />}>
+        <Route path="/Onboarding" element={<ProtectedRoute><PageTransition><Onboarding /></PageTransition></ProtectedRoute>} />
+        <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
           <Route path="/Home" element={<PageTransition><Home /></PageTransition>} />
           <Route path="/Dashboard" element={<Navigate to="/Home" replace />} />
           <Route path="/Markets" element={<PageTransition><Markets /></PageTransition>} />

@@ -18,11 +18,11 @@ export default function SignIn() {
   const [error, setError] = useState(null);
 
   const handleGoogle = () => {
-    base44.auth.redirectToLogin('/Home');
+    base44.auth.signInWithGoogle('/Home');
   };
 
   const handleApple = () => {
-    base44.auth.redirectToLogin('/Home');
+    base44.auth.signInWithApple('/Home');
   };
 
   const handleEmailAuth = async (e) => {
@@ -33,18 +33,18 @@ export default function SignIn() {
     try {
       if (isRegister) {
         if (password !== confirmPassword) {
-          setError('Passwords do not match');
+          setError(t('signin.passwordMismatch') || 'Passwords do not match');
           setLoading(false);
           return;
         }
-        await base44.auth.register(email, password);
+        await base44.auth.signUpWithEmail(email, password);
         navigate('/Home', { replace: true });
       } else {
         await base44.auth.signInWithEmail(email, password);
         navigate('/Home', { replace: true });
       }
     } catch (err) {
-      setError(err.message || 'Authentication failed. Please try again.');
+      setError(err.message || t('signin.authFailed') || 'Authentication failed. Please try again.');
       setLoading(false);
     }
   };
@@ -129,7 +129,7 @@ export default function SignIn() {
               className="flex items-center justify-center gap-3 w-full py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
             >
               <Mail className="h-4 w-4" />
-              Continue with Email
+              {t('signin.email') || 'Continue with Email'}
             </button>
           ) : (
             <form onSubmit={handleEmailAuth} className="flex flex-col gap-3">
@@ -175,14 +175,14 @@ export default function SignIn() {
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-bold text-sm transition-all"
                 style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: loading ? 0.7 : 1 }}
               >
-                {loading ? (t('common.loading') || 'Loading...') : <><span>{isRegister ? 'Create Account' : 'Sign In'}</span><ArrowRight className="h-4 w-4" /></>}
+                {loading ? (t('common.loading') || 'Loading...') : <><span>{isRegister ? (t('signin.createAccount') || 'Create Account') : (t('signin.signIn') || 'Sign In')}</span><ArrowRight className="h-4 w-4" /></>}
               </button>
               <div className="flex items-center justify-between text-[10px]">
                 <button type="button" onClick={() => setMode(null)} className="text-white/25 hover:text-white/45 transition-colors">
-                  ← Back
+                  {t('common.back') || '← Back'}
                 </button>
                 <button type="button" onClick={() => { setIsRegister(!isRegister); setError(null); }} className="text-primary/70 hover:text-primary transition-colors">
-                  {isRegister ? 'Already have an account?' : "Don't have an account?"}
+                  {isRegister ? (t('signin.alreadyHaveAccount') || 'Already have an account?') : (t('signin.noAccount') || "Don't have an account?")}
                 </button>
               </div>
             </form>
@@ -195,7 +195,7 @@ export default function SignIn() {
           transition={{ delay: 0.4 }}
           className="text-center text-[10px] text-white/15"
         >
-          By signing in, you agree to our Terms of Service & Privacy Policy
+          {t('signin.terms') || 'By signing in, you agree to our Terms of Service & Privacy Policy'}
         </motion.p>
       </div>
     </div>
