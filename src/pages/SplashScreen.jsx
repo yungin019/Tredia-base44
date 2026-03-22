@@ -88,8 +88,7 @@ export default function SplashScreen() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-lg font-normal text-center"
-            style={{ color: '#F59E0B' }}
+            className="text-lg font-medium text-center text-muted-foreground/80"
           >
             The AI mentor every trader needs
           </motion.p>
