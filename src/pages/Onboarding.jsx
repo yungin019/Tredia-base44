@@ -1,18 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { TrendingUp, Star, ArrowRight, Check, ChevronRight, DollarSign } from 'lucide-react';
+import { ArrowRight, Check, Brain, Zap, TrendingUp, Shield, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { claimFoundingMemberSlot } from '@/api/foundingMembers';
-
-const BROKERS = [
-  { id: 'alpaca', name: 'Alpaca', desc: 'Commission-free API-first trading for stocks & crypto', recommended: true, color: '#F59E0B' },
-  { id: 'ibkr', name: 'IBKR', desc: 'Interactive Brokers — professional-grade global markets', recommended: false, color: '#60A5FA' },
-  { id: 'robinhood', name: 'Robinhood', desc: 'Simple commission-free stocks, ETFs, and options', recommended: false, color: '#22C55E' },
-  { id: 'coinbase', name: 'Coinbase', desc: 'Leading crypto exchange with 200+ digital assets', recommended: false, color: '#818CF8' },
-  { id: 'schwab', name: 'Schwab', desc: 'Full-service brokerage with research & tools', recommended: false, color: '#94A3B8' },
-];
+import { claimFoundingMemberSlot, getFoundingStats } from '@/api/foundingMembers';
 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
@@ -20,10 +12,10 @@ const fadeUp = {
   exit: { opacity: 0, y: -10 },
 };
 
-const BUDGET_OPTIONS = ['Under €500', '€500–5k', '€5k–50k', '€50k+'];
+const BUDGET_OPTIONS = ['Under 500 SEK', '500-5k SEK', '5k-50k SEK', '50k+ SEK'];
 const RISK_OPTIONS = ['Conservative', 'Moderate', 'Aggressive'];
-const GOAL_OPTIONS = ['Learning', 'Growing wealth', 'Active trading'];
-const EXPERIENCE_OPTIONS = ['Beginner', 'Intermediate', 'Advanced'];
+const HORIZON_OPTIONS = ['Days', 'Months', 'Years'];
+const INTERESTS_OPTIONS = ['Stocks', 'Crypto', 'Commodities', 'All'];
 
 function OptionButton({ label, selected, onClick, color = '#F59E0B' }) {
   return (
@@ -45,79 +37,56 @@ function OptionButton({ label, selected, onClick, color = '#F59E0B' }) {
   );
 }
 
-function TrekIntro({ onEnter }) {
-  const { t } = useTranslation();
-  return (
-    <motion.div key="trek" {...fadeUp} transition={{ duration: 0.4 }}>
-      <div className="rounded-2xl border border-[#F59E0B]/20 bg-[#111118] p-8 flex flex-col items-center gap-6 text-center">
-        <motion.div
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="h-16 w-16 rounded-2xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 flex items-center justify-center"
-          style={{ boxShadow: '0 0 32px rgba(245,158,11,0.15)' }}
-        >
-          <span className="text-2xl font-black" style={{ color: '#F59E0B' }}>T</span>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#F59E0B]/60 mb-2">{t('onboarding.meetTrek')}</p>
-          <h2 className="text-xl font-black text-white/90 mb-1">{t('onboarding.trekIntelligence')}</h2>
-        </motion.div>
-        <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-          className="text-sm text-white/45 leading-relaxed max-w-sm">
-          {t('onboarding.trekIntro')}
-        </motion.p>
-        <motion.button
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45 }}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={onEnter}
-          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mt-2"
-          style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
-          >
-          {t('onboarding.enterTredio')} <ArrowRight className="h-4 w-4" />
-        </motion.button>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function Onboarding() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [step, setStep] = useState('choice');
+  const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [ogStats, setOgStats] = useState(null);
+  const [ogNumber, setOgNumber] = useState(null);
 
   // Profile fields
-  const [budgetRange, setBudgetRange] = useState('');
-  const [riskTolerance, setRiskTolerance] = useState('');
-  const [goal, setGoal] = useState('');
-  const [experienceLevel, setExperienceLevel] = useState('');
+  const [budget, setBudget] = useState('');
+  const [risk, setRisk] = useState('');
+  const [horizon, setHorizon] = useState('');
+  const [interests, setInterests] = useState('');
+
+  useEffect(() => {
+    getFoundingStats().then(stats => setOgStats(stats)).catch(() => {});
+  }, []);
+
+  const handleOGClaim = async () => {
+    try {
+      const user = await base44.auth.me();
+      if (user?.id || user?.email) {
+        const member = await claimFoundingMemberSlot(user.email || user.id);
+        if (member) {
+          setOgNumber(member.og_number);
+          setStep(2);
+        }
+      }
+    } catch (e) {
+      console.error('OG claim error:', e);
+      setStep(2);
+    }
+  };
 
   const handleProfileSave = async () => {
     setSaving(true);
     try {
       const profileData = {
         onboarding_completed: true,
-        ...(budgetRange && { budget_range: budgetRange }),
-        ...(riskTolerance && { risk_tolerance: riskTolerance }),
-        ...(goal && { goal }),
-        ...(experienceLevel && { experience_level: experienceLevel }),
+        ...(budget && { budget_range: budget }),
+        ...(risk && { risk_tolerance: risk }),
+        ...(horizon && { time_horizon: horizon }),
+        ...(interests && { interests }),
       };
       await base44.auth.updateMe(profileData);
-
-      // Try to claim founding member slot
-      const user = await base44.auth.me();
-      if (user?.id || user?.email) {
-        await claimFoundingMemberSlot(user.email || user.id);
-      }
     } catch (e) {
       console.error('Profile save error:', e);
     }
     setSaving(false);
-    setStep('trek');
+    setStep(4);
   };
 
   return (
@@ -134,184 +103,206 @@ export default function Onboarding() {
 
         <AnimatePresence mode="wait">
 
-          {/* STEP 1: Choice */}
-          {step === 'choice' && (
-            <motion.div key="choice" {...fadeUp} transition={{ duration: 0.4 }}>
-              <div className="text-center mb-6">
-                  <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.getStarted')}</h1>
-                  <p className="text-sm text-white/35">{t('onboarding.noRealMoney')}</p>
+          {/* STEP 1: OG Counter Offer */}
+          {step === 1 && (
+            <motion.div key="og" {...fadeUp} transition={{ duration: 0.4 }}>
+              <div className="rounded-2xl border border-[#F59E0B]/25 bg-[#111118] p-8" style={{ boxShadow: '0 0 40px rgba(245,158,11,0.08)' }}>
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center gap-1.5 bg-[#F59E0B]/10 border border-[#F59E0B]/20 rounded-full px-3 py-1 mb-3">
+                    <Crown className="h-3 w-3 text-[#F59E0B]" />
+                    <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">FOUNDING MEMBER OFFER</span>
+                  </div>
+                  <h1 className="text-2xl font-black text-white/90 mb-2">Join the OG100</h1>
+                  <p className="text-sm text-white/50 mb-1">🔴 LIVE — {ogStats?.foundingSpotsRemaining || 100} of 100 spots left</p>
                 </div>
-              <div className="grid grid-cols-2 gap-4">
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => setStep('broker')}
-                  className="flex flex-col items-center gap-4 p-6 rounded-2xl border border-white/10 bg-[#111118] cursor-pointer transition-all text-left group" style={{ outline: 'none' }}>
-                  <div className="h-12 w-12 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-center justify-center group-hover:bg-[#F59E0B]/15 transition-all">
-                    <TrendingUp className="h-6 w-6 text-[#F59E0B]" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-white/90 text-base mb-1">{t('onboarding.alreadyTrade')}</p>
-                       <p className="text-xs text-white/35 leading-relaxed">{t('onboarding.connectBroker')}</p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-[#F59E0B]/50 self-end mt-auto" />
-                </motion.button>
 
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => setStep('paper')}
-                  className="flex flex-col items-center gap-4 p-6 rounded-2xl border border-white/10 bg-[#111118] cursor-pointer transition-all text-left group" style={{ outline: 'none' }}>
-                  <div className="h-12 w-12 rounded-xl bg-[#60A5FA]/10 border border-[#60A5FA]/20 flex items-center justify-center group-hover:bg-[#60A5FA]/15 transition-all">
-                    <Star className="h-6 w-6 text-[#60A5FA]" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-white/90 text-base mb-1">{t('onboarding.newTrading')}</p>
-                    <p className="text-xs text-white/35 leading-relaxed">{t('onboarding.startPaperTrading')}</p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-[#60A5FA]/50 self-end mt-auto" />
-                </motion.button>
+                <ul className="space-y-3 mb-6">
+                  {[
+                    'Elite FREE for 30 days',
+                    'Then Elite for 89 SEK/month for life (normally 179 SEK)',
+                    'OG Founding Member badge',
+                    'Personal referral link'
+                  ].map((f, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <div className="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}>
+                        <Check className="h-3 w-3 text-[#F59E0B]" />
+                      </div>
+                      <span className="text-sm text-white/70">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={handleOGClaim}
+                    disabled={ogStats?.isSoldOut}
+                    className="py-3 rounded-xl font-black text-sm tracking-wide transition-all"
+                    style={{
+                      background: ogStats?.isSoldOut ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #F59E0B, #D97706)',
+                      color: ogStats?.isSoldOut ? 'rgba(255,255,255,0.3)' : '#0A0A0F',
+                      opacity: ogStats?.isSoldOut ? 0.5 : 1
+                    }}>
+                    {ogStats?.isSoldOut ? 'SOLD OUT' : 'CLAIM MY SPOT'}
+                  </button>
+                  <button
+                    onClick={() => setStep(2)}
+                    className="py-3 rounded-xl font-bold text-sm border border-white/[0.1] hover:border-white/20 transition-colors text-white/60">
+                    SKIP
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
 
-          {/* STEP 2A: Broker */}
-          {step === 'broker' && (
-            <motion.div key="broker" {...fadeUp} transition={{ duration: 0.4 }}>
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.connectBrokerTitle')}</h1>
-                <p className="text-sm text-white/35 mb-2">{t('onboarding.brokerComingSoon')}</p>
-                <p className="text-[10px] text-white/15 px-4">
-                  ⚠️ These are UI placeholders. Actual broker connections require OAuth API setup with Alpaca, IBKR, Robinhood, etc.
-                  <br/><br/>
-                  For now, use Paper Trading to practice with $100k in simulated funds.
-                </p>
-              </div>
-              <div className="flex flex-col gap-3">
-                {BROKERS.map((broker, i) => (
-                  <motion.div key={broker.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}>
-                    <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                      onClick={() => {}}
-                      disabled={true}
-                      className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/[0.08] bg-[#111118] opacity-50 cursor-not-allowed text-left" style={{ outline: 'none' }}>
-                      <div className="h-10 w-10 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
-                        style={{ background: `${broker.color}15`, border: `1px solid ${broker.color}25`, color: broker.color }}>
-                        {broker.name.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="font-bold text-white/85 text-sm">{broker.name}</span>
-                          {broker.recommended && (
-                            <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider" style={{ background: '#F59E0B20', color: '#F59E0B', border: '1px solid #F59E0B30' }}>
-                              ⭐ Recommended
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-white/30 truncate">{broker.desc}</p>
-                      </div>
-                      <span className="text-[9px] font-black px-2.5 py-1 rounded-lg flex-shrink-0 uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}>{t('common.new')}</span>
-                    </motion.button>
-                  </motion.div>
-                ))}
-              </div>
-              <button onClick={() => setStep('choice')} className="mt-4 text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← {t('common.back')}</button>
-            </motion.div>
-          )}
+          {/* STEP 2: AI Systems Intro */}
+          {step === 2 && (
+            <motion.div key="ai" {...fadeUp} transition={{ duration: 0.4 }}>
+              <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8 text-center">
+                <h1 className="text-2xl font-black text-white/90 mb-2">4 AI systems watching</h1>
+                <p className="text-sm text-white/40 mb-8">every market, 24/7</p>
 
-          {/* STEP 2B: Paper Trading */}
-          {step === 'paper' && (
-            <motion.div key="paper" {...fadeUp} transition={{ duration: 0.4 }}>
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.getStarted')}</h1>
-                  <p className="text-sm text-white/35">{t('onboarding.noRealMoney')}</p>
-              </div>
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
-                className="rounded-2xl border border-[#F59E0B]/20 bg-[#111118] p-6 mb-4"
-                style={{ boxShadow: '0 0 40px rgba(245,158,11,0.06)' }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-center justify-center">
-                    <DollarSign className="h-5 w-5 text-[#F59E0B]" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#F59E0B]/60">Virtual Portfolio</p>
-                    <p className="text-xl font-black text-white/90" style={{ fontFamily: 'JetBrains Mono, monospace' }}>$100,000.00</p>
-                  </div>
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  {[
+                    { icon: Brain, label: 'Pattern Recognition', color: '#60A5FA' },
+                    { icon: Zap, label: 'Signal Engine', color: '#F59E0B' },
+                    { icon: TrendingUp, label: 'Trend Analysis', color: '#22C55E' },
+                    { icon: Shield, label: 'Risk Monitor', color: '#EF4444' },
+                  ].map((sys, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1 + i * 0.1 }}
+                      className="flex flex-col items-center gap-3 p-4 rounded-xl"
+                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div className="h-12 w-12 rounded-xl flex items-center justify-center"
+                        style={{ background: `${sys.color}15`, border: `1px solid ${sys.color}30` }}>
+                        <sys.icon className="h-6 w-6" style={{ color: sys.color }} />
+                      </div>
+                      <span className="text-xs font-semibold text-white/60">{sys.label}</span>
+                    </motion.div>
+                  ))}
                 </div>
-                <p className="text-sm text-white/40 leading-relaxed mb-6">Start with $100k in paper trading. Learn with zero risk.</p>
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => setStep('profile')}
+
+                <button
+                  onClick={() => setStep(3)}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                  {t('onboarding.startPaper')} <ArrowRight className="h-4 w-4" />
-                </motion.button>
-              </motion.div>
-              <button onClick={() => setStep('choice')} className="text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← {t('common.back')}</button>
+                  CONTINUE <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
             </motion.div>
           )}
 
-          {/* STEP 3: AI Personalization Profile */}
-          {step === 'profile' && (
+          {/* STEP 3: Profile Questions */}
+          {step === 3 && (
             <motion.div key="profile" {...fadeUp} transition={{ duration: 0.4 }}>
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-1.5 bg-[#F59E0B]/10 border border-[#F59E0B]/20 rounded-full px-3 py-1 mb-3">
-                <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">{t('onboarding.trekPersonalization')}</span>
+              <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-6">
+                <div className="text-center mb-6">
+                  <h1 className="text-xl font-black text-white/90 mb-1">Personalize TREK</h1>
+                  <p className="text-sm text-white/35">AI adapts to your profile</p>
                 </div>
-                <h1 className="text-2xl font-black text-white/90 mb-1">{t('onboarding.customizeIntelligence')}</h1>
-                <p className="text-sm text-white/35">{t('onboarding.trekAdapts')}</p>
+
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Budget</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {BUDGET_OPTIONS.map(opt => (
+                        <OptionButton key={opt} label={opt} selected={budget === opt} onClick={() => setBudget(opt)} />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Risk</p>
+                    <div className="flex flex-col gap-2">
+                      {RISK_OPTIONS.map(opt => (
+                        <OptionButton key={opt} label={opt} selected={risk === opt} onClick={() => setRisk(opt)} />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Horizon</p>
+                    <div className="flex flex-col gap-2">
+                      {HORIZON_OPTIONS.map(opt => (
+                        <OptionButton key={opt} label={opt} selected={horizon === opt} onClick={() => setHorizon(opt)} />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Interests</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {INTERESTS_OPTIONS.map(opt => (
+                        <OptionButton key={opt} label={opt} selected={interests === opt} onClick={() => setInterests(opt)} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleProfileSave}
+                  disabled={saving}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mt-6"
+                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: saving ? 0.7 : 1 }}>
+                  {saving ? 'Loading...' : <><span>CONTINUE</span> <ArrowRight className="h-4 w-4" /></>}
+                </button>
               </div>
-
-              <div className="space-y-5">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.budgetLabel') || 'Investment Budget'}</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {BUDGET_OPTIONS.map(opt => (
-                      <OptionButton key={opt} label={opt} selected={budgetRange === opt} onClick={() => setBudgetRange(opt)} />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.riskLabel') || 'Risk Tolerance'}</p>
-                  <div className="flex flex-col gap-2">
-                    {RISK_OPTIONS.map(opt => (
-                      <OptionButton key={opt} label={opt} selected={riskTolerance === opt} onClick={() => setRiskTolerance(opt)} />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.goalLabel') || 'Your Goal'}</p>
-                  <div className="flex flex-col gap-2">
-                    {GOAL_OPTIONS.map(opt => (
-                      <OptionButton key={opt} label={opt} selected={goal === opt} onClick={() => setGoal(opt)} />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.experienceLabel') || 'Experience Level'}</p>
-                  <div className="flex flex-col gap-2">
-                    {EXPERIENCE_OPTIONS.map(opt => (
-                      <OptionButton key={opt} label={opt} selected={experienceLevel === opt} onClick={() => setExperienceLevel(opt)} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleProfileSave}
-                disabled={saving}
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mt-6"
-                style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: saving ? 0.7 : 1 }}
-                >
-                {saving ? t('common.loading') : <>{t('onboarding.continue')} <ArrowRight className="h-4 w-4" /></>}
-              </motion.button>
-
-              <button onClick={() => setStep('choice')} className="mt-3 text-xs text-white/25 hover:text-white/45 transition-colors flex items-center gap-1 mx-auto">← {t('common.back')}</button>
             </motion.div>
           )}
 
-          {/* STEP 4: TREK Introduction */}
-          {step === 'trek' && (
-            <TrekIntro onEnter={() => navigate('/Home')} />
+          {/* STEP 4: Create Account CTA */}
+          {step === 4 && (
+            <motion.div key="account" {...fadeUp} transition={{ duration: 0.4 }}>
+              <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 flex items-center justify-center mx-auto mb-4">
+                  <Zap className="h-8 w-8 text-[#F59E0B]" />
+                </div>
+                <h1 className="text-2xl font-black text-white/90 mb-2">You're all set!</h1>
+                <p className="text-sm text-white/40 mb-8">One last step — create your account</p>
+
+                <button
+                  onClick={() => navigate('/SignIn')}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
+                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
+                  GET STARTED <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 5: OG Welcome (if claimed) */}
+          {step === 5 && ogNumber && (
+            <motion.div key="welcome" {...fadeUp} transition={{ duration: 0.4 }}>
+              <div className="rounded-2xl border border-[#F59E0B]/25 bg-[#111118] p-8 text-center">
+                <div className="inline-flex items-center gap-2 bg-[#F59E0B]/15 border border-[#F59E0B]/30 rounded-full px-4 py-2 mb-4">
+                  <Crown className="h-5 w-5 text-[#F59E0B]" />
+                  <span className="text-sm font-black text-[#F59E0B]">OG #{ogNumber}</span>
+                </div>
+                <h1 className="text-2xl font-black text-white/90 mb-2">Welcome, Founding Member</h1>
+                <p className="text-sm text-white/50 mb-8">Your referral link is ready</p>
+
+                <div className="rounded-xl p-4 mb-6" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                  <p className="text-xs font-mono text-white/60 mb-2">https://tredio.app/join?ref=OG{ogNumber}</p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://tredio.app/join?ref=OG${ogNumber}`);
+                    }}
+                    className="text-xs font-bold text-[#F59E0B] hover:text-[#F59E0B]/80 transition-colors">
+                    Copy Link
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => navigate('/Home')}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
+                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
+                  ENTER TREDIO <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.div>
           )}
 
         </AnimatePresence>

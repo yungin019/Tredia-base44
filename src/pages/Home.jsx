@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Zap, TrendingUp, TrendingDown, AlertTriangle, ChevronRight, Clock, ExternalLink, X, Sparkles, ArrowUpRight } from 'lucide-react';
+import { Zap, TrendingUp, TrendingDown, AlertTriangle, ChevronRight, Clock, ExternalLink, X, Sparkles, ArrowUpRight, Check } from 'lucide-react';
 import { fetchFearGreed } from '@/api/marketData';
 import TickerTape from '@/components/dashboard/TickerTape';
 import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import { base44 } from '@/api/base44Client';
 import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
+import { getFoundingStats, getFoundingMemberInfo } from '@/api/foundingMembers';
 
 const ALERTS = [
   { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'Momentum breakout above $870 — volume 3.2× average', age: '7m', color: 'hsl(142, 86%, 28%)', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)' },
@@ -196,9 +197,19 @@ export default function Home() {
   const [fearGreed, setFearGreed] = useState(null);
   const [selectedNews, setSelectedNews] = useState(null);
   const [newsItems, setNewsItems] = useState(NEWS);
+  const [ogStats, setOgStats] = useState(null);
+  const [isOgMember, setIsOgMember] = useState(false);
 
   useEffect(() => {
     fetchFearGreed().then(fg => { if (fg) setFearGreed(fg); });
+    getFoundingStats().then(stats => setOgStats(stats)).catch(() => {});
+    base44.auth.me().then(user => {
+      if (user?.email || user?.id) {
+        getFoundingMemberInfo(user.email || user.id).then(member => {
+          if (member) setIsOgMember(true);
+        }).catch(() => {});
+      }
+    }).catch(() => {});
   }, []);
 
   const loadNews = async () => {
@@ -241,6 +252,45 @@ export default function Home() {
         <IndexCardsSection />
 
         <div className="p-4 lg:p-6 space-y-6 max-w-[900px] mx-auto pb-24">
+          {/* OG100 Compact Card */}
+          {!isOgMember && ogStats && !ogStats.isSoldOut && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={() => navigate('/Upgrade')}
+              className="rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.01]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05))',
+                border: '1px solid rgba(245,158,11,0.3)',
+                borderLeft: '4px solid #F59E0B'
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="h-4 w-4 text-[#F59E0B]" />
+                    <span className="text-xs font-black tracking-wider uppercase text-[#F59E0B]">FOUNDING MEMBER OFFER</span>
+                  </div>
+                  <p className="text-sm text-white/80 font-semibold mb-2">
+                    🔴 LIVE — {ogStats.foundingSpotsRemaining} of 100 spots left
+                  </p>
+                  <ul className="space-y-1 text-xs text-white/60">
+                    <li className="flex items-center gap-2">
+                      <Check className="h-3 w-3 text-[#F59E0B]" /> Elite FREE for 30 days
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="h-3 w-3 text-[#F59E0B]" /> Then 89 SEK/month for life
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="h-3 w-3 text-[#F59E0B]" /> OG badge + referral link
+                    </li>
+                  </ul>
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-[#F59E0B] flex-shrink-0" />
+              </div>
+            </motion.div>
+          )}
+
           <ContextBanner
             storageKey="home_v1"
             title={t('home.contextTitle')}

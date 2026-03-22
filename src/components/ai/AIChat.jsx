@@ -137,7 +137,7 @@ export default function AIChat() {
     setQuestionsToday(nextCount);
     
     try {
-      const reply = await askTrek(historyRef.current, marketContext, currentUser);
+      const reply = await askTrek(historyRef.current, marketContext, currentUser, tier);
       if (reply && reply.trim()) {
         historyRef.current = [...historyRef.current, { role: 'assistant', content: reply }];
         setMessages(prev => [...prev, { role: 'ai', content: reply }]);
@@ -183,7 +183,24 @@ export default function AIChat() {
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05]">
         <TrekAvatar size={6} />
         <span className="text-[11px] font-bold text-white/80">{t('trek.askTrek')}</span>
-        <span className="text-[9px] font-mono font-bold text-primary/50 px-1.5 py-0.5 rounded border border-primary/15 ml-1 tracking-wider" style={{ background: 'rgba(245,158,11,0.05)' }}>Claude · LIVE</span>
+        {tier === 'free' && (
+          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ml-1 tracking-wider"
+            style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}>
+            ⚡ TREK Basic
+          </span>
+        )}
+        {tier === 'pro' && (
+          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ml-1 tracking-wider"
+            style={{ background: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.25)', color: '#F59E0B' }}>
+            ⚡ TREK Pro
+          </span>
+        )}
+        {tier === 'elite' && (
+          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ml-1 tracking-wider animate-pulse"
+            style={{ background: 'rgba(245,158,11,0.15)', borderColor: 'rgba(245,158,11,0.4)', color: '#F59E0B', boxShadow: '0 0 12px rgba(245,158,11,0.3)' }}>
+            ⚡ Super AI 🔥
+          </span>
+        )}
         {messages.length > 0 && (
           <button onClick={handleClear} className="ml-auto flex items-center gap-1 text-[9px] text-white/25 hover:text-white/50 transition-colors">
             <RotateCcw className="h-3 w-3" /> {t('common.clear')}

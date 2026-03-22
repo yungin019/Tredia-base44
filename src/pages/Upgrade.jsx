@@ -16,10 +16,10 @@ const ELITE_FEATURES = [
 ];
 
 const FOUNDING_FEATURES = [
-  '2 Months Elite — FREE',
-  'Then 50% off for life',
-  'OG Badge on your profile',
-  'Private Discord access',
+  'Elite FREE for 30 days',
+  'Then 89 SEK/month for life (normally 179 SEK)',
+  'OG Founding Member badge',
+  'Personal referral link',
   'Early access to new features',
 ];
 
@@ -124,9 +124,9 @@ export default function Upgrade() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                       <Zap className="h-4 w-4 text-[#F59E0B]" />
-                      <span className="text-[10px] font-black tracking-[0.2em] uppercase text-[#F59E0B]">{t('upgrade.foundingMember')}</span>
+                      <span className="text-[10px] font-black tracking-[0.2em] uppercase text-[#F59E0B]">FOUNDING MEMBER OFFER</span>
                     </div>
-                    <p className="text-[10px] text-white/35 tracking-wider uppercase font-semibold">{t('upgrade.first100')}</p>
+                    <p className="text-[10px] text-white/35 tracking-wider uppercase font-semibold">🔴 LIVE — First 100 members</p>
             </div>
             <div className="text-[8px] font-black px-2.5 py-1 rounded-full tracking-widest uppercase"
               style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.4)' }}>
@@ -155,13 +155,12 @@ export default function Upgrade() {
                 {loadingStats ? (
                   <span className="text-[11px] text-white/30">Loading...</span>
                 ) : joined ? (
-                  <span className="text-[11px] text-[#F59E0B] font-bold">You are OG #{joinedNumber} · 100 spots claimed</span>
+                  <span className="text-[11px] text-[#F59E0B] font-bold">You are OG #{joinedNumber}</span>
                 ) : stats.isSoldOut ? (
-                  <span className="text-[11px] text-red-400 font-bold">100 of 100 spots taken — SOLD OUT</span>
+                  <span className="text-[11px] text-red-400 font-bold">SOLD OUT — All 100 spots claimed</span>
                 ) : (
                   <span className="text-[11px] text-white/50">
-                    <span className="text-white/80 font-bold">{stats.foundingSpotsTaken}</span> of 100 spots taken
-                    <span className="text-[#F59E0B] font-bold ml-1">· {stats.foundingSpotsRemaining} remaining</span>
+                    <span className="text-white/80 font-bold">{stats.foundingSpotsRemaining}</span> of 100 spots left
                   </span>
                 )}
               </div>
@@ -203,7 +202,7 @@ export default function Upgrade() {
                 boxShadow: '0 0 30px rgba(245,158,11,0.2)',
               }}
             >
-              {joining ? t('common.loading') : `⚡ ${t('upgrade.joinAsFounding')} →`}
+              {joining ? t('common.loading') : 'CLAIM YOUR SPOT →'}
             </motion.button>
           )}
         </div>
@@ -241,9 +240,9 @@ export default function Upgrade() {
           <span className="text-[10px] font-black tracking-[0.18em] uppercase text-[#F59E0B]">{t('upgrade.elite')}</span>
         </div>
         <p className="text-2xl font-black text-white/90 mb-1">
-          {billingCycle === 'monthly' ? '$49.99' : '$449.99'}
+          {billingCycle === 'monthly' ? '179 SEK' : '1790 SEK'}
           <span className="text-sm font-medium text-white/35">
-            {billingCycle === 'monthly' ? t('upgrade.month') : '/yr'}
+            {billingCycle === 'monthly' ? '/mo' : '/yr'}
           </span>
         </p>
         <p className="text-xs text-white/30 mb-5">{t('trek.subtitle')}</p>
@@ -275,9 +274,9 @@ export default function Upgrade() {
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-6">
         <span className="text-[10px] font-black tracking-[0.18em] uppercase text-white/40">{t('upgrade.pro')}</span>
         <p className="text-2xl font-black text-white/90 mb-1 mt-1">
-          {billingCycle === 'monthly' ? '$19.99' : '$179.99'}
+          {billingCycle === 'monthly' ? '89 SEK' : '890 SEK'}
           <span className="text-sm font-medium text-white/35">
-            {billingCycle === 'monthly' ? t('upgrade.month') : '/yr'}
+            {billingCycle === 'monthly' ? '/mo' : '/yr'}
           </span>
         </p>
         <p className="text-xs text-white/30 mb-5">{t('home.title')}</p>

@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import { sendPushNotification } from '@/api/notifications';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import CandlestickChart from '@/components/markets/CandlestickChart';
+import TrekInstantRead from '@/components/trek/TrekInstantRead';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
@@ -354,6 +355,9 @@ export default function AssetDetail() {
           {watchlistEntry ? 'Watching' : 'Watch'}
         </button>
       </div>
+
+      {/* TREK Instant Read */}
+      <TrekInstantRead symbol={symbol} />
 
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mb-5">

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { User, AlertCircle, CheckCircle2, Clock, Copy, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
@@ -56,6 +56,7 @@ export default function Settings() {
   });
   const [notifLoaded, setNotifLoaded] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     base44.auth.me()
@@ -100,6 +101,58 @@ export default function Settings() {
       {foundingMember && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           <FoundingMemberBadge ogNumber={foundingMember.og_number} />
+        </motion.div>
+      )}
+
+      {/* OG REFERRAL SECTION */}
+      {foundingMember && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }}
+          className="rounded-xl border border-[#F59E0B]/20 bg-[#111118] p-5 space-y-4">
+          <SectionHeader title="REFERRAL PROGRAM" />
+          <p className="text-xs text-white/40 mb-3">Share TREDIO with friends. You both win.</p>
+
+          <div className="rounded-lg p-3 mb-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">Friends referred</span>
+              <span className="text-lg font-black text-[#F59E0B]">{foundingMember.referral_count || 0}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-white/30 block mb-2">Your referral link</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={`https://tredio.app/join?ref=OG${foundingMember.og_number}`}
+                readOnly
+                className="flex-1 bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-xs text-white/70 font-mono"
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://tredio.app/join?ref=OG${foundingMember.og_number}`);
+                  setCopySuccess(true);
+                  setTimeout(() => setCopySuccess(false), 2000);
+                }}
+                className="px-4 py-2 rounded-lg font-bold text-xs transition-all"
+                style={{ background: copySuccess ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.12)', border: `1px solid ${copySuccess ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.25)'}`, color: copySuccess ? '#22c55e' : '#F59E0B' }}>
+                {copySuccess ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </button>
+              <button
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: 'Join TREDIO',
+                      text: 'Check out TREDIO — AI-powered trading intelligence',
+                      url: `https://tredio.app/join?ref=OG${foundingMember.og_number}`
+                    }).catch(() => {});
+                  }
+                }}
+                className="px-4 py-2 rounded-lg font-bold text-xs transition-all"
+                style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', color: '#F59E0B' }}>
+                <Share2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </motion.div>
       )}
 
