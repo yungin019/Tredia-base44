@@ -40,12 +40,7 @@ const LoadingSpinner = () => (
     flexDirection: 'column',
     gap: '16px'
   }}>
-    <div style={{
-      fontSize: '28px',
-      fontWeight: '900',
-      color: '#F59E0B',
-      letterSpacing: '6px'
-    }}>TREDIO</div>
+  <img src="/logo-full.svg" alt="TREDIO" style={{ height: '36px' }} />
     <div style={{
       width: 32,
       height: 32,
