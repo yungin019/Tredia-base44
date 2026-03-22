@@ -116,19 +116,9 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('base44_access_token')
-          || localStorage.getItem('token');
-
-        if (!token) {
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
         const currentUser = await base44.auth.me();
-        setUser(currentUser);
+        setUser(currentUser || null);
       } catch (error) {
-        console.error('Auth check error:', error);
         setUser(null);
       } finally {
         setLoading(false);
@@ -139,11 +129,12 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await base44.auth.signOut();
-      setUser(null);
+      localStorage.removeItem('base44_access_token');
+      localStorage.removeItem('token');
+      await base44.auth.logout('/SignIn');
     } catch (error) {
-      console.error('Logout error:', error);
       setUser(null);
+      window.location.href = '/SignIn';
     }
   };
 
