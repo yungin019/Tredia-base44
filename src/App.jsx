@@ -9,6 +9,7 @@ import PageTransition from '@/components/ui/page-transition';
 import { base44 } from '@/api/base44Client';
 
 import AppShell from './components/layout/AppShell';
+import { NavigationProvider } from '@/lib/NavigationManager';
 import SplashScreen from './pages/SplashScreen.jsx';
 import SignIn from './pages/SignIn.jsx';
 import Onboarding from './pages/Onboarding';
