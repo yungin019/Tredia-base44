@@ -142,8 +142,8 @@ function App() {
         <Router>
           <NavigationProvider>
             <AppRoutes user={user} onLogout={handleLogout} />
+            <Toaster />
           </NavigationProvider>
-          <Toaster />
         </Router>
       )}
     </QueryClientProvider>
