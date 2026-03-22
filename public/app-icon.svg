@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <!-- Background -->
+  <rect width="256" height="256" rx="48" fill="#080B12"/>
+  <!-- T stem -->
+  <rect x="112" y="88" width="32" height="120" rx="6" fill="#F59E0B"/>
+  <!-- T left arm -->
+  <rect x="56" y="56" width="88" height="32" rx="6" fill="#F59E0B"/>
+  <!-- Chart trending line (right arm of crossbar) -->
+  <polyline points="144,72 168,72 200,40" stroke="#F59E0B" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
