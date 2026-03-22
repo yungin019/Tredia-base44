@@ -39,15 +39,7 @@ export default function SplashScreen() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
         style={{ textAlign: 'center' }}
       >
-        <div style={{
-          fontSize: '42px',
-          fontWeight: '900',
-          color: '#F59E0B',
-          letterSpacing: '8px',
-          marginBottom: '8px',
-        }}>
-          TREDIO_LOGO_PLACEHOLDER
-        </div>
+        <img src="/logo-full.svg" alt="TREDIO" style={{ height: '48px', marginBottom: '12px' }} />
         <div style={{
           fontSize: '12px',
           color: 'rgba(255,255,255,0.35)',

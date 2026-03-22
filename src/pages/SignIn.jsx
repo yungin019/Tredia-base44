@@ -73,9 +73,8 @@ export default function SignIn() {
       >
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontSize: '32px', fontWeight: '900', color: '#F59E0B', letterSpacing: '6px', marginBottom: '6px' }}>
-            TREDIO
-          </div>
+          <img src="/logo-icon.svg" alt="TREDIO" style={{ height: '52px', width: '52px', margin: '0 auto 12px' }} />
+          <img src="/logo-full.svg" alt="TREDIO" style={{ height: '32px', margin: '0 auto 6px' }} />
           <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', letterSpacing: '2px', textTransform: 'uppercase' }}>
             AI Trading Intelligence
           </div>
