@@ -23,10 +23,16 @@ import { base44 } from '@/api/base44Client';
 
 export function useSubscriptionStatus() {
   const { getCurrentTier: getRevenueCatTier, hasActiveSubscription, checkEntitlement } = useRevenueCat();
+  const [dbTier, setDbTier] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => {
+      if (u?.subscription_tier) setDbTier(u.subscription_tier);
+    }).catch(() => {});
+  }, []);
 
   /**
-   * Get the authoritative tier: RevenueCat entitlements ONLY
-   * If no active subscription → FREE (strict default)
+   * Get the authoritative tier: RevenueCat first, then DB fallback
    */
   const tier = useMemo(() => {
     if (hasActiveSubscription()) {
@@ -34,8 +40,10 @@ export function useSubscriptionStatus() {
       if (rcTier === 'elite') return 'elite';
       if (rcTier === 'pro') return 'pro';
     }
-    return 'free'; // STRICT: Default to free if no entitlements
-  }, [hasActiveSubscription, getRevenueCatTier]);
+    // Fallback: use DB tier (set by admin or claim)
+    if (dbTier && dbTier !== 'free') return dbTier;
+    return 'free';
+  }, [hasActiveSubscription, getRevenueCatTier, dbTier]);
 
   /**
    * Check if user has access to a feature
