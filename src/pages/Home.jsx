@@ -258,6 +258,54 @@ export default function Home() {
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
           <NextJumpDetector />
 
+          <TrekIntelligenceCard
+            sentiment={fearGreed?.value || 50}
+            regime={fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value > 60 ? 'GREED' : 'NEUTRAL'}
+          />
+
+          <div>
+            <SectionTitle
+              icon="🚨"
+              label={t('home.alerts')}
+              sub={t('home.timeSensitive')}
+              action={t('home.allSignals')}
+              onAction={() => navigate('/AIInsights')}
+            />
+            <div className="space-y-3">
+              {ALERTS.map((a, i) => (
+                <AlertRow
+                  key={a.id}
+                  type={a.type === 'BUY' ? 'green' : a.type === 'SELL' ? 'red' : 'yellow'}
+                  title={`${a.symbol}: ${a.note}`}
+                  timestamp={a.age}
+                  onClick={() => navigate('/AIInsights')}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <SectionTitle icon="🚀" label={t('home.latestJumps')} sub={t('home.strongSignals')} />
+            <div className="grid grid-cols-2 gap-3">
+              {JUMPS.map((j, i) => (
+                <motion.button
+                  key={j.symbol}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.07 }}
+                  onClick={() => navigate(`/Asset/${j.symbol}`)}
+                  className="text-left rounded-2xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98] glass-card border border-success/20 bg-success/5 hover:border-success/30 card-shadow"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-mono font-black text-sm text-foreground">{j.symbol}</span>
+                    <span className="font-mono font-black text-sm text-success">+{j.change}%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-snug">{j.reason}</p>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <SectionTitle icon="📰" label={t('home.marketNews')} sub={t('home.aiAnalyzed')} />
             <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
@@ -313,101 +361,6 @@ export default function Home() {
                   </motion.button>
                 ))}
               </div>
-            </div>
-          </div>
-
-          <TrekIntelligenceCard
-            sentiment={fearGreed?.value || 50}
-            regime={fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value > 60 ? 'GREED' : 'NEUTRAL'}
-          />
-
-          {/* OG100 Compact Card */}
-          {!isOgMember && ogStats && !ogStats.isSoldOut && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={() => navigate('/Upgrade')}
-              className="rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.01]"
-              style={{
-                background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05))',
-                border: '1px solid rgba(245,158,11,0.3)',
-                borderLeft: '4px solid #F59E0B'
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Zap className="h-4 w-4 text-[#F59E0B]" />
-                    <span className="text-xs font-black tracking-wider uppercase text-[#F59E0B]">FOUNDING MEMBER OFFER</span>
-                  </div>
-                  <p className="text-sm text-white/80 font-semibold mb-2">
-                    🔴 LIVE — {ogStats.foundingSpotsRemaining} of 100 spots left
-                  </p>
-                  <ul className="space-y-1 text-xs text-white/60">
-                    <li className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-[#F59E0B]" /> Elite FREE for 30 days
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-[#F59E0B]" /> Then 89 SEK/month for life
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-[#F59E0B]" /> OG badge + referral link
-                    </li>
-                  </ul>
-                </div>
-                <ArrowUpRight className="h-5 w-5 text-[#F59E0B] flex-shrink-0" />
-              </div>
-            </motion.div>
-          )}
-
-          <ContextBanner
-            storageKey="home_v1"
-            title={t('home.contextTitle')}
-            body={t('home.contextBody')}
-            actions={[{ label: t('home.contextAction'), onClick: () => {} }]}
-            aiQuestion={t('home.contextAI')}
-          />
-
-          <div>
-            <SectionTitle
-              icon="🚨"
-              label={t('home.alerts')}
-              sub={t('home.timeSensitive')}
-              action={t('home.allSignals')}
-              onAction={() => navigate('/AIInsights')}
-            />
-            <div className="space-y-3">
-              {ALERTS.map((a, i) => (
-                <AlertRow
-                  key={a.id}
-                  type={a.type === 'BUY' ? 'green' : a.type === 'SELL' ? 'red' : 'yellow'}
-                  title={`${a.symbol}: ${a.note}`}
-                  timestamp={a.age}
-                  onClick={() => navigate('/AIInsights')}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <SectionTitle icon="🚀" label={t('home.latestJumps')} sub={t('home.strongSignals')} />
-            <div className="grid grid-cols-2 gap-3">
-              {JUMPS.map((j, i) => (
-                <motion.button
-                  key={j.symbol}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.07 }}
-                  onClick={() => navigate(`/Asset/${j.symbol}`)}
-                  className="text-left rounded-2xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98] glass-card border border-success/20 bg-success/5 hover:border-success/30 card-shadow"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono font-black text-sm text-foreground">{j.symbol}</span>
-                    <span className="font-mono font-black text-sm text-success">+{j.change}%</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-snug">{j.reason}</p>
-                </motion.button>
-              ))}
             </div>
           </div>
 
