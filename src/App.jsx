@@ -23,17 +23,36 @@ import Upgrade from './pages/Upgrade';
 import AssetDetail from './pages/AssetDetail';
 import Notifications from './pages/Notifications';
 import Traders from './pages/Traders';
+import TradingSetup from './pages/TradingSetup';
 
 const ProtectedRoute = ({ children }) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-          <span className="text-xs text-muted-foreground font-mono">TREDIO</span>
-        </div>
+      <div style={{
+        background: '#080B12',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        <div style={{
+          fontSize: '28px',
+          fontWeight: '900',
+          color: '#F59E0B',
+          letterSpacing: '6px'
+        }}>TREDIO</div>
+        <div style={{
+          width: 32,
+          height: 32,
+          border: '3px solid #F59E0B',
+          borderTopColor: 'transparent',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
       </div>
     );
   }
@@ -51,11 +70,29 @@ const AuthenticatedApp = () => {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-          <span className="text-xs text-muted-foreground font-mono">TREDIO</span>
-        </div>
+      <div style={{
+        background: '#080B12',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        <div style={{
+          fontSize: '28px',
+          fontWeight: '900',
+          color: '#F59E0B',
+          letterSpacing: '6px'
+        }}>TREDIO</div>
+        <div style={{
+          width: 32,
+          height: 32,
+          border: '3px solid #F59E0B',
+          borderTopColor: 'transparent',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
       </div>
     );
   }
@@ -80,6 +117,7 @@ const AuthenticatedApp = () => {
           <Route path="/PaperTrading" element={<PageTransition><PaperTrading /></PageTransition>} />
           <Route path="/Notifications" element={<PageTransition><Notifications /></PageTransition>} />
           <Route path="/Asset/:symbol" element={<PageTransition><AssetDetail /></PageTransition>} />
+          <Route path="/TradingSetup" element={<PageTransition><TradingSetup /></PageTransition>} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>

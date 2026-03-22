@@ -14,6 +14,8 @@ import { NextJumpDetector } from '@/components/ai/NextJumpDetector';
 import { IntelligenceTicker } from '@/components/ai/IntelligenceTicker';
 import { TrekIntelligenceCard } from '@/components/ai/TrekIntelligenceCard';
 import { AlertRow } from '@/components/ai/AlertRow';
+import { OG100Card } from '@/components/ai/OG100Card';
+import { LogTradeButton } from '@/components/ai/LogTradeButton';
 
 const ALERTS = [
   { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'Momentum breakout above $870 — volume 3.2× average', age: '7m', color: 'hsl(142, 86%, 28%)', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)' },
@@ -256,6 +258,8 @@ export default function Home() {
         <IndexCardsSection />
 
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
+          <OG100Card onClaim={() => navigate('/Upgrade')} />
+
           <NextJumpDetector
             signal={{
               asset: 'NVDA',
@@ -409,6 +413,8 @@ export default function Home() {
         <AnimatePresence>
           {selectedNews && <NewsModal article={selectedNews} onClose={() => setSelectedNews(null)} />}
         </AnimatePresence>
+
+        <LogTradeButton />
       </div>
     </PullToRefresh>
   );

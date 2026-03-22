@@ -97,6 +97,29 @@ export default function Settings() {
         {t('settings.title')}
       </motion.h1>
 
+      {/* TRADING STATUS */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        className="rounded-xl border border-[#F59E0B]/20 bg-[#111118] p-5 space-y-4">
+        <SectionHeader title="TRADING" />
+        <div className="flex items-start gap-3">
+          <div className="w-2 h-2 rounded-full bg-[#F59E0B] mt-2" />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-white mb-1">Practice Mode</p>
+            <p className="text-xs text-white/60 mb-3">Trading with virtual money</p>
+            <p className="text-xs text-white/40 mb-4">Account value: $100,000</p>
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-white">Ready for real trading?</p>
+              <button
+                onClick={() => navigate('/TradingSetup')}
+                className="w-full px-4 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white"
+              >
+                SET UP REAL TRADING →
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* FOUNDING MEMBER BADGE */}
       {foundingMember && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
