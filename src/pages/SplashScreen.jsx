@@ -46,7 +46,7 @@ export default function SplashScreen() {
           letterSpacing: '8px',
           marginBottom: '8px',
         }}>
-          TREDIO
+          TREDIO_LOGO_PLACEHOLDER
         </div>
         <div style={{
           fontSize: '12px',
