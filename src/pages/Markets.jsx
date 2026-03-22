@@ -17,6 +17,7 @@ import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
 import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
+import { AlertRow } from '@/components/ai/AlertRow';
 
 // Mock chart data for different timeframes
 const CHART_DATA = {
@@ -103,7 +104,7 @@ export default function Markets() {
         if (res?.data?.prices) setLivePrices(res.data.prices);
       } catch {}
     }}>
-      <div className="min-h-screen bg-background p-4 lg:p-6 space-y-5 max-w-[1600px] mx-auto">
+      <div className="min-h-screen p-5 space-y-6 max-w-[1600px] mx-auto" style={{ background: '#080B12' }}>
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div className="min-w-0">
@@ -114,20 +115,6 @@ export default function Markets() {
 
       {/* Index Cards */}
       <IndexCardsSection />
-
-      {/* AI Context Banner */}
-      <ContextBanner
-        storageKey="markets_v1"
-        title={t('markets.title')}
-        body={t('home.contextBody')}
-        steps={[
-          t('markets.stocks'),
-          t('trek.signals'),
-          t('asset.analysis'),
-        ]}
-        actions={[{ label: t('home.contextAction'), onClick: () => {} }]}
-        aiQuestion={t('trek.contextAI')}
-      />
 
       {/* Ticker Tape */}
       <TickerTape />
@@ -204,27 +191,35 @@ export default function Markets() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredStocks.map((stock, i) => (
-                    <tr key={i} onClick={() => navigate(`/Asset/${stock.symbol}`)} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0 cursor-pointer">
-                      <td className="px-5 py-3">
-                        <div className="font-mono font-black text-[13px] text-white/85">{stock.symbol}</div>
-                        <div className="text-[10px] text-white/30">{stock.name}</div>
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-[12px] text-white/85 font-bold">
-                        ${(livePrices[stock.symbol] || stock.price).toFixed(2)}
-                        {livePrices[stock.symbol] && <span className="text-[8px] text-chart-3 ml-1">●</span>}
-                      </td>
-                      <td className={`px-4 py-3 text-right font-mono text-[12px] font-bold flex items-center justify-end gap-1 ${stock.change >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
-                        {stock.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                        {stock.change >= 0 ? '+' : ''}{stock.change}%
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${getTrekColor(stock.trek)}`}>
-                          {stock.trek}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredStocks.map((stock, i) => {
+                    const borderColor = stock.trek === 'Buy' ? 'rgba(16,185,129,0.4)' : stock.trek === 'Sell' ? 'rgba(239,68,68,0.4)' : 'transparent';
+                    return (
+                      <tr
+                        key={i}
+                        onClick={() => navigate(`/Asset/${stock.symbol}`)}
+                        className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0 cursor-pointer"
+                        style={{ borderLeft: `3px solid ${borderColor}` }}
+                      >
+                        <td className="px-5 py-3">
+                          <div className="font-mono font-black text-[13px] text-white/85">{stock.symbol}</div>
+                          <div className="text-[10px] text-white/30">{stock.name}</div>
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-[12px] text-white/85 font-bold">
+                          ${(livePrices[stock.symbol] || stock.price).toFixed(2)}
+                          {livePrices[stock.symbol] && <span className="text-[8px] text-chart-3 ml-1">●</span>}
+                        </td>
+                        <td className={`px-4 py-3 text-right font-mono text-[12px] font-bold flex items-center justify-end gap-1 ${stock.change >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
+                          {stock.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                          {stock.change >= 0 ? '+' : ''}{stock.change}%
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${getTrekColor(stock.trek)}`}>
+                            {stock.trek}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -22,6 +22,7 @@ import PaperTrading from './pages/PaperTrading';
 import Upgrade from './pages/Upgrade';
 import AssetDetail from './pages/AssetDetail';
 import Notifications from './pages/Notifications';
+import Traders from './pages/Traders';
 
 const ProtectedRoute = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
           <Route path="/Dashboard" element={<Navigate to="/Home" replace />} />
           <Route path="/Markets" element={<PageTransition><Markets /></PageTransition>} />
           <Route path="/AIInsights" element={<PageTransition><AIInsights /></PageTransition>} />
+          <Route path="/Traders" element={<PageTransition><Traders /></PageTransition>} />
           <Route path="/Portfolio" element={<PageTransition><Portfolio /></PageTransition>} />
           <Route path="/Trade" element={<PageTransition><Trade /></PageTransition>} />
           <Route path="/Settings" element={<PageTransition><Settings /></PageTransition>} />

@@ -10,6 +10,10 @@ import { base44 } from '@/api/base44Client';
 import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { getFoundingStats, getFoundingMemberInfo } from '@/api/foundingMembers';
+import { NextJumpDetector } from '@/components/ai/NextJumpDetector';
+import { IntelligenceTicker } from '@/components/ai/IntelligenceTicker';
+import { TrekIntelligenceCard } from '@/components/ai/TrekIntelligenceCard';
+import { AlertRow } from '@/components/ai/AlertRow';
 
 const ALERTS = [
   { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'Momentum breakout above $870 — volume 3.2× average', age: '7m', color: 'hsl(142, 86%, 28%)', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)' },
@@ -247,11 +251,17 @@ export default function Home() {
       await fetchFearGreed().then(fg => { if (fg) setFearGreed(fg); });
       await loadNews();
     }}>
-      <div className="w-full min-h-screen bg-gradient-to-b from-background via-background to-card/20">
-        <TickerTape />
+      <div className="w-full min-h-screen" style={{ background: '#080B12' }}>
+        <IntelligenceTicker />
         <IndexCardsSection />
 
-        <div className="p-4 lg:p-6 space-y-6 max-w-[900px] mx-auto pb-24">
+        <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
+          <NextJumpDetector />
+
+          <TrekIntelligenceCard
+            sentiment={fearGreed?.value || 50}
+            regime={fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value > 60 ? 'GREED' : 'NEUTRAL'}
+          />
           {/* OG100 Compact Card */}
           {!isOgMember && ogStats && !ogStats.isSoldOut && (
             <motion.div
@@ -503,38 +513,15 @@ export default function Home() {
               action={t('home.allSignals')}
               onAction={() => navigate('/AIInsights')}
             />
-            <div className="space-y-2">
+            <div className="space-y-3">
               {ALERTS.map((a, i) => (
-                <motion.button
+                <AlertRow
                   key={a.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.07 }}
+                  type={a.type === 'BUY' ? 'green' : a.type === 'SELL' ? 'red' : 'yellow'}
+                  title={`${a.symbol}: ${a.note}`}
+                  timestamp={a.age}
                   onClick={() => navigate('/AIInsights')}
-                  className="w-full text-left rounded-2xl px-5 py-4 flex items-center gap-3 transition-all hover:scale-[1.01] active:scale-[0.99] glass-card card-shadow group"
-                  style={{
-                    background: a.bg,
-                    border: `2px solid ${a.border}`,
-                    borderLeft: `4px solid ${a.color}`
-                  }}
-                >
-                  <span
-                    className="text-xs font-bold px-3 py-1 rounded-lg flex-shrink-0"
-                    style={{
-                      color: a.color,
-                      background: `${a.color}20`,
-                      border: `1px solid ${a.color}40`
-                    }}
-                  >
-                    {a.type}
-                  </span>
-                  <span className="font-mono font-black text-sm text-foreground flex-shrink-0">{a.symbol}</span>
-                  <span className="text-xs text-foreground/70 flex-1 truncate">{a.note}</span>
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground/60 font-mono flex-shrink-0">
-                    <Clock className="h-3 w-3" />{a.age}
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-foreground/20 group-hover:text-primary/60 flex-shrink-0 transition-colors" />
-                </motion.button>
+                />
               ))}
             </div>
           </div>
