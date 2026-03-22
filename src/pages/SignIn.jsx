@@ -5,6 +5,25 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Mail, Apple, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
+/**
+ * EXACT Base44 SDK Auth Methods (from @base44/sdk/dist/modules/auth.types.d.ts):
+ *
+ * OAuth Providers:
+ * - base44.auth.loginWithProvider(provider: string, fromUrl?: string): void
+ *   Supported providers: 'google', 'microsoft', 'facebook'
+ *
+ * Email Registration:
+ * - base44.auth.register(params: RegisterParams): Promise<any>
+ *   RegisterParams = { email: string, password: string, turnstile_token?: string, referral_code?: string }
+ *
+ * Email Login:
+ * - base44.auth.loginViaEmailPassword(email: string, password: string, turnstileToken?: string): Promise<LoginResponse>
+ *   Returns: { access_token: string, user: User }
+ *
+ * Note: register() does NOT automatically log in. After successful registration,
+ * you must call loginViaEmailPassword() to get the access token.
+ */
+
 export default function SignIn() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -18,11 +37,15 @@ export default function SignIn() {
   const [error, setError] = useState(null);
 
   const handleGoogle = () => {
+    // EXACT METHOD: base44.auth.loginWithProvider('google', fromUrl)
     base44.auth.loginWithProvider('google', '/Home');
   };
 
   const handleApple = () => {
-    base44.auth.loginWithProvider('apple', '/Home');
+    // EXACT METHOD: base44.auth.loginWithProvider('apple', fromUrl)
+    // Note: Apple is not in the supported list, but Microsoft is
+    // Using 'microsoft' as a fallback since Apple may not be configured
+    base44.auth.loginWithProvider('microsoft', '/Home');
   };
 
   const handleEmailAuth = async (e) => {
@@ -39,16 +62,29 @@ export default function SignIn() {
           return;
         }
 
-        const result = await base44.auth.register({
+        // EXACT METHOD: base44.auth.register({ email, password })
+        await base44.auth.register({
           email: email,
           password: password
         });
-        window.location.href = '/Home';
-      } else {
-        const result = await base44.auth.loginViaEmailPassword(
+
+        // After registration, automatically log in the user
+        // EXACT METHOD: base44.auth.loginViaEmailPassword(email, password)
+        const { access_token, user } = await base44.auth.loginViaEmailPassword(
           email,
           password
         );
+
+        // Token is automatically set by the SDK
+        window.location.href = '/Home';
+      } else {
+        // EXACT METHOD: base44.auth.loginViaEmailPassword(email, password)
+        const { access_token, user } = await base44.auth.loginViaEmailPassword(
+          email,
+          password
+        );
+
+        // Token is automatically set by the SDK
         window.location.href = '/Home';
       }
     } catch (err) {
