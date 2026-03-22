@@ -1,31 +1,32 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Mail, Apple, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
-/**
- * EXACT Base44 SDK Auth Methods (from @base44/sdk/dist/modules/auth.types.d.ts):
- *
- * OAuth Providers:
- * - base44.auth.loginWithProvider(provider: string, fromUrl?: string): void
- *   Supported providers: 'google', 'microsoft', 'facebook'
- *
- * Email Registration:
- * - base44.auth.register(params: RegisterParams): Promise<any>
- *   RegisterParams = { email: string, password: string, turnstile_token?: string, referral_code?: string }
- *
- * Email Login:
- * - base44.auth.loginViaEmailPassword(email: string, password: string, turnstileToken?: string): Promise<LoginResponse>
- *   Returns: { access_token: string, user: User }
- *
- * Note: register() does NOT automatically log in. After successful registration,
- * you must call loginViaEmailPassword() to get the access token.
- */
+function generateReferralCode(email) {
+  const prefix = email.split('@')[0].toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+  const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}${suffix}`;
+}
+
+async function createUserProfile(user) {
+  try {
+    const existing = await base44.auth.me();
+    if (!existing?.referral_code) {
+      await base44.auth.updateMe({
+        subscription_tier: 'free',
+        alpaca_connected: false,
+        referral_code: generateReferralCode(user.email || 'USER'),
+        onboarding_completed: false,
+      });
+    }
+  } catch (e) {
+    // ignore — profile creation is best-effort
+  }
+}
 
 export default function SignIn() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const [mode, setMode] = useState(null);
   const [isRegister, setIsRegister] = useState(false);
@@ -37,15 +38,16 @@ export default function SignIn() {
   const [error, setError] = useState(null);
 
   const handleGoogle = () => {
-    // EXACT METHOD: base44.auth.loginWithProvider('google', fromUrl)
     base44.auth.loginWithProvider('google', '/Home');
   };
 
   const handleApple = () => {
-    // EXACT METHOD: base44.auth.loginWithProvider('apple', fromUrl)
-    // Note: Apple is not in the supported list, but Microsoft is
-    // Using 'microsoft' as a fallback since Apple may not be configured
-    base44.auth.loginWithProvider('microsoft', '/Home');
+    // Apple OAuth — falls back to Microsoft if Apple not configured
+    try {
+      base44.auth.loginWithProvider('apple', '/Home');
+    } catch {
+      base44.auth.loginWithProvider('microsoft', '/Home');
+    }
   };
 
   const handleEmailAuth = async (e) => {
@@ -55,40 +57,41 @@ export default function SignIn() {
 
     try {
       if (isRegister) {
-        // Validate passwords match before calling Base44
         if (password !== confirmPassword) {
           setError("Passwords don't match");
           setLoading(false);
           return;
         }
+        if (password.length < 6) {
+          setError('Password must be at least 6 characters');
+          setLoading(false);
+          return;
+        }
 
-        // EXACT METHOD: base44.auth.register({ email, password })
-        await base44.auth.register({
-          email: email,
-          password: password
-        });
+        await base44.auth.register({ email, password });
 
-        // After registration, automatically log in the user
-        // EXACT METHOD: base44.auth.loginViaEmailPassword(email, password)
-        const { access_token, user } = await base44.auth.loginViaEmailPassword(
-          email,
-          password
-        );
+        // Auto login after registration
+        await base44.auth.loginViaEmailPassword(email, password);
 
-        // Token is automatically set by the SDK
+        // Create user profile
+        await createUserProfile({ email });
+
         window.location.href = '/Home';
       } else {
-        // EXACT METHOD: base44.auth.loginViaEmailPassword(email, password)
-        const { access_token, user } = await base44.auth.loginViaEmailPassword(
-          email,
-          password
-        );
-
-        // Token is automatically set by the SDK
+        await base44.auth.loginViaEmailPassword(email, password);
         window.location.href = '/Home';
       }
     } catch (err) {
-      setError(err.message || t('signin.authFailed') || 'Authentication failed. Please try again.');
+      const msg = err?.message || '';
+      if (msg.includes('already') || msg.includes('exists')) {
+        setError('Account already exists. Try signing in instead.');
+      } else if (msg.includes('invalid') || msg.includes('password') || msg.includes('credentials')) {
+        setError('Invalid email or password. Please try again.');
+      } else if (msg.includes('not found') || msg.includes('No user')) {
+        setError("No account found. Create one first.");
+      } else {
+        setError(msg || 'Authentication failed. Please try again.');
+      }
       setLoading(false);
     }
   };
@@ -123,7 +126,7 @@ export default function SignIn() {
             </svg>
           </div>
           <span className="text-3xl font-black tracking-tight" style={{ color: '#F59E0B', letterSpacing: '-0.03em' }}>TREDIO</span>
-           <p className="text-[11px] text-white/30 tracking-widest uppercase">{t('signin.subtitle') || 'Your AI Trading Studio'}</p>
+          <p className="text-[11px] text-white/30 tracking-widest uppercase">Your AI Trading Studio</p>
         </motion.div>
 
         {/* Card */}
@@ -135,14 +138,14 @@ export default function SignIn() {
           style={{ boxShadow: '0 0 40px rgba(0,0,0,0.4)' }}
         >
           <div className="text-center mb-1">
-            <h1 className="text-lg font-black text-white/90">{t('signin.title') || 'Welcome to TREDIO'}</h1>
-             <p className="text-xs text-white/30 mt-0.5">{t('signin.subtitle') || 'Access your TREDIO account'}</p>
+            <h1 className="text-lg font-black text-white/90">Welcome to TREDIO</h1>
+            <p className="text-xs text-white/30 mt-0.5">Access your account</p>
           </div>
 
           {/* OAuth buttons */}
           <button
             onClick={handleGoogle}
-            className="flex items-center justify-center gap-3 w-full py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
+            className="flex items-center justify-center gap-3 w-full py-3 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
           >
             <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
               <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
@@ -150,49 +153,49 @@ export default function SignIn() {
               <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
               <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
             </svg>
-            {t('signin.google') || 'Continue with Google'}
+            Continue with Google
           </button>
 
           <button
             onClick={handleApple}
-            className="flex items-center justify-center gap-3 w-full py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
+            className="flex items-center justify-center gap-3 w-full py-3 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
           >
             <Apple className="h-4 w-4 text-white/80" />
-            {t('signin.apple') || 'Continue with Apple'}
+            Continue with Apple
           </button>
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-[1px] bg-white/[0.07]" />
-            <span className="text-[10px] text-white/20 font-medium tracking-wider uppercase">{t('signin.or') || 'OR'}</span>
+            <span className="text-[10px] text-white/20 font-medium tracking-wider uppercase">OR</span>
             <div className="flex-1 h-[1px] bg-white/[0.07]" />
           </div>
 
           {mode !== 'email' ? (
             <button
               onClick={() => setMode('email')}
-              className="flex items-center justify-center gap-3 w-full py-2.5 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
+              className="flex items-center justify-center gap-3 w-full py-3 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] transition-all text-sm font-semibold text-white/75"
             >
               <Mail className="h-4 w-4" />
-              {t('signin.email') || 'Continue with Email'}
+              Continue with Email
             </button>
           ) : (
             <form onSubmit={handleEmailAuth} className="flex flex-col gap-3">
               <input
-               type="email"
-               placeholder={t('signin.enterEmail') || 'Email'}
-               value={email}
-               onChange={e => setEmail(e.target.value)}
-               required
-               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-[#F59E0B]/40 transition-colors"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-[#F59E0B]/40 transition-colors"
               />
               <div className="relative">
                 <input
-                 type={showPass ? 'text' : 'password'}
-                 placeholder={t('signin.password') || 'Password'}
-                 value={password}
-                 onChange={e => setPassword(e.target.value)}
-                 required
-                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-[#F59E0B]/40 transition-colors"
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-[#F59E0B]/40 transition-colors"
                 />
                 <button
                   type="button"
@@ -204,29 +207,40 @@ export default function SignIn() {
               </div>
               {isRegister && (
                 <input
-                 type={showPass ? 'text' : 'password'}
-                 placeholder={t('signin.confirmPassword') || 'Confirm Password'}
-                 value={confirmPassword}
-                 onChange={e => setConfirmPassword(e.target.value)}
-                 required
-                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-[#F59E0B]/40 transition-colors"
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  required
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-[#F59E0B]/40 transition-colors"
                 />
               )}
-              {error && <p className="text-xs text-red-400/80">{error}</p>}
+              {error && (
+                <div className="rounded-lg p-3 text-xs text-red-400 bg-red-500/10 border border-red-500/20">
+                  {error}
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-bold text-sm transition-all"
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm transition-all"
                 style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: loading ? 0.7 : 1 }}
               >
-                {loading ? (t('common.loading') || 'Loading...') : <><span>{isRegister ? (t('signin.createAccount') || 'Create Account') : (t('signin.signIn') || 'Sign In')}</span><ArrowRight className="h-4 w-4" /></>}
+                {loading
+                  ? 'Loading...'
+                  : <><span>{isRegister ? 'Create Account' : 'Sign In'}</span><ArrowRight className="h-4 w-4" /></>
+                }
               </button>
-              <div className="flex items-center justify-between text-[10px]">
+              <div className="flex items-center justify-between text-[11px]">
                 <button type="button" onClick={() => setMode(null)} className="text-white/25 hover:text-white/45 transition-colors">
-                  {t('common.back') || '← Back'}
+                  ← Back
                 </button>
-                <button type="button" onClick={() => { setIsRegister(!isRegister); setError(null); setConfirmPassword(''); }} className="text-primary/70 hover:text-primary transition-colors">
-                  {isRegister ? (t('signin.alreadyHaveAccount') || 'Already have an account?') : (t('signin.noAccount') || "Don't have an account?")}
+                <button
+                  type="button"
+                  onClick={() => { setIsRegister(!isRegister); setError(null); setConfirmPassword(''); }}
+                  className="text-primary/70 hover:text-primary transition-colors"
+                >
+                  {isRegister ? 'Already have an account?' : "Don't have an account?"}
                 </button>
               </div>
             </form>
@@ -239,7 +253,7 @@ export default function SignIn() {
           transition={{ delay: 0.4 }}
           className="text-center text-[10px] text-white/15"
         >
-          {t('signin.terms') || 'By signing in, you agree to our Terms of Service & Privacy Policy'}
+          By signing in, you agree to our Terms of Service & Privacy Policy
         </motion.p>
       </div>
     </div>
