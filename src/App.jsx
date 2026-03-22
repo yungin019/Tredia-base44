@@ -129,16 +129,16 @@ function App() {
     }
   };
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
   return (
     <QueryClientProvider client={queryClientInstance}>
-      <Router>
-        <AppRoutes user={user} onLogout={handleLogout} />
-        <Toaster />
-      </Router>
+      {loading ? (
+        <LoadingSpinner />
+      ) : (
+        <Router>
+          <AppRoutes user={user} onLogout={handleLogout} />
+          <Toaster />
+        </Router>
+      )}
     </QueryClientProvider>
   );
 }

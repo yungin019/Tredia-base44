@@ -12,6 +12,7 @@ const NAV_CONFIG = [
   { path: '/Markets',    icon: TrendingUp, translationKey: 'nav.markets',  isTrek: false },
   { path: '/AIInsights', icon: Zap,        translationKey: 'nav.trek',     isTrek: true  },
   { path: '/Portfolio',  icon: Briefcase,  translationKey: 'nav.portfolio', isTrek: false },
+  { path: '/Settings',   icon: Settings,   translationKey: 'nav.settings', isTrek: false },
 ];
 
 export default function AppShell({ onLogout }) {
