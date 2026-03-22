@@ -25,6 +25,7 @@ import AssetDetail from './pages/AssetDetail';
 import Notifications from './pages/Notifications';
 import Traders from './pages/Traders';
 import TradingSetup from './pages/TradingSetup';
+import Admin from './pages/Admin';
 
 const LoadingSpinner = () => (
   <div style={{
@@ -80,6 +81,7 @@ const AppRoutes = ({ user, onLogout }) => {
         <Route path="/SignIn" element={<Navigate to="/Home" replace />} />
         <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
         <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
+        <Route path="/Admin" element={<PageTransition><Admin /></PageTransition>} />
         <Route element={<AppShell onLogout={onLogout} />}>
           <Route path="/Home" element={<PageTransition><Home /></PageTransition>} />
           <Route path="/Dashboard" element={<Navigate to="/Home" replace />} />
