@@ -12,6 +12,7 @@ export default function SignIn() {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -31,6 +32,13 @@ export default function SignIn() {
 
     try {
       if (isRegister) {
+        // Validate passwords match before calling Base44
+        if (password !== confirmPassword) {
+          setError("Passwords don't match");
+          setLoading(false);
+          return;
+        }
+
         const result = await base44.auth.register({
           email: email,
           password: password
@@ -158,6 +166,16 @@ export default function SignIn() {
                   {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {isRegister && (
+                <input
+                 type={showPass ? 'text' : 'password'}
+                 placeholder={t('signin.confirmPassword') || 'Confirm Password'}
+                 value={confirmPassword}
+                 onChange={e => setConfirmPassword(e.target.value)}
+                 required
+                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-[#F59E0B]/40 transition-colors"
+                />
+              )}
               {error && <p className="text-xs text-red-400/80">{error}</p>}
               <button
                 type="submit"
@@ -171,7 +189,7 @@ export default function SignIn() {
                 <button type="button" onClick={() => setMode(null)} className="text-white/25 hover:text-white/45 transition-colors">
                   {t('common.back') || '← Back'}
                 </button>
-                <button type="button" onClick={() => { setIsRegister(!isRegister); setError(null); }} className="text-primary/70 hover:text-primary transition-colors">
+                <button type="button" onClick={() => { setIsRegister(!isRegister); setError(null); setConfirmPassword(''); }} className="text-primary/70 hover:text-primary transition-colors">
                   {isRegister ? (t('signin.alreadyHaveAccount') || 'Already have an account?') : (t('signin.noAccount') || "Don't have an account?")}
                 </button>
               </div>
