@@ -3,7 +3,7 @@
 
 export const aiTranslations = {
   en: {
-    homeGreeting: 'What should I focus on today?',
+    homeGreeting: 'Ask TREK anything...',
     homeIntro: 'I\'m tracking the market for you. Alerts are ranked by urgency.',
     marketsGreeting: 'Want me to find opportunities?',
     marketsIntro: 'These are live market prices. Tap any asset for full analysis.',

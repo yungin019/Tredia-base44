@@ -88,10 +88,10 @@ export default function SplashScreen() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-sm font-semibold tracking-wider uppercase text-muted-foreground"
-            style={{ letterSpacing: '0.15em' }}
+            className="text-lg font-normal text-center"
+            style={{ color: '#F59E0B' }}
           >
-            Your AI Trading Studio
+            The AI mentor every trader needs
           </motion.p>
         </motion.div>
 

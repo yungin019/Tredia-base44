@@ -13,7 +13,6 @@ const NAV_CONFIG = [
   { path: '/Home',       icon: Home,      translationKey: 'nav.feed',     isTrek: false },
   { path: '/Markets',    icon: TrendingUp, translationKey: 'nav.markets',  isTrek: false },
   { path: '/AIInsights', icon: Zap,        translationKey: 'nav.trek',     isTrek: true  },
-  { path: '/Traders',    icon: Users,      translationKey: 'nav.traders',  isTrek: false },
   { path: '/Portfolio',  icon: Briefcase,  translationKey: 'nav.portfolio', isTrek: false },
 ];
 

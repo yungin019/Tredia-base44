@@ -258,7 +258,7 @@ export default function Home() {
         <IndexCardsSection />
 
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
-          <OG100Card onClaim={() => navigate('/Upgrade')} />
+          <OG100Card />
 
           <NextJumpDetector
             signal={{
