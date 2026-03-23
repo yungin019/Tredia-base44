@@ -224,51 +224,51 @@ Deno.serve(async (req) => {
         const isCrypto = /^(BTC|ETH|XRP|LTC|BCH|ADA|DOT|SOL|AVAX|MATIC|LINK|UNI|DOGE|SHIB)$/.test(sym);
         const isPriority = PRIORITY_ASSETS.includes(sym);
 
-        // Strategy: Use Finnhub for US stocks (most reliable)
+        // Strategy: Use Polygon as primary (Finnhub is rate limited)
         const providers = [];
 
-        // 1. Finnhub (US stocks + ETFs - very reliable)
-        if (FINNHUB_KEY && !isIntl && !isFx && !isCrypto) {
+        // 1. Polygon (primary - US stocks + ETFs)
+        if (POLYGON_KEY && !isFx && !isCrypto) {
           providers.push(async () => {
             try {
-              const url = `https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`;
-              console.log(`Trying Finnhub for ${sym}`);
-              const res = await fetchWithTimeout(url, 4000);
-              console.log(`Finnhub response for ${sym}: ${res.status}`);
+              const url = `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
+              const res = await fetchWithTimeout(url, 5000);
               const data = await res.json();
-              console.log(`Finnhub data for ${sym}:`, JSON.stringify(data).slice(0, 100));
-              if (data.c && data.c > 0) {
+              const price = data?.results?.[0]?.c;
+              const prevClose = data?.results?.[0]?.o;
+              if (price && price > 0) {
                 return {
-                  price: parseFloat(data.c.toFixed(2)),
-                  prevClose: parseFloat((data.pc || data.c).toFixed(2)),
-                  change: data.dp ? parseFloat(data.dp.toFixed(2)) : null,
-                  timestamp: data.t ? data.t * 1000 : Date.now()
+                  price: parseFloat(price.toFixed(2)),
+                  prevClose: prevClose ? parseFloat(prevClose.toFixed(2)) : null,
+                  timestamp: data?.results?.[0]?.t || Date.now()
                 };
               }
-              throw new Error(`Finnhub no price data: ${JSON.stringify(data)}`);
+              throw new Error('Polygon no data');
             } catch (e) {
-              console.log(`Finnhub failed for ${sym}: ${e.message}`);
+              console.log(`Polygon failed for ${sym}: ${e.message}`);
               throw e;
             }
           });
         }
 
-        // 2. Polygon (fallback for US stocks)
-        if (POLYGON_KEY && !isFx && !isCrypto) {
+        // 2. Twelve Data (fallback)
+        if (TWELVEDATA_KEY && !isCrypto) {
           providers.push(async () => {
-            const url = `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
-            const res = await fetchWithTimeout(url, 4000);
-            const data = await res.json();
-            const price = data?.results?.[0]?.c;
-            const prevClose = data?.results?.[0]?.o;
-            if (price && price > 0) {
-              return {
-                price: parseFloat(price.toFixed(2)),
-                prevClose: prevClose ? parseFloat(prevClose.toFixed(2)) : null,
-                timestamp: data?.results?.[0]?.t || Date.now()
-              };
+            try {
+              const res = await fetchWithTimeout(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(sym)}&apikey=${TWELVEDATA_KEY}`, 5000);
+              const data = await res.json();
+              if (data.price && data.price > 0) {
+                return {
+                  price: parseFloat(parseFloat(data.price).toFixed(2)),
+                  prevClose: null,
+                  timestamp: Date.now()
+                };
+              }
+              throw new Error('TwelveData no data');
+            } catch (e) {
+              console.log(`TwelveData failed for ${sym}: ${e.message}`);
+              throw e;
             }
-            throw new Error('Polygon no data');
           });
         }
 
