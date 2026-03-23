@@ -53,13 +53,16 @@ const ASSET_TABS = [
 ];
 
 const TYPE_COLORS = {
-  Stock:  { bg: 'rgba(59,130,246,0.12)',  text: '#60a5fa' },
-  ETF:    { bg: 'rgba(16,185,129,0.12)',  text: '#34d399' },
-  Crypto: { bg: 'rgba(245,158,11,0.12)', text: '#fbbf24' },
-  Forex:  { bg: 'rgba(168,85,247,0.12)', text: '#c084fc' },
-  ADR:    { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)' },
-  Fund:   { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)' },
-  Asset:  { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)' },
+  Stock:     { bg: 'rgba(59,130,246,0.12)',  text: '#60a5fa' },
+  ETF:       { bg: 'rgba(16,185,129,0.12)',  text: '#34d399' },
+  Crypto:    { bg: 'rgba(245,158,11,0.12)', text: '#fbbf24' },
+  Forex:     { bg: 'rgba(168,85,247,0.12)', text: '#c084fc' },
+  Commodity: { bg: 'rgba(251,146,60,0.12)', text: '#fb923c' },
+  Index:     { bg: 'rgba(236,72,153,0.12)', text: '#f472b6' },
+  ADR:       { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)' },
+  ETP:       { bg: 'rgba(16,185,129,0.08)', text: '#34d399' },
+  Fund:      { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)' },
+  Asset:     { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)' },
 };
 
 export default function SearchModal({ isOpen, onClose }) {
