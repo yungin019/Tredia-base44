@@ -20,8 +20,8 @@ const PREMIUM_FEATURES = [
   },
   {
     title: 'TREK Mentor Mode',
-    description: 'Real-time mentoring: "What I'd do" + "Watch for"',
-    example: 'Fed decision → "I\'d add to defensives. Watch credit spreads."',
+    description: 'Real-time mentoring: guidance on what to do',
+    example: 'Fed decision → "I would add to defensives. Watch credit spreads."',
     locked: true,
     impact: 'Mentor-level reasoning',
   },
