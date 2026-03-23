@@ -279,21 +279,6 @@ export default function AssetDetail() {
     ...staticAsset,
     price: livePrice || staticAsset.price,
   };
-  const chartData = liveChart
-    ? liveChart.map((v, i) => ({
-        index: i,
-        open: v.open || v.close * 0.995,
-        high: v.high || v.close * 1.005,
-        low: v.low || v.close * 0.99,
-        close: v.close
-      }))
-    : staticAsset.chart.map((v, i) => ({
-        index: i,
-        open: v * 0.995,
-        high: v * 1.005,
-        low: v * 0.99,
-        close: v
-      }));
   const isUp = asset.change >= 0;
   const cvColor = asset.conviction === 'HIGH' ? '#22c55e' : asset.conviction === 'MEDIUM' ? '#F59E0B' : '#6b7280';
 
