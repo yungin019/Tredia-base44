@@ -355,7 +355,7 @@ export default function AssetDetail() {
           </div>
           <div className="text-right">
             <div className="flex items-center justify-end gap-2 mb-1">
-              <div className="text-2xl font-black font-mono text-white/95">${asset.price.toLocaleString()}</div>
+              <div className="text-2xl font-black font-mono text-white/95">{pricePrefix}{asset.price.toLocaleString()}</div>
               {tier === 'free' && (
                 <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                   Delayed 15min
