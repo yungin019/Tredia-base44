@@ -156,7 +156,8 @@ export default function ExpandedAssetList() {
         <AnimatePresence mode="popLayout">
           {results.map((asset, i) => {
             const { price, change } = getPriceData(asset);
-            const trekSignal = getTrekSignal(asset.sector);
+            const trekSignal = getTrekSignal(asset.symbol);
+            const reason = TREK_REASONS[asset.symbol] || 'Market dynamics analysis';
             
             return (
               <motion.button
@@ -166,27 +167,34 @@ export default function ExpandedAssetList() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ delay: i * 0.02 }}
                 onClick={() => navigate(`/Asset/${asset.symbol}`)}
-                className={`text-left rounded-lg p-3 border-l-4 transition-all hover:bg-white/[0.08] group ${getTrekBorderColor(trekSignal)} bg-white/[0.03] border border-white/5`}
+                className={`text-left rounded-lg p-3 border-l-4 transition-all hover:scale-[1.02] group ${getTrekBorderColor(trekSignal)} ${
+                  trekSignal === 'Buy' ? 'bg-chart-3/5 hover:bg-chart-3/10' :
+                  trekSignal === 'Sell' ? 'bg-destructive/5 hover:bg-destructive/10' :
+                  'bg-white/[0.03] hover:bg-white/[0.08]'
+                } border border-white/5`}
               >
                 {/* Header */}
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start justify-between mb-1.5">
                   <div>
                     <div className="font-mono font-bold text-white text-sm">{asset.symbol}</div>
                     <div className="text-xs text-white/50 truncate">{asset.name}</div>
                   </div>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${getTrekColor(trekSignal)}`}>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${getTrekColor(trekSignal)}`}>
                     {trekSignal}
                   </span>
                 </div>
 
+                {/* TREK Reason (1 line) */}
+                <p className="text-xs text-white/60 mb-2 line-clamp-1">{reason}</p>
+
                 {/* Price & Change */}
                 {price !== null ? (
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="font-mono font-bold text-white text-sm">
+                    <span className="font-mono font-bold text-white text-sm transition-colors duration-200">
                       ${price > 100 ? price.toFixed(0) : price.toFixed(2)}
                     </span>
                     {change !== null && (
-                      <div className={`flex items-center gap-0.5 text-xs font-bold ${change >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
+                      <div className={`flex items-center gap-0.5 text-xs font-bold transition-colors duration-200 ${change >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
                         {change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                         {change >= 0 ? '+' : ''}{change.toFixed(2)}%
                       </div>
@@ -195,7 +203,7 @@ export default function ExpandedAssetList() {
                 ) : (
                   <div className="flex items-center gap-2 text-xs text-white/40 animate-pulse">
                     <Loader2 className="h-3 w-3 animate-spin" />
-                    Loading price...
+                    Loading...
                   </div>
                 )}
 
