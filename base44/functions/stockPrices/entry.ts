@@ -113,8 +113,9 @@ Deno.serve(async (req) => {
       //    Also handles Forex via FX_DAILY and Crypto via DIGITAL_CURRENCY_DAILY
       if (AV_KEY) {
         try {
-          // Detect Forex symbols (EURUSD, GBPUSD, XAUUSD, etc.)
-          const forexMatch = symbol.match(/^([A-Z]{3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
+          // Detect Forex/commodity symbols (EURUSD, GBPUSD, XAUUSD, XAGUSD, etc.)
+          // XAU/XAG = precious metals, treated same as forex pairs by AV
+          const forexMatch = symbol.match(/^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
           const isCryptoSymbol = /^(BTC|ETH|XRP|LTC|BCH|ADA|DOT|SOL|AVAX|MATIC|LINK|UNI|DOGE|SHIB)$/.test(symbol);
 
           let avUrl;
