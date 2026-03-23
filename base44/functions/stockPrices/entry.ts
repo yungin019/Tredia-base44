@@ -126,10 +126,8 @@ Deno.serve(async (req) => {
           const interval = (needsDailyOnly ? intlIntervalMap : intervalMap)[timeframe] || '1day';
           const outputsize = (!needsDailyOnly && tf.days <= 1) ? 80 : (!needsDailyOnly && tf.days <= 7) ? 120 : 365;
           const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(tdSymbol)}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVEDATA_KEY}`;
-          console.log(`[TwelveData OHLC] ${symbol} -> ${tdSymbol} | ${interval} | url: ${url}`);
           const res = await fetchWithTimeout(url, 6000);
           const data = await res.json();
-          console.log(`[TwelveData OHLC] status=${data.status} code=${data.code} message=${data.message} values=${data.values?.length}`);
           if (data.values && data.values.length > 1) {
             const dp = isForex ? 4 : 2;
             const chartData = data.values.reverse().map(r => ({
