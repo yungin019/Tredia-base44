@@ -261,20 +261,17 @@ Deno.serve(async (req) => {
             const COINGECKO_IDS = {
               'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple',
               'ADA': 'cardano', 'DOGE': 'dogecoin', 'MATIC': 'matic-network',
-              'AVAX': 'avalanche-2', 'FTM': 'fantom', 'LINK': 'chainlink',
-              'ARB': 'arbitrum', 'OP': 'optimism', 'LDO': 'lido-dao',
-              'PEPE': 'pepe', 'SHIB': 'shiba-inu', 'UNI': 'uniswap',
-              'AAVE': 'aave', 'CRV': 'curve-dao-token', 'MKR': 'maker',
-              'SNX': 'synthetix', 'GRT': 'the-graph', 'ATOM': 'cosmos',
-              'NEAR': 'near', 'ALGO': 'algorand', 'FLOW': 'flow'
+              'AVAX': 'avalanche-2', 'LINK': 'chainlink', 'UNI': 'uniswap',
+              'SHIB': 'shiba-inu', 'PEPE': 'pepe', 'LDO': 'lido-dao'
             };
             const coinId = COINGECKO_IDS[sym.toUpperCase()];
             if (!coinId) throw new Error('CoinGecko no ID');
             
-            const res = await fetchWithTimeout(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`);
+            const res = await fetchWithTimeout(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`, 8000);
             const data = await res.json();
+            console.log(`CoinGecko ${sym} response:`, JSON.stringify(data).slice(0, 200));
             const coinData = data[coinId];
-            if (coinData && coinData.usd && coinData.usd > 0) {
+            if (coinData && coinData.usd && coinData.usd > 1) {
               const change = coinData.usd_24h_change || 0;
               const prevClose = coinData.usd / (1 + change / 100);
               return {
@@ -284,7 +281,7 @@ Deno.serve(async (req) => {
                 timestamp: Date.now()
               };
             }
-            throw new Error('CoinGecko no data');
+            throw new Error(`CoinGecko invalid data: ${JSON.stringify(coinData)}`);
           });
         }
 
