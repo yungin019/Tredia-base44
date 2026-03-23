@@ -90,9 +90,34 @@ export default function ExpandedAssetList() {
     return { price: null, change: null };
   };
 
-  const getTrekSignal = (sector) => {
-    const signals = ['Buy', 'Hold', 'Sell'];
-    return signals[Math.floor(Math.random() * signals.length)];
+  const TREK_REASONS = {
+    'AAPL': 'Strong cash flow + innovation cycle',
+    'NVDA': 'AI infrastructure demand accelerating',
+    'MSFT': 'Cloud growth + enterprise AI adoption',
+    'GOOGL': 'Search moat + AI integration',
+    'AMZN': 'AWS expansion + cloud infrastructure',
+    'META': 'Ad revenue uncertainty + multiple compression',
+    'TSLA': 'Delivery misses + margin compression',
+    'JPM': 'Interest rate sensitivity + credit quality',
+    'JNJ': 'Defensive play + dividend safety',
+    'LLY': 'GLP-1 franchise + obesity market',
+    'NFLX': 'Content strength + subscriber growth',
+    'COST': 'Member growth + pricing power',
+    'SPY': 'Broad market proxy + stable',
+    'QQQ': 'Tech exposure + growth leverage',
+    'BTC': 'Macro uncertainty hedge + adoption',
+    'ETH': 'DeFi growth + staking yield',
+    'SOL': 'Developer adoption + speed',
+    'AAVE': 'DeFi lending protocol leader',
+  };
+
+  const getTrekSignal = (symbol) => {
+    const buySymbols = ['AAPL', 'NVDA', 'MSFT', 'AMZN', 'NFLX', 'COST', 'JNJ', 'LLY', 'BTC', 'ETH', 'SOL', 'AAVE'];
+    const sellSymbols = ['META', 'TSLA'];
+    
+    if (buySymbols.includes(symbol)) return 'Buy';
+    if (sellSymbols.includes(symbol)) return 'Sell';
+    return 'Hold';
   };
 
   const getTrekColor = (signal) => {
