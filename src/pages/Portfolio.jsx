@@ -16,6 +16,7 @@ import PortfolioPerformanceChart from '../components/portfolio/PortfolioPerforma
 import TradeHistory from '../components/portfolio/TradeHistory';
 import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
+import BrokerDisclosureBanner from '@/components/broker/BrokerDisclosureBanner';
 
 const COLORS = ['#F59E0B', '#3B82F6', '#22C55E', '#A855F7', '#EF4444', '#06B6D4'];
 
@@ -173,6 +174,14 @@ export default function Portfolio() {
           )}
         </div>
       </motion.div>
+
+      {/* Practice mode banner */}
+      {!isAlpacaMode && (
+        <div className="flex items-center gap-3 rounded-xl p-4" style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)' }}>
+          <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30 flex-shrink-0">PRACTICE</span>
+          <p className="text-[11px] text-white/50 flex-1">This is a simulated portfolio with virtual funds. <button onClick={() => navigate('/alpaca-connect')} className="text-[#F59E0B] font-semibold hover:underline">Connect your broker</button> to trade with real money via Alpaca.</p>
+        </div>
+      )}
 
       {/* TREK AI Analysis Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

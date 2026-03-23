@@ -252,12 +252,14 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
                 ))}
               </div>
               <div className="px-4 pb-4">
-                <div className={`flex items-start gap-2 p-2 rounded-lg mb-3 ${isLive ? 'bg-chart-3/5 border border-chart-3/15' : 'bg-primary/5 border border-primary/10'}`}>
-                  {isLive ? <Zap className="h-3 w-3 text-chart-3/60 flex-shrink-0 mt-0.5" /> : <AlertTriangle className="h-3 w-3 text-primary/50 flex-shrink-0 mt-0.5" />}
-                  <p className="text-[9px] text-white/35 leading-relaxed">
-                    {isLive ? 'REAL order submitted to Alpaca. Ensure sufficient funds.' : 'Paper trade — no real money involved.'}
-                  </p>
-                </div>
+                {isLive ? (
+                  <BrokerDisclosureBanner className="mb-3" />
+                ) : (
+                  <div className="flex items-start gap-2 p-2 rounded-lg mb-3 bg-primary/5 border border-primary/10">
+                    <AlertTriangle className="h-3 w-3 text-primary/50 flex-shrink-0 mt-0.5" />
+                    <p className="text-[9px] text-white/35 leading-relaxed">Practice mode — no real money involved. Virtual funds only.</p>
+                  </div>
+                )}
                 <Button
                   onClick={handleExecute}
                   disabled={executing}
@@ -265,7 +267,12 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
                     action === 'buy' ? 'bg-chart-3 hover:bg-chart-3/90 text-black' : 'bg-destructive hover:bg-destructive/90 text-white'
                   }`}
                 >
-                  {executing ? 'Submitting...' : `${isLive ? '🚀 SUBMIT' : 'EXECUTE'} ${action.toUpperCase()}`}
+                  {executing
+                    ? 'Submitting...'
+                    : isLive
+                      ? `🚀 EXECUTE WITH ALPACA — ${action.toUpperCase()}`
+                      : `PAPER ${action.toUpperCase()}`
+                  }
                 </Button>
               </div>
             </motion.div>
