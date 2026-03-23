@@ -11,8 +11,8 @@ export default function MarketPulse({ sentiment = 50 }) {
   };
 
   const getSentimentColor = (value) => {
-    if (value >= 70) return 'text-destructive';
-    if (value >= 50) return 'text-muted-foreground';
+    if (value >= 70) return 'text-gold';
+    if (value >= 50) return 'text-primary';
     if (value >= 30) return 'text-warning';
     return 'text-destructive';
   };
@@ -27,10 +27,10 @@ export default function MarketPulse({ sentiment = 50 }) {
     >
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-bold text-foreground">Market Sentiment</h3>
+          <h3 className="text-sm font-bold text-foreground">Market Regime</h3>
           <span className={`text-sm font-bold ${getSentimentColor(sentiment)}`}>{label}</span>
         </div>
-        <div className="w-full bg-muted/20 rounded-full h-2">
+        <div className="w-full bg-muted/20 rounded-full h-2.5">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${sentiment}%` }}
@@ -38,35 +38,38 @@ export default function MarketPulse({ sentiment = 50 }) {
             className="h-full bg-gradient-to-r from-primary to-gold rounded-full"
           />
         </div>
+        <p className="text-xs text-muted-foreground mt-2">Market confidence: {sentiment}%</p>
       </div>
 
-      <div className="bg-black/30 rounded-lg p-3 border border-white/5">
+      <div className="bg-black/30 rounded-lg p-3 border border-white/5 space-y-2">
         <p className="text-xs text-foreground leading-relaxed">
-          <span className="font-semibold">TREK says:</span> {label === 'Greed' && 'Markets euphoric. Consider taking profits on winners. Watch for consolidation.'}
-          {label === 'Neutral' && 'Market in balance. Both long and short opportunities exist. Focus on technicals.'}
-          {label === 'Fear' && 'Risk-off mood. Defensive plays outperforming. Quality stocks on sale.'}
-          {label === 'Extreme Fear' && 'Panic selling creates opportunity. Look for reversal setups. Support levels key.'}
+          <span className="font-semibold text-primary">Regime today:</span> {label === 'Greed' ? 'Risk ON. Growth outperforming. Momentum trades work. Take profits on winners.' : label === 'Fear' ? 'Risk OFF. Defensive outperforming. Quality matters. Avoid high-beta.' : 'Balanced. Both long and short setups exist. Technicals matter more.'}
+        </p>
+        <p className="text-xs text-foreground leading-relaxed">
+          <span className="font-semibold text-primary">Your advantage:</span> {label === 'Greed' ? 'Own growth names (NVDA, AMZN). Avoid energy and commodity longs.' : label === 'Fear' ? 'Sell rallies. Buy support on quality names only. Watch vol closely.' : 'Stay flexible. Both trending and range-bound setups exist. Use technicals.'}
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-success/10 border border-success/20 rounded-lg p-3">
-          <p className="text-xs text-success font-semibold mb-1 flex items-center gap-1">
-            <TrendingUp className="h-3 w-3" /> Strong
+          <p className="text-xs text-success font-semibold mb-2 flex items-center gap-1">
+            <TrendingUp className="h-4 w-4" /> Strength
           </p>
-          <p className="text-xs text-foreground">Tech, Financials</p>
+          <p className="text-xs text-foreground leading-tight">Growth tech, emerging markets, yield-sensitive names</p>
         </div>
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-          <p className="text-xs text-destructive font-semibold mb-1 flex items-center gap-1">
-            <TrendingDown className="h-3 w-3" /> Weak
+          <p className="text-xs text-destructive font-semibold mb-2 flex items-center gap-1">
+            <TrendingDown className="h-4 w-4" /> Weakness
           </p>
-          <p className="text-xs text-foreground">Energy, Materials</p>
+          <p className="text-xs text-foreground leading-tight">Utilities, bonds, defensive, energy plays</p>
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        <span className="font-semibold">Key drivers:</span> Fed policy signals, earnings season momentum, geopolitical risk
-      </p>
+      <div className="border-t border-white/5 pt-3">
+        <p className="text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">Drivers:</span> Fed pivot signals, inflation expectations, earnings season momentum
+        </p>
+      </div>
     </motion.div>
   );
 }
