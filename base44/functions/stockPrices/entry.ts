@@ -227,79 +227,26 @@ Deno.serve(async (req) => {
         const isCrypto = /^(BTC|ETH|XRP|LTC|BCH|ADA|DOT|SOL|AVAX|MATIC|LINK|UNI|DOGE|SHIB)$/.test(sym);
         const isPriority = PRIORITY_ASSETS.includes(sym);
 
-        // Strategy: Use Alpaca as primary (FREE real-time data for US stocks)
+        // Strategy: Polygon PRIMARY (reliable) → CoinGecko (crypto) → Finnhub fallback
         const providers = [];
 
-        // 1. Alpaca (FREE real-time US stocks - primary)
-        if (ALPACA_KEY && !isFx && !isCrypto && !isIntl) {
-          providers.push(async () => {
-            try {
-              const url = `https://data.alpaca.markets/v2/stocks/${sym}/quotes/latest`;
-              const headers = { 'APCA-API-KEY-ID': ALPACA_KEY };
-              console.log(`[Alpaca] Trying ${sym}`);
-              const res = await fetchWithTimeout(url, 4000);
-              if (res.status === 401) throw new Error('Alpaca auth failed');
-              const data = await res.json();
-              const price = data?.quote?.ap || data?.quote?.p || data?.quote?.lp;
-              if (price && price > 0) {
-                console.log(`[Alpaca] ✓ ${sym} = $${price}`);
-                return { price: parseFloat(price.toFixed(2)), prevClose: null, timestamp: Date.now(), source: 'alpaca' };
-              }
-              throw new Error(`no price in: ${JSON.stringify(data).slice(0, 80)}`);
-            } catch (e) {
-              console.log(`[Alpaca] ✗ ${sym}: ${e.message}`);
-              throw e;
-            }
-          });
-        }
-
-        // 2. Polygon (US stocks + ETFs)
-        if (POLYGON_KEY && !isFx && !isCrypto) {
+        // 1. Polygon (PRIMARY - reliable US stocks + ETFs)
+        if (POLYGON_KEY && !isFx && !isCrypto && !isIntl) {
           providers.push(async () => {
             try {
               const url = `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
-              console.log(`Trying Polygon for ${sym}: ${url.slice(0, 60)}...`);
-              const res = await fetchWithTimeout(url, 5000);
-              console.log(`Polygon response for ${sym}: ${res.status}`);
+              console.log(`[Polygon] ${sym}`);
+              const res = await fetchWithTimeout(url, 4000);
               const data = await res.json();
-              console.log(`Polygon data for ${sym}:`, JSON.stringify(data).slice(0, 150));
               const price = data?.results?.[0]?.c;
               const prevClose = data?.results?.[0]?.o;
               if (price && price > 0) {
-                return {
-                  price: parseFloat(price.toFixed(2)),
-                  prevClose: prevClose ? parseFloat(prevClose.toFixed(2)) : null,
-                  timestamp: data?.results?.[0]?.t || Date.now()
-                };
+                console.log(`[Polygon] ✓ ${sym} = $${price}`);
+                return { price: parseFloat(price.toFixed(2)), prevClose: prevClose ? parseFloat(prevClose.toFixed(2)) : null, timestamp: Date.now(), source: 'polygon' };
               }
-              throw new Error(`Polygon no price: ${JSON.stringify(data).slice(0, 100)}`);
+              throw new Error('no price');
             } catch (e) {
-              console.log(`Polygon failed for ${sym}: ${e.message}`);
-              throw e;
-            }
-          });
-        }
-
-        // 2. Twelve Data (fallback)
-        if (TWELVEDATA_KEY && !isCrypto) {
-          providers.push(async () => {
-            try {
-              const url = `https://api.twelvedata.com/price?symbol=${encodeURIComponent(sym)}&apikey=${TWELVEDATA_KEY}`;
-              console.log(`Trying TwelveData for ${sym}`);
-              const res = await fetchWithTimeout(url, 5000);
-              console.log(`TwelveData response for ${sym}: ${res.status}`);
-              const data = await res.json();
-              console.log(`TwelveData data for ${sym}:`, JSON.stringify(data).slice(0, 150));
-              if (data.price && data.price > 0) {
-                return {
-                  price: parseFloat(parseFloat(data.price).toFixed(2)),
-                  prevClose: null,
-                  timestamp: Date.now()
-                };
-              }
-              throw new Error(`TwelveData no price: ${JSON.stringify(data).slice(0, 100)}`);
-            } catch (e) {
-              console.log(`TwelveData failed for ${sym}: ${e.message}`);
+              console.log(`[Polygon] ✗ ${sym}: ${e.message}`);
               throw e;
             }
           });
@@ -340,24 +287,20 @@ Deno.serve(async (req) => {
           });
         }
 
-        // 4. Twelve Data (international + forex fallback)
-        if (TWELVEDATA_KEY && !isCrypto) {
+        // 4. Finnhub (fallback for stocks if Polygon fails)
+        if (FINNHUB_KEY && !isFx && !isCrypto && !isIntl) {
           providers.push(async () => {
-            let tdSymbol = sym;
-            if (isFx) {
-              const fm = sym.match(/^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
-              if (fm) tdSymbol = `${fm[1]}/${fm[2]}`;
+            try {
+              const res = await fetchWithTimeout(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`, 4000);
+              const data = await res.json();
+              if (data.c && data.c > 0) {
+                console.log(`[Finnhub] ✓ ${sym} = $${data.c}`);
+                return { price: parseFloat(data.c.toFixed(2)), prevClose: data.pc ? parseFloat(data.pc.toFixed(2)) : null, timestamp: Date.now(), source: 'finnhub' };
+              }
+              throw new Error('no price');
+            } catch (e) {
+              throw e;
             }
-            const res = await fetchWithTimeout(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(tdSymbol)}&apikey=${TWELVEDATA_KEY}`);
-            const data = await res.json();
-            if (data.price && data.price > 0) {
-              return {
-                price: parseFloat(parseFloat(data.price).toFixed(2)),
-                prevClose: null,
-                timestamp: Date.now()
-              };
-            }
-            throw new Error('TwelveData no data');
           });
         }
 
