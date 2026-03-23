@@ -319,63 +319,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div>
-            <SectionTitle icon="📰" label={t('home.marketNews')} sub={t('home.aiAnalyzed')} />
-            <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
-              <div className="flex gap-4 pb-2">
-                {newsItems.map((article, i) => (
-                  <motion.button
-                    key={i}
-                    initial={{ opacity: 0, x: 24 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.06 }}
-                    onClick={() => setSelectedNews(article)}
-                    className="flex-shrink-0 text-left rounded-3xl overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] glass-card border border-border hover:border-border/50 card-shadow group"
-                    style={{ width: '320px', maxWidth: '85vw' }}
-                  >
-                    <div className="relative h-40 overflow-hidden">
-                      <img src={article.image} alt="" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-card/90 via-transparent to-transparent" />
-                    </div>
-
-                    <div className="p-5 space-y-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span
-                          className="text-xs font-bold px-2.5 py-1 rounded-lg"
-                          style={{
-                            color: article.sentiment === 'BULLISH' ? 'hsl(142, 86%, 28%)' : article.sentiment === 'BEARISH' ? 'hsl(0, 84%, 60%)' : 'hsl(45, 93%, 47%)',
-                            background: article.sentiment === 'BULLISH' ? 'rgba(16,185,129,0.1)' : article.sentiment === 'BEARISH' ? 'rgba(239,68,68,0.1)' : 'rgba(251,191,36,0.1)',
-                            border: `1px solid ${article.sentiment === 'BULLISH' ? 'rgba(16,185,129,0.2)' : article.sentiment === 'BEARISH' ? 'rgba(239,68,68,0.2)' : 'rgba(251,191,36,0.2)'}`
-                          }}
-                        >
-                          {article.sentiment}
-                        </span>
-                        <span className="text-xs text-muted-foreground/60 font-mono">Impact: {article.impact}/10</span>
-                        <span className="text-xs text-muted-foreground/40 font-mono ml-auto">{article.age}</span>
-                      </div>
-
-                      <p className="text-sm font-bold text-foreground leading-snug line-clamp-2">{article.headline}</p>
-
-                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{article.summary}</p>
-
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="flex gap-1.5 flex-wrap">
-                          {(article.tickers || []).slice(0, 3).map(t => (
-                            <span key={t} className="text-xs font-bold font-mono px-2 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20">
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                        <span className="text-xs font-semibold text-primary/70 group-hover:text-primary flex items-center gap-1 transition-colors">
-                          Read <ArrowUpRight className="h-3 w-3" />
-                        </span>
-                      </div>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <MarketNewsSection />
 
           <div>
             <SectionTitle icon="⚠️" label={t('home.riskWarnings')} sub={t('home.assetsToAvoid')} />
