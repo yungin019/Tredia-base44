@@ -12,25 +12,46 @@ const QUICK_ACTIONS = [
   { label: 'Paper Trading', path: '/PaperTrading', icon: '📝' },
 ];
 
+// Popular assets — deduplicated, varied across classes
 const POPULAR_SYMBOLS = [
-  { symbol: 'AAPL', name: 'Apple Inc.' },
-  { symbol: 'NVDA', name: 'NVIDIA Corp' },
-  { symbol: 'TSLA', name: 'Tesla Inc.' },
-  { symbol: 'MSFT', name: 'Microsoft Corp' },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
-  { symbol: 'META', name: 'Meta Platforms' },
-  { symbol: 'AMZN', name: 'Amazon.com' },
-  { symbol: 'BTC', name: 'Bitcoin' },
-  { symbol: 'ETH', name: 'Ethereum' },
-  { symbol: 'SPY', name: 'S&P 500 ETF' },
-  { symbol: 'QQQ', name: 'Nasdaq 100 ETF' },
-  { symbol: 'MSFT', name: 'Microsoft Corp' },
+  { symbol: 'AAPL',  name: 'Apple Inc.',      type: 'Stock' },
+  { symbol: 'NVDA',  name: 'NVIDIA Corp',     type: 'Stock' },
+  { symbol: 'TSLA',  name: 'Tesla Inc.',      type: 'Stock' },
+  { symbol: 'MSFT',  name: 'Microsoft Corp',  type: 'Stock' },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.',   type: 'Stock' },
+  { symbol: 'META',  name: 'Meta Platforms',  type: 'Stock' },
+  { symbol: 'AMZN',  name: 'Amazon.com',      type: 'Stock' },
+  { symbol: 'SPY',   name: 'S&P 500 ETF',     type: 'ETF' },
+  { symbol: 'QQQ',   name: 'Nasdaq-100 ETF',  type: 'ETF' },
+  { symbol: 'BTC',   name: 'Bitcoin',         type: 'Crypto' },
+  { symbol: 'ETH',   name: 'Ethereum',        type: 'Crypto' },
+  { symbol: 'GLD',   name: 'Gold ETF',        type: 'ETF' },
 ];
+
+// Asset-type tabs for filtering
+const ASSET_TABS = [
+  { id: 'all',    label: 'All' },
+  { id: 'stock',  label: 'Stocks' },
+  { id: 'etf',    label: 'ETFs' },
+  { id: 'crypto', label: 'Crypto' },
+  { id: 'forex',  label: 'Forex' },
+];
+
+const TYPE_COLORS = {
+  Stock:  { bg: 'rgba(59,130,246,0.12)',  text: '#60a5fa' },
+  ETF:    { bg: 'rgba(16,185,129,0.12)',  text: '#34d399' },
+  Crypto: { bg: 'rgba(245,158,11,0.12)', text: '#fbbf24' },
+  Forex:  { bg: 'rgba(168,85,247,0.12)', text: '#c084fc' },
+  ADR:    { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)' },
+  Fund:   { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)' },
+  Asset:  { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)' },
+};
 
 export default function SearchModal({ isOpen, onClose }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
   const inputRef = useRef(null);
   const navigate = useNavigate();
   const debounceRef = useRef(null);
@@ -41,39 +62,55 @@ export default function SearchModal({ isOpen, onClose }) {
     } else {
       setQuery('');
       setResults([]);
+      setActiveTab('all');
     }
   }, [isOpen]);
+
+  // Keyboard: close on ESC
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
       setSearching(false);
+      clearTimeout(debounceRef.current);
       return;
     }
 
-    // First: instant local filter on popular symbols
     const q = query.toLowerCase();
-    const local = POPULAR_SYMBOLS.filter(
-      s => s.symbol.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
-    );
+
+    // Filter popular symbols by activeTab
+    const local = POPULAR_SYMBOLS.filter(s => {
+      const matchesTab = activeTab === 'all' || s.type.toLowerCase() === activeTab;
+      const matchesQuery = s.symbol.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
+      return matchesTab && matchesQuery;
+    });
     setResults(local.slice(0, 6));
 
-    // Then: debounced backend search for full universe
+    // Debounced backend search (Finnhub: 30,000+ assets)
     clearTimeout(debounceRef.current);
     setSearching(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await base44.functions.invoke('stockPrices', { mode: 'search', query: query.trim() });
+        const res = await base44.functions.invoke('stockPrices', {
+          mode: 'search',
+          query: query.trim(),
+          assetType: activeTab, // pass tab filter to backend
+        });
         const backendResults = res?.data?.results || [];
         if (backendResults.length > 0) {
-          // Merge: backend results first, deduplicate
           const seen = new Set();
           const merged = [...backendResults, ...local].filter(r => {
             if (seen.has(r.symbol)) return false;
             seen.add(r.symbol);
             return true;
           });
-          setResults(merged.slice(0, 12));
+          setResults(merged.slice(0, 15));
         }
       } catch { /* keep local results */ } finally {
         setSearching(false);
@@ -81,7 +118,7 @@ export default function SearchModal({ isOpen, onClose }) {
     }, 400);
 
     return () => clearTimeout(debounceRef.current);
-  }, [query]);
+  }, [query, activeTab]);
 
   const handleSelect = (path) => {
     navigate(path);
@@ -96,6 +133,10 @@ export default function SearchModal({ isOpen, onClose }) {
   };
 
   if (!isOpen) return null;
+
+  const popularToShow = activeTab === 'all'
+    ? POPULAR_SYMBOLS
+    : POPULAR_SYMBOLS.filter(s => s.type.toLowerCase() === activeTab);
 
   return (
     <AnimatePresence>
@@ -122,7 +163,7 @@ export default function SearchModal({ isOpen, onClose }) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search any stock, ETF, crypto, index..."
+              placeholder="Search stocks, ETFs, crypto, forex..."
               className="flex-1 bg-transparent text-white/90 placeholder:text-white/25 text-base outline-none"
             />
             {searching && <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin flex-shrink-0" />}
@@ -131,9 +172,24 @@ export default function SearchModal({ isOpen, onClose }) {
                 <X className="h-4 w-4 text-white/30" />
               </button>
             )}
-            <kbd className="hidden sm:block text-[10px] bg-white/[0.06] px-2 py-1 rounded font-mono text-white/30">
-              ESC
-            </kbd>
+          </div>
+
+          {/* Asset Type Tabs */}
+          <div className="flex gap-1 px-4 py-2 border-b border-white/[0.04] overflow-x-auto scrollbar-hide">
+            {ASSET_TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-bold transition-all"
+                style={{
+                  background: activeTab === tab.id ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.04)',
+                  color: activeTab === tab.id ? '#F59E0B' : 'rgba(255,255,255,0.35)',
+                  border: `1px solid ${activeTab === tab.id ? 'rgba(245,158,11,0.3)' : 'transparent'}`,
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           <div className="max-h-96 overflow-y-auto">
@@ -142,26 +198,34 @@ export default function SearchModal({ isOpen, onClose }) {
               <div className="p-2">
                 <div className="px-3 py-2 text-[10px] font-bold text-white/30 uppercase tracking-wider flex items-center gap-1.5">
                   <TrendingUp className="h-3 w-3" />
-                  Results
+                  Results ({results.length})
                 </div>
-                {results.map((item) => (
-                  <button
-                    key={item.symbol}
-                    onClick={() => handleAssetSelect(item.symbol)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/[0.04] active:bg-white/[0.06] transition-colors text-left card-press"
-                    style={{ minHeight: '52px' }}
-                  >
-                    <div className="h-9 w-9 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-[10px] font-black font-mono text-white/50 flex-shrink-0">
-                      {item.symbol.slice(0, 2)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold text-white/90 font-mono">{item.symbol}</div>
-                      <div className="text-xs text-white/40 truncate">{item.name}</div>
-                    </div>
-                    {item.type && <span className="text-[9px] text-white/20 bg-white/[0.04] px-1.5 py-0.5 rounded flex-shrink-0">{item.type}</span>}
-                    <Zap className="h-3.5 w-3.5 text-white/15 flex-shrink-0" />
-                  </button>
-                ))}
+                {results.map((item) => {
+                  const typeColor = TYPE_COLORS[item.type] || TYPE_COLORS.Asset;
+                  return (
+                    <button
+                      key={item.symbol}
+                      onClick={() => handleAssetSelect(item.symbol)}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/[0.04] active:bg-white/[0.06] transition-colors text-left card-press"
+                      style={{ minHeight: '52px' }}
+                    >
+                      <div className="h-9 w-9 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-[10px] font-black font-mono text-white/50 flex-shrink-0">
+                        {item.symbol.slice(0, 3)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-white/90 font-mono">{item.symbol}</div>
+                        <div className="text-xs text-white/40 truncate">{item.name}</div>
+                      </div>
+                      {item.type && (
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                          style={{ background: typeColor.bg, color: typeColor.text }}>
+                          {item.type}
+                        </span>
+                      )}
+                      <Zap className="h-3.5 w-3.5 text-white/15 flex-shrink-0" />
+                    </button>
+                  );
+                })}
               </div>
             )}
 
@@ -169,11 +233,13 @@ export default function SearchModal({ isOpen, onClose }) {
             {query && !searching && results.length === 0 && (
               <div className="p-8 text-center">
                 <div className="text-white/20 mb-2">No results for "{query}"</div>
-                <div className="text-xs text-white/30">Try a ticker symbol like AAPL, BTC, or SPY</div>
+                <div className="text-xs text-white/30">
+                  Try a ticker like AAPL, BTC, EUR/USD, or SPY
+                </div>
               </div>
             )}
 
-            {/* Quick Actions */}
+            {/* Quick Actions (no query) */}
             {!query && (
               <div className="p-2">
                 <div className="px-3 py-2 text-[10px] font-bold text-white/30 uppercase tracking-wider">
@@ -195,34 +261,40 @@ export default function SearchModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* Popular Symbols */}
-            {!query && (
+            {/* Popular Symbols (filtered by tab) */}
+            {!query && popularToShow.length > 0 && (
               <div className="p-2 border-t border-white/[0.05]">
                 <div className="px-3 py-2 text-[10px] font-bold text-white/30 uppercase tracking-wider flex items-center gap-1.5">
                   <Clock className="h-3 w-3" />
                   Popular Assets
                 </div>
                 <div className="grid grid-cols-3 gap-1.5">
-                  {POPULAR_SYMBOLS.slice(0, 9).map((item) => (
-                    <button
-                      key={item.symbol}
-                      onClick={() => handleAssetSelect(item.symbol)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] active:bg-white/[0.06] border border-white/[0.05] transition-colors text-left card-press"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-white/85 font-mono">{item.symbol}</div>
-                        <div className="text-[9px] text-white/30 truncate">{item.name.split(' ')[0]}</div>
-                      </div>
-                    </button>
-                  ))}
+                  {popularToShow.slice(0, 9).map((item) => {
+                    const typeColor = TYPE_COLORS[item.type] || TYPE_COLORS.Asset;
+                    return (
+                      <button
+                        key={item.symbol}
+                        onClick={() => handleAssetSelect(item.symbol)}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] active:bg-white/[0.06] border border-white/[0.05] transition-colors text-left card-press"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-white/85 font-mono">{item.symbol}</div>
+                          <div className="text-[9px] truncate" style={{ color: typeColor.text }}>
+                            {item.type}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="px-4 py-3 border-t border-white/[0.05] flex items-center justify-between">
+          {/* Footer */}
+          <div className="px-4 py-2.5 border-t border-white/[0.05] flex items-center justify-between">
             <div className="text-[10px] text-white/20">
-              Powered by Finnhub · 30,000+ assets
+              Powered by Finnhub · Stocks, ETFs, Crypto, Forex
             </div>
             <kbd className="text-[9px] bg-white/[0.06] px-1.5 py-0.5 rounded font-mono text-white/30">ESC</kbd>
           </div>
