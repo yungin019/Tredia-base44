@@ -39,33 +39,29 @@ export default function CoreAssetDisplay() {
       setLoading(true);
       setError(false);
       try {
+        // Import base44 here to avoid circular dependencies
+        const { base44 } = await import('@/api/base44Client');
         const symbols = CORE_ASSETS.map(a => a.symbol);
-        const res = await fetch(`/api/stock-prices?symbols=${symbols.join(',')}`).catch(() => null);
         
-        if (!res?.ok) {
-          // Try backend function
-          const res2 = await window.base44?.functions.invoke('stockPrices', { symbols }).catch(() => null);
-          if (res2?.data?.prices) {
-            const priceMap = {};
-            symbols.forEach(s => {
-              const p = res2.data.prices[s];
-              if (p && p.price > 0) priceMap[s] = p;
-            });
+        // Call backend function to fetch stock prices
+        const response = await base44.functions.invoke('stockPrices', { symbols });
+        
+        if (response?.data?.prices) {
+          const priceMap = {};
+          symbols.forEach(s => {
+            const p = response.data.prices[s];
+            if (p && p.price > 0) priceMap[s] = p;
+          });
+          if (Object.keys(priceMap).length > 0) {
             setLiveData(priceMap);
           } else {
             setError(true);
           }
         } else {
-          const data = await res.json();
-          const priceMap = {};
-          symbols.forEach(s => {
-            const p = data[s];
-            if (p && p.price > 0) priceMap[s] = p;
-          });
-          setLiveData(priceMap);
+          setError(true);
         }
       } catch (err) {
-        console.error('Core assets load failed:', err);
+        console.error('Core assets load failed:', err.message);
         setError(true);
       } finally {
         setLoading(false);
