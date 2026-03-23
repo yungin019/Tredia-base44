@@ -59,14 +59,16 @@ export default function CandlestickChart({ symbol, timeframe = '1D', initialData
             <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           </div>
         )}
-        {!loading && (dataSource === 'unavailable' || (!loading && data.length === 0 && dataSource !== null)) && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <div className="text-white/20 text-xl">📊</div>
-            <div className="text-white/30 text-xs font-bold">Chart data unavailable</div>
-            <div className="text-white/15 text-[10px] text-center px-4">
-              {timeframe === '1D'
-                ? 'Intraday data not available for this exchange. Try 1W or 1M.'
-                : 'This symbol is not covered by our data providers for this timeframe.'}
+        {!loading && (dataSource === 'unavailable' || (data.length === 0 && dataSource !== null)) && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6">
+            <div className="text-white/20 text-2xl">📊</div>
+            <div className="text-white/35 text-xs font-bold">Chart data unavailable</div>
+            <div className="text-white/20 text-[10px] text-center leading-relaxed">
+              {/\.(PA|DE|AS|T|HK|L|MI|SW|OL|ST|CO|AX)$/i.test(symbol)
+                ? `Live chart data for ${symbol} requires a premium data plan for this exchange. Price and analysis data is still available above.`
+                : timeframe === '1D'
+                  ? 'Intraday bars unavailable for this symbol. Try 1W or 1M.'
+                  : 'No data returned from providers for this timeframe.'}
             </div>
           </div>
         )}
