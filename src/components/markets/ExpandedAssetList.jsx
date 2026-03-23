@@ -69,6 +69,12 @@ export default function ExpandedAssetList() {
     fetchCrypto();
   }, []);
 
+  // Compute results BEFORE using in useEffect
+  const results = useMemo(() => {
+    if (!searchQuery.trim()) return EXPANDED_ASSETS.slice(0, 50);
+    return searchAssets(searchQuery);
+  }, [searchQuery]);
+
   // Load more assets as user scrolls (on-demand)
   useEffect(() => {
     const visibleSymbols = results
@@ -99,11 +105,6 @@ export default function ExpandedAssetList() {
       fetchMore();
     }
   }, [results, loading]);
-
-  const results = useMemo(() => {
-    if (!searchQuery.trim()) return EXPANDED_ASSETS.slice(0, 50);
-    return searchAssets(searchQuery);
-  }, [searchQuery]);
 
   const getPriceData = (asset) => {
     if (asset.sector === 'Crypto') {
