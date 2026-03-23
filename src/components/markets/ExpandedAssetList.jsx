@@ -1,18 +1,22 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EXPANDED_ASSETS, searchAssets } from '@/lib/assetDatabase';
 import { base44 } from '@/api/base44Client';
+import { deriveSignal } from '@/api/signalEngine';
 
 export default function ExpandedAssetList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [liveData, setLiveData] = useState({});
   const [cryptoData, setCryptoData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(null);
+  const [refreshCount, setRefreshCount] = useState(0);
   const navigate = useNavigate();
+  const refreshIntervalRef = useRef(null);
 
-  // Fetch live stock prices
+  // Fetch live stock prices with auto-refresh
   useEffect(() => {
     async function fetchPrices() {
       try {
@@ -23,15 +27,29 @@ export default function ExpandedAssetList() {
         const res = await base44.functions.invoke('stockPrices', { symbols: stockSymbols });
         if (res?.data?.prices) {
           setLiveData(res.data.prices);
+          setLastRefresh(new Date());
         }
       } catch (error) {
         console.error('Error fetching stock prices:', error);
+      } finally {
+        setLoading(false);
       }
     }
+    
+    // Initial fetch
     fetchPrices();
+    
+    // Auto-refresh every 45 seconds
+    refreshIntervalRef.current = setInterval(fetchPrices, 45000);
+    
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
   }, []);
 
-  // Fetch live crypto prices
+  // Fetch live crypto prices with auto-refresh
   useEffect(() => {
     async function fetchCrypto() {
       try {
@@ -57,18 +75,27 @@ export default function ExpandedAssetList() {
           if (data[id]) {
             priceMap[symbol] = {
               price: data[id].usd,
-              change: data[id].usd_24h_change || 0
+              change: data[id].usd_24h_change || 0,
+              prevClose: data[id].usd / (1 + (data[id].usd_24h_change || 0) / 100)
             };
           }
         });
         setCryptoData(priceMap);
+        setLastRefresh(new Date());
       } catch (error) {
         console.error('Error fetching crypto prices:', error);
       } finally {
         setLoading(false);
       }
     }
+    
+    // Initial fetch
     fetchCrypto();
+    
+    // Auto-refresh every 30 seconds (crypto is more volatile)
+    const cryptoInterval = setInterval(fetchCrypto, 30000);
+    
+    return () => clearInterval(cryptoInterval);
   }, []);
 
   const results = useMemo(() => {
