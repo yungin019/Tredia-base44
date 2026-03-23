@@ -355,15 +355,21 @@ Deno.serve(async (req) => {
         }
 
         // Execute providers in sequence until one succeeds
+        let lastError = '';
         for (const provider of providers) {
           try {
             const data = await provider();
             results[sym] = data;
             break;
           } catch (e) {
+            lastError = e.message;
             // Try next provider
             continue;
           }
+        }
+        
+        if (!results[sym]) {
+          console.log(`All providers failed for ${sym}: ${lastError}`);
         }
 
         // If all providers failed for a priority asset, try harder with retries
