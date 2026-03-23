@@ -232,8 +232,11 @@ Deno.serve(async (req) => {
           providers.push(async () => {
             try {
               const url = `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
+              console.log(`Trying Polygon for ${sym}: ${url.slice(0, 60)}...`);
               const res = await fetchWithTimeout(url, 5000);
+              console.log(`Polygon response for ${sym}: ${res.status}`);
               const data = await res.json();
+              console.log(`Polygon data for ${sym}:`, JSON.stringify(data).slice(0, 150));
               const price = data?.results?.[0]?.c;
               const prevClose = data?.results?.[0]?.o;
               if (price && price > 0) {
@@ -243,7 +246,7 @@ Deno.serve(async (req) => {
                   timestamp: data?.results?.[0]?.t || Date.now()
                 };
               }
-              throw new Error('Polygon no data');
+              throw new Error(`Polygon no price: ${JSON.stringify(data).slice(0, 100)}`);
             } catch (e) {
               console.log(`Polygon failed for ${sym}: ${e.message}`);
               throw e;
