@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, AlertCircle, CheckCircle2, Clock, Copy, Share2 } from 'lucide-react';
+import DeleteAccountModal from '@/components/settings/DeleteAccountModal';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
