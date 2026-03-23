@@ -15,8 +15,11 @@ Deno.serve(async (req) => {
     const POLYGON_KEY = Deno.env.get('POLYGON_API_KEY');
     const TWELVEDATA_KEY = Deno.env.get('TWELVEDATA_API_KEY');
     const AV_KEY = Deno.env.get('ALPHAVANTAGE_API_KEY');
+    const ALPACA_KEY = Deno.env.get('ALPACA_API_KEY');
+    const ALPACA_SECRET = Deno.env.get('ALPACA_SECRET_KEY');
     
     console.log('API Keys available:', { 
+      alpaca: !!ALPACA_KEY,
       finnhub: !!FINNHUB_KEY, 
       polygon: !!POLYGON_KEY, 
       twelvedata: !!TWELVEDATA_KEY,
