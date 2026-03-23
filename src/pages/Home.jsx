@@ -21,63 +21,7 @@ import MarketPulse from '@/components/feed/MarketPulse';
 import SmartNews from '@/components/feed/SmartNews';
 import UpgradeCall from '@/components/feed/UpgradeCall';
 
-const ALERTS = [
-  { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'Momentum breakout above $870 — volume 3.2× average', age: '7m', color: 'hsl(142, 86%, 28%)', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)' },
-  { id: 2, type: 'RISK', symbol: 'VIX',  note: 'VIX term structure inversion — elevated market risk', age: '14m', color: 'hsl(0, 84%, 60%)', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)' },
-  { id: 3, type: 'SELL', symbol: 'META', note: 'Pre-earnings sentiment deteriorating — put/call 1.4', age: '31m', color: 'hsl(45, 93%, 47%)', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.2)' },
-];
 
-const FOR_YOU = [
-  { symbol: 'NVDA', signal: 'BUY',   note: 'Institutional accumulation detected. Strong breakout setup.', move: '+8.2%', color: 'hsl(142, 86%, 28%)' },
-  { symbol: 'JPM',  signal: 'WATCH', note: 'Financial sector rotation. Rate curve steepening.', move: '+7%', color: 'hsl(45, 93%, 47%)' },
-  { symbol: 'BTC',  signal: 'BUY',   note: 'Spot ETF inflows at record. Halving cycle momentum.', move: '+12%', color: 'hsl(142, 86%, 28%)' },
-];
-
-const RECOMMENDED = [
-  { symbol: 'NVDA', name: 'NVIDIA', price: 871.20, change: 5.1, signal: 'BUY', sector: 'Tech' },
-  { symbol: 'AMZN', name: 'Amazon', price: 182.90, change: 3.2, signal: 'BUY', sector: 'E-Comm' },
-  { symbol: 'JPM',  name: 'JPMorgan', price: 201.50, change: 1.5, signal: 'WATCH', sector: 'Finance' },
-  { symbol: 'BTC',  name: 'Bitcoin', price: 67420, change: 4.8, signal: 'BUY', sector: 'Crypto' },
-  { symbol: 'MSFT', name: 'Microsoft', price: 415.80, change: 1.8, signal: 'HOLD', sector: 'Tech' },
-];
-
-const JUMPS = [
-  { symbol: 'SMCI', name: 'Supermicro',    change: +18.4, reason: 'AI server demand surge — NVIDIA GPU allocation confirmed' },
-  { symbol: 'ARM',  name: 'ARM Holdings', change: +12.1, reason: 'New chip licensing deal with major hyperscaler' },
-  { symbol: 'PLTR', name: 'Palantir',      change: +9.7,  reason: 'DoD contract expansion — AI platform adoption' },
-  { symbol: 'SOFI', name: 'SoFi',          change: +7.3,  reason: 'Student loan refinancing demand up 40% QoQ' },
-];
-
-const WARNINGS = [
-  { symbol: 'TSLA', reason: 'Delivery miss risk + margin compression. Bearish divergence on daily.', severity: 'HIGH' },
-  { symbol: 'META', reason: 'Ad revenue uncertainty. 3 analyst downgrades in 72h. Put/call elevated.', severity: 'MEDIUM' },
-  { symbol: 'RIVN', reason: 'Cash burn accelerating. Production ramp below target. EV demand softening.', severity: 'HIGH' },
-];
-
-
-
-function SectionTitle({ icon, label, sub, action, onAction }) {
-  return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2.5">
-        <span className="text-lg">{icon}</span>
-        <div>
-          <h2 className="text-base font-bold text-foreground tracking-tight">{label}</h2>
-          {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-        </div>
-      </div>
-      {action && (
-        <button
-          onClick={onAction}
-          className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors group"
-        >
-          {action}
-          <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-        </button>
-      )}
-    </div>
-  );
-}
 
 
 
