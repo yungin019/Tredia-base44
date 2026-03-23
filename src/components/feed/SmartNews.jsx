@@ -44,7 +44,7 @@ export default function SmartNews() {
             
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5">
               <p className="text-xs text-foreground leading-relaxed">
-                <span className="font-semibold text-primary">TREK:</span> {item.trekTake}
+                <span className="font-semibold text-primary">What it means:</span> {item.trekTake}
               </p>
             </div>
           </motion.div>
