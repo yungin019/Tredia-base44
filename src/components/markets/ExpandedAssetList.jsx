@@ -291,7 +291,7 @@ export default function ExpandedAssetList() {
       {/* Coverage Info */}
       <div className="text-center py-4 border-t border-white/5 mt-4">
         <p className="text-xs text-white/40">
-          ✓ 200+ real assets | Live prices from Polygon API + CoinGecko | 24h change data
+          ✓ 200+ real assets | Live prices from Polygon + CoinGecko | Auto-refresh every 30-45s | Signals derived from real market data
         </p>
       </div>
     </div>
