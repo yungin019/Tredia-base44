@@ -19,10 +19,21 @@ export default function SignIn() {
     try {
       if (mode === 'register') {
         await base44.auth.register({ email, password, full_name: name });
-        // After register, show verification step
         setStep('verify');
       } else {
         await base44.auth.loginViaEmailPassword(email, password);
+        // Initialize profile fields for new users who haven't been through onboarding
+        try {
+          const u = await base44.auth.me();
+          if (u && !u.onboarding_completed) {
+            const referralCode = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
+            await base44.auth.updateMe({
+              broker_status: u.broker_status || 'not_connected',
+              trading_mode: u.trading_mode || 'practice',
+              referral_code: u.referral_code || referralCode,
+            });
+          }
+        } catch {}
         window.location.href = '/Home';
       }
     } catch (err) {
@@ -52,6 +63,8 @@ export default function SignIn() {
     base44.auth.loginWithProvider('google', '/Home');
   };
 
+  // Apple Sign-In: only available if configured in the Base44 dashboard.
+  // Do not call unless provider is confirmed active.
   const handleApple = () => {
     base44.auth.loginWithProvider('apple', '/Home');
   };
@@ -209,7 +222,7 @@ export default function SignIn() {
                 <button onClick={handleGoogle} style={socialBtnStyle}>
                   <span>G</span> Continue with Google
                 </button>
-                <button onClick={handleApple} style={socialBtnStyle}>
+                <button onClick={handleApple} style={{ ...socialBtnStyle, opacity: 0.4, cursor: 'not-allowed' }} disabled title="Apple Sign-In not yet configured">
                   <span>🍎</span> Continue with Apple
                 </button>
               </div>
