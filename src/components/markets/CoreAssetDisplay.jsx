@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { formatPrice, formatPercent, validatePrice, validatePercent } from '@/lib/dataValidation';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { SkeletonCard, LoadingMessage, DataUnavailable } from '@/components/ui/SkeletonLoader';
+import { fetchTier1Assets } from '@/api/marketDataClient';
 
 /**
  * Core Asset Display - 12-14 high-priority assets only
@@ -39,19 +40,22 @@ export default function CoreAssetDisplay() {
       setLoading(true);
       setError(false);
       try {
-        // Import base44 here to avoid circular dependencies
-        const { base44 } = await import('@/api/base44Client');
-        const symbols = CORE_ASSETS.map(a => a.symbol);
+        // Use proven tier1 cache that works
+        const assets = await fetchTier1Assets();
         
-        // Call backend function to fetch stock prices
-        const response = await base44.functions.invoke('stockPrices', { symbols });
-        
-        if (response?.data?.prices) {
+        if (assets && assets.length > 0) {
           const priceMap = {};
-          symbols.forEach(s => {
-            const p = response.data.prices[s];
-            if (p && p.price > 0) priceMap[s] = p;
+          assets.forEach(asset => {
+            // Only include core assets we want
+            if (CORE_ASSETS.find(ca => ca.symbol === asset.symbol)) {
+              priceMap[asset.symbol] = {
+                price: asset.price,
+                prevClose: asset.prevClose || asset.price,
+                change: asset.change || 0
+              };
+            }
           });
+          
           if (Object.keys(priceMap).length > 0) {
             setLiveData(priceMap);
           } else {
@@ -61,7 +65,7 @@ export default function CoreAssetDisplay() {
           setError(true);
         }
       } catch (err) {
-        console.error('Core assets load failed:', err.message);
+        console.error('[CoreAssets] Load failed:', err.message);
         setError(true);
       } finally {
         setLoading(false);
