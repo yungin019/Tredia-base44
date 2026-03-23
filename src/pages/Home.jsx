@@ -217,31 +217,7 @@ export default function Home() {
     }).catch(() => {});
   }, []);
 
-  const loadNews = async () => {
-    try {
-      const res = await base44.functions.invoke('getMarketNews', {});
-      const articles = res?.data?.articles;
-      if (articles && articles.length > 0) {
-        setNewsItems(articles.map((a, i) => {
-          const baseImpact = Math.floor((i % 4) + 6);
-          return {
-            id: i,
-            headline: a.title,
-            summary: a.summary || '',
-            sentiment: a.sentiment || 'NEUTRAL',
-            impact: baseImpact,
-            tickers: [],
-            image: a.image || NEWS[i % NEWS.length].image,
-            url: a.url,
-            age: a.seendate ? new Date(a.seendate).toLocaleDateString() : '',
-          };
-        }));
-      }
-    } catch {
-    }
-  };
 
-  useEffect(() => { loadNews(); }, []);
 
   const sentimentLabel = fearGreed
     ? fearGreed.value >= 70 ? t('trek.greed') : fearGreed.value >= 50 ? t('common.neutral') : fearGreed.value >= 30 ? t('trek.fear') : t('trek.extremeFear')
