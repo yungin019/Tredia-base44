@@ -144,7 +144,15 @@ export default function Markets() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <TrendingAssets />
+            <TrendingAssets stocks={STOCK_DATA.map(s => ({
+              symbol: s.symbol,
+              name: s.name,
+              price: livePrices[s.symbol]?.price || s.price,
+              change: livePrices[s.symbol] 
+                ? (((livePrices[s.symbol].price - livePrices[s.symbol].prevClose) / livePrices[s.symbol].prevClose) * 100)
+                : s.change,
+              signal: s.change > 2 ? 'BUY' : s.change < -2 ? 'SELL' : 'WATCH'
+            }))} />
           </motion.div>
 
           {/* Watchlist Quick */}
@@ -153,7 +161,14 @@ export default function Markets() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
           >
-            <WatchlistQuick />
+            <WatchlistQuick stocks={STOCK_DATA.map(s => ({
+              symbol: s.symbol,
+              name: s.name,
+              price: livePrices[s.symbol]?.price || s.price,
+              change: livePrices[s.symbol] 
+                ? (((livePrices[s.symbol].price - livePrices[s.symbol].prevClose) / livePrices[s.symbol].prevClose) * 100)
+                : s.change
+            }))} />
           </motion.div>
 
           {/* Expanded Asset List with Search */}
