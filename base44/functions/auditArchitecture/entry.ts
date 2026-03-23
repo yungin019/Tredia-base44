@@ -230,7 +230,8 @@ Deno.serve(async (req) => {
         loadTime: `${coreElapsed}ms (target: <2500ms)`,
         pass: coreTest.timeoutProof === 'PASS',
         liveCount: Object.values(coreTest.results).filter(r => r.status === 'live').length,
-        providers: ['Finnhub (stocks)', 'CoinGecko (crypto)']
+        note: 'Stocks use cached-fallback (providers rate-limited). Crypto live from CoinGecko.',
+        providers: ['CoinGecko (crypto, live)', 'Cached fallback (stocks, last-known-good prices)']
       },
 
       // Search-Driven Access
