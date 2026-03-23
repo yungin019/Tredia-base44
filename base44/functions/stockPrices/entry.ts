@@ -227,10 +227,40 @@ Deno.serve(async (req) => {
         const isCrypto = /^(BTC|ETH|XRP|LTC|BCH|ADA|DOT|SOL|AVAX|MATIC|LINK|UNI|DOGE|SHIB)$/.test(sym);
         const isPriority = PRIORITY_ASSETS.includes(sym);
 
-        // Strategy: Use Polygon as primary (Finnhub is rate limited)
+        // Strategy: Use Alpaca as primary (FREE real-time data for US stocks)
         const providers = [];
 
-        // 1. Polygon (primary - US stocks + ETFs)
+        // 1. Alpaca (FREE real-time US stocks - primary)
+        if (ALPACA_KEY && ALPACA_SECRET && !isFx && !isCrypto && !isIntl) {
+          providers.push(async () => {
+            try {
+              const url = `https://data.alpaca.markets/v2/stocks/${sym}/quotes/latest`;
+              const headers = {
+                'APCA-API-KEY-ID': ALPACA_KEY,
+                'APCA-API-SECRET-KEY': ALPACA_SECRET
+              };
+              console.log(`Trying Alpaca for ${sym}`);
+              const res = await fetchWithTimeout(url, 5000);
+              console.log(`Alpaca response for ${sym}: ${res.status}`);
+              const data = await res.json();
+              console.log(`Alpaca data for ${sym}:`, JSON.stringify(data).slice(0, 150));
+              const price = data?.quote?.ap || data?.quote?.p;
+              if (price && price > 0) {
+                return {
+                  price: parseFloat(price.toFixed(2)),
+                  prevClose: null,
+                  timestamp: Date.now()
+                };
+              }
+              throw new Error(`Alpaca no price: ${JSON.stringify(data).slice(0, 100)}`);
+            } catch (e) {
+              console.log(`Alpaca failed for ${sym}: ${e.message}`);
+              throw e;
+            }
+          });
+        }
+
+        // 2. Polygon (US stocks + ETFs)
         if (POLYGON_KEY && !isFx && !isCrypto) {
           providers.push(async () => {
             try {
