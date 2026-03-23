@@ -1,12 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
-// Interval mapping: timeframe -> { multiplier, span, finnhubResolution, days }
 const TIMEFRAME_MAP = {
-  '1D':  { multiplier: 5,  span: 'minute', resolution: '5',   days: 1 },
-  '1W':  { multiplier: 60, span: 'minute', resolution: '60',  days: 7 },
-  '1M':  { multiplier: 1,  span: 'day',    resolution: 'D',   days: 30 },
-  '3M':  { multiplier: 1,  span: 'day',    resolution: 'D',   days: 90 },
-  '1Y':  { multiplier: 1,  span: 'week',   resolution: 'W',   days: 365 },
+  '1D':  { multiplier: 5,  span: 'minute', resolution: '5',  avFunction: 'TIME_SERIES_INTRADAY', avInterval: '5min',  days: 1 },
+  '1W':  { multiplier: 60, span: 'minute', resolution: '60', avFunction: 'TIME_SERIES_DAILY',    avInterval: null,    days: 7 },
+  '1M':  { multiplier: 1,  span: 'day',    resolution: 'D',  avFunction: 'TIME_SERIES_DAILY',    avInterval: null,    days: 30 },
+  '3M':  { multiplier: 1,  span: 'day',    resolution: 'D',  avFunction: 'TIME_SERIES_DAILY',    avInterval: null,    days: 90 },
+  '1Y':  { multiplier: 1,  span: 'week',   resolution: 'W',  avFunction: 'TIME_SERIES_WEEKLY',   avInterval: null,    days: 365 },
 };
 
 Deno.serve(async (req) => {
