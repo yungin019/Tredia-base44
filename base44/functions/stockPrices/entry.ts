@@ -220,21 +220,19 @@ Deno.serve(async (req) => {
         // Strategy: Try multiple providers, ensure we get data for priority assets
         const providers = [];
 
-        // 1. Polygon (best overall - US + international)
-        if (POLYGON_KEY && !isFx) {
+        // 1. Polygon (best overall - US + international stocks, NOT crypto)
+        if (POLYGON_KEY && !isFx && !isCrypto) {
           providers.push(async () => {
-            const url = isCrypto || isFx
-              ? `https://api.polygon.io/v2/last/forex/${sym}/USD?apiKey=${POLYGON_KEY}`
-              : `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
+            const url = `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
             const res = await fetchWithTimeout(url);
             const data = await res.json();
-            const price = data?.results?.c || data?.results?.[0]?.c || data?.last?.ask || data?.last?.bid;
+            const price = data?.results?.c || data?.results?.[0]?.c;
             const prevClose = data?.results?.c || data?.results?.[0]?.c;
             if (price && price > 0) {
               return {
                 price: parseFloat(price.toFixed(2)),
                 prevClose: prevClose ? parseFloat(prevClose.toFixed(2)) : null,
-                timestamp: data?.results?.t || data?.last?.lastUpdate || Date.now()
+                timestamp: data?.results?.t || Date.now()
               };
             }
             throw new Error('Polygon no data');
