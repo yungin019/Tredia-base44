@@ -223,7 +223,9 @@ export default function AppShell({ onLogout }) {
         </div>
       </nav>
 
-      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      {/* Use new GlobalAssetSearch instead of old SearchModal */}
+      {searchOpen && <GlobalAssetSearch />}
+      {searchOpen && <div className="fixed inset-0 z-30" onClick={() => setSearchOpen(false)} />}
     </div>
   );
 }
