@@ -12,38 +12,43 @@ export default function ExpandedAssetList() {
   const [cryptoData, setCryptoData] = useState({});
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(null);
-  const [refreshCount, setRefreshCount] = useState(0);
   const navigate = useNavigate();
-  const refreshIntervalRef = useRef(null);
+  const fetchedSymbolsRef = useRef(new Set());
 
-  // ARCHITECTURE: Markets page uses Tier 3 data (on-demand, not auto-refreshed)
-  // Only fetch prices for visible/searched assets, not entire 200+ universe
+  // TIER 3: On-demand loading strategy
+  // Fetch only visible assets (first 20-30), load more on scroll/search
   useEffect(() => {
-    // Initial load: fetch first 20 assets (visible ones)
-    async function fetchInitialData() {
-      const initialSymbols = EXPANDED_ASSETS.slice(0, 20).map(a => a.symbol);
+    async function fetchVisible() {
+      const visibleSymbols = EXPANDED_ASSETS.slice(0, 25).map(a => a.symbol);
+      const missingSymbols = visibleSymbols.filter(s => !fetchedSymbolsRef.current.has(s));
+      
+      if (missingSymbols.length === 0) {
+        setLoading(false);
+        return;
+      }
+      
       try {
-        const results = await fetchMarketScan(initialSymbols, 3);
+        const results = await fetchMarketScan(missingSymbols, 3);
         const priceMap = {};
         results.forEach(r => {
           priceMap[r.symbol] = r;
+          fetchedSymbolsRef.current.add(r.symbol);
         });
-        setLiveData(priceMap);
-        setLoading(false);
+        
+        setLiveData(prev => ({ ...prev, ...priceMap }));
         setLastRefresh(new Date());
-        setRefreshCount(1);
+        console.log(`[Markets] Loaded ${results.length} Tier 3 assets`);
       } catch (error) {
-        console.error('[Markets] Initial fetch failed:', error.message);
+        console.error('[Markets] Fetch failed:', error.message);
+      } finally {
         setLoading(false);
       }
     }
     
-    fetchInitialData();
-    
-    return () => {};
+    fetchVisible();
   }, []);
 
-  // Fetch crypto prices (Tier 1 - real-time)
+  // Fetch crypto (Tier 1 - real-time)
   useEffect(() => {
     async function fetchCrypto() {
       try {
@@ -54,30 +59,25 @@ export default function ExpandedAssetList() {
         });
         if (Object.keys(priceMap).length > 0) {
           setCryptoData(priceMap);
-          setLastRefresh(new Date());
-          setRefreshCount(prev => prev + 1);
+          console.log(`[Markets] Loaded ${results.length} crypto assets`);
         }
       } catch (error) {
         console.warn('[Markets] Crypto fetch failed:', error.message);
-      } finally {
-        setLoading(false);
       }
     }
     
     fetchCrypto();
-    const cryptoInterval = setInterval(fetchCrypto, 60000);
-    return () => clearInterval(cryptoInterval);
   }, []);
 
-  // Fetch more prices as user scrolls/searches (ON-DEMAND strategy)
+  // Load more assets as user scrolls (on-demand)
   useEffect(() => {
     const visibleSymbols = results
       .filter(a => a.sector !== 'Crypto')
       .slice(0, 30)
       .map(a => a.symbol);
     
-    async function fetchVisible() {
-      const missing = visibleSymbols.filter(s => !liveData[s]);
+    async function fetchMore() {
+      const missing = visibleSymbols.filter(s => !liveData[s] && !fetchedSymbolsRef.current.has(s));
       if (missing.length > 0) {
         try {
           const newPrices = await fetchMarketScan(missing, 3);
@@ -85,10 +85,10 @@ export default function ExpandedAssetList() {
             const updated = { ...prev };
             newPrices.forEach(r => {
               updated[r.symbol] = r;
+              fetchedSymbolsRef.current.add(r.symbol);
             });
             return updated;
           });
-          setRefreshCount(c => c + 1);
         } catch (error) {
           console.error('[Markets] Scroll fetch failed:', error.message);
         }
@@ -96,7 +96,7 @@ export default function ExpandedAssetList() {
     }
     
     if (!loading) {
-      fetchVisible();
+      fetchMore();
     }
   }, [results, loading]);
 
@@ -125,7 +125,7 @@ export default function ExpandedAssetList() {
     return { price: null, change: null, prevClose: null };
   };
 
-  // Derive live signals from real market data
+  // Derive signals from real market data only
   const getLiveSignal = (asset) => {
     const priceInfo = asset.sector === 'Crypto' 
       ? cryptoData[asset.symbol] 
@@ -239,7 +239,6 @@ export default function ExpandedAssetList() {
                 {/* Live Signal Reason (1 line) */}
                 <p className="text-xs text-white/60 mb-2 line-clamp-1">
                   {signal.reason}
-                  {!signal.isLiveDerived && <span className="text-white/30 ml-1">(demo)</span>}
                 </p>
 
                 {/* Price & Change */}
