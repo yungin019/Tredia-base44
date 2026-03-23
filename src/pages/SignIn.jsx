@@ -150,12 +150,20 @@ export default function SignIn() {
                   </button>
                 </form>
 
-                <button
-                  onClick={() => { setStep('form'); setError(''); setVerifyCode(''); }}
-                  style={{ width: '100%', marginTop: '12px', padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer' }}
-                >
-                  ← Back
-                </button>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                  <button
+                    onClick={() => { setStep('form'); setError(''); setVerifyCode(''); }}
+                    style={{ flex: 1, padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer' }}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    onClick={handleResendOtp}
+                    style={{ flex: 1, padding: '10px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'rgba(255,255,255,0.4)', fontSize: '12px', cursor: 'pointer' }}
+                  >
+                    Resend code
+                  </button>
+                </div>
               </motion.div>
             ) : (
 
