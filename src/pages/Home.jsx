@@ -59,16 +59,13 @@ export default function Home() {
         <IndexCardsSection />
 
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
+          {/* OG100 Badge (TOP) */}
+          <OG100Card />
+
           {/* Daily Morning Brief */}
           <DailyBrief mode="morning" />
 
-          {/* OG100 Badge */}
-          <OG100Card />
-
-          {/* 1. Market Alert (TOP PRIORITY) */}
-          <MarketAlert />
-
-          {/* 2. Next Best Opportunity */}
+          {/* Next Best Opportunity */}
           <NextJumpDetector
             signal={{
               asset: 'NVDA',
