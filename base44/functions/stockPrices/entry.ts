@@ -62,22 +62,30 @@ Deno.serve(async (req) => {
         } catch { /* fall through */ }
       }
 
+      // Detect forex/commodity symbols (EURUSD, GBPUSD, XAUUSD, XAGUSD, etc.)
+      const isForex = /^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i.test(symbol);
+
       // 2. Finnhub candles — try this BEFORE Twelve Data for international daily bars
       //    Finnhub free plan covers many EU/Asian exchanges at daily resolution
+      //    For forex: Finnhub forex candles work at daily but NOT intraday on free plan
       if (FINNHUB_KEY) {
         try {
-          // For international symbols or longer timeframes, always use daily resolution
-          const resolution = isInternational ? 'D' : tf.resolution;
-          const url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${resolution}&from=${fromTs}&to=${now}&token=${FINNHUB_KEY}`;
+          // For international/forex or longer timeframes, force daily resolution
+          // 1D intraday for forex/international is not available on Finnhub free plan
+          const needsDaily = isInternational || isForex;
+          const resolution = needsDaily ? 'D' : tf.resolution;
+          // For 1D timeframe on forex, expand the lookback to 7 days to get enough daily bars
+          const adjustedFrom = (needsDaily && timeframe === '1D') ? now - 7 * 86400 : fromTs;
+          const url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${resolution}&from=${adjustedFrom}&to=${now}&token=${FINNHUB_KEY}`;
           const res = await fetchWithTimeout(url);
           const data = await res.json();
-          if (data.s === 'ok' && data.c && data.c.length > 1) {
+          if (data.s === 'ok' && data.c && data.c.length > 0) {
             const chartData = data.t.map((ts, i) => ({
               date: new Date(ts * 1000).toISOString().split('T')[0],
-              open: parseFloat(data.o[i].toFixed(2)),
-              high: parseFloat(data.h[i].toFixed(2)),
-              low:  parseFloat(data.l[i].toFixed(2)),
-              close: parseFloat(data.c[i].toFixed(2)),
+              open: parseFloat(data.o[i].toFixed(4)),
+              high: parseFloat(data.h[i].toFixed(4)),
+              low:  parseFloat(data.l[i].toFixed(4)),
+              close: parseFloat(data.c[i].toFixed(4)),
               volume: data.v[i],
             }));
             return Response.json({ chartData, source: 'finnhub', timeframe });
