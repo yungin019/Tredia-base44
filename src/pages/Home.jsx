@@ -121,19 +121,10 @@ export default function Home() {
           {/* OG100 Badge */}
           <OG100Card />
 
-          {/* Market Sentiment */}
-          <TrekIntelligenceCardV2
-            sentiment={fearGreed?.value || 50}
-            regime={fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value > 60 ? 'GREED' : 'NEUTRAL'}
-          />
+          {/* 1. Market Alert (TOP PRIORITY) */}
+          <MarketAlert />
 
-          {/* Market Cause & Effect */}
-          <MarketCauseEffectExplainer />
-
-          {/* Sector Heat Map */}
-          <SectorHeatExplainer />
-
-          {/* Next Jump Detector */}
+          {/* 2. Next Best Opportunity */}
           <NextJumpDetector
             signal={{
               asset: 'NVDA',
@@ -144,126 +135,20 @@ export default function Home() {
             onSeeWhy={() => navigate('/AIInsights')}
           />
 
-          <div>
-            <SectionTitle icon="🎯" label="Actionable Setups" sub="High-conviction trades" />
-            <div className="space-y-3">
-              <ActionableTradeCard
-                symbol="NVDA"
-                action="BUY"
-                confidence={87}
-                reason="AI infrastructure demand surge"
-                entryRange="$870–$885"
-                riskLevel="Medium"
-                keyRisk="Earnings miss could trigger 8–12% pullback"
-                whatToWatchFor="Watch NVIDIA earnings guidance and AI demand signals"
-                bestTimeframe="Swing trade: 2–4 weeks"
-              />
-              <ActionableTradeCard
-                symbol="JPM"
-                action="WATCH"
-                confidence={65}
-                reason="Financial sector rotation on rate steepening"
-                entryRange="$195–$205"
-                riskLevel="Low"
-                keyRisk="Yield curve inversion could reverse the trade"
-                whatToWatchFor="Watch 10Y/2Y spread and credit spreads"
-                bestTimeframe="Position trade: 4–8 weeks"
-              />
-              <ActionableTradeCard
-                symbol="BTC"
-                action="BUY"
-                confidence={81}
-                reason="Spot ETF inflows at record levels"
-                entryRange="$66,000–$67,500"
-                riskLevel="High"
-                keyRisk="Regulatory uncertainty could spike volatility"
-                whatToWatchFor="Watch Fed policy and macroeconomic data"
-                bestTimeframe="Medium-term: 2–3 months"
-              />
-            </div>
-          </div>
+          {/* 3. Your Moves Today */}
+          <YourMovesToday onExplore={(move) => navigate(`/Asset/${move.symbol}`)} />
 
-          <div>
-            <SectionTitle
-              icon="🚨"
-              label={t('home.alerts')}
-              sub={t('home.timeSensitive')}
-              action={t('home.allSignals')}
-              onAction={() => navigate('/AIInsights')}
-            />
-            <div className="space-y-3">
-              {ALERTS.map((a, i) => (
-                <AlertRow
-                  key={a.id}
-                  type={a.type === 'BUY' ? 'green' : a.type === 'SELL' ? 'red' : 'yellow'}
-                  title={`${a.symbol}: ${a.note}`}
-                  timestamp={a.age}
-                  onClick={() => navigate('/AIInsights')}
-                />
-              ))}
-            </div>
-          </div>
+          {/* 4. Watch Out */}
+          <WatchOut />
 
-          <div>
-            <SectionTitle icon="🚀" label={t('home.latestJumps')} sub={t('home.strongSignals')} />
-            <div className="grid grid-cols-2 gap-3">
-              {JUMPS.map((j, i) => (
-                <motion.button
-                  key={j.symbol}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.07 }}
-                  onClick={() => navigate(`/Asset/${j.symbol}`)}
-                  className="text-left rounded-2xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98] glass-card border border-success/20 bg-success/5 hover:border-success/30 card-shadow"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono font-black text-sm text-foreground">{j.symbol}</span>
-                    <span className="font-mono font-black text-sm text-success">+{j.change}%</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-snug">{j.reason}</p>
-                </motion.button>
-              ))}
-            </div>
-          </div>
+          {/* 5. Market Pulse (merged sentiment + drivers + sectors) */}
+          <MarketPulse sentiment={fearGreed?.value || 50} />
 
-          {/* Elite Premium CTA */}
-          <ElitePremiumShowcase />
+          {/* 6. Smart News */}
+          <SmartNews />
 
-          {/* Market News */}
-          <MarketNewsSection />
-
-          <div>
-            <SectionTitle icon="⚠️" label={t('home.riskWarnings')} sub={t('home.assetsToAvoid')} />
-            <div className="space-y-2">
-              {WARNINGS.map((w, i) => (
-                <motion.button
-                  key={w.symbol}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.07 }}
-                  onClick={() => navigate(`/Asset/${w.symbol}`)}
-                  className="w-full text-left rounded-2xl px-5 py-4 flex items-center gap-3 transition-all hover:scale-[1.01] active:scale-[0.99] glass-card border-2 card-shadow group"
-                  style={{
-                    background: 'rgba(239,68,68,0.05)',
-                    borderColor: 'rgba(239,68,68,0.2)',
-                    borderLeft: '4px solid hsl(0, 84%, 60%)'
-                  }}
-                >
-                  <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" strokeWidth={2.5} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-mono font-bold text-sm text-foreground">{w.symbol}</span>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${w.severity === 'HIGH' ? 'bg-destructive/15 text-destructive border border-destructive/25' : 'bg-warning/10 text-warning border border-warning/20'}`}>
-                        {w.severity}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{w.reason}</p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-foreground/20 group-hover:text-destructive/60 flex-shrink-0 transition-colors" />
-                </motion.button>
-              ))}
-            </div>
-          </div>
+          {/* 7. Upgrade Section (at bottom) */}
+          <UpgradeCall onUpgrade={() => navigate('/Upgrade')} />
         </div>
 
         <LogTradeButton />
