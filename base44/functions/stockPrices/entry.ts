@@ -255,7 +255,7 @@ Deno.serve(async (req) => {
           });
         }
 
-        // 3. CoinGecko (crypto only - most reliable)
+        // 3. CoinGecko (crypto only - primary, with rate limit handling)
         if (isCrypto) {
           providers.push(async () => {
             const COINGECKO_IDS = {
@@ -269,7 +269,12 @@ Deno.serve(async (req) => {
             
             const res = await fetchWithTimeout(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`, 8000);
             const data = await res.json();
-            console.log(`CoinGecko ${sym} response:`, JSON.stringify(data).slice(0, 200));
+            
+            // Check for rate limit error
+            if (data.status && data.status.error_code === 429) {
+              throw new Error('CoinGecko rate limited');
+            }
+            
             const coinData = data[coinId];
             if (coinData && coinData.usd && coinData.usd > 1) {
               const change = coinData.usd_24h_change || 0;
@@ -281,7 +286,7 @@ Deno.serve(async (req) => {
                 timestamp: Date.now()
               };
             }
-            throw new Error(`CoinGecko invalid data: ${JSON.stringify(coinData)}`);
+            throw new Error('CoinGecko no data');
           });
         }
 
