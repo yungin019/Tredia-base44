@@ -26,8 +26,24 @@ export default function ExpandedAssetList() {
         
         const res = await base44.functions.invoke('stockPrices', { symbols: stockSymbols });
         if (res?.data?.prices) {
-          setLiveData(res.data.prices);
+          // Transform API response to include calculated change %
+          const transformedData = {};
+          Object.entries(res.data.prices).forEach(([symbol, data]) => {
+            if (data && data.price) {
+              const price = data.price;
+              const prevClose = data.prevClose || price;
+              const change = prevClose && price ? ((price - prevClose) / prevClose) * 100 : 0;
+              transformedData[symbol] = {
+                price,
+                prevClose,
+                change: parseFloat(change.toFixed(2)),
+                timestamp: data.timestamp || Date.now()
+              };
+            }
+          });
+          setLiveData(transformedData);
           setLastRefresh(new Date());
+          setRefreshCount(prev => prev + 1);
         }
       } catch (error) {
         console.error('Error fetching stock prices:', error);
