@@ -30,8 +30,12 @@ Deno.serve(async (req) => {
       const toDate = new Date().toISOString().split('T')[0];
       const fromDate = new Date(Date.now() - tf.days * 86400 * 1000).toISOString().split('T')[0];
 
-      // Try Polygon first (most accurate, supports intraday)
-      if (POLYGON_KEY) {
+      // Detect international symbols (non-US exchanges) by suffix
+      // Polygon only covers US markets — skip it for international symbols
+      const isInternational = /\.(PA|DE|AS|T|HK|L|MI|MC|BR|KL|SI|TO|V|AX|NZ|BO|NS|JO|SW|OL|ST|CO|HE|AT|LS|WA|PR|BU|RO|TL|VI|BA|MX|SN|CA)$/i.test(symbol);
+
+      // Try Polygon first (US symbols only — most accurate, supports intraday)
+      if (POLYGON_KEY && !isInternational) {
         try {
           const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/${tf.multiplier}/${tf.span}/${fromDate}/${toDate}?adjusted=true&sort=asc&limit=500&apiKey=${POLYGON_KEY}`;
           const res = await fetch(url);
@@ -39,7 +43,7 @@ Deno.serve(async (req) => {
           if (data.results && data.results.length > 1) {
             const chartData = data.results.map(r => ({
               date: tf.span === 'minute'
-                ? new Date(r.t).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                ? new Date(r.t).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
                 : new Date(r.t).toISOString().split('T')[0],
               open: parseFloat(r.o.toFixed(2)),
               high: parseFloat(r.h.toFixed(2)),
@@ -52,12 +56,15 @@ Deno.serve(async (req) => {
         } catch { /* fall through */ }
       }
 
-      // Try Twelve Data (supports intraday + crypto + forex)
+      // Try Twelve Data (global coverage: Europe, Asia, US, Crypto, Forex)
+      // For international symbols on 1D timeframe, fall back to 1day bars (intraday not available on free plan)
       if (TWELVEDATA_KEY) {
         try {
+          // For international symbols, avoid intraday intervals (not on free plan for non-US)
           const intervalMap = { '1D': '5min', '1W': '1h', '1M': '1day', '3M': '1day', '1Y': '1week' };
-          const interval = intervalMap[timeframe] || '1day';
-          const outputsize = tf.days <= 1 ? 80 : tf.days <= 7 ? 120 : 365;
+          const intlIntervalMap = { '1D': '1day', '1W': '1day', '1M': '1day', '3M': '1day', '1Y': '1week' };
+          const interval = (isInternational ? intlIntervalMap : intervalMap)[timeframe] || '1day';
+          const outputsize = (!isInternational && tf.days <= 1) ? 80 : (!isInternational && tf.days <= 7) ? 120 : 365;
           const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVEDATA_KEY}`;
           const res = await fetch(url);
           const data = await res.json();
@@ -75,7 +82,7 @@ Deno.serve(async (req) => {
         } catch { /* fall through */ }
       }
 
-      // Try Finnhub candles (stocks only, no intraday on free)
+      // Try Finnhub candles (US stocks primarily; international coverage varies)
       if (FINNHUB_KEY) {
         try {
           const url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${tf.resolution}&from=${fromTs}&to=${now}&token=${FINNHUB_KEY}`;
@@ -95,23 +102,8 @@ Deno.serve(async (req) => {
         } catch { /* fall through */ }
       }
 
-      // Synthetic fallback seeded from live price
-      const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`).catch(() => null);
-      const quote = quoteRes ? await quoteRes.json().catch(() => ({})) : {};
-      const currentPrice = quote.c || 100;
-      const points = tf.days <= 1 ? 48 : tf.days <= 7 ? 56 : tf.days <= 30 ? 30 : tf.days <= 90 ? 90 : 52;
-      const chartData = [];
-      let price = currentPrice * (tf.days <= 1 ? 0.98 : 0.90);
-      for (let i = points - 1; i >= 0; i--) {
-        const ms = Date.now() - i * (tf.days * 86400000 / points);
-        price = price * (1 + (Math.random() - 0.47) * 0.015);
-        const open = price * (1 + (Math.random() - 0.5) * 0.005);
-        const high = Math.max(open, price) * (1 + Math.random() * 0.005);
-        const low  = Math.min(open, price) * (1 - Math.random() * 0.005);
-        chartData.push({ date: new Date(ms).toISOString().split('T')[0], open: parseFloat(open.toFixed(2)), high: parseFloat(high.toFixed(2)), low: parseFloat(low.toFixed(2)), close: parseFloat(price.toFixed(2)) });
-      }
-      chartData[chartData.length - 1].close = parseFloat(currentPrice.toFixed(2));
-      return Response.json({ chartData, source: 'synthetic', timeframe });
+      // All providers failed — return empty with honest signal (no fake data)
+      return Response.json({ chartData: [], source: 'unavailable', timeframe });
     }
 
     // ── Search endpoint ───────────────────────────────────────────────
