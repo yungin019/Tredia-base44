@@ -30,8 +30,6 @@ export default function CoreAssetDisplay() {
   const navigate = useNavigate();
   const [liveData, setLiveData] = useState({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const loadingState = useLoadingState(loading);
 
   // Load core assets on mount
   useEffect(() => {
@@ -62,12 +60,7 @@ export default function CoreAssetDisplay() {
     loadCore();
   }, []);
 
-  const handleRetry = () => {
-    setError(false);
-    setLoading(true);
-    // Trigger reload
-    window.location.reload();
-  };
+
 
   // Loading state
   if (loading) {
