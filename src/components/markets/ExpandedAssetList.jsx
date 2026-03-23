@@ -121,16 +121,22 @@ export default function ExpandedAssetList() {
 
   const getPriceData = (asset) => {
     if (asset.sector === 'Crypto') {
-      return cryptoData[asset.symbol] || { price: null, change: null };
+      const cryptoInfo = cryptoData[asset.symbol];
+      return {
+        price: cryptoInfo?.price || null,
+        change: cryptoInfo?.change || null,
+        prevClose: cryptoInfo?.prevClose || null
+      };
     }
     const priceInfo = liveData[asset.symbol];
     if (priceInfo && typeof priceInfo === 'object') {
-      return { price: priceInfo.price, change: priceInfo.change };
+      return {
+        price: priceInfo.price || null,
+        change: priceInfo.change || null,
+        prevClose: priceInfo.prevClose || null
+      };
     }
-    if (typeof priceInfo === 'number') {
-      return { price: priceInfo, change: null };
-    }
-    return { price: null, change: null };
+    return { price: null, change: null, prevClose: null };
   };
 
   // Derive live signals from real market data
