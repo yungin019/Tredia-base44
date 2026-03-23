@@ -65,27 +65,44 @@ Deno.serve(async (req) => {
       // Detect forex/commodity symbols (EURUSD, GBPUSD, XAUUSD, XAGUSD, etc.)
       const isForex = /^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i.test(symbol);
 
-      // 2. Finnhub candles — try this BEFORE Twelve Data for international daily bars
-      //    Finnhub free plan covers many EU/Asian exchanges at daily resolution
-      //    For forex: Finnhub forex candles work at daily but NOT intraday on free plan
+      // Normalize forex symbol for Finnhub: EURUSD -> OANDA:EUR_USD
+      // XAU/XAG precious metals also map to OANDA pairs
+      const toFinnhubForex = (sym) => {
+        const m = sym.match(/^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
+        if (!m) return null;
+        return `OANDA:${m[1].toUpperCase()}_${m[2].toUpperCase()}`;
+      };
+
+      // 2. Finnhub candles
+      //    - For stocks/ETFs: use /stock/candle with daily resolution for international
+      //    - For forex/commodities: use /forex/candle with OANDA: prefix
       if (FINNHUB_KEY) {
         try {
-          // For international/forex or longer timeframes, force daily resolution
-          // 1D intraday for forex/international is not available on Finnhub free plan
-          const needsDaily = isInternational || isForex;
-          const resolution = needsDaily ? 'D' : tf.resolution;
-          // For 1D timeframe on forex, expand the lookback to 7 days to get enough daily bars
-          const adjustedFrom = (needsDaily && timeframe === '1D') ? now - 7 * 86400 : fromTs;
-          const url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${resolution}&from=${adjustedFrom}&to=${now}&token=${FINNHUB_KEY}`;
+          let url;
+          let resolut;
+          // For 1D timeframe on daily-only assets, expand lookback to 7 days
+          const adjustedFrom = (timeframe === '1D' && (isInternational || isForex)) ? now - 7 * 86400 : fromTs;
+
+          if (isForex) {
+            const finnhubSym = toFinnhubForex(symbol);
+            if (!finnhubSym) throw new Error('unmappable forex');
+            resolut = (timeframe === '1D') ? 'D' : tf.resolution === '5' ? 'D' : tf.resolution;
+            url = `https://finnhub.io/api/v1/forex/candle?symbol=${finnhubSym}&resolution=${resolut}&from=${adjustedFrom}&to=${now}&token=${FINNHUB_KEY}`;
+          } else {
+            resolut = isInternational ? 'D' : tf.resolution;
+            url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${resolut}&from=${adjustedFrom}&to=${now}&token=${FINNHUB_KEY}`;
+          }
+
           const res = await fetchWithTimeout(url);
           const data = await res.json();
           if (data.s === 'ok' && data.c && data.c.length > 0) {
+            const dp = isForex ? 4 : 2;
             const chartData = data.t.map((ts, i) => ({
               date: new Date(ts * 1000).toISOString().split('T')[0],
-              open: parseFloat(data.o[i].toFixed(4)),
-              high: parseFloat(data.h[i].toFixed(4)),
-              low:  parseFloat(data.l[i].toFixed(4)),
-              close: parseFloat(data.c[i].toFixed(4)),
+              open: parseFloat(data.o[i].toFixed(dp)),
+              high: parseFloat(data.h[i].toFixed(dp)),
+              low:  parseFloat(data.l[i].toFixed(dp)),
+              close: parseFloat(data.c[i].toFixed(dp)),
               volume: data.v[i],
             }));
             return Response.json({ chartData, source: 'finnhub', timeframe });
