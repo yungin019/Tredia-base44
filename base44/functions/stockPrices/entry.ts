@@ -309,7 +309,7 @@ Deno.serve(async (req) => {
           });
         }
 
-        // 4. AlphaVantage (forex/commodities)
+        // 5. AlphaVantage (forex/commodities)
         if (AV_KEY && isFx) {
           providers.push(async () => {
             const fm = sym.match(/^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
