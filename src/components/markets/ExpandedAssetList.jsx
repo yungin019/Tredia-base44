@@ -117,45 +117,49 @@ export default function ExpandedAssetList() {
     return { price: null, change: null };
   };
 
-  const TREK_REASONS = {
-    'AAPL': 'Strong cash flow + innovation cycle',
-    'NVDA': 'AI infrastructure demand accelerating',
-    'MSFT': 'Cloud growth + enterprise AI adoption',
-    'GOOGL': 'Search moat + AI integration',
-    'AMZN': 'AWS expansion + cloud infrastructure',
-    'META': 'Ad revenue uncertainty + multiple compression',
-    'TSLA': 'Delivery misses + margin compression',
-    'JPM': 'Interest rate sensitivity + credit quality',
-    'JNJ': 'Defensive play + dividend safety',
-    'LLY': 'GLP-1 franchise + obesity market',
-    'NFLX': 'Content strength + subscriber growth',
-    'COST': 'Member growth + pricing power',
-    'SPY': 'Broad market proxy + stable',
-    'QQQ': 'Tech exposure + growth leverage',
-    'BTC': 'Macro uncertainty hedge + adoption',
-    'ETH': 'DeFi growth + staking yield',
-    'SOL': 'Developer adoption + speed',
-    'AAVE': 'DeFi lending protocol leader',
-  };
-
-  const getTrekSignal = (symbol) => {
-    const buySymbols = ['AAPL', 'NVDA', 'MSFT', 'AMZN', 'NFLX', 'COST', 'JNJ', 'LLY', 'BTC', 'ETH', 'SOL', 'AAVE'];
-    const sellSymbols = ['META', 'TSLA'];
+  // Derive live signals from real market data
+  const getLiveSignal = (asset) => {
+    const priceInfo = asset.sector === 'Crypto' 
+      ? cryptoData[asset.symbol] 
+      : (typeof liveData[asset.symbol] === 'object' ? liveData[asset.symbol] : { price: liveData[asset.symbol], change: null });
     
-    if (buySymbols.includes(symbol)) return 'Buy';
-    if (sellSymbols.includes(symbol)) return 'Sell';
-    return 'Hold';
+    if (!priceInfo || priceInfo.price === null || priceInfo.price === undefined) {
+      return {
+        signal: 'WATCH',
+        confidence: 0,
+        reason: 'Price data unavailable',
+        isLiveDerived: false
+      };
+    }
+
+    // Calculate previous close from change % if available
+    const change = priceInfo.change || 0;
+    const prevClose = priceInfo.prevClose || (change !== null && priceInfo.price / (1 + change / 100));
+    
+    const priceData = {
+      price: priceInfo.price,
+      prevClose: prevClose || priceInfo.price,
+      change24h: change,
+      high24h: priceInfo.high || priceInfo.price * 1.02,
+      low24h: priceInfo.low || priceInfo.price * 0.98
+    };
+
+    return deriveSignal(asset, priceData, {
+      marketSentiment: change > 2 ? 'BULLISH' : change < -2 ? 'BEARISH' : 'NEUTRAL'
+    });
   };
 
-  const getTrekColor = (signal) => {
-    if (signal === 'Buy') return 'bg-chart-3/10 text-chart-3';
-    if (signal === 'Sell') return 'bg-destructive/10 text-destructive';
+  const getSignalColor = (signal) => {
+    if (signal === 'BUY') return 'bg-chart-3/10 text-chart-3';
+    if (signal === 'SELL') return 'bg-destructive/10 text-destructive';
+    if (signal === 'WATCH') return 'bg-warning/10 text-warning';
     return 'bg-white/5 text-white/50';
   };
 
-  const getTrekBorderColor = (signal) => {
-    if (signal === 'Buy') return 'border-l-chart-3';
-    if (signal === 'Sell') return 'border-l-destructive';
+  const getSignalBorderColor = (signal) => {
+    if (signal === 'BUY') return 'border-l-chart-3';
+    if (signal === 'SELL') return 'border-l-destructive';
+    if (signal === 'WATCH') return 'border-l-warning';
     return 'border-l-white/20';
   };
 
