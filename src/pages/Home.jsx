@@ -328,10 +328,6 @@ export default function Home() {
           </div>
         </div>
 
-        <AnimatePresence>
-          {selectedNews && <NewsModal article={selectedNews} onClose={() => setSelectedNews(null)} />}
-        </AnimatePresence>
-
         <LogTradeButton />
       </div>
     </PullToRefresh>
