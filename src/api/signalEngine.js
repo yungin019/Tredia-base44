@@ -1,5 +1,6 @@
-// Signal Engine: Derives BUY/HOLD/SELL/WATCH signals from live market data
+// Signal Engine: Derives BUY/SELL/WATCH/AVOID signals from live market data
 // Uses price action, momentum, volatility, and trend context
+// CANONICAL SIGNALS: BUY, SELL, WATCH, AVOID (normalized at source, never in UI)
 
 export function deriveSignal(asset, priceData, context = {}) {
   const { price, prevClose, change24h, high24h, low24h } = priceData;
