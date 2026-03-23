@@ -51,52 +51,7 @@ const WARNINGS = [
   { symbol: 'RIVN', reason: 'Cash burn accelerating. Production ramp below target. EV demand softening.', severity: 'HIGH' },
 ];
 
-const NEWS = [
-  {
-    id: 1,
-    headline: 'Fed signals higher-for-longer rates — market digests hawkish pivot',
-    summary: 'Federal Reserve officials indicated rates will remain elevated through mid-year, citing persistent core inflation above 3%. Bond markets reacted with a sharp yield curve shift.',
-    sentiment: 'BULLISH',
-    impact: 9,
-    tickers: ['SPX', 'QQQ', 'TLT'],
-    image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=80',
-    url: 'https://reuters.com',
-    age: '2h',
-  },
-  {
-    id: 2,
-    headline: 'NVIDIA ships Blackwell GPUs ahead of schedule — data center demand surges',
-    summary: 'NVIDIA confirmed early delivery of next-gen Blackwell accelerators to hyperscalers. Cloud capex guidance raised across Microsoft, Google, and AWS.',
-    sentiment: 'BULLISH',
-    impact: 8,
-    tickers: ['NVDA', 'AMD', 'SMCI'],
-    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',
-    url: 'https://reuters.com',
-    age: '4h',
-  },
-  {
-    id: 3,
-    headline: 'China trade tensions escalate — new tariffs threaten tech supply chain',
-    summary: 'Beijing announced retaliatory measures on semiconductor imports. US tech stocks with heavy China exposure face earnings risk heading into Q2.',
-    sentiment: 'BEARISH',
-    impact: 6,
-    tickers: ['BABA', 'JD', 'PDD'],
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80',
-    url: 'https://reuters.com',
-    age: '5h',
-  },
-  {
-    id: 4,
-    headline: 'Bitcoin spot ETFs record $1.2B inflows — halving cycle momentum builds',
-    summary: 'Institutional Bitcoin demand hit record levels as spot ETF inflows accelerated. On-chain data confirms whale accumulation phase ahead of the April halving.',
-    sentiment: 'BULLISH',
-    impact: 7,
-    tickers: ['BTC', 'ETH', 'COIN'],
-    image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&q=80',
-    url: 'https://reuters.com',
-    age: '6h',
-  },
-];
+
 
 function SectionTitle({ icon, label, sub, action, onAction }) {
   return (
