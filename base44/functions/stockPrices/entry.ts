@@ -240,7 +240,12 @@ Deno.serve(async (req) => {
         // Strategy: Try multiple providers, ensure we get data for priority assets
         const providers = [];
 
-        // 1. Polygon (best overall - US + international stocks, NOT crypto)
+        // 1. Yahoo Finance (fastest, reliable for all US stocks + ETFs)
+        if (!isCrypto && !isFx) {
+          providers.push(async () => fetchYahoo(sym));
+        }
+
+        // 2. Polygon (best overall - US + international stocks, NOT crypto)
         if (POLYGON_KEY && !isFx && !isCrypto) {
           providers.push(async () => {
             const url = `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
@@ -259,7 +264,7 @@ Deno.serve(async (req) => {
           });
         }
 
-        // 2. Finnhub (US stocks - very reliable for priority assets)
+        // 3. Finnhub (US stocks - very reliable for priority assets)
         if (FINNHUB_KEY && !isIntl && !isFx && !isCrypto) {
           providers.push(async () => {
             const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`);
