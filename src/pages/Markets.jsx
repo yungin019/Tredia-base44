@@ -129,8 +129,41 @@ export default function Markets() {
       {/* Stocks Tab */}
       {activeTab === 'stocks' && (
         <>
+          {/* TREK Signals Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <TrekSignalsPreview />
+          </motion.div>
+
+          {/* Trending Assets Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <TrendingAssets />
+          </motion.div>
+
+          {/* Watchlist Quick */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <WatchlistQuick />
+          </motion.div>
+
           {/* Expanded Asset List with Search */}
-          <ExpandedAssetList />
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <ExpandedAssetList />
+          </motion.div>
 
           {/* Sector Heatmap */}
           <SectorHeatmap />
