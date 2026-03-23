@@ -72,23 +72,28 @@ export default function ExpandedAssetList() {
         const cryptoIds = {
           'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple',
           'ADA': 'cardano', 'DOGE': 'dogecoin', 'MATIC': 'matic-network',
-          'AVAX': 'avalanche-2', 'FTM': 'fantom', 'LINK': 'chainlink',
-          'ARB': 'arbitrum', 'OP': 'optimism', 'LDO': 'lido-dao',
-          'PEPE': 'pepe', 'SHIB': 'shiba-inu', 'UNI': 'uniswap',
-          'AAVE': 'aave', 'CRV': 'curve-dao-token', 'MKR': 'maker',
-          'SNX': 'synthetix', 'GRT': 'the-graph', 'ATOM': 'cosmos',
-          'NEAR': 'near', 'ALGO': 'algorand', 'FLOW': 'flow'
+          'AVAX': 'avalanche-2', 'LINK': 'chainlink', 'UNI': 'uniswap',
+          'SHIB': 'shiba-inu', 'PEPE': 'pepe', 'LDO': 'lido-dao'
         };
         
         const ids = Object.values(cryptoIds).join(',');
         const response = await fetch(
           `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
         );
+        
+        if (!response.ok) {
+          if (response.status === 429) {
+            console.warn('CoinGecko rate limited, keeping previous data');
+            return; // Keep existing data, don't update
+          }
+          throw new Error('CoinGecko error');
+        }
+        
         const data = await response.json();
         
         const priceMap = {};
         Object.entries(cryptoIds).forEach(([symbol, id]) => {
-          if (data[id]) {
+          if (data[id] && data[id].usd) {
             priceMap[symbol] = {
               price: data[id].usd,
               change: data[id].usd_24h_change || 0,
@@ -96,10 +101,16 @@ export default function ExpandedAssetList() {
             };
           }
         });
-        setCryptoData(priceMap);
-        setLastRefresh(new Date());
+        
+        // Only update if we got valid data
+        if (Object.keys(priceMap).length > 0) {
+          setCryptoData(priceMap);
+          setLastRefresh(new Date());
+          setRefreshCount(prev => prev + 1);
+        }
       } catch (error) {
-        console.error('Error fetching crypto prices:', error);
+        console.warn('Crypto fetch failed, keeping previous data:', error.message);
+        // Keep existing data on error
       } finally {
         setLoading(false);
       }
@@ -108,8 +119,8 @@ export default function ExpandedAssetList() {
     // Initial fetch
     fetchCrypto();
     
-    // Auto-refresh every 30 seconds (crypto is more volatile)
-    const cryptoInterval = setInterval(fetchCrypto, 30000);
+    // Auto-refresh every 60 seconds (reduced from 30s to avoid rate limits)
+    const cryptoInterval = setInterval(fetchCrypto, 60000);
     
     return () => clearInterval(cryptoInterval);
   }, []);
