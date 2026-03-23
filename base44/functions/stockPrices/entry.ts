@@ -97,23 +97,45 @@ Deno.serve(async (req) => {
         } catch { /* fall through */ }
       }
 
-      // 3. Twelve Data — global fallback with timeout guard
+      // 3. Twelve Data — global fallback: handles EU/Asian stocks, forex, commodities
+      //    Free plan: 8 req/min, 800 req/day. Symbol format: EURUSD, XAU/USD, MC:XPAR, 7203:TSE
+      //    Twelve Data uses different symbol formats for international exchanges
       if (TWELVEDATA_KEY) {
         try {
+          // Normalize symbol for Twelve Data:
+          // EURUSD -> EUR/USD, XAUUSD -> XAU/USD (precious metals as forex pairs)
+          // Exchange-suffixed: MC.PA -> MC:XPAR, SAP.DE -> SAP:XETR, ASML.AS -> ASML:XAMS, 7203.T -> 7203:TSE
+          const EXCHANGE_MAP = {
+            'PA': 'XPAR', 'DE': 'XETR', 'AS': 'XAMS',
+            'T': 'TSE', 'HK': 'HKEX', 'L': 'LSE',
+            'MI': 'MIL', 'SW': 'SWX', 'AX': 'ASX',
+          };
+          let tdSymbol = symbol;
+          const intlMatch = symbol.match(/^(.+)\.([A-Z]+)$/);
+          if (intlMatch && EXCHANGE_MAP[intlMatch[2]]) {
+            tdSymbol = `${intlMatch[1]}:${EXCHANGE_MAP[intlMatch[2]]}`;
+          } else if (isForex) {
+            // Convert EURUSD -> EUR/USD, XAUUSD -> XAU/USD
+            const fm = symbol.match(/^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
+            if (fm) tdSymbol = `${fm[1]}/${fm[2]}`;
+          }
+
           const intervalMap = { '1D': '5min', '1W': '1h', '1M': '1day', '3M': '1day', '1Y': '1week' };
           const intlIntervalMap = { '1D': '1day', '1W': '1day', '1M': '1day', '3M': '1day', '1Y': '1week' };
-          const interval = (isInternational ? intlIntervalMap : intervalMap)[timeframe] || '1day';
-          const outputsize = (!isInternational && tf.days <= 1) ? 80 : (!isInternational && tf.days <= 7) ? 120 : 365;
-          const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVEDATA_KEY}`;
-          const res = await fetchWithTimeout(url, 5000);
+          const needsDailyOnly = isInternational || isForex;
+          const interval = (needsDailyOnly ? intlIntervalMap : intervalMap)[timeframe] || '1day';
+          const outputsize = (!needsDailyOnly && tf.days <= 1) ? 80 : (!needsDailyOnly && tf.days <= 7) ? 120 : 365;
+          const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(tdSymbol)}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVEDATA_KEY}`;
+          const res = await fetchWithTimeout(url, 6000);
           const data = await res.json();
           if (data.values && data.values.length > 1) {
+            const dp = isForex ? 4 : 2;
             const chartData = data.values.reverse().map(r => ({
-              date: r.datetime,
-              open: parseFloat(r.open),
-              high: parseFloat(r.high),
-              low:  parseFloat(r.low),
-              close: parseFloat(r.close),
+              date: r.datetime.slice(0, 10),
+              open: parseFloat(parseFloat(r.open).toFixed(dp)),
+              high: parseFloat(parseFloat(r.high).toFixed(dp)),
+              low:  parseFloat(parseFloat(r.low).toFixed(dp)),
+              close: parseFloat(parseFloat(r.close).toFixed(dp)),
               volume: parseInt(r.volume || 0),
             }));
             return Response.json({ chartData, source: 'twelvedata', timeframe });
