@@ -41,12 +41,12 @@ export default function MarketPulse({ sentiment = 50 }) {
         <p className="text-xs text-muted-foreground mt-2">Market confidence: {sentiment}%</p>
       </div>
 
-      <div className="bg-black/30 rounded-lg p-3 border border-white/5 space-y-2">
+      <div className="bg-black/30 rounded-lg p-3 border border-white/5 space-y-3">
         <p className="text-xs text-foreground leading-relaxed">
-          <span className="font-semibold text-primary">Regime today:</span> {label === 'Greed' ? 'Risk ON. Growth outperforming. Momentum trades work. Take profits on winners.' : label === 'Fear' ? 'Risk OFF. Defensive outperforming. Quality matters. Avoid high-beta.' : 'Balanced. Both long and short setups exist. Technicals matter more.'}
+          <span className="font-semibold text-primary">Today's regime:</span> {label === 'Greed' ? 'Risk ON. Growth wins. Momentum works. Duration trades work.' : label === 'Fear' ? 'Risk OFF. Defensive wins. Quality only. Avoid beta.' : 'Balanced. Both long and short work. Pick your edge.'}
         </p>
         <p className="text-xs text-foreground leading-relaxed">
-          <span className="font-semibold text-primary">Your advantage:</span> {label === 'Greed' ? 'Own growth names (NVDA, AMZN). Avoid energy and commodity longs.' : label === 'Fear' ? 'Sell rallies. Buy support on quality names only. Watch vol closely.' : 'Stay flexible. Both trending and range-bound setups exist. Use technicals.'}
+          <span className="font-semibold text-primary">What this means:</span> {label === 'Greed' ? 'Trade bigger. Own growth. Sell defensives into rallies. Watch for yield reversal.' : label === 'Fear' ? 'Trade smaller. Sell bounces. Buy dips on quality only. Vol stays elevated.' : 'Use technicals. Support/resistance matter. No size assumptions.'}
         </p>
       </div>
 
