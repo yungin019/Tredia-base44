@@ -40,12 +40,14 @@ Deno.serve(async (req) => {
         return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
       };
 
-      // 1. Polygon (US-only, intraday + daily, very reliable)
-      if (POLYGON_KEY && !isInternational) {
+      // 1. Polygon — covers US + international daily bars on free plan
+      if (POLYGON_KEY) {
         try {
           const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/${tf.multiplier}/${tf.span}/${fromDate}/${toDate}?adjusted=true&sort=asc&limit=500&apiKey=${POLYGON_KEY}`;
+          console.log(`[Polygon OHLC] ${symbol} | ${url.split('?')[0]}`);
           const res = await fetchWithTimeout(url);
           const data = await res.json();
+          console.log(`[Polygon OHLC] status=${data.status} resultsCount=${data.resultsCount} error=${data.error}`);
           if (data.results && data.results.length > 1) {
             const chartData = data.results.map(r => ({
               date: tf.span === 'minute'
