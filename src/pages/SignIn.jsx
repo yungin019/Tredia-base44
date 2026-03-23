@@ -239,9 +239,14 @@ export default function SignIn() {
                 <button onClick={handleGoogle} style={socialBtnStyle}>
                   <span>G</span> Continue with Google
                 </button>
-                <button onClick={handleApple} style={{ ...socialBtnStyle, opacity: 0.4, cursor: 'not-allowed' }} disabled title="Apple Sign-In not yet configured">
-                  <span>🍎</span> Continue with Apple
-                </button>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={handleApple}
+                    style={{ ...socialBtnStyle, width: '100%' }}
+                  >
+                    <span>🍎</span> Continue with Apple
+                  </button>
+                </div>
               </div>
             </motion.div>
             )}
