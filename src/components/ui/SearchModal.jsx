@@ -159,7 +159,12 @@ export default function SearchModal({ isOpen, onClose }) {
 
   const popularToShow = activeTab === 'all'
     ? POPULAR_SYMBOLS
-    : POPULAR_SYMBOLS.filter(s => s.type.toLowerCase() === activeTab);
+    : POPULAR_SYMBOLS.filter(s => {
+        const typeL = s.type.toLowerCase();
+        return typeL === activeTab
+          || (activeTab === 'forex' && (typeL === 'forex' || typeL === 'commodity'))
+          || (activeTab === 'commodity' && typeL === 'commodity');
+      });
 
   return (
     <AnimatePresence>
