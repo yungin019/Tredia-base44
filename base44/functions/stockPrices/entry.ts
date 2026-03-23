@@ -30,15 +30,21 @@ Deno.serve(async (req) => {
       const toDate = new Date().toISOString().split('T')[0];
       const fromDate = new Date(Date.now() - tf.days * 86400 * 1000).toISOString().split('T')[0];
 
-      // Detect international symbols (non-US exchanges) by suffix
-      // Polygon only covers US markets — skip it for international symbols
-      const isInternational = /\.(PA|DE|AS|T|HK|L|MI|MC|BR|KL|SI|TO|V|AX|NZ|BO|NS|JO|SW|OL|ST|CO|HE|AT|LS|WA|PR|BU|RO|TL|VI|BA|MX|SN|CA)$/i.test(symbol);
+      // Detect international (non-US) symbols by exchange suffix
+      const isInternational = /\.(PA|DE|AS|T|HK|L|MI|MC|BR|KL|SI|V|AX|NZ|BO|NS|JO|SW|OL|ST|CO|HE|AT|LS|WA|PR|BU|RO|TL|VI|BA|MX|SN)$/i.test(symbol);
 
-      // Try Polygon first (US symbols only — most accurate, supports intraday)
+      // Helper: fetch with a hard timeout to avoid blocking on rate-limited providers
+      const fetchWithTimeout = (url, ms = 4000) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), ms);
+        return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
+      };
+
+      // 1. Polygon (US-only, intraday + daily, very reliable)
       if (POLYGON_KEY && !isInternational) {
         try {
           const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/${tf.multiplier}/${tf.span}/${fromDate}/${toDate}?adjusted=true&sort=asc&limit=500&apiKey=${POLYGON_KEY}`;
-          const res = await fetch(url);
+          const res = await fetchWithTimeout(url);
           const data = await res.json();
           if (data.results && data.results.length > 1) {
             const chartData = data.results.map(r => ({
@@ -56,37 +62,14 @@ Deno.serve(async (req) => {
         } catch { /* fall through */ }
       }
 
-      // Try Twelve Data (global coverage: Europe, Asia, US, Crypto, Forex)
-      // For international symbols on 1D timeframe, fall back to 1day bars (intraday not available on free plan)
-      if (TWELVEDATA_KEY) {
-        try {
-          // For international symbols, avoid intraday intervals (not on free plan for non-US)
-          const intervalMap = { '1D': '5min', '1W': '1h', '1M': '1day', '3M': '1day', '1Y': '1week' };
-          const intlIntervalMap = { '1D': '1day', '1W': '1day', '1M': '1day', '3M': '1day', '1Y': '1week' };
-          const interval = (isInternational ? intlIntervalMap : intervalMap)[timeframe] || '1day';
-          const outputsize = (!isInternational && tf.days <= 1) ? 80 : (!isInternational && tf.days <= 7) ? 120 : 365;
-          const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVEDATA_KEY}`;
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data.values && data.values.length > 1) {
-            const chartData = data.values.reverse().map(r => ({
-              date: r.datetime,
-              open: parseFloat(r.open),
-              high: parseFloat(r.high),
-              low:  parseFloat(r.low),
-              close: parseFloat(r.close),
-              volume: parseInt(r.volume || 0),
-            }));
-            return Response.json({ chartData, source: 'twelvedata', timeframe });
-          }
-        } catch { /* fall through */ }
-      }
-
-      // Try Finnhub candles (US stocks primarily; international coverage varies)
+      // 2. Finnhub candles — try this BEFORE Twelve Data for international daily bars
+      //    Finnhub free plan covers many EU/Asian exchanges at daily resolution
       if (FINNHUB_KEY) {
         try {
-          const url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${tf.resolution}&from=${fromTs}&to=${now}&token=${FINNHUB_KEY}`;
-          const res = await fetch(url);
+          // For international symbols or longer timeframes, always use daily resolution
+          const resolution = isInternational ? 'D' : tf.resolution;
+          const url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${resolution}&from=${fromTs}&to=${now}&token=${FINNHUB_KEY}`;
+          const res = await fetchWithTimeout(url);
           const data = await res.json();
           if (data.s === 'ok' && data.c && data.c.length > 1) {
             const chartData = data.t.map((ts, i) => ({
@@ -102,7 +85,31 @@ Deno.serve(async (req) => {
         } catch { /* fall through */ }
       }
 
-      // All providers failed — return empty with honest signal (no fake data)
+      // 3. Twelve Data — global fallback with timeout guard
+      if (TWELVEDATA_KEY) {
+        try {
+          const intervalMap = { '1D': '5min', '1W': '1h', '1M': '1day', '3M': '1day', '1Y': '1week' };
+          const intlIntervalMap = { '1D': '1day', '1W': '1day', '1M': '1day', '3M': '1day', '1Y': '1week' };
+          const interval = (isInternational ? intlIntervalMap : intervalMap)[timeframe] || '1day';
+          const outputsize = (!isInternational && tf.days <= 1) ? 80 : (!isInternational && tf.days <= 7) ? 120 : 365;
+          const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVEDATA_KEY}`;
+          const res = await fetchWithTimeout(url, 5000);
+          const data = await res.json();
+          if (data.values && data.values.length > 1) {
+            const chartData = data.values.reverse().map(r => ({
+              date: r.datetime,
+              open: parseFloat(r.open),
+              high: parseFloat(r.high),
+              low:  parseFloat(r.low),
+              close: parseFloat(r.close),
+              volume: parseInt(r.volume || 0),
+            }));
+            return Response.json({ chartData, source: 'twelvedata', timeframe });
+          }
+        } catch { /* fall through */ }
+      }
+
+      // All providers exhausted — honest empty response, no fake data
       return Response.json({ chartData: [], source: 'unavailable', timeframe });
     }
 
