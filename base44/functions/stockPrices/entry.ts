@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const AV_KEY = Deno.env.get('ALPHAVANTAGE_API_KEY');
 
     // Helper: fetch with timeout
-    const fetchWithTimeout = async (url, ms = 3000) => {
+    const fetchWithTimeout = async (url, ms = 5000) => {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), ms);
       try {
@@ -28,26 +28,6 @@ Deno.serve(async (req) => {
         clearTimeout(timer);
         throw new Error('Timeout');
       }
-    };
-    
-    // Helper: Yahoo Finance (reliable for all US stocks + ETFs)
-    const fetchYahoo = async (symbol) => {
-      const res = await fetchWithTimeout(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2d`, 4000);
-      const data = await res.json();
-      const result = data?.chart?.result?.[0];
-      if (result && result.meta) {
-        const meta = result.meta;
-        const price = meta.regularMarketPrice || meta.previousClose;
-        const prevClose = meta.previousClose || meta.chartPreviousClose || price;
-        if (price && price > 0) {
-          return {
-            price: parseFloat(price.toFixed(2)),
-            prevClose: parseFloat(prevClose.toFixed(2)),
-            timestamp: Date.now()
-          };
-        }
-      }
-      throw new Error('Yahoo no data');
     };
 
     // ── OHLC chart data ────────────────────────────────────────────────
