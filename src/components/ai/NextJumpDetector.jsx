@@ -57,14 +57,24 @@ export function NextJumpDetector({ signal, onSeeWhy }) {
               <p className="text-sm text-foreground leading-relaxed">
                 <span className="font-semibold text-gold">Why:</span> {signal.quote}
               </p>
+              {signal.entry && (
+                <p className="text-sm text-foreground leading-relaxed">
+                  <span className="font-semibold text-success">Entry:</span> {signal.entry}
+                </p>
+              )}
               {signal.timing && (
                 <p className="text-sm text-foreground leading-relaxed">
-                  <span className="font-semibold text-primary">Entry:</span> {signal.timing}
+                  <span className="font-semibold text-primary">Timeframe:</span> {signal.timing}
+                </p>
+              )}
+              {signal.positionSize && (
+                <p className="text-sm text-foreground leading-relaxed">
+                  <span className="font-semibold text-foreground">Size:</span> {signal.positionSize}
                 </p>
               )}
               {signal.risk && (
                 <p className="text-sm text-foreground leading-relaxed">
-                  <span className="font-semibold text-destructive">Risk:</span> {signal.risk}
+                  <span className="font-semibold text-destructive">Risk Trigger:</span> {signal.risk}
                 </p>
               )}
             </div>
