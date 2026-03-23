@@ -126,10 +126,51 @@ export default function Home() {
             onSeeWhy={() => navigate('/AIInsights')}
           />
 
-          <TrekIntelligenceCard
+          <TrekIntelligenceCardV2
             sentiment={fearGreed?.value || 50}
             regime={fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value > 60 ? 'GREED' : 'NEUTRAL'}
           />
+
+          <MarketCauseEffectExplainer />
+
+          <div>
+            <SectionTitle icon="🎯" label="Actionable Setups" sub="High-conviction trades" />
+            <div className="space-y-3">
+              <ActionableTradeCard
+                symbol="NVDA"
+                action="BUY"
+                confidence={87}
+                reason="AI infrastructure demand surge"
+                entryRange="$870–$885"
+                riskLevel="Medium"
+                keyRisk="Earnings miss could trigger 8–12% pullback"
+                whatToWatchFor="Watch NVIDIA earnings guidance and AI demand signals"
+                bestTimeframe="Swing trade: 2–4 weeks"
+              />
+              <ActionableTradeCard
+                symbol="JPM"
+                action="WATCH"
+                confidence={65}
+                reason="Financial sector rotation on rate steepening"
+                entryRange="$195–$205"
+                riskLevel="Low"
+                keyRisk="Yield curve inversion could reverse the trade"
+                whatToWatchFor="Watch 10Y/2Y spread and credit spreads"
+                bestTimeframe="Position trade: 4–8 weeks"
+              />
+              <ActionableTradeCard
+                symbol="BTC"
+                action="BUY"
+                confidence={81}
+                reason="Spot ETF inflows at record levels"
+                entryRange="$66,000–$67,500"
+                riskLevel="High"
+                keyRisk="Regulatory uncertainty could spike volatility"
+                whatToWatchFor="Watch Fed policy and macroeconomic data"
+                bestTimeframe="Medium-term: 2–3 months"
+              />
+            </div>
+          </div>
 
           <div>
             <SectionTitle
