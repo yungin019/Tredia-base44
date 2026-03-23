@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { TrendingUp, AlertTriangle, Zap } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 export default function TrekPortfolioWelcome() {
   const navigate = useNavigate();
@@ -52,22 +53,9 @@ RISK: [Specific risk with exact % or amount in one sentence. Start with the risk
 ACTION: [One specific action. Not generic. References their actual situation. One sentence.]
 IMPRESSED: [One thing that impressed TREK. One sentence.]`;
 
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/trekChat`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({ message: prompt }),
-          }
-        );
-
-        if (!response.ok) throw new Error('Analysis failed');
-
-        const data = await response.json();
-        const text = data.reply || data.response || '';
+        const response = await base44.functions.invoke('trekChat', { message: prompt });
+        if (response.data?.error) throw new Error(response.data.error);
+        const text = response.data?.reply || response.data?.response || '';
 
         const parsed = {
           grade: text.match(/GRADE:\s*([A-F][+-]?)/)?.[1] || 'B+',
