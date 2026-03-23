@@ -53,11 +53,20 @@ export function NextJumpDetector({ signal, onSeeWhy }) {
           </div>
 
           {signal.quote && (
-            <div className="relative">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#F59E0B] rounded-full" />
-              <p className="pl-4 text-sm text-gray-300 italic leading-relaxed">
-                "{signal.quote}"
+            <div className="space-y-3 bg-black/40 rounded-lg p-3 border border-white/5">
+              <p className="text-sm text-foreground leading-relaxed">
+                <span className="font-semibold text-gold">Why:</span> {signal.quote}
               </p>
+              {signal.timing && (
+                <p className="text-sm text-foreground leading-relaxed">
+                  <span className="font-semibold text-primary">Entry:</span> {signal.timing}
+                </p>
+              )}
+              {signal.risk && (
+                <p className="text-sm text-foreground leading-relaxed">
+                  <span className="font-semibold text-destructive">Risk:</span> {signal.risk}
+                </p>
+              )}
             </div>
           )}
 
