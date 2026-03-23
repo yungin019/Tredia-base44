@@ -11,6 +11,7 @@ import SectorHeatmap from '@/components/markets/SectorHeatmap.jsx';
 import TrekScreener from '@/components/markets/TrekScreener.jsx';
 import CryptoAssets from '@/components/markets/CryptoAssets.jsx';
 import CommoditiesTab from '@/components/markets/CommoditiesTab.jsx';
+import ExpandedAssetList from '@/components/markets/ExpandedAssetList.jsx';
 import TimeframeSelector from '@/components/markets/TimeframeSelector.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
 import IndexCardsSection from '@/components/markets/IndexCardsSection';
