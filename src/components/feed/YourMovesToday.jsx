@@ -62,24 +62,26 @@ function MoveCard({ move, onExplore }) {
         <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
       </div>
 
-      {/* Why this trade */}
-      <div className="space-y-2">
-        {move.entry !== 'N/A' && (
-          <p className="text-xs text-foreground">
-            <span className="font-semibold">Entry:</span> {move.entry}
-          </p>
-        )}
+      {/* Why + Action + Timing + Risk */}
+      <div className="space-y-3">
         <p className="text-sm text-foreground leading-relaxed font-semibold">{move.why}</p>
-      </div>
+        
+        {move.entry !== 'N/A' && (
+          <div className="bg-black/30 rounded-lg p-2.5 border border-success/20">
+            <p className="text-xs text-foreground">
+              <span className="font-semibold text-success">Entry:</span> {move.entry}
+            </p>
+          </div>
+        )}
 
-      {/* Timing & Risk */}
-      <div className="border-t border-white/5 pt-2 space-y-1 text-xs">
-        <p className="text-muted-foreground">
-          <span className="font-semibold text-foreground">Timing:</span> {move.timing}
-        </p>
-        <p className="text-destructive/70">
-          <span className="font-semibold">Risk:</span> {move.risk}
-        </p>
+        <div className="border-t border-white/5 pt-2 space-y-2 text-xs">
+          <p className="text-muted-foreground">
+            <span className="font-semibold text-foreground">When:</span> {move.timing}
+          </p>
+          <p className="text-destructive/80">
+            <span className="font-semibold">Fails if:</span> {move.risk}
+          </p>
+        </div>
       </div>
     </motion.button>
   );
