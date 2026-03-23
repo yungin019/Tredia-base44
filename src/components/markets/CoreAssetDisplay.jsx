@@ -5,7 +5,7 @@ import { TrendingUp, TrendingDown } from 'lucide-react';
 import { formatPrice, formatPercent, validatePrice, validatePercent } from '@/lib/dataValidation';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { SkeletonCard, LoadingMessage, DataUnavailable } from '@/components/ui/SkeletonLoader';
-import { fetchTier1Assets } from '@/api/marketDataClient';
+import { fetchTier1Assets, getCacheStatus } from '@/api/marketDataClient';
 
 /**
  * Core Asset Display - 12-14 high-priority assets only
@@ -40,13 +40,12 @@ export default function CoreAssetDisplay() {
       setLoading(true);
       setError(false);
       try {
-        // Use proven tier1 cache that works
+        // Try to fetch live data
         const assets = await fetchTier1Assets();
         
         if (assets && assets.length > 0) {
           const priceMap = {};
           assets.forEach(asset => {
-            // Only include core assets we want
             if (CORE_ASSETS.find(ca => ca.symbol === asset.symbol)) {
               priceMap[asset.symbol] = {
                 price: asset.price,
@@ -58,16 +57,34 @@ export default function CoreAssetDisplay() {
           
           if (Object.keys(priceMap).length > 0) {
             setLiveData(priceMap);
-          } else {
-            setError(true);
+            setLoading(false);
+            return;
           }
+        }
+        
+        // If live fetch failed, try cache as fallback
+        const cacheStatus = getCacheStatus();
+        const cachedPrices = {};
+        CORE_ASSETS.forEach(asset => {
+          if (cacheStatus[asset.symbol]) {
+            cachedPrices[asset.symbol] = {
+              price: asset.price || 0,
+              prevClose: asset.prevClose || 0,
+              change: asset.change || 0
+            };
+          }
+        });
+        
+        if (Object.keys(cachedPrices).length > 0) {
+          setLiveData(cachedPrices);
+          setLoading(false);
         } else {
           setError(true);
+          setLoading(false);
         }
       } catch (err) {
         console.error('[CoreAssets] Load failed:', err.message);
         setError(true);
-      } finally {
         setLoading(false);
       }
     }
