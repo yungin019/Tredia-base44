@@ -20,6 +20,7 @@ Deno.serve(async (req) => {
     const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY');
     const POLYGON_KEY = Deno.env.get('POLYGON_API_KEY');
     const TWELVEDATA_KEY = Deno.env.get('TWELVEDATA_API_KEY');
+    const AV_KEY = Deno.env.get('ALPHAVANTAGE_API_KEY');
 
     // ── OHLC chart data ────────────────────────────────────────────────
     if (mode === 'ohlc' && symbol) {
