@@ -292,7 +292,16 @@ Deno.serve(async (req) => {
 
           // 2. Fallback: Twelve Data real-time price (handles EU/Asian exchanges + forex + gold)
           if (TWELVEDATA_KEY) {
-            const tdRes = await fetch(`https://api.twelvedata.com/price?symbol=${sym}&apikey=${TWELVEDATA_KEY}`);
+            // Normalize symbol for Twelve Data (same as OHLC path)
+            const TD_EXCHANGE_MAP = { 'PA':'XPAR','DE':'XETR','AS':'XAMS','T':'TSE','HK':'HKEX','L':'LSE','MI':'MIL','SW':'SWX','AX':'ASX' };
+            let tdSym = sym;
+            const im = sym.match(/^(.+)\.([A-Z]+)$/);
+            if (im && TD_EXCHANGE_MAP[im[2]]) tdSym = `${im[1]}:${TD_EXCHANGE_MAP[im[2]]}`;
+            else {
+              const fm = sym.match(/^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
+              if (fm) tdSym = `${fm[1]}/${fm[2]}`;
+            }
+            const tdRes = await fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(tdSym)}&apikey=${TWELVEDATA_KEY}`);
             const tdData = await tdRes.json();
             if (tdData.price && parseFloat(tdData.price) > 0) {
               results[sym] = parseFloat(parseFloat(tdData.price).toFixed(4));
