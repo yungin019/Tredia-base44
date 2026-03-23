@@ -45,11 +45,12 @@ const POPULAR_SYMBOLS = [
 
 // Asset-type tabs for filtering
 const ASSET_TABS = [
-  { id: 'all',    label: 'All' },
-  { id: 'stock',  label: 'Stocks' },
-  { id: 'etf',    label: 'ETFs' },
-  { id: 'crypto', label: 'Crypto' },
-  { id: 'forex',  label: 'Forex' },
+  { id: 'all',       label: 'All' },
+  { id: 'stock',     label: 'Stocks' },
+  { id: 'etf',       label: 'ETFs' },
+  { id: 'crypto',    label: 'Crypto' },
+  { id: 'forex',     label: 'Forex' },
+  { id: 'commodity', label: 'Commodities' },
 ];
 
 const TYPE_COLORS = {
