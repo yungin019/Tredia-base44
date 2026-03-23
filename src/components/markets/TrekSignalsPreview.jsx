@@ -15,9 +15,10 @@ export default function TrekSignalsPreview() {
   useEffect(() => {
     async function fetchSignals() {
       try {
-        // Fetch stock prices
-        const stockSymbols = ['NVDA', 'AMZN', 'TSLA', 'META', 'AAPL', 'MSFT', 'BTC', 'ETH'];
-        const res = await base44.functions.invoke('stockPrices', { symbols: stockSymbols.filter(s => s !== 'BTC' && s !== 'ETH') });
+        const stockSymbols = ['NVDA', 'AMZN', 'TSLA', 'META', 'AAPL', 'MSFT'];
+        
+        // Fetch stock prices with full data (price, prevClose, change)
+        const res = await base44.functions.invoke('stockPrices', { symbols: stockSymbols });
         const stockPrices = res?.data?.prices || {};
 
         // Fetch crypto prices
@@ -41,13 +42,13 @@ export default function TrekSignalsPreview() {
 
         // Derive signals for each asset
         const derivedSignals = [];
-        stockSymbols.forEach(symbol => {
+        [...stockSymbols, 'BTC', 'ETH'].forEach(symbol => {
           const asset = EXPANDED_ASSETS.find(a => a.symbol === symbol);
           if (!asset) return;
 
           const priceInfo = symbol === 'BTC' || symbol === 'ETH' 
             ? cryptoPrices[symbol]
-            : { price: stockPrices[symbol], change: null };
+            : stockPrices[symbol];
 
           if (!priceInfo || !priceInfo.price) return;
 
