@@ -109,6 +109,60 @@ Deno.serve(async (req) => {
         } catch { /* fall through */ }
       }
 
+      // 4. AlphaVantage — daily/weekly for US stocks, reliable free tier
+      //    Also handles Forex via FX_DAILY and Crypto via DIGITAL_CURRENCY_DAILY
+      if (AV_KEY) {
+        try {
+          // Detect Forex symbols (EURUSD, GBPUSD, XAUUSD, etc.)
+          const forexMatch = symbol.match(/^([A-Z]{3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
+          const isCryptoSymbol = /^(BTC|ETH|XRP|LTC|BCH|ADA|DOT|SOL|AVAX|MATIC|LINK|UNI|DOGE|SHIB)$/.test(symbol);
+
+          let avUrl;
+          if (forexMatch) {
+            avUrl = `https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=${forexMatch[1]}&to_symbol=${forexMatch[2]}&outputsize=compact&apikey=${AV_KEY}`;
+          } else if (isCryptoSymbol) {
+            avUrl = `https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol=${symbol}&market=USD&apikey=${AV_KEY}`;
+          } else if (tf.avFunction === 'TIME_SERIES_INTRADAY') {
+            avUrl = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=5min&outputsize=compact&apikey=${AV_KEY}`;
+          } else if (tf.avFunction === 'TIME_SERIES_WEEKLY') {
+            avUrl = `https://www.alphavantage.co/query?function=TIME_SERIES_WEEKLY&symbol=${symbol}&apikey=${AV_KEY}`;
+          } else {
+            avUrl = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=compact&apikey=${AV_KEY}`;
+          }
+
+          const res = await fetchWithTimeout(avUrl, 6000);
+          const data = await res.json();
+
+          // AlphaVantage returns data under different keys depending on function
+          const tsKey = Object.keys(data).find(k => k.startsWith('Time Series') || k === 'Weekly Time Series' || k.startsWith('Time Series FX') || k.startsWith('Time Series Digital'));
+          if (tsKey && data[tsKey]) {
+            const entries = Object.entries(data[tsKey]).sort(([a], [b]) => a.localeCompare(b));
+            // For daily timeframes, slice to relevant window
+            const sliceCount = tf.days <= 30 ? 30 : tf.days <= 90 ? 90 : 260;
+            const sliced = entries.slice(-sliceCount);
+            const chartData = sliced.map(([date, v]) => {
+              // AV keys vary: '1. open' or '1a. open (USD)' for crypto
+              const openKey  = Object.keys(v).find(k => k.match(/open/i));
+              const highKey  = Object.keys(v).find(k => k.match(/high/i));
+              const lowKey   = Object.keys(v).find(k => k.match(/low/i));
+              const closeKey = Object.keys(v).find(k => k.match(/close/i) && !k.match(/adjusted/i));
+              const volKey   = Object.keys(v).find(k => k.match(/volume/i));
+              return {
+                date,
+                open:  parseFloat(parseFloat(v[openKey]  || 0).toFixed(4)),
+                high:  parseFloat(parseFloat(v[highKey]  || 0).toFixed(4)),
+                low:   parseFloat(parseFloat(v[lowKey]   || 0).toFixed(4)),
+                close: parseFloat(parseFloat(v[closeKey] || 0).toFixed(4)),
+                volume: parseInt(v[volKey] || 0),
+              };
+            }).filter(d => d.close > 0);
+            if (chartData.length > 1) {
+              return Response.json({ chartData, source: 'alphavantage', timeframe });
+            }
+          }
+        } catch { /* fall through */ }
+      }
+
       // All providers exhausted — honest empty response, no fake data
       return Response.json({ chartData: [], source: 'unavailable', timeframe });
     }
