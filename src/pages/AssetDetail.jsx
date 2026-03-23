@@ -387,7 +387,7 @@ export default function AssetDetail() {
             ))}
           </div>
         </div>
-        <CandlestickChart data={chartData} timeframe={timeframe} />
+        <CandlestickChart symbol={symbol} timeframe={timeframe} />
       </motion.div>
 
       {/* TREK Signal */}
