@@ -81,10 +81,10 @@ export default function AddHoldingDialog({ open, onOpenChange }) {
           </div>
           <Button
             onClick={handleSave}
-            disabled={saving}
+            disabled={addMutation.isPending}
             className="w-full h-9 text-[12px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground mt-1"
           >
-            {saving ? 'Adding...' : 'Add to Portfolio'}
+            {addMutation.isPending ? 'Adding...' : 'Add to Portfolio'}
           </Button>
         </div>
       </DialogContent>
