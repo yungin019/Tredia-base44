@@ -115,14 +115,47 @@ Deno.serve(async (req) => {
     }
 
     // ── Search endpoint: symbol lookup via Finnhub ────────────────────
+    // Supports: stocks, ETFs, ADRs, crypto (BTC, ETH), forex, indices
     if (mode === 'search' && body.query) {
+      const assetFilter = body.assetType || 'all'; // 'all'|'stock'|'etf'|'crypto'|'forex'
       try {
         const res = await fetch(`https://finnhub.io/api/v1/search?q=${encodeURIComponent(body.query)}&token=${FINNHUB_KEY}`);
         const data = await res.json();
+
+        // Type mapping from Finnhub codes to display labels
+        const TYPE_MAP = {
+          'Common Stock': 'Stock', 'EQS': 'Stock', 'ADR': 'ADR',
+          'ETF': 'ETF', 'DR': 'ADR',
+          'Crypto': 'Crypto', 'CRYPTO': 'Crypto',
+          'Forex': 'Forex', 'FX': 'Forex',
+          'Index': 'Index', 'Fund': 'Fund',
+        };
+
+        // Filter logic by assetType
+        const ASSET_TYPE_FILTER = {
+          'stock': ['Common Stock', 'EQS', 'ADR', 'DR'],
+          'etf': ['ETF', 'Fund'],
+          'crypto': ['Crypto', 'CRYPTO'],
+          'forex': ['Forex', 'FX'],
+        };
+
         const results = (data.result || [])
-          .filter(r => r.type === 'Common Stock' || r.type === 'EQS' || r.type === 'ADR' || r.type === 'ETF' || !r.type)
+          .filter(r => {
+            // If filtering by type, apply it; otherwise allow all known types
+            if (assetFilter !== 'all') {
+              const allowed = ASSET_TYPE_FILTER[assetFilter] || [];
+              return allowed.includes(r.type);
+            }
+            // For 'all': exclude empty type but allow everything else
+            return r.type || r.symbol;
+          })
           .slice(0, 20)
-          .map(r => ({ symbol: r.symbol, name: r.description, type: r.type }));
+          .map(r => ({
+            symbol: r.symbol,
+            name: r.description,
+            type: TYPE_MAP[r.type] || r.type || 'Asset',
+          }));
+
         return Response.json({ results });
       } catch {
         return Response.json({ results: [] });
