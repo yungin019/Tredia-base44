@@ -202,7 +202,6 @@ export default function AssetDetail() {
   const [tradeAction, setTradeAction] = useState(null);
   const [showPlan, setShowPlan] = useState(false);
   const [livePrice, setLivePrice] = useState(null);
-  const [liveChart, setLiveChart] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
   const [toast, setToast] = useState(null);
   const [watchlistEntry, setWatchlistEntry] = useState(null);
@@ -237,18 +236,12 @@ export default function AssetDetail() {
   }, [symbol]);
 
   useEffect(() => {
-    async function loadAsset() {
+    async function loadPrice() {
       setLoadingData(true);
       try {
-        const [priceRes, ohlcRes] = await Promise.all([
-          base44.functions.invoke('stockPrices', { symbols: [symbol] }),
-          base44.functions.invoke('stockPrices', { symbol, mode: 'ohlc' }),
-        ]);
+        const priceRes = await base44.functions.invoke('stockPrices', { symbols: [symbol] });
         const price = priceRes?.data?.prices?.[symbol];
         if (price) {
-          setLivePrice(price);
-
-          // Price target alert: check if we crossed the watchlist alert_price
           if (watchlistEntry?.alert_price && prevPriceRef.current !== null) {
             const prev = prevPriceRef.current;
             const target = watchlistEntry.alert_price;
@@ -256,23 +249,16 @@ export default function AssetDetail() {
             if (crossed) {
               const dir = price >= target ? '🟢 Hit target' : '🔴 Hit stop';
               showToast(`${dir}: ${symbol} reached $${target.toLocaleString()}`, price >= target ? 'success' : 'danger');
-              base44.auth.me().then(user => {
-                sendPushNotification({ signal: price >= target ? 'BUY' : 'SELL', symbol, confidence: 90, technicalSummary: `Price alert triggered at $${target}` }, user).catch(() => {});
-              }).catch(() => {});
             }
           }
           prevPriceRef.current = price;
+          setLivePrice(price);
         }
-
-        const chartData = ohlcRes?.data?.chartData;
-        if (chartData && chartData.length > 0) setLiveChart(chartData);
-      } catch {
-        // fall back to static data
-      } finally {
+      } catch { /* keep static */ } finally {
         setLoadingData(false);
       }
     }
-    loadAsset();
+    loadPrice();
   }, [symbol, watchlistEntry]);
 
   // TREK signal notification: fire once on load if watchlisted and signal is BUY/SELL
