@@ -6,20 +6,23 @@ const RISKS = [
   {
     symbol: 'TSLA',
     level: 'HIGH',
-    why: 'In a growth rally, TSLA usually participates. NOT today—suggests weakness ahead. Delivery misses piling up. If this trend breaks, downside is fast (8-10% gap down possible).',
-    action: 'Avoid. Do NOT catch this falling knife.',
+    why: 'Growth rally is on. TSLA should rally. It's NOT. Delivery misses + margin concerns = real weakness.',
+    action: 'Stay out. Do NOT catch this falling knife.',
+    fails: 'If TSLA bounces 4%+ with heavy volume, this thesis breaks. But odds favor more downside.',
   },
   {
     symbol: 'META',
     level: 'MEDIUM',
-    why: 'Ad revenue concerns + 3 analyst cuts this week. Tech rally usually lifts META, but it is lagging. Means smart money sees a problem here.',
-    action: 'Watch for capitulation. Only buy if it breaks below $485 with heavy volume.',
+    why: 'Tech rally is lifting most names. META is lagging. Ad revenue fears + 3 cuts this week. Smart money is exiting.',
+    action: 'No edge here. Wait for capitulation or clear support.',
+    fails: 'If it holds $500 and bounces with earnings catalyst, could reverse. But not today.',
   },
   {
     symbol: 'XLE',
     level: 'MEDIUM',
-    why: 'Oil rallying (+2.8%) but energy stocks NOT following. This divergence warns that energy weakness is structural, not just a bounce. Catch the falling knife risk.',
-    action: 'Short here if you\'re brave. Long entries safer after a 5-8% pullback.',
+    why: 'Oil up 2.8% today. Energy stocks NOT following. This divergence = structural weakness, not a bounce.',
+    action: 'Don't buy here. This is a trap.',
+    fails: 'If oil stays above $90 and energy reverses, could work. But odds favor 5-8% more downside first.',
   },
 ];
 
