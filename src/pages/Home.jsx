@@ -13,6 +13,7 @@ import { IntelligenceTicker } from '@/components/ai/IntelligenceTicker';
 import { OG100Card } from '@/components/ai/OG100Card';
 import { LogTradeButton } from '@/components/ai/LogTradeButton';
 import DailyBrief from '@/components/ai/DailyBrief';
+import RegionalMarketIntelligence from '@/components/ai/RegionalMarketIntelligence';
 import MarketAlert from '@/components/feed/MarketAlert';
 import YourMovesToday from '@/components/feed/YourMovesToday';
 import WatchOut from '@/components/feed/WatchOut';
@@ -87,6 +88,10 @@ export default function Home() {
           {/* Trending Assets (Horizontal scroll) */}
           <TrendingAssets stocks={liveStocks} />
 
+          {/* MARKET REACTIONS (HIGH PRIORITY - EVENT-FIRST) */}
+          {/* This replaces generic news with region-aware market reactions */}
+          <RegionalMarketIntelligence />
+
           {/* Next Best Opportunity - Show only if we have live data */}
           {liveStocks.length > 0 && (
             <NextJumpDetector
@@ -104,7 +109,7 @@ export default function Home() {
             />
           )}
 
-          {/* 1. Market Alert (TOP PRIORITY) */}
+          {/* 1. Market Alert (SECONDARY) */}
           <MarketAlert />
 
           {/* 3. Your Moves Today - Pass live stock data */}
