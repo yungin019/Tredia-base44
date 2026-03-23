@@ -232,10 +232,23 @@ export default function SearchModal({ isOpen, onClose }) {
             {/* No Results */}
             {query && !searching && results.length === 0 && (
               <div className="p-8 text-center">
-                <div className="text-white/20 mb-2">No results for "{query}"</div>
-                <div className="text-xs text-white/30">
-                  Try a ticker like AAPL, BTC, EUR/USD, or SPY
-                </div>
+                {activeTab === 'forex' ? (
+                  <>
+                    <div className="text-2xl mb-2">📊</div>
+                    <div className="text-white/40 text-sm font-bold mb-1">Forex search not available</div>
+                    <div className="text-xs text-white/25 leading-relaxed">
+                      Forex pairs require direct symbol lookup.<br />
+                      Navigate to a specific asset page (e.g. EUR/USD).
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-white/20 mb-2">No results for "{query}"</div>
+                    <div className="text-xs text-white/30">
+                      Try a ticker like AAPL, BTC, SPY, or a company name
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
