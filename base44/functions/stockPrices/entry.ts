@@ -230,17 +230,26 @@ Deno.serve(async (req) => {
         // 1. Finnhub (US stocks + ETFs - very reliable)
         if (FINNHUB_KEY && !isIntl && !isFx && !isCrypto) {
           providers.push(async () => {
-            const res = await fetchWithTimeout(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`, 4000);
-            const data = await res.json();
-            if (data.c && data.c > 0) {
-              return {
-                price: parseFloat(data.c.toFixed(2)),
-                prevClose: parseFloat((data.pc || data.c).toFixed(2)),
-                change: data.dp ? parseFloat(data.dp.toFixed(2)) : null,
-                timestamp: data.t ? data.t * 1000 : Date.now()
-              };
+            try {
+              const url = `https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`;
+              console.log(`Trying Finnhub for ${sym}`);
+              const res = await fetchWithTimeout(url, 4000);
+              console.log(`Finnhub response for ${sym}: ${res.status}`);
+              const data = await res.json();
+              console.log(`Finnhub data for ${sym}:`, JSON.stringify(data).slice(0, 100));
+              if (data.c && data.c > 0) {
+                return {
+                  price: parseFloat(data.c.toFixed(2)),
+                  prevClose: parseFloat((data.pc || data.c).toFixed(2)),
+                  change: data.dp ? parseFloat(data.dp.toFixed(2)) : null,
+                  timestamp: data.t ? data.t * 1000 : Date.now()
+                };
+              }
+              throw new Error(`Finnhub no price data: ${JSON.stringify(data)}`);
+            } catch (e) {
+              console.log(`Finnhub failed for ${sym}: ${e.message}`);
+              throw e;
             }
-            throw new Error('Finnhub no data');
           });
         }
 
