@@ -143,31 +143,28 @@ export default function ExpandedAssetList() {
   const getLiveSignal = (asset) => {
     const priceInfo = asset.sector === 'Crypto' 
       ? cryptoData[asset.symbol] 
-      : (typeof liveData[asset.symbol] === 'object' ? liveData[asset.symbol] : { price: liveData[asset.symbol], change: null });
+      : liveData[asset.symbol];
     
-    if (!priceInfo || priceInfo.price === null || priceInfo.price === undefined) {
+    if (!priceInfo || !priceInfo.price) {
       return {
         signal: 'WATCH',
         confidence: 0,
-        reason: 'Price data unavailable',
-        isLiveDerived: false
+        reason: 'Loading price data...',
+        isLiveDerived: false,
+        metrics: { volatility: 'UNKNOWN' }
       };
     }
 
-    // Calculate previous close from change % if available
-    const change = priceInfo.change || 0;
-    const prevClose = priceInfo.prevClose || (change !== null && priceInfo.price / (1 + change / 100));
-    
     const priceData = {
       price: priceInfo.price,
-      prevClose: prevClose || priceInfo.price,
-      change24h: change,
-      high24h: priceInfo.high || priceInfo.price * 1.02,
-      low24h: priceInfo.low || priceInfo.price * 0.98
+      prevClose: priceInfo.prevClose || priceInfo.price,
+      change24h: priceInfo.change || 0,
+      high24h: priceInfo.price * 1.02,
+      low24h: priceInfo.price * 0.98
     };
 
     return deriveSignal(asset, priceData, {
-      marketSentiment: change > 2 ? 'BULLISH' : change < -2 ? 'BEARISH' : 'NEUTRAL'
+      marketSentiment: priceInfo.change > 2 ? 'BULLISH' : priceInfo.change < -2 ? 'BEARISH' : 'NEUTRAL'
     });
   };
 
