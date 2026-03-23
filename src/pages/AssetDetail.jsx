@@ -11,12 +11,19 @@ import TrekInstantRead from '@/components/trek/TrekInstantRead';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
-  AAPL: { name: 'Apple Inc.', sector: 'Technology' },
-  NVDA: { name: 'NVIDIA Corp', sector: 'Technology' },
-  MSFT: { name: 'Microsoft Corp', sector: 'Technology' },
-  TSLA: { name: 'Tesla Inc.', sector: 'Automotive' },
-  BTC:  { name: 'Bitcoin', sector: 'Crypto' },
-  ETH:  { name: 'Ethereum', sector: 'Crypto' },
+  AAPL:    { name: 'Apple Inc.',        sector: 'Technology' },
+  NVDA:    { name: 'NVIDIA Corp',       sector: 'Technology' },
+  MSFT:    { name: 'Microsoft Corp',    sector: 'Technology' },
+  TSLA:    { name: 'Tesla Inc.',        sector: 'Automotive' },
+  BTC:     { name: 'Bitcoin',           sector: 'Crypto' },
+  ETH:     { name: 'Ethereum',          sector: 'Crypto' },
+  // Europe
+  'MC.PA':   { name: 'LVMH Moët Hennessy',  sector: 'Luxury · Euronext Paris' },
+  'SAP.DE':  { name: 'SAP SE',              sector: 'Technology · XETRA' },
+  'ASML.AS': { name: 'ASML Holding',        sector: 'Semiconductors · Euronext Amsterdam' },
+  // Asia
+  '7203.T':  { name: 'Toyota Motor Corp',   sector: 'Automotive · Tokyo Stock Exchange' },
+  BABA:      { name: 'Alibaba Group',        sector: 'E-Commerce · NYSE (ADR)' },
 };
 
 // ── Static data store per symbol ─────────────────────────────────────────────
