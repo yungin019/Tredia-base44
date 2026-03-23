@@ -70,22 +70,40 @@ function MoveCard({ move, onExplore }) {
 
       {/* Why + Action + Timing + Risk */}
       <div className="space-y-3">
-        <p className="text-sm text-foreground leading-relaxed font-semibold">{move.why}</p>
+        <p className="text-sm text-foreground leading-relaxed">{move.why}</p>
         
         {move.entry !== 'N/A' && (
-          <div className="bg-black/30 rounded-lg p-2.5 border border-success/20">
+          <div className="bg-success/10 rounded-lg p-2.5 border border-success/20 space-y-1.5">
             <p className="text-xs text-foreground">
-              <span className="font-semibold text-success">Entry:</span> {move.entry}
+              <span className="font-semibold text-success">→ Entry:</span> {move.entry}
             </p>
+            {move.positionSize && (
+              <p className="text-xs text-foreground">
+                <span className="font-semibold text-foreground">→ Size:</span> {move.positionSize}
+              </p>
+            )}
+            {move.timeframe && (
+              <p className="text-xs text-foreground">
+                <span className="font-semibold text-foreground">→ Hold:</span> {move.timeframe}
+              </p>
+            )}
+            {move.exitTarget && (
+              <p className="text-xs text-foreground">
+                <span className="font-semibold text-primary">→ Exit:</span> {move.exitTarget}
+              </p>
+            )}
           </div>
         )}
 
-        <div className="border-t border-white/5 pt-2 space-y-2 text-xs">
-          <p className="text-muted-foreground">
-            <span className="font-semibold text-foreground">When:</span> {move.timing}
-          </p>
-          <p className="text-destructive/80">
-            <span className="font-semibold">Fails if:</span> {move.risk}
+        {move.entry === 'N/A' && (
+          <div className="bg-destructive/10 rounded-lg p-2.5 border border-destructive/20">
+            <p className="text-xs text-destructive font-semibold">→ Do NOT enter. {move.exitTarget}</p>
+          </div>
+        )}
+
+        <div className="bg-destructive/5 rounded-lg p-2 border border-destructive/20">
+          <p className="text-xs text-destructive">
+            <span className="font-semibold">⚠ Risk Trigger:</span> {move.risk}
           </p>
         </div>
       </div>
