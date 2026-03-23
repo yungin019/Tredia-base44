@@ -202,8 +202,6 @@ export default function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [fearGreed, setFearGreed] = useState(null);
-  const [selectedNews, setSelectedNews] = useState(null);
-  const [newsItems, setNewsItems] = useState(NEWS);
   const [ogStats, setOgStats] = useState(null);
   const [isOgMember, setIsOgMember] = useState(false);
 
