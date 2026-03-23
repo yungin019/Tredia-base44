@@ -114,40 +114,66 @@ Deno.serve(async (req) => {
       return Response.json({ chartData, source: 'synthetic', timeframe });
     }
 
-    // ── Search endpoint: symbol lookup via Finnhub ────────────────────
-    // Supports: stocks, ETFs, ADRs, crypto (BTC, ETH), forex, indices
+    // ── Search endpoint ───────────────────────────────────────────────
+    // Coverage by provider:
+    //   Stocks/ETFs: Finnhub /search (30,000+ equities worldwide)
+    //   Crypto: Finnhub /crypto/symbol (BTC, ETH, etc. via BINANCE exchange)
+    //   Forex: NOT supported by Finnhub /search — forex pairs require direct quote lookup
     if (mode === 'search' && body.query) {
-      const assetFilter = body.assetType || 'all'; // 'all'|'stock'|'etf'|'crypto'|'forex'
+      const assetFilter = body.assetType || 'all';
+      const q = body.query.trim().toUpperCase();
+
+      // For crypto tab: use Finnhub crypto symbol list and filter in-memory
+      if (assetFilter === 'crypto') {
+        try {
+          const res = await fetch(`https://finnhub.io/api/v1/crypto/symbol?exchange=BINANCE&token=${FINNHUB_KEY}`);
+          const data = await res.json();
+          const cryptoResults = (Array.isArray(data) ? data : [])
+            .filter(r => {
+              const sym = (r.symbol || '').toUpperCase();
+              const desc = (r.description || r.displaySymbol || '').toUpperCase();
+              return sym.includes(q) || desc.includes(q);
+            })
+            .slice(0, 15)
+            .map(r => ({
+              symbol: r.symbol,
+              name: r.description || r.displaySymbol || r.symbol,
+              type: 'Crypto',
+            }));
+          return Response.json({ results: cryptoResults });
+        } catch {
+          return Response.json({ results: [] });
+        }
+      }
+
+      // For forex tab: Finnhub /search doesn't return forex pairs.
+      // Honest response: provider limitation on this plan.
+      if (assetFilter === 'forex') {
+        return Response.json({
+          results: [],
+          _note: 'Forex search requires direct symbol lookup (e.g. EUR/USD). Try the exact pair.',
+        });
+      }
+
+      // Stocks / ETFs / All: Finnhub /search endpoint
       try {
         const res = await fetch(`https://finnhub.io/api/v1/search?q=${encodeURIComponent(body.query)}&token=${FINNHUB_KEY}`);
         const data = await res.json();
 
-        // Type mapping from Finnhub codes to display labels
         const TYPE_MAP = {
           'Common Stock': 'Stock', 'EQS': 'Stock', 'ADR': 'ADR',
-          'ETF': 'ETF', 'DR': 'ADR',
-          'Crypto': 'Crypto', 'CRYPTO': 'Crypto',
-          'Forex': 'Forex', 'FX': 'Forex',
-          'Index': 'Index', 'Fund': 'Fund',
+          'ETF': 'ETF', 'DR': 'ADR', 'Fund': 'Fund',
         };
 
-        // Filter logic by assetType
-        const ASSET_TYPE_FILTER = {
-          'stock': ['Common Stock', 'EQS', 'ADR', 'DR'],
-          'etf': ['ETF', 'Fund'],
-          'crypto': ['Crypto', 'CRYPTO'],
-          'forex': ['Forex', 'FX'],
-        };
+        const ETF_TYPES = ['ETF', 'Fund'];
+        const STOCK_TYPES = ['Common Stock', 'EQS', 'ADR', 'DR'];
 
         const results = (data.result || [])
           .filter(r => {
-            // If filtering by type, apply it; otherwise allow all known types
-            if (assetFilter !== 'all') {
-              const allowed = ASSET_TYPE_FILTER[assetFilter] || [];
-              return allowed.includes(r.type);
-            }
-            // For 'all': exclude empty type but allow everything else
-            return r.type || r.symbol;
+            if (assetFilter === 'etf') return ETF_TYPES.includes(r.type);
+            if (assetFilter === 'stock') return STOCK_TYPES.includes(r.type);
+            // 'all': include everything returned
+            return true;
           })
           .slice(0, 20)
           .map(r => ({
