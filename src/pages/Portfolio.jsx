@@ -69,7 +69,16 @@ export default function Portfolio() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Portfolio.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio'] }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['portfolio'] });
+      const previous = queryClient.getQueryData(['portfolio']);
+      queryClient.setQueryData(['portfolio'], (old) => (old || []).filter(h => h.id !== id));
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['portfolio'], context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['portfolio'] }),
   });
 
   const displayPositions = user?.alpaca_connected ? alpacaPositions : holdings;
