@@ -226,7 +226,6 @@ export default function Home() {
   return (
     <PullToRefresh onRefresh={async () => {
       await fetchFearGreed().then(fg => { if (fg) setFearGreed(fg); });
-      await loadNews();
     }}>
       <div className="w-full min-h-screen" style={{ background: '#080B12' }}>
         <IntelligenceTicker />
