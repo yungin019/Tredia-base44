@@ -19,6 +19,9 @@ import { LogTradeButton } from '@/components/ai/LogTradeButton';
 import TrekIntelligenceCardV2 from '@/components/ai/TrekIntelligenceCardV2';
 import ActionableTradeCard from '@/components/ai/ActionableTradeCard';
 import MarketCauseEffectExplainer from '@/components/ai/MarketCauseEffectExplainer';
+import SectorHeatExplainer from '@/components/ai/SectorHeatExplainer';
+import DailyBrief from '@/components/ai/DailyBrief';
+import ElitePremiumShowcase from '@/components/ai/ElitePremiumShowcase';
 
 const ALERTS = [
   { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'Momentum breakout above $870 — volume 3.2× average', age: '7m', color: 'hsl(142, 86%, 28%)', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)' },
