@@ -27,14 +27,18 @@ export default function WatchlistQuick({ stocks = [] }) {
           >
               <span className="font-mono font-bold text-white text-xs block">{asset.symbol}</span>
             <div className="flex items-baseline justify-between gap-1 mt-1">
-              <span className="font-mono font-bold text-white/80 text-xs">${asset.price.toFixed(0)}</span>
+              <span className="font-mono font-bold text-white/80 text-xs">${asset.price >= 100 ? asset.price.toFixed(0) : asset.price.toFixed(2)}</span>
               <div className={`flex items-center gap-0.5 text-xs font-bold ${asset.change >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
                 {asset.change >= 0 ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
-                {asset.change >= 0 ? '+' : ''}{asset.change}%
+                {asset.change >= 0 ? '+' : ''}{asset.change.toFixed(2)}%
               </div>
             </div>
           </motion.button>
-        ))}
+        )) : (
+          <div className="col-span-full text-center py-4 text-xs text-white/40">
+            Loading live data...
+          </div>
+        )}
       </div>
     </div>
   );
