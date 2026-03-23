@@ -76,6 +76,9 @@ export default function Home() {
             onSeeWhy={() => navigate('/AIInsights')}
           />
 
+          {/* 1. Market Alert (TOP PRIORITY) */}
+          <MarketAlert />
+
           {/* 3. Your Moves Today */}
           <YourMovesToday onExplore={(move) => navigate(`/Asset/${move.symbol}`)} />
 
