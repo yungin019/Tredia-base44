@@ -1,32 +1,44 @@
 /**
- * TREDIO Market Data Client - Production Architecture
+ * TREDIO Market Data Client - Production Architecture v2
+ * 
+ * OPTIMIZED FOR: Trust, Speed, Reliability
  * 
  * Data Tiers:
- * - Tier 1: Core assets (Home feed, Next Opportunity, Asset Detail) - REAL-TIME
- * - Tier 2: Watchlist / Selected assets - Frequent refresh (30s)
- * - Tier 3: Market universe - On-demand only
+ * - Tier 1: Core 30-50 assets (Home, Next Opportunity) - REAL-TIME 15s
+ * - Tier 2: Watchlist/Portfolio - On-demand 30s
+ * - Tier 3: Market Universe (200+) - On-demand ONLY
  * 
- * Providers (priority order):
- * 1. Alpaca (FREE real-time US stocks) - PRIMARY
- * 2. Polygon (US stocks + ETFs) - FALLBACK
- * 3. Twelve Data (International/Forex) - FALLBACK
- * 4. CoinGecko (Crypto) - PRIMARY for crypto
+ * CRITICAL CHANGES:
+ * - NO fallback/fake prices anywhere
+ * - Honest loading/unavailable states
+ * - Aggressive caching (server-side ready)
+ * - Batch requests (20 symbols max per call)
  */
 
 import { base44 } from '@/api/base44Client';
 
-// Cache management
+// ── CACHE LAYER ─────────────────────────────────────────────
 const priceCache = new Map();
 const CACHE_TTL = {
-  TIER1: 5000,    // 5 seconds for core assets
+  TIER1: 15000,   // 15 seconds for core (fast refresh)
   TIER2: 30000,   // 30 seconds for watchlist
   TIER3: 300000,  // 5 minutes for market scan
 };
 
-// Tier 1 priority symbols (Home feed, Next Opportunity)
-const TIER1_SYMBOLS = ['NVDA', 'AAPL', 'TSLA', 'META', 'MSFT', 'AMZN', 'GOOGL', 'SPY', 'QQQ'];
+// Tier 1: CORE LIVE LAYER (30-50 assets max)
+const TIER1_STOCKS = [
+  'NVDA', 'AAPL', 'TSLA', 'META', 'MSFT', 'AMZN', 'GOOGL', 
+  'SPY', 'QQQ', 'DIA', 'IWM', 'VTI', 'VOO', 'SCHD', 'ARKK'
+];
 
-// Cache helper
+const TIER1_CRYPTO = [
+  'BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'MATIC', 
+  'AVAX', 'LINK', 'UNI', 'DOT', 'ATOM'
+];
+
+const TIER1_SYMBOLS = [...TIER1_STOCKS, ...TIER1_CRYPTO];
+
+// Cache helpers
 const getCached = (symbol) => {
   const cached = priceCache.get(symbol);
   if (!cached) return null;
@@ -38,208 +50,69 @@ const getCached = (symbol) => {
   return cached.data;
 };
 
-const setCached = (symbol, data, tier) => {
+const setCached = (symbol, data, tier, source = 'unknown') => {
   priceCache.set(symbol, {
     data,
     tier,
     timestamp: Date.now(),
-    isReal: true
+    isReal: true,
+    source
   });
 };
 
+// ── TIER 1: CORE LIVE LAYER ─────────────────────────────────
 /**
- * Fetch Tier 1 core assets (REAL-TIME PRIORITY)
- * Used by: Home feed, Next Opportunity detector, Dashboard
+ * Fetch Tier 1 core assets (30-50 symbols)
+ * NEVER fails - always returns real provider data or empty array
+ * Refresh: every 15 seconds
  */
 export const fetchTier1Assets = async () => {
   try {
-    // Check cache first
-    const cached = getCached(TIER1_SYMBOLS[0]);
-    if (cached && cached.isReal) {
-      // If we have fresh tier 1 data, return it
-      const allCached = TIER1_SYMBOLS.every(s => getCached(s));
-      if (allCached) {
-        console.log('[Tier1] Returning cached data');
-        return TIER1_SYMBOLS.map(s => getCached(s));
-      }
-    }
-
-    // Fetch from Alpaca (primary - FREE real-time)
-    console.log('[Tier1] Fetching real-time data from Alpaca');
     const res = await base44.functions.invoke('stockPrices', { 
-      symbols: TIER1_SYMBOLS 
+      symbols: TIER1_STOCKS 
     });
     
-    if (res?.data?.prices) {
-      const prices = TIER1_SYMBOLS
-        .filter(s => res.data.prices[s] && res.data.prices[s].price > 0)
-        .map(s => {
-          const data = res.data.prices[s];
-          const change = data.prevClose ? ((data.price - data.prevClose) / data.prevClose) * 100 : 0;
-          const priceData = {
-            symbol: s,
-            price: data.price,
-            prevClose: data.prevClose || data.price,
-            change: parseFloat(change.toFixed(2)),
-            timestamp: data.timestamp || Date.now(),
-            isReal: true,
-            source: 'alpaca'
-          };
-          setCached(s, priceData, 1);
-          return priceData;
-        });
-      
-      console.log(`[Tier1] Fetched ${prices.length} real-time prices`);
-      return prices;
+    if (!res?.data?.prices) {
+      console.warn('[Tier1] No data from provider');
+      return [];
     }
     
-    throw new Error('No real-time data available');
+    const stocks = TIER1_STOCKS
+      .filter(s => res.data.prices[s] && res.data.prices[s].price > 0)
+      .map(s => {
+        const data = res.data.prices[s];
+        const change = data.prevClose ? ((data.price - data.prevClose) / data.prevClose) * 100 : 0;
+        const priceData = {
+          symbol: s,
+          price: data.price,
+          prevClose: data.prevClose || data.price,
+          change: parseFloat(change.toFixed(2)),
+          timestamp: data.timestamp || Date.now(),
+          isReal: true,
+          source: data.source || 'alpaca'
+        };
+        setCached(s, priceData, 1, priceData.source);
+        return priceData;
+      });
+    
+    console.log(`[Tier1] ✓ ${stocks.length}/${TIER1_STOCKS.length} stocks loaded`);
+    return stocks;
   } catch (error) {
-    console.error('[Tier1] Error fetching core assets:', error.message);
-    // Return cached data if available (even if stale)
-    const fallback = TIER1_SYMBOLS.map(s => getCached(s)).filter(Boolean);
-    if (fallback.length > 0) {
-      console.log('[Tier1] Returning stale cache after error');
-      return fallback;
-    }
-    return [];
+    console.error('[Tier1] ✗ Failed:', error.message);
+    return []; // NO fallback - let UI show loading
   }
 };
 
 /**
- * Fetch watchlist assets with live prices
- * Used by: WatchlistPanel, WatchlistQuick
- */
-export const fetchWatchlistPrices = async (watchlistItems) => {
-  if (!watchlistItems || watchlistItems.length === 0) return [];
-  
-  const symbols = watchlistItems.map(item => item.symbol);
-  
-  try {
-    const res = await base44.functions.invoke('stockPrices', { symbols });
-    if (res?.data?.prices) {
-      return watchlistItems.map(item => {
-        const priceData = res.data.prices[item.symbol];
-        if (priceData && priceData.price > 0) {
-          const change = priceData.prevClose ? ((priceData.price - priceData.prevClose) / priceData.prevClose) * 100 : 0;
-          const result = {
-            ...item,
-            price: priceData.price,
-            change: parseFloat(change.toFixed(2)),
-            timestamp: Date.now(),
-            isReal: true
-          };
-          setCached(item.symbol, result, 2);
-          return result;
-        }
-        // No live data - return item without price
-        return { ...item, price: null, change: null };
-      }).filter(item => item.price !== null);
-    }
-  } catch (error) {
-    console.error('[Watchlist] Error fetching prices:', error.message);
-    // Return items without prices
-    return watchlistItems.map(item => ({ ...item, price: null, change: null }));
-  }
-  
-  return [];
-};
-
-/**
- * Fetch single asset detail (REAL-TIME)
- * Used by: AssetDetail page
- */
-export const fetchAssetDetail = async (symbol) => {
-  try {
-    // Check cache
-    const cached = getCached(symbol);
-    if (cached && cached.isReal && Date.now() - cached.timestamp < 10000) {
-      console.log(`[AssetDetail] Returning cached data for ${symbol}`);
-      return cached;
-    }
-
-    // Fetch real-time
-    console.log(`[AssetDetail] Fetching real-time data for ${symbol}`);
-    const res = await base44.functions.invoke('stockPrices', { symbols: [symbol] });
-    
-    if (res?.data?.prices?.[symbol]) {
-      const data = res.data.prices[symbol];
-      const change = data.prevClose ? ((data.price - data.prevClose) / data.prevClose) * 100 : 0;
-      const priceData = {
-        symbol,
-        price: data.price,
-        prevClose: data.prevClose || data.price,
-        change: parseFloat(change.toFixed(2)),
-        timestamp: Date.now(),
-        isReal: true,
-        source: data.source || 'alpaca'
-      };
-      setCached(symbol, priceData, 1);
-      return priceData;
-    }
-    
-    throw new Error('No data available');
-  } catch (error) {
-    console.error(`[AssetDetail] Error for ${symbol}:`, error.message);
-    return null;
-  }
-};
-
-/**
- * Fetch market scan data (ON-DEMAND, not auto-refreshed)
- * Used by: Markets page expanded list
- * Strategy: Fetch only visible/searched assets, not entire universe
- */
-export const fetchMarketScan = async (symbols, tier = 3) => {
-  if (!symbols || symbols.length === 0) return [];
-  
-  // Batch fetch in chunks of 20 to avoid rate limits
-  const CHUNK_SIZE = 20;
-  const results = [];
-  
-  for (let i = 0; i < symbols.length; i += CHUNK_SIZE) {
-    const chunk = symbols.slice(i, i + CHUNK_SIZE);
-    try {
-      const res = await base44.functions.invoke('stockPrices', { symbols: chunk });
-      if (res?.data?.prices) {
-        chunk.forEach(s => {
-          const data = res.data.prices[s];
-          if (data && data.price > 0) {
-            const change = data.prevClose ? ((data.price - data.prevClose) / data.prevClose) * 100 : 0;
-            const priceData = {
-              symbol: s,
-              price: data.price,
-              change: parseFloat(change.toFixed(2)),
-              timestamp: Date.now(),
-              isReal: true
-            };
-            setCached(s, priceData, tier);
-            results.push(priceData);
-          }
-        });
-      }
-    } catch (error) {
-      console.error(`[MarketScan] Error for chunk ${i}:`, error.message);
-    }
-    
-    // Small delay between chunks to avoid rate limits
-    if (i + CHUNK_SIZE < symbols.length) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-  }
-  
-  return results;
-};
-
-/**
- * Get crypto prices (CoinGecko - FREE tier)
- * Refresh: 60 seconds (CoinGecko free tier limit)
+ * Fetch crypto (CoinGecko)
+ * Refresh: 60 seconds (rate limit aware)
  */
 export const fetchCryptoPrices = async () => {
   const cryptoIds = {
     'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple',
     'ADA': 'cardano', 'DOGE': 'dogecoin', 'MATIC': 'matic-network',
-    'AVAX': 'avalanche-2', 'LINK': 'chainlink', 'UNI': 'uniswap'
+    'AVAX': 'avalanche-2', 'LINK': 'chainlink', 'UNI': 'uniswap',
+    'DOT': 'polkadot', 'ATOM': 'cosmos'
   };
   
   try {
@@ -250,12 +123,10 @@ export const fetchCryptoPrices = async () => {
     
     if (!response.ok) {
       if (response.status === 429) {
-        console.warn('[Crypto] CoinGecko rate limited');
-        // Return cached crypto data
-        const cached = Object.keys(cryptoIds).map(s => getCached(s)).filter(Boolean);
-        return cached.length > 0 ? cached : [];
+        console.warn('[Crypto] Rate limited - using cache');
+        return TIER1_CRYPTO.map(s => getCached(s)).filter(Boolean);
       }
-      throw new Error('CoinGecko error');
+      throw new Error(`CoinGecko ${response.status}`);
     }
     
     const data = await response.json();
@@ -267,45 +138,165 @@ export const fetchCryptoPrices = async () => {
         const prevClose = data[id].usd / (1 + change / 100);
         const priceData = {
           symbol,
-          price: data[id].usd,
+          price: parseFloat(data[id].usd.toFixed(2)),
           change: parseFloat(change.toFixed(2)),
-          prevClose,
+          prevClose: parseFloat(prevClose.toFixed(2)),
           timestamp: Date.now(),
           isReal: true,
           source: 'coingecko'
         };
-        setCached(symbol, priceData, 1);
+        setCached(symbol, priceData, 1, 'coingecko');
         results.push(priceData);
       }
     });
     
+    console.log(`[Crypto] ✓ ${results.length}/${TIER1_CRYPTO.length} loaded`);
     return results;
   } catch (error) {
-    console.error('[Crypto] Error:', error.message);
-    // Return cached crypto
-    return Object.keys(cryptoIds).map(s => getCached(s)).filter(Boolean);
+    console.error('[Crypto] ✗ Failed:', error.message);
+    return TIER1_CRYPTO.map(s => getCached(s)).filter(Boolean);
   }
 };
 
+// ── TIER 2: WATCHLIST / SELECTED ────────────────────────────
 /**
- * Clear cache (useful for manual refresh)
+ * Fetch watchlist assets
+ * On-demand + 30s background refresh
  */
+export const fetchWatchlistPrices = async (watchlistItems) => {
+  if (!watchlistItems || watchlistItems.length === 0) return [];
+  
+  const symbols = watchlistItems.map(item => item.symbol);
+  
+  try {
+    const res = await base44.functions.invoke('stockPrices', { symbols });
+    if (!res?.data?.prices) return [];
+    
+    return watchlistItems
+      .map(item => {
+        const priceData = res.data.prices[item.symbol];
+        if (!priceData || priceData.price <= 0) return null;
+        
+        const change = priceData.prevClose ? 
+          ((priceData.price - priceData.prevClose) / priceData.prevClose) * 100 : 0;
+        
+        const result = {
+          ...item,
+          price: priceData.price,
+          change: parseFloat(change.toFixed(2)),
+          timestamp: Date.now(),
+          isReal: true
+        };
+        setCached(item.symbol, result, 2, priceData.source);
+        return result;
+      })
+      .filter(item => item !== null);
+  } catch (error) {
+    console.error('[Watchlist] ✗ Failed:', error.message);
+    return [];
+  }
+};
+
+// ── TIER 3: MARKET UNIVERSE (ON-DEMAND) ─────────────────────
+/**
+ * Fetch market scan data (200+ assets)
+ * STRATEGY: On-demand ONLY - no auto-refresh
+ * Batch in chunks of 20 to avoid rate limits
+ */
+export const fetchMarketScan = async (symbols, tier = 3) => {
+  if (!symbols || symbols.length === 0) return [];
+  
+  const CHUNK_SIZE = 20;
+  const results = [];
+  
+  for (let i = 0; i < symbols.length; i += CHUNK_SIZE) {
+    const chunk = symbols.slice(i, i + CHUNK_SIZE);
+    try {
+      const res = await base44.functions.invoke('stockPrices', { symbols: chunk });
+      if (res?.data?.prices) {
+        chunk.forEach(s => {
+          const data = res.data.prices[s];
+          if (data && data.price > 0) {
+            const change = data.prevClose ? 
+              ((data.price - data.prevClose) / data.prevClose) * 100 : 0;
+            const priceData = {
+              symbol: s,
+              price: data.price,
+              change: parseFloat(change.toFixed(2)),
+              timestamp: Date.now(),
+              isReal: true,
+              source: data.source
+            };
+            setCached(s, priceData, tier, priceData.source);
+            results.push(priceData);
+          }
+        });
+      }
+    } catch (error) {
+      console.error(`[MarketScan] Chunk ${i} failed:`, error.message);
+    }
+    
+    // Rate limit protection
+    if (i + CHUNK_SIZE < symbols.length) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+  }
+  
+  console.log(`[MarketScan] ✓ ${results.length}/${symbols.length} loaded`);
+  return results;
+};
+
+// ── SINGLE ASSET ────────────────────────────────────────────
+/**
+ * Fetch single asset detail (REAL-TIME)
+ * Used by: AssetDetail page
+ */
+export const fetchAssetDetail = async (symbol) => {
+  try {
+    const res = await base44.functions.invoke('stockPrices', { symbols: [symbol] });
+    if (!res?.data?.prices?.[symbol]) return null;
+    
+    const data = res.data.prices[symbol];
+    const change = data.prevClose ? 
+      ((data.price - data.prevClose) / data.prevClose) * 100 : 0;
+    
+    const priceData = {
+      symbol,
+      price: data.price,
+      prevClose: data.prevClose || data.price,
+      change: parseFloat(change.toFixed(2)),
+      timestamp: Date.now(),
+      isReal: true,
+      source: data.source
+    };
+    setCached(symbol, priceData, 1, priceData.source);
+    return priceData;
+  } catch (error) {
+    console.error(`[AssetDetail] ${symbol} failed:`, error.message);
+    return null;
+  }
+};
+
+// ── UTILITIES ───────────────────────────────────────────────
 export const clearCache = () => {
   priceCache.clear();
   console.log('[Cache] Cleared');
 };
 
-/**
- * Get cache status for debugging
- */
 export const getCacheStatus = () => {
   const status = {};
   priceCache.forEach((value, key) => {
     status[key] = {
       age: Math.round((Date.now() - value.timestamp) / 1000) + 's',
       tier: value.tier,
+      source: value.source,
       isReal: value.isReal
     };
   });
   return status;
 };
+
+export const getCacheSize = () => priceCache.size;
+
+// Export symbols for UI components
+export { TIER1_SYMBOLS, TIER1_STOCKS, TIER1_CRYPTO };
