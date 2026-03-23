@@ -282,42 +282,41 @@ Deno.serve(async (req) => {
       const results = {};
       await Promise.all(symbols.map(async (sym) => {
         try {
-          // 1. Try Finnhub quote (works well for US equities + crypto)
-          const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`);
-          const data = await res.json();
-          if (data.c > 0) {
-            results[sym] = parseFloat(data.c.toFixed(2));
-            return;
-          }
+          const isIntl = /\.(PA|DE|AS|T|HK|L|MI|SW|AX)$/i.test(sym);
+          const isFx = /^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i.test(sym);
 
-          // 2. Fallback: Twelve Data real-time price (handles EU/Asian exchanges + forex + gold)
-          if (TWELVEDATA_KEY) {
-            // Normalize symbol for Twelve Data (same as OHLC path)
-            const TD_EXCHANGE_MAP = { 'PA':'XPAR','DE':'XETR','AS':'XAMS','T':'TSE','HK':'HKEX','L':'LSE','MI':'MIL','SW':'SWX','AX':'ASX' };
-            let tdSym = sym;
-            const im = sym.match(/^(.+)\.([A-Z]+)$/);
-            if (im && TD_EXCHANGE_MAP[im[2]]) tdSym = `${im[1]}:${TD_EXCHANGE_MAP[im[2]]}`;
-            else {
+          // 1. Polygon — covers US equities AND many international exchanges
+          if (POLYGON_KEY) {
+            // For forex/commodities use Polygon's forex snapshot
+            if (isFx) {
               const fm = sym.match(/^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
-              if (fm) tdSym = `${fm[1]}/${fm[2]}`;
-            }
-            const tdRes = await fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(tdSym)}&apikey=${TWELVEDATA_KEY}`);
-            const tdData = await tdRes.json();
-            if (tdData.price && parseFloat(tdData.price) > 0) {
-              results[sym] = parseFloat(parseFloat(tdData.price).toFixed(4));
-              return;
+              const polyRes = await fetch(`https://api.polygon.io/v2/last/forex/${fm[1]}/${fm[2]}?apiKey=${POLYGON_KEY}`);
+              const polyData = await polyRes.json();
+              const rate = polyData?.last?.ask || polyData?.last?.bid;
+              if (rate && rate > 0) { results[sym] = parseFloat(parseFloat(rate).toFixed(4)); return; }
+            } else {
+              // Stocks: use Polygon previous close (works for US + international tickers)
+              const polyRes = await fetch(`https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`);
+              const polyData = await polyRes.json();
+              const close = polyData?.results?.[0]?.c;
+              if (close && close > 0) { results[sym] = parseFloat(close.toFixed(2)); return; }
             }
           }
 
-          // 3. Fallback: AlphaVantage for forex + commodities
-          if (AV_KEY) {
-            const forexMatch = sym.match(/^([A-Z]{3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
-            if (forexMatch) {
-              const avRes = await fetch(`https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${forexMatch[1]}&to_currency=${forexMatch[2]}&apikey=${AV_KEY}`);
-              const avData = await avRes.json();
-              const rate = parseFloat(avData?.['Realtime Currency Exchange Rate']?.['5. Exchange Rate'] || 0);
-              if (rate > 0) { results[sym] = parseFloat(rate.toFixed(4)); return; }
-            }
+          // 2. Finnhub quote (US equities + crypto)
+          if (FINNHUB_KEY && !isIntl && !isFx) {
+            const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`);
+            const data = await res.json();
+            if (data.c > 0) { results[sym] = parseFloat(data.c.toFixed(2)); return; }
+          }
+
+          // 3. AlphaVantage for forex/commodities (real-time exchange rate)
+          if (AV_KEY && isFx) {
+            const fm = sym.match(/^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
+            const avRes = await fetch(`https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${fm[1]}&to_currency=${fm[2]}&apikey=${AV_KEY}`);
+            const avData = await avRes.json();
+            const rate = parseFloat(avData?.['Realtime Currency Exchange Rate']?.['5. Exchange Rate'] || 0);
+            if (rate > 0) { results[sym] = parseFloat(rate.toFixed(4)); return; }
           }
 
           results[sym] = null;
