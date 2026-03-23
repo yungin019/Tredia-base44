@@ -16,17 +16,14 @@ export default function ExpandedAssetList() {
   const navigate = useNavigate();
   const refreshIntervalRef = useRef(null);
 
-  // Fetch live stock prices with auto-refresh
+  // Fetch live stock prices with auto-refresh (batched for performance)
   useEffect(() => {
-    async function fetchPrices() {
+    const PRIORITY_SYMBOLS = ['AAPL', 'NVDA', 'MSFT', 'AMZN', 'GOOGL', 'TSLA', 'META', 'SPY', 'QQQ', 'AMD', 'NFLX', 'CRM', 'AVGO', 'CRM', 'ACN', 'ADBE', 'PLTR', 'SNOW', 'UBER', 'COIN'];
+    
+    async function fetchBatch(symbols) {
       try {
-        const stockSymbols = EXPANDED_ASSETS
-          .filter(a => a.sector !== 'Crypto')
-          .map(a => a.symbol);
-        
-        const res = await base44.functions.invoke('stockPrices', { symbols: stockSymbols });
+        const res = await base44.functions.invoke('stockPrices', { symbols });
         if (res?.data?.prices) {
-          // Transform API response to include calculated change %
           const transformedData = {};
           Object.entries(res.data.prices).forEach(([symbol, data]) => {
             if (data && data.price) {
@@ -41,22 +38,47 @@ export default function ExpandedAssetList() {
               };
             }
           });
-          setLiveData(transformedData);
-          setLastRefresh(new Date());
-          setRefreshCount(prev => prev + 1);
+          return transformedData;
         }
       } catch (error) {
-        console.error('Error fetching stock prices:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching batch:', error);
       }
+      return {};
+    }
+    
+    async function fetchPrices() {
+      setLoading(true);
+      
+      // First fetch priority assets
+      const priorityData = await fetchBatch(PRIORITY_SYMBOLS);
+      setLiveData(prev => ({ ...prev, ...priorityData }));
+      
+      // Then fetch remaining assets in batches of 30
+      const remainingSymbols = EXPANDED_ASSETS
+        .filter(a => a.sector !== 'Crypto' && !PRIORITY_SYMBOLS.includes(a.symbol))
+        .map(a => a.symbol);
+      
+      const BATCH_SIZE = 30;
+      for (let i = 0; i < remainingSymbols.length; i += BATCH_SIZE) {
+        const batch = remainingSymbols.slice(i, i + BATCH_SIZE);
+        const batchData = await fetchBatch(batch);
+        setLiveData(prev => ({ ...prev, ...batchData }));
+        // Small delay between batches to avoid rate limits
+        if (i + BATCH_SIZE < remainingSymbols.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      setLastRefresh(new Date());
+      setRefreshCount(prev => prev + 1);
+      setLoading(false);
     }
     
     // Initial fetch
     fetchPrices();
     
-    // Auto-refresh every 45 seconds
-    refreshIntervalRef.current = setInterval(fetchPrices, 45000);
+    // Auto-refresh every 60 seconds (increased to avoid rate limits)
+    refreshIntervalRef.current = setInterval(fetchPrices, 60000);
     
     return () => {
       if (refreshIntervalRef.current) {
