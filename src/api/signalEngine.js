@@ -1,6 +1,10 @@
 // Signal Engine: Derives BUY/SELL/WATCH/AVOID signals from live market data
 // Uses price action, momentum, volatility, and trend context
-// CANONICAL SIGNALS: BUY, SELL, WATCH, AVOID (normalized at source, never in UI)
+// 
+// ARCHITECTURE:
+// - Internal analysis: momentum, volatility, bias (bullish/bearish) used for reasoning
+// - Output signal: Always canonical (BUY, SELL, WATCH, AVOID) - NEVER bullish/bearish
+// - Reason field: Can mention "bullish" or "bearish" momentum in text, but action label is canonical
 
 export function deriveSignal(asset, priceData, context = {}) {
   const { price, prevClose, change24h, high24h, low24h } = priceData;

@@ -1,12 +1,26 @@
 # Signal Normalization - Canonical Mapping
 
-## Canonical Signal Set (Production)
+## Canonical Signal Set (User-Facing)
+**These are the ONLY labels users see in UI:**
 ```
-BUY     - Strong bullish signal, momentum positive
-SELL    - Strong bearish signal, momentum negative  
-WATCH   - Neutral/consolidation, mixed signals
-AVOID   - Bearish but not as strong as SELL, caution advised
+BUY     - Action: Enter position
+SELL    - Action: Exit position
+WATCH   - Action: Monitor, no entry yet
+AVOID   - Action: Stay out, high risk
 ```
+
+## Internal Analysis States (Hidden from Users)
+**Used internally for reasoning and bias, NOT as visible action labels:**
+- BULLISH - Positive momentum, uptrend bias
+- BEARISH - Negative momentum, downtrend bias
+- LONG - Potential buy setup
+- SHORT - Potential sell setup
+
+These appear only in:
+- Reason/reasoning text (descriptive)
+- System prompts for AI analysis
+- Internal logic comments
+- Never in action badges or main CTA
 
 ## Source-Level Normalization (FIXED ✅)
 
@@ -35,12 +49,19 @@ AVOID   - Bearish but not as strong as SELL, caution advised
 - **Fallback:** WATCH (for unknown values)
 - **Status:** ✅ PROTECTED
 
-## Removed Old Labels
-- ❌ BULLISH
-- ❌ BEARISH  
+## What Changed
+
+### Removed as ACTION Labels (no longer shown to users)
+- ❌ BULLISH (now: internal analysis state only)
+- ❌ BEARISH (now: internal analysis state only)
 - ❌ HOLD (→ WATCH)
-- ❌ LONG (→ BUY)
-- ❌ SHORT (→ SELL)
+- ❌ LONG (→ BUY in action labels)
+- ❌ SHORT (→ SELL in action labels)
+
+### Kept as Internal Analysis States (hidden, for reasoning)
+- ✅ bullish/bearish (in reason text, prompts, comments)
+- ✅ long/short (in system prompts, internal logic)
+- Used ONLY for explanation, never as visible action badges
 
 ## Signal Flow
 
@@ -49,25 +70,36 @@ AVOID   - Bearish but not as strong as SELL, caution advised
 │  Market Data (price, momentum, RSI) │
 └────────────┬────────────────────────┘
              │
+             ├─→ Internal: "momentum is bullish" (reasoning)
+             ├─→ Internal: "bias is long" (analysis state)
+             │
              ▼
 ┌─────────────────────────────────────┐
 │  signalEngine.js / trekEngine.js    │
-│  Derive: BUY, SELL, WATCH, AVOID    │
+│  Calculate: momentum, volatility    │
+│  Derive ACTION: BUY, SELL, WATCH    │
+│  Reasoning: use bullish/bearish for │
+│  explanation, NOT as action label   │
 └────────────┬────────────────────────┘
              │
              ▼
 ┌─────────────────────────────────────┐
-│  API Returns: {signal, confidence}  │
-│  CANONICAL SET ONLY                 │
+│  API Returns:                       │
+│  {                                  │
+│    signal: "BUY",           ← CANONICAL
+│    reason: "bullish momentum...",   ← Can mention bullish
+│    confidence: 75                   │
+│  }                                  │
 └────────────┬────────────────────────┘
              │
              ▼
 ┌─────────────────────────────────────┐
 │  UI Components                      │
-│  - YourMovesToday (signal colors)   │
-│  - NextJumpDetector (direction)     │
-│  - Markets (signal badges)          │
-│  All use CANONICAL signals          │
+│  Display:                           │
+│  Badge: "BUY" ← Only canonical      │
+│  Text: "bullish momentum" ← OK, in reason
+│                                     │
+│  User sees: Action + Reasoning      │
 └─────────────────────────────────────┘
 ```
 
