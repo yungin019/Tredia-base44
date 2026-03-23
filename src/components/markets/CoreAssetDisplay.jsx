@@ -140,8 +140,17 @@ export default function CoreAssetDisplay() {
 
                 {/* Live indicator */}
                 <div className="mt-2 pt-2 border-t border-white/5 text-[9px] text-white/30 flex items-center gap-1">
-                  <div className="h-1.5 w-1.5 rounded-full bg-chart-3 animate-pulse" />
-                  Real-time
+                  {priceInfo.source === 'cached-fallback' ? (
+                    <>
+                      <div className="h-1.5 w-1.5 rounded-full bg-warning" />
+                      Cached
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-1.5 w-1.5 rounded-full bg-chart-3 animate-pulse" />
+                      Live
+                    </>
+                  )}
                 </div>
               </motion.button>
             );
