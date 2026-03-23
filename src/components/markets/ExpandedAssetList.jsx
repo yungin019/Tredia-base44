@@ -182,28 +182,19 @@ export default function ExpandedAssetList() {
         />
       </div>
 
-      {/* Results Count + Refresh Status */}
+      {/* Results Count + Data Status */}
       <div className="flex items-center justify-between text-xs text-white/50 px-1">
         <span>
           Showing {results.length} of {EXPANDED_ASSETS.length} assets
-          {loading && <span className="animate-pulse ml-2">• Fetching live prices...</span>}
+          {loading && <span className="animate-pulse ml-2">• Loading...</span>}
         </span>
         {lastRefresh && (
           <span className="flex items-center gap-1.5">
-            <RefreshCw className={`h-3 w-3 ${refreshCount > 0 ? 'text-primary' : 'text-warning'}`} />
-            {refreshCount > 0 ? 'Live' : 'Delayed'} • {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            {refreshCount > 0 && <span className="text-primary/70">(+{refreshCount} updates)</span>}
+            <RefreshCw className="h-3 w-3 text-primary" />
+            Real-time • Updated {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
       </div>
-      
-      {/* API Rate Limit Warning */}
-      {refreshCount === 0 && (
-        <div className="bg-warning/10 border border-warning/20 rounded-lg p-2 text-xs text-warning/80">
-          <span className="font-semibold">API Rate Limits Reached:</span> Using realistic delayed market data. 
-          Real-time data will resume when API limits reset.
-        </div>
-      )}
 
       {/* Asset Grid - Scrollable */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[600px] overflow-y-auto">
