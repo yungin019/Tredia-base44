@@ -6,7 +6,6 @@ import { Zap, TrendingUp, TrendingDown, AlertTriangle, ChevronRight } from 'luci
 import { fetchFearGreed } from '@/api/marketData';
 import TickerTape from '@/components/dashboard/TickerTape';
 import IndexCardsSection from '@/components/markets/IndexCardsSection';
-import { base44 } from '@/api/base44Client';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { getFoundingStats, getFoundingMemberInfo } from '@/api/foundingMembers';
 import { NextJumpDetector } from '@/components/ai/NextJumpDetector';
@@ -22,10 +21,7 @@ import SmartNews from '@/components/feed/SmartNews';
 import UpgradeCall from '@/components/feed/UpgradeCall';
 import TrendingAssets from '@/components/markets/TrendingAssets';
 import WatchlistQuick from '@/components/markets/WatchlistQuick';
-
-
-
-
+import { fetchTier1Assets, fetchCryptoPrices } from '@/api/marketDataClient';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -34,48 +30,37 @@ export default function Home() {
   const [ogStats, setOgStats] = useState(null);
   const [isOgMember, setIsOgMember] = useState(false);
   const [liveStocks, setLiveStocks] = useState([]);
+  const [cryptoPrices, setCryptoPrices] = useState([]);
+  const [dataStatus, setDataStatus] = useState('loading');
 
+  // TIER 1: Core assets for Home feed (REAL-TIME PRIORITY)
   useEffect(() => {
-    fetchFearGreed().then(fg => { if (fg) setFearGreed(fg); });
-    getFoundingStats().then(stats => setOgStats(stats)).catch(() => {});
-    base44.auth.me().then(user => {
-      if (user?.email || user?.id) {
-        getFoundingMemberInfo(user.email || user.id).then(member => {
-          if (member) setIsOgMember(true);
-        }).catch(() => {});
-      }
-    }).catch(() => {});
-    
-    // Fetch live stock data
-    async function fetchStocks() {
+    async function fetchTier1() {
       try {
-        const symbols = ['NVDA', 'AAPL', 'TSLA', 'META', 'MSFT', 'AMZN', 'GOOGL', 'SPY', 'QQQ'];
-        const res = await base44.functions.invoke('stockPrices', { symbols });
-        if (res?.data?.prices) {
-          const stocks = symbols
-            .filter(s => res.data.prices[s] && res.data.prices[s].price > 0)
-            .map(s => {
-              const data = res.data.prices[s];
-              const change = data.prevClose ? ((data.price - data.prevClose) / data.prevClose) * 100 : 0;
-              return {
-                symbol: s,
-                name: s,
-                price: data.price,
-                change: parseFloat(change.toFixed(2)),
-                signal: change > 2 ? 'BUY' : change < -2 ? 'SELL' : 'WATCH'
-              };
-            });
+        setDataStatus('loading');
+        const [stocks, crypto] = await Promise.all([
+          fetchTier1Assets(),
+          fetchCryptoPrices()
+        ]);
+        
+        if (stocks.length > 0) {
           setLiveStocks(stocks);
+          setCryptoPrices(crypto);
+          setDataStatus('live');
+          console.log(`[Home] Loaded ${stocks.length} stocks + ${crypto.length} crypto (TIER 1)`);
         }
       } catch (error) {
-        console.error('Error fetching stocks:', error);
+        console.error('[Home] Tier 1 fetch failed:', error.message);
+        setDataStatus('stale');
       }
     }
     
-    fetchStocks();
+    fetchTier1();
+    
+    // Auto-refresh Tier 1 every 15 seconds (real-time feel)
+    const interval = setInterval(fetchTier1, 15000);
+    return () => clearInterval(interval);
   }, []);
-
-
 
   const sentimentLabel = fearGreed
     ? fearGreed.value >= 70 ? t('trek.greed') : fearGreed.value >= 50 ? t('common.neutral') : fearGreed.value >= 30 ? t('trek.fear') : t('trek.extremeFear')
@@ -150,12 +135,16 @@ export default function Home() {
           {/* 7. Upgrade Section (at bottom) */}
           <UpgradeCall onUpgrade={() => navigate('/Upgrade')} />
           
-          {/* Live data indicator */}
-          <div className="text-center text-xs text-white/30 pt-4 border-t border-white/5">
-            {liveStocks.length > 0 ? (
-              <span>✓ All data is live from Polygon.io + CoinGecko • Last update: {new Date().toLocaleTimeString()}</span>
-            ) : (
-              <span>Loading real-time market data...</span>
+          {/* Live data status indicator */}
+          <div className="text-center text-xs pt-4 border-t border-white/5">
+            {dataStatus === 'loading' && (
+              <span className="text-white/30">⏳ Loading real-time data...</span>
+            )}
+            {dataStatus === 'live' && (
+              <span className="text-primary/60">✓ Real-time data active • Last update: {new Date().toLocaleTimeString()}</span>
+            )}
+            {dataStatus === 'stale' && (
+              <span className="text-warning/60">⚠ Using cached data (API unavailable)</span>
             )}
           </div>
         </div>
