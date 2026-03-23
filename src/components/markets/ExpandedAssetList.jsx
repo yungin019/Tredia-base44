@@ -43,65 +43,62 @@ export default function ExpandedAssetList() {
     return () => {};
   }, []);
 
-  // Fetch live crypto prices with auto-refresh
+  // Fetch crypto prices (Tier 1 - real-time)
   useEffect(() => {
     async function fetchCrypto() {
       try {
-        const cryptoIds = {
-          'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple',
-          'ADA': 'cardano', 'DOGE': 'dogecoin', 'MATIC': 'matic-network',
-          'AVAX': 'avalanche-2', 'LINK': 'chainlink', 'UNI': 'uniswap',
-          'SHIB': 'shiba-inu', 'PEPE': 'pepe', 'LDO': 'lido-dao'
-        };
-        
-        const ids = Object.values(cryptoIds).join(',');
-        const response = await fetch(
-          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
-        );
-        
-        if (!response.ok) {
-          if (response.status === 429) {
-            console.warn('CoinGecko rate limited, keeping previous data');
-            return; // Keep existing data, don't update
-          }
-          throw new Error('CoinGecko error');
-        }
-        
-        const data = await response.json();
-        
+        const results = await fetchCryptoPrices();
         const priceMap = {};
-        Object.entries(cryptoIds).forEach(([symbol, id]) => {
-          if (data[id] && data[id].usd) {
-            priceMap[symbol] = {
-              price: data[id].usd,
-              change: data[id].usd_24h_change || 0,
-              prevClose: data[id].usd / (1 + (data[id].usd_24h_change || 0) / 100)
-            };
-          }
+        results.forEach(r => {
+          priceMap[r.symbol] = r;
         });
-        
-        // Only update if we got valid data
         if (Object.keys(priceMap).length > 0) {
           setCryptoData(priceMap);
           setLastRefresh(new Date());
           setRefreshCount(prev => prev + 1);
         }
       } catch (error) {
-        console.warn('Crypto fetch failed, keeping previous data:', error.message);
-        // Keep existing data on error
+        console.warn('[Markets] Crypto fetch failed:', error.message);
       } finally {
         setLoading(false);
       }
     }
     
-    // Initial fetch
     fetchCrypto();
-    
-    // Auto-refresh every 60 seconds (reduced from 30s to avoid rate limits)
     const cryptoInterval = setInterval(fetchCrypto, 60000);
-    
     return () => clearInterval(cryptoInterval);
   }, []);
+
+  // Fetch more prices as user scrolls/searches (ON-DEMAND strategy)
+  useEffect(() => {
+    const visibleSymbols = results
+      .filter(a => a.sector !== 'Crypto')
+      .slice(0, 30)
+      .map(a => a.symbol);
+    
+    async function fetchVisible() {
+      const missing = visibleSymbols.filter(s => !liveData[s]);
+      if (missing.length > 0) {
+        try {
+          const newPrices = await fetchMarketScan(missing, 3);
+          setLiveData(prev => {
+            const updated = { ...prev };
+            newPrices.forEach(r => {
+              updated[r.symbol] = r;
+            });
+            return updated;
+          });
+          setRefreshCount(c => c + 1);
+        } catch (error) {
+          console.error('[Markets] Scroll fetch failed:', error.message);
+        }
+      }
+    }
+    
+    if (!loading) {
+      fetchVisible();
+    }
+  }, [results, loading]);
 
   const results = useMemo(() => {
     if (!searchQuery.trim()) return EXPANDED_ASSETS.slice(0, 50);
