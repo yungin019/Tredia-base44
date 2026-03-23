@@ -93,8 +93,10 @@ Deno.serve(async (req) => {
             url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${resolut}&from=${adjustedFrom}&to=${now}&token=${FINNHUB_KEY}`;
           }
 
+          console.log('[DEBUG] Finnhub OHLC url:', url);
           const res = await fetchWithTimeout(url);
           const data = await res.json();
+          console.log('[DEBUG] Finnhub response s:', data.s, 'len:', data.c?.length);
           if (data.s === 'ok' && data.c && data.c.length > 0) {
             const dp = isForex ? 4 : 2;
             const chartData = data.t.map((ts, i) => ({
