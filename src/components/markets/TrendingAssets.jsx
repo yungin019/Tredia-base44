@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import MiniSparkline from './MiniSparkline';
+import MiniSparkline from '../dashboard/MiniSparkline';
 
 const SIGNAL_STYLE = {
   BUY:   { color: '#22c55e', bg: 'rgba(34,197,94,0.12)',  border: 'rgba(34,197,94,0.25)' },
