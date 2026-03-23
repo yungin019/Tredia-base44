@@ -255,8 +255,41 @@ Deno.serve(async (req) => {
           });
         }
 
-        // 3. Twelve Data (international + forex + crypto)
-        if (TWELVEDATA_KEY) {
+        // 3. CoinGecko (crypto only - most reliable)
+        if (isCrypto) {
+          providers.push(async () => {
+            const COINGECKO_IDS = {
+              'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple',
+              'ADA': 'cardano', 'DOGE': 'dogecoin', 'MATIC': 'matic-network',
+              'AVAX': 'avalanche-2', 'FTM': 'fantom', 'LINK': 'chainlink',
+              'ARB': 'arbitrum', 'OP': 'optimism', 'LDO': 'lido-dao',
+              'PEPE': 'pepe', 'SHIB': 'shiba-inu', 'UNI': 'uniswap',
+              'AAVE': 'aave', 'CRV': 'curve-dao-token', 'MKR': 'maker',
+              'SNX': 'synthetix', 'GRT': 'the-graph', 'ATOM': 'cosmos',
+              'NEAR': 'near', 'ALGO': 'algorand', 'FLOW': 'flow'
+            };
+            const coinId = COINGECKO_IDS[sym.toUpperCase()];
+            if (!coinId) throw new Error('CoinGecko no ID');
+            
+            const res = await fetchWithTimeout(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`);
+            const data = await res.json();
+            const coinData = data[coinId];
+            if (coinData && coinData.usd && coinData.usd > 0) {
+              const change = coinData.usd_24h_change || 0;
+              const prevClose = coinData.usd / (1 + change / 100);
+              return {
+                price: parseFloat(coinData.usd.toFixed(2)),
+                prevClose: parseFloat(prevClose.toFixed(2)),
+                change: parseFloat(change.toFixed(2)),
+                timestamp: Date.now()
+              };
+            }
+            throw new Error('CoinGecko no data');
+          });
+        }
+
+        // 4. Twelve Data (international + forex fallback)
+        if (TWELVEDATA_KEY && !isCrypto) {
           providers.push(async () => {
             let tdSymbol = sym;
             if (isFx) {
