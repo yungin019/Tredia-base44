@@ -8,6 +8,7 @@ import { sendPushNotification } from '@/api/notifications';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import CandlestickChart from '@/components/markets/CandlestickChart';
 import TrekInstantRead from '@/components/trek/TrekInstantRead';
+import AssetNewsSection from '@/components/news/AssetNewsSection';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
