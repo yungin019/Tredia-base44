@@ -24,6 +24,11 @@ const ASSET_MAP = {
   // Asia
   '7203.T':  { name: 'Toyota Motor Corp',   sector: 'Automotive · Tokyo Stock Exchange' },
   BABA:      { name: 'Alibaba Group',        sector: 'E-Commerce · NYSE (ADR)' },
+  // Forex / Commodities
+  EURUSD:    { name: 'Euro / US Dollar',     sector: 'Forex' },
+  GBPUSD:    { name: 'British Pound / USD',  sector: 'Forex' },
+  XAUUSD:    { name: 'Gold / US Dollar',     sector: 'Commodity' },
+  XAGUSD:    { name: 'Silver / US Dollar',   sector: 'Commodity' },
 };
 
 // ── Static data store per symbol ─────────────────────────────────────────────
