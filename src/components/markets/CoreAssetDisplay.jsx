@@ -11,17 +11,14 @@ import { fetchTier1Assets } from '@/api/marketDataClient';
  * Shows real data or honest loading states, never fake prices
  */
 
+// Reduced to 8 core assets to minimize API calls and stay within budget
 const CORE_ASSETS = [
   { symbol: 'NVDA', name: 'NVIDIA', sector: 'Technology' },
   { symbol: 'AAPL', name: 'Apple', sector: 'Technology' },
   { symbol: 'MSFT', name: 'Microsoft', sector: 'Technology' },
   { symbol: 'TSLA', name: 'Tesla', sector: 'Automotive' },
   { symbol: 'AMZN', name: 'Amazon', sector: 'Technology' },
-  { symbol: 'GOOGL', name: 'Alphabet', sector: 'Technology' },
-  { symbol: 'META', name: 'Meta', sector: 'Technology' },
-  { symbol: 'JPM', name: 'JPMorgan', sector: 'Finance' },
   { symbol: 'SPY', name: 'S&P 500', sector: 'Index' },
-  { symbol: 'QQQ', name: 'Nasdaq-100', sector: 'Index' },
   { symbol: 'BTC', name: 'Bitcoin', sector: 'Crypto' },
   { symbol: 'ETH', name: 'Ethereum', sector: 'Crypto' },
 ];

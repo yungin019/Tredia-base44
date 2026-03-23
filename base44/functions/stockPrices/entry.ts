@@ -231,30 +231,23 @@ Deno.serve(async (req) => {
         const providers = [];
 
         // 1. Alpaca (FREE real-time US stocks - primary)
-        if (ALPACA_KEY && ALPACA_SECRET && !isFx && !isCrypto && !isIntl) {
+        if (ALPACA_KEY && !isFx && !isCrypto && !isIntl) {
           providers.push(async () => {
             try {
               const url = `https://data.alpaca.markets/v2/stocks/${sym}/quotes/latest`;
-              const headers = {
-                'APCA-API-KEY-ID': ALPACA_KEY,
-                'APCA-API-SECRET-KEY': ALPACA_SECRET
-              };
-              console.log(`Trying Alpaca for ${sym}`);
-              const res = await fetchWithTimeout(url, 5000);
-              console.log(`Alpaca response for ${sym}: ${res.status}`);
+              const headers = { 'APCA-API-KEY-ID': ALPACA_KEY };
+              console.log(`[Alpaca] Trying ${sym}`);
+              const res = await fetchWithTimeout(url, 4000);
+              if (res.status === 401) throw new Error('Alpaca auth failed');
               const data = await res.json();
-              console.log(`Alpaca data for ${sym}:`, JSON.stringify(data).slice(0, 150));
-              const price = data?.quote?.ap || data?.quote?.p;
+              const price = data?.quote?.ap || data?.quote?.p || data?.quote?.lp;
               if (price && price > 0) {
-                return {
-                  price: parseFloat(price.toFixed(2)),
-                  prevClose: null,
-                  timestamp: Date.now()
-                };
+                console.log(`[Alpaca] ✓ ${sym} = $${price}`);
+                return { price: parseFloat(price.toFixed(2)), prevClose: null, timestamp: Date.now(), source: 'alpaca' };
               }
-              throw new Error(`Alpaca no price: ${JSON.stringify(data).slice(0, 100)}`);
+              throw new Error(`no price in: ${JSON.stringify(data).slice(0, 80)}`);
             } catch (e) {
-              console.log(`Alpaca failed for ${sym}: ${e.message}`);
+              console.log(`[Alpaca] ✗ ${sym}: ${e.message}`);
               throw e;
             }
           });
