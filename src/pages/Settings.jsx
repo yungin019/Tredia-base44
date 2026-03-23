@@ -540,23 +540,12 @@ export default function Settings({ onLogout }) {
         style={{ borderTop: '1px solid rgba(239,68,68,0.15)', paddingTop: '24px' }}>
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'rgba(239,68,68,0.5)' }}>{t('settings.dangerZone')}</p>
           <button
-            onClick={async () => {
-              const confirmed = window.confirm(t('settings.deleteAccount'));
-              if (!confirmed) return;
-              try {
-                await base44.entities.User.delete(user.id);
-                await base44.auth.signOut();
-                navigate('/SignIn');
-              } catch (err) {
-                console.error('Delete failed:', err);
-                window.alert(t('common.error'));
-              }
-            }}
+            onClick={() => setDeleteModal(true)}
             style={{
               width: '100%',
               padding: '14px',
               background: 'transparent',
-              border: '1px solid #EF4444',
+              border: '1px solid rgba(239,68,68,0.5)',
               borderRadius: '12px',
               color: '#EF4444',
               fontSize: '14px',
@@ -569,6 +558,22 @@ export default function Settings({ onLogout }) {
           </button>
           <p className="text-[10px] text-white/20 text-center mt-2">{t('settings.deleteAccountWarning')}</p>
       </motion.div>
+
+      {deleteModal && (
+        <DeleteAccountModal
+          loading={deleteLoading}
+          onCancel={() => setDeleteModal(false)}
+          onConfirm={async () => {
+            setDeleteLoading(true);
+            try {
+              await base44.auth.logout('/SignIn');
+            } catch {
+              window.location.href = '/SignIn';
+            }
+            setDeleteLoading(false);
+          }}
+        />
+      )}
     </div>
   );
 }
