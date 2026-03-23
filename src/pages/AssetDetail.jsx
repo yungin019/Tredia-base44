@@ -612,7 +612,7 @@ export default function AssetDetail() {
       {/* Next Catalyst */}
       {staticAsset.nextCatalyst && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-          className="rounded-xl p-4"
+          className="rounded-xl p-4 mb-4"
           style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
           <div className="flex items-center gap-2 mb-2">
             <Target className="h-3.5 w-3.5 text-primary" />
@@ -621,6 +621,9 @@ export default function AssetDetail() {
           <p className="text-[12px] text-white/80 leading-relaxed">{staticAsset.nextCatalyst}</p>
         </motion.div>
       )}
+
+      {/* Asset-specific news */}
+      <AssetNewsSection symbol={symbol} />
 
       {/* Trade Modal */}
       <AnimatePresence>
