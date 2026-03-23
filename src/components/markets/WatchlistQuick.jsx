@@ -3,15 +3,11 @@ import { motion } from 'framer-motion';
 import { Star, TrendingUp, TrendingDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const WATCHLIST = [
-  { symbol: 'AAPL', price: 190.45, change: 2.3 },
-  { symbol: 'MSFT', price: 415.80, change: 1.8 },
-  { symbol: 'NFLX', price: 265.40, change: 4.2 },
-  { symbol: 'COST', price: 835.20, change: 2.9 },
-];
-
-export default function WatchlistQuick() {
+export default function WatchlistQuick({ stocks = [] }) {
   const navigate = useNavigate();
+
+  // Only show stocks with live data
+  const liveStocks = stocks.filter(s => s.price && s.price > 0).slice(0, 4);
 
   return (
     <div>
@@ -20,7 +16,7 @@ export default function WatchlistQuick() {
         <h3 className="text-sm font-bold text-white/80">Your Watchlist</h3>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        {WATCHLIST.map((asset, i) => (
+        {liveStocks.length > 0 ? liveStocks.map((asset, i) => (
           <motion.button
             key={asset.symbol}
             initial={{ opacity: 0, y: 8 }}
