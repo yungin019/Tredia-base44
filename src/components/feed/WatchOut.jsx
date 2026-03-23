@@ -6,7 +6,7 @@ const RISKS = [
   {
     symbol: 'TSLA',
     level: 'HIGH',
-    why: 'Growth rally is on. TSLA should rally. It's NOT. Delivery misses + margin concerns = real weakness.',
+    why: "Growth rally is on. TSLA should rally. It's NOT. Delivery misses + margin concerns = real weakness.",
     action: 'Stay out. Do NOT catch this falling knife.',
     fails: 'If TSLA bounces 4%+ with heavy volume, this thesis breaks. But odds favor more downside.',
   },
@@ -21,7 +21,7 @@ const RISKS = [
     symbol: 'XLE',
     level: 'MEDIUM',
     why: 'Oil up 2.8% today. Energy stocks NOT following. This divergence = structural weakness, not a bounce.',
-    action: 'Don't buy here. This is a trap.',
+    action: "Don't buy here. This is a trap.",
     fails: 'If oil stays above $90 and energy reverses, could work. But odds favor 5-8% more downside first.',
   },
 ];
