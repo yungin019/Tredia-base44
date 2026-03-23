@@ -94,8 +94,10 @@ Deno.serve(async (req) => {
           }
 
           console.log('[DEBUG] Finnhub OHLC url:', url);
-          const res = await fetchWithTimeout(url);
-          const data = await res.json();
+          const res = await fetchWithTimeout(url, 6000);
+          const raw = await res.text();
+          console.log('[DEBUG] Finnhub raw (first 200):', raw.slice(0, 200));
+          const data = JSON.parse(raw);
           console.log('[DEBUG] Finnhub response s:', data.s, 'len:', data.c?.length);
           if (data.s === 'ok' && data.c && data.c.length > 0) {
             const dp = isForex ? 4 : 2;
