@@ -258,10 +258,17 @@ export default function ExpandedAssetList() {
                   </div>
                 )}
 
-                {/* Confidence + Sector */}
+                {/* Signal Confidence + Sector */}
                 <div className="mt-2 pt-2 border-t border-white/5 flex justify-between items-center text-xs">
                   <span className="text-white/40">{asset.sector}</span>
-                  <span className="text-white/50">Conf: {asset.confidence}%</span>
+                  <div className="flex items-center gap-2">
+                    {signal.metrics && (
+                      <span className="text-white/40" title={`Momentum: ${signal.metrics.momentumScore}`}>
+                        {signal.metrics.volatility} vol
+                      </span>
+                    )}
+                    <span className="text-white/50">Conf: {signal.confidence}%</span>
+                  </div>
                 </div>
               </motion.button>
             );
