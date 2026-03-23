@@ -3,9 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { formatPrice, formatPercent, validatePrice, validatePercent } from '@/lib/dataValidation';
-import { useLoadingState } from '@/hooks/useLoadingState';
-import { SkeletonCard, LoadingMessage, DataUnavailable } from '@/components/ui/SkeletonLoader';
-import { fetchTier1Assets, getCacheStatus } from '@/api/marketDataClient';
+import { SkeletonCard } from '@/components/ui/SkeletonLoader';
+import { fetchTier1Assets } from '@/api/marketDataClient';
 
 /**
  * Core Asset Display - 12-14 high-priority assets only
@@ -37,10 +36,7 @@ export default function CoreAssetDisplay() {
   // Load core assets on mount
   useEffect(() => {
     async function loadCore() {
-      setLoading(true);
-      setError(false);
       try {
-        // Try to fetch live data
         const assets = await fetchTier1Assets();
         
         if (assets && assets.length > 0) {
@@ -54,37 +50,11 @@ export default function CoreAssetDisplay() {
               };
             }
           });
-          
-          if (Object.keys(priceMap).length > 0) {
-            setLiveData(priceMap);
-            setLoading(false);
-            return;
-          }
-        }
-        
-        // If live fetch failed, try cache as fallback
-        const cacheStatus = getCacheStatus();
-        const cachedPrices = {};
-        CORE_ASSETS.forEach(asset => {
-          if (cacheStatus[asset.symbol]) {
-            cachedPrices[asset.symbol] = {
-              price: asset.price || 0,
-              prevClose: asset.prevClose || 0,
-              change: asset.change || 0
-            };
-          }
-        });
-        
-        if (Object.keys(cachedPrices).length > 0) {
-          setLiveData(cachedPrices);
-          setLoading(false);
-        } else {
-          setError(true);
-          setLoading(false);
+          setLiveData(priceMap);
         }
       } catch (err) {
         console.error('[CoreAssets] Load failed:', err.message);
-        setError(true);
+      } finally {
         setLoading(false);
       }
     }
@@ -99,8 +69,8 @@ export default function CoreAssetDisplay() {
     window.location.reload();
   };
 
-  // Skeleton state
-  if (loadingState === 'skeleton') {
+  // Loading state
+  if (loading) {
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -112,33 +82,14 @@ export default function CoreAssetDisplay() {
     );
   }
 
-  // Fetching state
-  if (loadingState === 'fetching') {
+  // No data available
+  if (Object.keys(liveData).length === 0) {
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {CORE_ASSETS.slice(0, 12).map((asset) => (
-            <motion.div
-              key={asset.symbol}
-              initial={{ opacity: 0.5 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, repeat: Infinity }}
-              className="rounded-lg border border-white/5 bg-white/[0.03] p-4"
-            >
-              <div className="h-8 w-16 bg-white/5 rounded animate-pulse mb-2" />
-              <div className="h-4 w-20 bg-white/5 rounded animate-pulse" />
-            </motion.div>
-          ))}
-        </div>
-        <LoadingMessage message="Fetching live data…" />
+      <div className="rounded-lg border border-white/5 bg-white/[0.03] p-6 text-center">
+        <p className="text-sm text-white/50">
+          Live market data temporarily unavailable. Please refresh in a moment.
+        </p>
       </div>
-    );
-  }
-
-  // Unavailable state
-  if (loadingState === 'unavailable' || error) {
-    return (
-      <DataUnavailable onRetry={handleRetry} />
     );
   }
 
