@@ -3,25 +3,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Zap, TrendingUp, TrendingDown, AlertTriangle, ChevronRight } from 'lucide-react';
-import MarketNewsSection from '@/components/news/MarketNewsSection';
 import { fetchFearGreed } from '@/api/marketData';
 import TickerTape from '@/components/dashboard/TickerTape';
 import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import { base44 } from '@/api/base44Client';
-import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { getFoundingStats, getFoundingMemberInfo } from '@/api/foundingMembers';
 import { NextJumpDetector } from '@/components/ai/NextJumpDetector';
 import { IntelligenceTicker } from '@/components/ai/IntelligenceTicker';
-import { AlertRow } from '@/components/ai/AlertRow';
 import { OG100Card } from '@/components/ai/OG100Card';
 import { LogTradeButton } from '@/components/ai/LogTradeButton';
-import TrekIntelligenceCardV2 from '@/components/ai/TrekIntelligenceCardV2';
-import ActionableTradeCard from '@/components/ai/ActionableTradeCard';
-import MarketCauseEffectExplainer from '@/components/ai/MarketCauseEffectExplainer';
-import SectorHeatExplainer from '@/components/ai/SectorHeatExplainer';
 import DailyBrief from '@/components/ai/DailyBrief';
-import ElitePremiumShowcase from '@/components/ai/ElitePremiumShowcase';
+import MarketAlert from '@/components/feed/MarketAlert';
+import YourMovesToday from '@/components/feed/YourMovesToday';
+import WatchOut from '@/components/feed/WatchOut';
+import MarketPulse from '@/components/feed/MarketPulse';
+import SmartNews from '@/components/feed/SmartNews';
+import UpgradeCall from '@/components/feed/UpgradeCall';
 
 const ALERTS = [
   { id: 1, type: 'BUY',  symbol: 'NVDA', note: 'Momentum breakout above $870 — volume 3.2× average', age: '7m', color: 'hsl(142, 86%, 28%)', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.25)' },
