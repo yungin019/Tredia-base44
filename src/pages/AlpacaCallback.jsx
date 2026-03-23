@@ -16,14 +16,14 @@ export default function AlpacaCallback() {
 
       if (errorParam) {
         setStatus('error');
-        setError('Authorization was denied or failed');
+        setError('Authorization was denied or cancelled.');
         setTimeout(() => navigate('/Settings'), 3000);
         return;
       }
 
       if (!code) {
         setStatus('error');
-        setError('No authorization code received');
+        setError('No authorization code received from Alpaca.');
         setTimeout(() => navigate('/Settings'), 3000);
         return;
       }
@@ -31,94 +31,61 @@ export default function AlpacaCallback() {
       try {
         setStatus('connecting');
 
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/alpacaAccount`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              action: 'exchange_token',
-              code,
-            }),
-          }
-        );
+        // Exchange code via Base44 backend function (secrets never touch frontend)
+        const tokenRes = await base44.functions.invoke('alpacaOAuth', {
+          action: 'exchange_token',
+          code,
+        });
 
-        if (!response.ok) {
-          throw new Error('Failed to exchange authorization code');
+        if (tokenRes.data?.blocked) {
+          setStatus('error');
+          setError('Alpaca OAuth is not yet configured. Please contact support.');
+          setTimeout(() => navigate('/Settings'), 4000);
+          return;
         }
 
-        const { access_token, refresh_token } = await response.json();
+        if (tokenRes.data?.error) throw new Error(tokenRes.data.error);
+
+        const { access_token, refresh_token } = tokenRes.data;
 
         setStatus('fetching');
 
-        const accountResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/alpacaAccount`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              action: 'get_account',
-              alpaca_token: access_token,
-            }),
-          }
-        );
+        // Fetch account + positions using the user's OAuth token (via backend)
+        const [accountRes, positionsRes] = await Promise.all([
+          base44.functions.invoke('alpacaOAuth', { action: 'get_account', alpaca_token: access_token }),
+          base44.functions.invoke('alpacaOAuth', { action: 'get_positions', alpaca_token: access_token }),
+        ]);
 
-        if (!accountResponse.ok) {
-          throw new Error('Failed to fetch account details');
-        }
+        if (accountRes.data?.error) throw new Error(accountRes.data.error);
 
-        const accountData = await accountResponse.json();
+        const accountData = accountRes.data;
+        const positions = Array.isArray(positionsRes.data) ? positionsRes.data : [];
 
-        const positionsResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/alpacaAccount`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              action: 'get_positions',
-              alpaca_token: access_token,
-            }),
-          }
-        );
-
-        let positions = [];
-        if (positionsResponse.ok) {
-          positions = await positionsResponse.json();
-        }
-
+        // Persist to user profile — never expose tokens in client state beyond this
         await base44.auth.updateMe({
           alpaca_connected: true,
+          broker_status: 'connected',
+          trading_mode: 'live',
           alpaca_token: access_token,
           alpaca_refresh_token: refresh_token,
           alpaca_buying_power: parseFloat(accountData.buying_power || 0),
-          alpaca_position_count: positions.length || 0,
+          alpaca_position_count: positions.length,
           alpaca_daily_pnl: parseFloat(accountData.equity || 0) - parseFloat(accountData.last_equity || accountData.equity || 0),
-          alpaca_positions: JSON.stringify(positions),
+          alpaca_positions: JSON.stringify(positions.slice(0, 50)), // cap size
         });
 
         setStatus('success');
 
         setTimeout(() => {
-          navigate('/trek-portfolio-welcome', {
-            state: {
-              positions,
-              accountData,
-            },
-          });
+          navigate('/trek-portfolio-welcome', { state: { positions, accountData } });
         }, 1500);
+
       } catch (err) {
         console.error('Alpaca OAuth error:', err);
         setStatus('error');
-        setError(err.message || 'Failed to connect to Alpaca');
+        setError(err.message || 'Failed to connect to Alpaca.');
+        // Mark broker as error state
+        base44.auth.updateMe({ broker_status: 'error' }).catch(() => {});
         setTimeout(() => navigate('/Settings'), 3000);
       }
     };
@@ -128,35 +95,24 @@ export default function AlpacaCallback() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center space-y-6"
-      >
-        <div className="inline-block mb-4">
-          <div className="text-4xl font-black tracking-[0.4em] text-[#F59E0B]">TREDIO</div>
-        </div>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-6 max-w-sm w-full">
+        <div className="text-3xl font-black tracking-[0.3em] text-[#F59E0B] mb-2">TREDIO</div>
 
-        {status === 'connecting' && (
+        {(status === 'connecting' || status === 'fetching') && (
           <>
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
               className="w-16 h-16 border-4 border-[#F59E0B]/20 border-t-[#F59E0B] rounded-full mx-auto"
             />
-            <p className="text-lg font-bold text-white">Opening Alpaca securely...</p>
-          </>
-        )}
-
-        {status === 'fetching' && (
-          <>
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className="w-16 h-16 border-4 border-[#F59E0B]/20 border-t-[#F59E0B] rounded-full mx-auto"
-            />
-            <p className="text-lg font-bold text-white">Connecting your account...</p>
-            <p className="text-sm text-white/50">Fetching your portfolio data...</p>
+            <div>
+              <p className="text-lg font-bold text-white">
+                {status === 'connecting' ? 'Connecting securely...' : 'Loading your portfolio...'}
+              </p>
+              <p className="text-sm text-white/40 mt-1">
+                {status === 'connecting' ? 'Exchanging credentials with Alpaca' : 'Fetching your positions and account data'}
+              </p>
+            </div>
           </>
         )}
 
@@ -172,8 +128,10 @@ export default function AlpacaCallback() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
             </motion.div>
-            <p className="text-lg font-bold text-white">Connected successfully!</p>
-            <p className="text-sm text-white/50">Preparing TREK analysis...</p>
+            <div>
+              <p className="text-lg font-bold text-white">Broker connected!</p>
+              <p className="text-sm text-white/50 mt-1">TREK can now analyze your real portfolio.</p>
+            </div>
           </>
         )}
 
@@ -188,9 +146,11 @@ export default function AlpacaCallback() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </motion.div>
-            <p className="text-lg font-bold text-white">Connection failed</p>
-            <p className="text-sm text-white/50">{error}</p>
-            <p className="text-xs text-white/30">Redirecting back...</p>
+            <div>
+              <p className="text-lg font-bold text-white">Connection failed</p>
+              <p className="text-sm text-white/50 mt-1">{error}</p>
+              <p className="text-xs text-white/25 mt-2">Redirecting to Settings...</p>
+            </div>
           </>
         )}
       </motion.div>
