@@ -71,7 +71,11 @@ export default function Home() {
               asset: 'NVDA',
               direction: 'LONG',
               confidence: 87,
-              quote: 'AI infrastructure demand accelerating. Jensen Huang confirmed record Blackwell orders from hyperscalers.'
+              quote: 'AI infrastructure demand accelerating. Jensen Huang confirmed record Blackwell orders from hyperscalers.',
+              entry: 'Buy dips to $870–$885. Do not chase above $900.',
+              positionSize: 'Normal size',
+              timing: 'Hold 1–2 weeks',
+              risk: 'If 10Y yields spike above 4.3%, expect 8–12% pullback.'
             }}
             onSeeWhy={() => navigate('/AIInsights')}
           />
