@@ -228,6 +228,10 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Elite Premium CTA */}
+          <ElitePremiumShowcase />
+
+          {/* Market News */}
           <MarketNewsSection />
 
           <div>
