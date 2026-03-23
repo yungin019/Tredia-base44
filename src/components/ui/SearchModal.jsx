@@ -103,9 +103,13 @@ export default function SearchModal({ isOpen, onClose }) {
 
     const q = query.toLowerCase();
 
-    // Filter popular symbols by activeTab
+    // Filter popular symbols by activeTab (type match is case-insensitive)
     const local = POPULAR_SYMBOLS.filter(s => {
-      const matchesTab = activeTab === 'all' || s.type.toLowerCase() === activeTab;
+      const typeL = s.type.toLowerCase();
+      const matchesTab = activeTab === 'all'
+        || typeL === activeTab
+        || (activeTab === 'forex' && (typeL === 'forex' || typeL === 'commodity'))
+        || (activeTab === 'commodity' && typeL === 'commodity');
       const matchesQuery = s.symbol.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
       return matchesTab && matchesQuery;
     });
