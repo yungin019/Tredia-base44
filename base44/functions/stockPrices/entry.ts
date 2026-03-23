@@ -122,11 +122,12 @@ Deno.serve(async (req) => {
       }
 
       // 4. AlphaVantage — daily/weekly for US stocks, reliable free tier
-      //    Also handles Forex via FX_DAILY and Crypto via DIGITAL_CURRENCY_DAILY
+      //    Handles Forex/Commodities via FX_DAILY (EURUSD, GBPUSD, XAUUSD, XAGUSD)
+      //    Handles Crypto via DIGITAL_CURRENCY_DAILY
+      //    LIMITATION: AV free tier is 25 requests/day — use as last resort
       if (AV_KEY) {
         try {
-          // Detect Forex/commodity symbols (EURUSD, GBPUSD, XAUUSD, XAGUSD, etc.)
-          // XAU/XAG = precious metals, treated same as forex pairs by AV
+          // XAUUSD -> from=XAU, to=USD — AV FX_DAILY supports precious metals
           const forexMatch = symbol.match(/^([A-Z]{2,3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
           const isCryptoSymbol = /^(BTC|ETH|XRP|LTC|BCH|ADA|DOT|SOL|AVAX|MATIC|LINK|UNI|DOGE|SHIB)$/.test(symbol);
 
