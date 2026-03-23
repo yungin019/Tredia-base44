@@ -255,7 +255,7 @@ Deno.serve(async (req) => {
           });
         }
 
-        // 3. Twelve Data (international + forex fallback)
+        // 3. Twelve Data (international + forex + crypto)
         if (TWELVEDATA_KEY) {
           providers.push(async () => {
             let tdSymbol = sym;
