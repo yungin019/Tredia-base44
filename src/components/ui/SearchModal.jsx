@@ -12,20 +12,28 @@ const QUICK_ACTIONS = [
   { label: 'Paper Trading', path: '/PaperTrading', icon: '📝' },
 ];
 
-// Popular assets — deduplicated, varied across classes
+// Popular assets — US + International
 const POPULAR_SYMBOLS = [
-  { symbol: 'AAPL',  name: 'Apple Inc.',      type: 'Stock' },
-  { symbol: 'NVDA',  name: 'NVIDIA Corp',     type: 'Stock' },
-  { symbol: 'TSLA',  name: 'Tesla Inc.',      type: 'Stock' },
-  { symbol: 'MSFT',  name: 'Microsoft Corp',  type: 'Stock' },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.',   type: 'Stock' },
-  { symbol: 'META',  name: 'Meta Platforms',  type: 'Stock' },
-  { symbol: 'AMZN',  name: 'Amazon.com',      type: 'Stock' },
-  { symbol: 'SPY',   name: 'S&P 500 ETF',     type: 'ETF' },
-  { symbol: 'QQQ',   name: 'Nasdaq-100 ETF',  type: 'ETF' },
-  { symbol: 'BTC',   name: 'Bitcoin',         type: 'Crypto' },
-  { symbol: 'ETH',   name: 'Ethereum',        type: 'Crypto' },
-  { symbol: 'GLD',   name: 'Gold ETF',        type: 'ETF' },
+  { symbol: 'AAPL',    name: 'Apple Inc.',      type: 'Stock' },
+  { symbol: 'NVDA',    name: 'NVIDIA Corp',     type: 'Stock' },
+  { symbol: 'TSLA',    name: 'Tesla Inc.',      type: 'Stock' },
+  { symbol: 'MSFT',    name: 'Microsoft Corp',  type: 'Stock' },
+  { symbol: 'GOOGL',   name: 'Alphabet Inc.',   type: 'Stock' },
+  { symbol: 'META',    name: 'Meta Platforms',  type: 'Stock' },
+  { symbol: 'AMZN',    name: 'Amazon.com',      type: 'Stock' },
+  { symbol: 'BABA',    name: 'Alibaba Group',   type: 'Stock' },
+  // Europe
+  { symbol: 'MC.PA',   name: 'LVMH',            type: 'Stock' },
+  { symbol: 'SAP.DE',  name: 'SAP SE',          type: 'Stock' },
+  { symbol: 'ASML.AS', name: 'ASML Holding',    type: 'Stock' },
+  // Asia
+  { symbol: '7203.T',  name: 'Toyota Motor',    type: 'Stock' },
+  // ETFs & Crypto
+  { symbol: 'SPY',     name: 'S&P 500 ETF',     type: 'ETF' },
+  { symbol: 'QQQ',     name: 'Nasdaq-100 ETF',  type: 'ETF' },
+  { symbol: 'GLD',     name: 'Gold ETF',        type: 'ETF' },
+  { symbol: 'BTC',     name: 'Bitcoin',         type: 'Crypto' },
+  { symbol: 'ETH',     name: 'Ethereum',        type: 'Crypto' },
 ];
 
 // Asset-type tabs for filtering
