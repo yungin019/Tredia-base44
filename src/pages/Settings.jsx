@@ -58,6 +58,8 @@ export default function Settings({ onLogout }) {
   const [notifLoaded, setNotifLoaded] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState(null);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     base44.auth.me()

@@ -4,32 +4,46 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export default function AddHoldingDialog({ open, onOpenChange }) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({ symbol: '', name: '', shares: '', avg_cost: '', current_price: '' });
-  const [saving, setSaving] = useState(false);
 
-  const handleSave = async () => {
+  const addMutation = useMutation({
+    mutationFn: (newHolding) => base44.entities.Portfolio.create(newHolding),
+    onMutate: async (newHolding) => {
+      await queryClient.cancelQueries({ queryKey: ['portfolio'] });
+      const previous = queryClient.getQueryData(['portfolio']);
+      const optimistic = { ...newHolding, id: `temp-${Date.now()}` };
+      queryClient.setQueryData(['portfolio'], (old) => [...(old || []), optimistic]);
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(['portfolio'], context.previous);
+      toast.error('Failed to add holding');
+    },
+    onSuccess: (_, vars) => {
+      toast.success(`${vars.symbol} added to portfolio`);
+      setForm({ symbol: '', name: '', shares: '', avg_cost: '', current_price: '' });
+      onOpenChange(false);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['portfolio'] }),
+  });
+
+  const handleSave = () => {
     if (!form.symbol || !form.shares || !form.avg_cost) {
       toast.error('Symbol, shares, and average cost are required');
       return;
     }
-    setSaving(true);
-    await base44.entities.Portfolio.create({
+    addMutation.mutate({
       symbol: form.symbol.toUpperCase(),
       name: form.name || form.symbol.toUpperCase(),
       shares: parseFloat(form.shares),
       avg_cost: parseFloat(form.avg_cost),
       current_price: form.current_price ? parseFloat(form.current_price) : parseFloat(form.avg_cost),
     });
-    queryClient.invalidateQueries({ queryKey: ['portfolio'] });
-    toast.success(`${form.symbol.toUpperCase()} added to portfolio`);
-    setForm({ symbol: '', name: '', shares: '', avg_cost: '', current_price: '' });
-    onOpenChange(false);
-    setSaving(false);
   };
 
   const inputClass = "mt-1.5 bg-white/[0.04] border-white/[0.07] h-9 text-[12px] text-white/80 placeholder:text-white/20 focus:border-primary/40 font-mono";
