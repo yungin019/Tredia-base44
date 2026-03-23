@@ -117,8 +117,25 @@ export default function Home() {
         <IndexCardsSection />
 
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
+          {/* Daily Morning Brief */}
+          <DailyBrief mode="morning" />
+
+          {/* OG100 Badge */}
           <OG100Card />
 
+          {/* Market Sentiment */}
+          <TrekIntelligenceCardV2
+            sentiment={fearGreed?.value || 50}
+            regime={fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value > 60 ? 'GREED' : 'NEUTRAL'}
+          />
+
+          {/* Market Cause & Effect */}
+          <MarketCauseEffectExplainer />
+
+          {/* Sector Heat Map */}
+          <SectorHeatExplainer />
+
+          {/* Next Jump Detector */}
           <NextJumpDetector
             signal={{
               asset: 'NVDA',
@@ -128,13 +145,6 @@ export default function Home() {
             }}
             onSeeWhy={() => navigate('/AIInsights')}
           />
-
-          <TrekIntelligenceCardV2
-            sentiment={fearGreed?.value || 50}
-            regime={fearGreed?.value < 40 ? 'FEAR' : fearGreed?.value > 60 ? 'GREED' : 'NEUTRAL'}
-          />
-
-          <MarketCauseEffectExplainer />
 
           <div>
             <SectionTitle icon="🎯" label="Actionable Setups" sub="High-conviction trades" />
