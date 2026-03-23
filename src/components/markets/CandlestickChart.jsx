@@ -6,6 +6,7 @@ export default function CandlestickChart({ symbol, timeframe = '1D', initialData
   const [chartType, setChartType] = useState('line');
   const [data, setData] = useState(initialData);
   const [loading, setLoading] = useState(false);
+  const [dataSource, setDataSource] = useState(null); // 'polygon'|'twelvedata'|'finnhub'|'unavailable'
   const canvasRef = useRef(null);
   const prevKey = useRef(null);
 
@@ -16,12 +17,16 @@ export default function CandlestickChart({ symbol, timeframe = '1D', initialData
 
     if (!symbol) return;
     setLoading(true);
+    setData([]);
+    setDataSource(null);
     base44.functions.invoke('stockPrices', { symbol, mode: 'ohlc', timeframe })
       .then(res => {
         const cd = res?.data?.chartData;
+        const src = res?.data?.source;
+        setDataSource(src || null);
         if (cd && cd.length > 0) setData(cd);
       })
-      .catch(() => {})
+      .catch(() => { setDataSource('unavailable'); })
       .finally(() => setLoading(false));
   }, [symbol, timeframe]);
 
