@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Search } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -11,19 +11,15 @@ import SectorHeatmap from '@/components/markets/SectorHeatmap.jsx';
 import TrekScreener from '@/components/markets/TrekScreener.jsx';
 import CryptoAssets from '@/components/markets/CryptoAssets.jsx';
 import CommoditiesTab from '@/components/markets/CommoditiesTab.jsx';
-import ExpandedAssetList from '@/components/markets/ExpandedAssetList.jsx';
+import CoreAssetDisplay from '@/components/markets/CoreAssetDisplay.jsx';
 import TrekSignalsPreview from '@/components/markets/TrekSignalsPreview.jsx';
-import TrendingAssets from '@/components/markets/TrendingAssets.jsx';
-import WatchlistQuick from '@/components/markets/WatchlistQuick.jsx';
 import TimeframeSelector from '@/components/markets/TimeframeSelector.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
 import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
-import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
-import { AlertRow } from '@/components/ai/AlertRow';
 
-// Mock chart data for different timeframes
+// Index chart data
 const CHART_DATA = {
   '1D': [
     { time: '09:30', value: 4100 }, { time: '10:00', value: 4120 }, { time: '10:30', value: 4095 },
@@ -47,25 +43,12 @@ const CHART_DATA = {
   ],
 };
 
-const STOCK_DATA = [
-  { symbol: 'AAPL', name: 'Apple Inc.', price: 190.45, change: 2.3, trek: 'Buy' },
-  { symbol: 'NVDA', name: 'NVIDIA Corp', price: 870.20, change: 5.1, trek: 'Buy' },
-  { symbol: 'MSFT', name: 'Microsoft Corp', price: 415.80, change: 1.8, trek: 'Hold' },
-  { symbol: 'TSLA', name: 'Tesla Inc.', price: 175.30, change: -2.4, trek: 'Sell' },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 142.65, change: 0.9, trek: 'Hold' },
-  { symbol: 'META', name: 'Meta Platforms', price: 520.15, change: -1.2, trek: 'Sell' },
-  { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 182.90, change: 3.2, trek: 'Buy' },
-  { symbol: 'JPM', name: 'JPMorgan Chase', price: 201.50, change: 1.5, trek: 'Buy' },
-];
-
 export default function Markets() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('stocks');
-  const [activeFilter, setActiveFilter] = useState(null);
   const [timeframe, setTimeframe] = useState('1D');
   const [cryptoData, setCryptoData] = useState(null);
-  const [livePrices, setLivePrices] = useState({});
 
   useEffect(() => {
     const load = async () => {
@@ -75,45 +58,17 @@ export default function Markets() {
     load();
   }, []);
 
-  useEffect(() => {
-    async function loadPrices() {
-      try {
-        const symbols = STOCK_DATA.map(s => s.symbol);
-        const res = await base44.functions.invoke('stockPrices', { symbols });
-        if (res?.data?.prices) setLivePrices(res.data.prices);
-      } catch {
-        // keep static fallback
-      }
-    }
-    loadPrices();
-  }, []);
-
-  const filteredStocks = activeFilter
-    ? STOCK_DATA.filter(s => s.trek.toLowerCase() === activeFilter.toLowerCase())
-    : STOCK_DATA;
-
-  const getTrekColor = (signal) => {
-    if (signal === 'Buy') return 'bg-chart-3/10 text-chart-3';
-    if (signal === 'Sell') return 'bg-destructive/10 text-destructive';
-    return 'bg-white/5 text-white/50';
-  };
-
   return (
     <PullToRefresh onRefresh={async () => {
       const data = await fetchCryptoData();
       if (data) setCryptoData(data);
-      try {
-        const symbols = STOCK_DATA.map(s => s.symbol);
-        const res = await base44.functions.invoke('stockPrices', { symbols });
-        if (res?.data?.prices) setLivePrices(res.data.prices);
-      } catch {}
     }}>
       <div className="min-h-screen p-5 space-y-6 max-w-[1600px] mx-auto" style={{ background: '#080B12' }}>
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div className="min-w-0">
           <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1 truncate">{t('markets.title')}</h1>
-          <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('markets.subtitle')}</p>
+          <p className="text-[11px] text-white/30 font-medium tracking-wide">Core assets + search 200+ universe</p>
         </div>
       </motion.div>
 
@@ -138,59 +93,39 @@ export default function Markets() {
             <TrekSignalsPreview />
           </motion.div>
 
-          {/* Trending Assets Section */}
+          {/* Core Assets - 12-14 only */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            className="space-y-3"
           >
-            <TrendingAssets stocks={STOCK_DATA.map(s => ({
-              symbol: s.symbol,
-              name: s.name,
-              price: livePrices[s.symbol]?.price || s.price,
-              change: livePrices[s.symbol] 
-                ? (((livePrices[s.symbol].price - livePrices[s.symbol].prevClose) / livePrices[s.symbol].prevClose) * 100)
-                : s.change,
-              signal: s.change > 2 ? 'BUY' : s.change < -2 ? 'SELL' : 'WATCH'
-            }))} />
+            <div>
+              <h2 className="text-sm font-bold text-white/80 mb-3">Core Assets</h2>
+              <CoreAssetDisplay />
+            </div>
           </motion.div>
 
-          {/* Watchlist Quick */}
+          {/* Search Gateway for 200+ */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
+            className="rounded-lg border border-white/10 bg-white/[0.02] p-6 text-center space-y-2"
           >
-            <WatchlistQuick stocks={STOCK_DATA.map(s => ({
-              symbol: s.symbol,
-              name: s.name,
-              price: livePrices[s.symbol]?.price || s.price,
-              change: livePrices[s.symbol] 
-                ? (((livePrices[s.symbol].price - livePrices[s.symbol].prevClose) / livePrices[s.symbol].prevClose) * 100)
-                : s.change
-            }))} />
-          </motion.div>
-
-          {/* Expanded Asset List with Search */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <ExpandedAssetList />
+            <Search className="h-6 w-6 text-primary mx-auto opacity-50" />
+            <h3 className="text-sm font-bold text-white/70">Explore 200+ Assets</h3>
+            <p className="text-xs text-white/40">Search by ticker or name to discover stocks, crypto, ETFs, and forex</p>
           </motion.div>
 
           {/* Sector Heatmap */}
           <SectorHeatmap />
 
-          {/* TREK Screener */}
-          <TrekScreener activeFilter={activeFilter} onFilterChange={setActiveFilter} />
-
           {/* Chart Section */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
+            transition={{ delay: 0.2 }}
             className="rounded-xl border border-white/[0.07] bg-[#111118] p-5"
           >
             <div className="flex items-center justify-between mb-4">
@@ -221,65 +156,6 @@ export default function Markets() {
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
-          </motion.div>
-
-          {/* Stocks Table */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden"
-          >
-            <div className="px-5 py-4 border-b border-white/[0.05]">
-              <h3 className="text-sm font-bold text-white/80">{t('markets.topStocks')} ({filteredStocks.length})</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/[0.05]">
-                    {[t('markets.symbol'), t('markets.company'), t('markets.price'), t('markets.change'), t('markets.trekGrade')].map((h, i) => (
-                      <th key={i} className={`${i === 0 ? 'text-left px-5' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStocks.map((stock, i) => {
-                    const borderColor = stock.trek === 'Buy' ? 'rgba(16,185,129,0.4)' : stock.trek === 'Sell' ? 'rgba(239,68,68,0.4)' : 'transparent';
-                    return (
-                      <tr
-                        key={i}
-                        onClick={() => navigate(`/Asset/${stock.symbol}`)}
-                        className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0 cursor-pointer"
-                        style={{ borderLeft: `3px solid ${borderColor}` }}
-                      >
-                        <td className="px-5 py-3">
-                          <div className="font-mono font-black text-[13px] text-white/85">{stock.symbol}</div>
-                          <div className="text-[10px] text-white/30">{stock.name}</div>
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono text-[12px] text-white/85 font-bold">
-                          ${(() => {
-                            const livePrice = livePrices[stock.symbol]?.price;
-                            return (livePrice || stock.price).toFixed(2);
-                          })()}
-                          {livePrices[stock.symbol]?.price && <span className="text-[8px] text-chart-3 ml-1">●</span>}
-                        </td>
-                        <td className={`px-4 py-3 text-right font-mono text-[12px] font-bold flex items-center justify-end gap-1 ${stock.change >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
-                          {stock.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                          {stock.change >= 0 ? '+' : ''}{stock.change}%
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${getTrekColor(stock.trek)}`}>
-                            {stock.trek}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
             </div>
           </motion.div>
         </>
