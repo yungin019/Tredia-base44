@@ -12,9 +12,9 @@ export default function UpgradeCall({ onUpgrade }) {
       <div className="flex items-start gap-3">
         <Zap className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
         <div className="flex-1">
-          <h3 className="font-bold text-foreground mb-1">Get Full Trade Plans + Mentor Guidance</h3>
+          <h3 className="font-bold text-foreground mb-1">Want Real-Time Signals Before They Hit?</h3>
           <p className="text-sm text-muted-foreground mb-3">
-            Stop guessing. TREK Elite gives you complete entry/exit strategies + risk management for every signal.
+            TREK Elite gives you instant alerts when the next big move is forming. Entry, exit, risk—all spelled out. No guessing.
           </p>
           <button
             onClick={onUpgrade}
