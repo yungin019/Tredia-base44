@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, TrendingUp, TrendingDown, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EXPANDED_ASSETS, searchAssets } from '@/lib/assetDatabase';
-import { base44 } from '@/api/base44Client';
+import { fetchMarketScan, fetchCryptoPrices } from '@/api/marketDataClient';
 import { deriveSignal } from '@/api/signalEngine';
 
 export default function ExpandedAssetList() {
@@ -16,71 +16,29 @@ export default function ExpandedAssetList() {
   const navigate = useNavigate();
   const refreshIntervalRef = useRef(null);
 
-  // Fetch live stock prices with auto-refresh (batched for performance)
+  // ARCHITECTURE: Markets page uses Tier 3 data (on-demand, not auto-refreshed)
+  // Only fetch prices for visible/searched assets, not entire 200+ universe
   useEffect(() => {
-    const PRIORITY_SYMBOLS = ['AAPL', 'NVDA', 'MSFT', 'AMZN', 'GOOGL', 'TSLA', 'META', 'SPY', 'QQQ', 'AMD', 'NFLX', 'CRM', 'AVGO', 'ACN', 'ADBE', 'PLTR', 'SNOW', 'UBER', 'COIN'];
-    
-    // Realistic fallback data (delayed 15min like real market data)
-    const FALLBACK_PRICES = {
-      'AAPL': { price: 247.99, prevClose: 245.83, change: 0.88 },
-      'NVDA': { price: 121.67, prevClose: 118.45, change: 2.72 },
-      'MSFT': { price: 382.62, prevClose: 380.45, change: 0.57 },
-      'AMZN': { price: 198.45, prevClose: 195.32, change: 1.60 },
-      'GOOGL': { price: 164.32, prevClose: 162.15, change: 1.34 },
-      'TSLA': { price: 288.45, prevClose: 282.15, change: 2.23 },
-      'META': { price: 602.43, prevClose: 593.66, change: 1.48 },
-      'SPY': { price: 598.45, prevClose: 595.82, change: 0.44 },
-      'QQQ': { price: 520.15, prevClose: 516.45, change: 0.72 },
-      'AMD': { price: 118.45, prevClose: 115.82, change: 2.27 },
-      'NFLX': { price: 945.32, prevClose: 932.15, change: 1.41 },
-      'CRM': { price: 315.67, prevClose: 312.45, change: 1.03 },
-      'AVGO': { price: 321.67, prevClose: 310.51, change: 3.59 },
-      'ACN': { price: 378.45, prevClose: 375.82, change: 0.70 },
-      'ADBE': { price: 485.32, prevClose: 478.15, change: 1.50 },
-      'PLTR': { price: 84.32, prevClose: 81.45, change: 3.52 },
-      'SNOW': { price: 173.46, prevClose: 168.02, change: 3.24 },
-      'UBER': { price: 78.45, prevClose: 76.82, change: 2.12 },
-      'COIN': { price: 198.95, prevClose: 197.50, change: 0.73 },
-    };
-    
-    // Set fallback data immediately so UI isn't stuck on loading
-    setLiveData(FALLBACK_PRICES);
-    setLoading(false);
-    setLastRefresh(new Date());
-    
-    // Note: API rate limits reached - using realistic delayed data
-    console.log('Using realistic market data (API limits reached)');
-    
-    // Try to fetch real data in background (will likely fail due to rate limits)
-    async function fetchRealData() {
+    // Initial load: fetch first 20 assets (visible ones)
+    async function fetchInitialData() {
+      const initialSymbols = EXPANDED_ASSETS.slice(0, 20).map(a => a.symbol);
       try {
-        const res = await base44.functions.invoke('stockPrices', { symbols: PRIORITY_SYMBOLS.slice(0, 5) });
-        if (res?.data?.prices && Object.values(res.data.prices).some(p => p && p.price)) {
-          // If we got real data, merge it
-          const realData = {};
-          Object.entries(res.data.prices).forEach(([symbol, data]) => {
-            if (data && data.price) {
-              realData[symbol] = {
-                price: data.price,
-                prevClose: data.prevClose || data.price,
-                change: data.change || ((data.price - (data.prevClose || data.price)) / (data.prevClose || data.price) * 100),
-                timestamp: data.timestamp || Date.now(),
-                isReal: true
-              };
-            }
-          });
-          if (Object.keys(realData).length > 0) {
-            setLiveData(prev => ({ ...prev, ...realData }));
-            setRefreshCount(c => c + 1);
-          }
-        }
-      } catch (e) {
-        console.log('Real-time API unavailable, using delayed data');
+        const results = await fetchMarketScan(initialSymbols, 3);
+        const priceMap = {};
+        results.forEach(r => {
+          priceMap[r.symbol] = r;
+        });
+        setLiveData(priceMap);
+        setLoading(false);
+        setLastRefresh(new Date());
+        setRefreshCount(1);
+      } catch (error) {
+        console.error('[Markets] Initial fetch failed:', error.message);
+        setLoading(false);
       }
     }
     
-    // Try once to get real data
-    fetchRealData();
+    fetchInitialData();
     
     return () => {};
   }, []);
