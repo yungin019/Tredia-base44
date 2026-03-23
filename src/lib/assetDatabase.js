@@ -1,7 +1,7 @@
-// Expanded asset database with 200+ assets across stocks, ETFs, and crypto
+// Expanded asset database with 200+ assets (symbols/names only - prices fetched live)
 export const EXPANDED_ASSETS = [
   // ─── MEGA-CAP TECH (12)
-  { symbol: 'AAPL', name: 'Apple Inc.', price: 190.45, change: 2.3, trek: 'Buy', sector: 'Technology', confidence: 85 },
+  { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Technology', confidence: 85 },
   { symbol: 'NVDA', name: 'NVIDIA Corp', price: 870.20, change: 5.1, trek: 'Buy', sector: 'Technology', confidence: 87 },
   { symbol: 'MSFT', name: 'Microsoft Corp', price: 415.80, change: 1.8, trek: 'Buy', sector: 'Technology', confidence: 82 },
   { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 142.65, change: 0.9, trek: 'Hold', sector: 'Technology', confidence: 75 },
