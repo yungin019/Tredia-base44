@@ -258,8 +258,12 @@ Deno.serve(async (req) => {
         if (TWELVEDATA_KEY && !isCrypto) {
           providers.push(async () => {
             try {
-              const res = await fetchWithTimeout(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(sym)}&apikey=${TWELVEDATA_KEY}`, 5000);
+              const url = `https://api.twelvedata.com/price?symbol=${encodeURIComponent(sym)}&apikey=${TWELVEDATA_KEY}`;
+              console.log(`Trying TwelveData for ${sym}`);
+              const res = await fetchWithTimeout(url, 5000);
+              console.log(`TwelveData response for ${sym}: ${res.status}`);
               const data = await res.json();
+              console.log(`TwelveData data for ${sym}:`, JSON.stringify(data).slice(0, 150));
               if (data.price && data.price > 0) {
                 return {
                   price: parseFloat(parseFloat(data.price).toFixed(2)),
@@ -267,7 +271,7 @@ Deno.serve(async (req) => {
                   timestamp: Date.now()
                 };
               }
-              throw new Error('TwelveData no data');
+              throw new Error(`TwelveData no price: ${JSON.stringify(data).slice(0, 100)}`);
             } catch (e) {
               console.log(`TwelveData failed for ${sym}: ${e.message}`);
               throw e;
