@@ -9,6 +9,9 @@ import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import CandlestickChart from '@/components/markets/CandlestickChart';
 import TrekInstantRead from '@/components/trek/TrekInstantRead';
 import AssetNewsSection from '@/components/news/AssetNewsSection';
+import { SkeletonPrice, SkeletonSignal, LoadingMessage } from '@/components/ui/SkeletonLoader';
+import { formatPrice, formatPercent, validatePrice, validatePercent, safeRender } from '@/lib/dataValidation';
+import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
@@ -346,37 +349,45 @@ export default function AssetDetail() {
       {/* TREK Instant Read */}
       <TrekInstantRead symbol={symbol} />
 
-      {/* Header */}
+      {/* Header - Premium Loading */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-black font-mono text-white/95">{asset.symbol}</h1>
+              <h1 className="text-3xl font-black font-mono text-white/95">{safeRender(asset.symbol)}</h1>
               <span className="text-[10px] font-black px-2.5 py-1 rounded-full"
                 style={{ color: asset.color, background: `${asset.color}15`, border: `1px solid ${asset.color}30` }}>
-                {asset.signal}
+                {safeRender(asset.signal, 'WATCH')}
               </span>
             </div>
-            <p className="text-[12px] text-white/40">{asset.name} · {asset.sector}</p>
+            <p className="text-[12px] text-white/40">{safeRender(asset.name)} · {safeRender(asset.sector)}</p>
           </div>
           <div className="text-right">
-            <div className="flex items-center justify-end gap-2 mb-1">
-              <div className="text-2xl font-black font-mono text-white/95">{pricePrefix}{asset.price.toLocaleString()}</div>
-              {tier === 'free' && (
-                <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                  Delayed 15min
-                </span>
-              )}
-              {(tier === 'pro' || tier === 'elite') && (
-                <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
-                  Real-time
-                </span>
-              )}
-            </div>
-            <div className={`flex items-center justify-end gap-1 text-[13px] font-bold font-mono ${isUp ? 'text-chart-3' : 'text-destructive'}`}>
-              {isUp ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-              {isUp ? '+' : ''}{asset.change}%
-            </div>
+            {loadingData && !livePrice ? (
+              <SkeletonPrice />
+            ) : (
+              <>
+                <div className="flex items-center justify-end gap-2 mb-1">
+                  <div className="text-2xl font-black font-mono text-white/95">
+                    {pricePrefix}{formatPrice(asset.price, 2) || safeRender(asset.price)}
+                  </div>
+                  {tier === 'free' && (
+                    <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                      Delayed 15min
+                    </span>
+                  )}
+                  {(tier === 'pro' || tier === 'elite') && (
+                    <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+                      Real-time
+                    </span>
+                  )}
+                </div>
+                <div className={`flex items-center justify-end gap-1 text-[13px] font-bold font-mono ${isUp ? 'text-chart-3' : 'text-destructive'}`}>
+                  {isUp ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+                  {formatPercent(asset.change, 1) || safeRender(asset.change)}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </motion.div>
@@ -417,11 +428,13 @@ export default function AssetDetail() {
             {asset.confidence}% confidence · {asset.conviction}
           </span>
         </div>
-        <p className="text-[12px] text-white/70 leading-relaxed mb-3">
+        <div className="text-[12px] text-white/70 leading-relaxed mb-3">
           {trekLoading ? (
-            <span className="text-white/30 italic">Fetching live TREK analysis…</span>
-          ) : trekAnalysis || asset.whyNow}
-        </p>
+            <LoadingMessage message="Fetching live TREK analysis…" />
+          ) : (
+            <p>{safeRender(trekAnalysis || asset.whyNow, 'No analysis available.')}</p>
+          )}
+        </div>
 
         {/* Confidence Breakdown - Collapsible */}
         <button
@@ -445,11 +458,11 @@ export default function AssetDetail() {
                 {/* FREE tier: show first 2 clearly, blur 3-5 */}
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-white/60">RSI Score</span>
-                  <span className="text-[10px] font-bold text-white/85">85/100</span>
+                  <span className="text-[10px] font-bold text-white/85">{safeRender('85/100', '—')}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-white/60">Volume</span>
-                  <span className="text-[10px] font-bold text-white/85">2.4× avg</span>
+                  <span className="text-[10px] font-bold text-white/85">{safeRender('2.4× avg', '—')}</span>
                 </div>
 
                 {/* Blur factors 3-5 for FREE tier */}
