@@ -7,9 +7,10 @@ function MoveCard({ move, onExplore }) {
     BUY: { bg: 'bg-success/10', border: 'border-success/20', label: 'text-success', labelBg: 'bg-success/15' },
     AVOID: { bg: 'bg-destructive/10', border: 'border-destructive/20', label: 'text-destructive', labelBg: 'bg-destructive/15' },
     WATCH: { bg: 'bg-warning/10', border: 'border-warning/20', label: 'text-warning', labelBg: 'bg-warning/15' },
+    SELL: { bg: 'bg-destructive/10', border: 'border-destructive/20', label: 'text-destructive', labelBg: 'bg-destructive/15' },
   };
 
-  const colors = actionColors[move.action];
+  const colors = actionColors[move.action] || actionColors.WATCH;
 
   return (
     <motion.button
