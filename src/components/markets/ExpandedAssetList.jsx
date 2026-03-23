@@ -197,8 +197,7 @@ export default function ExpandedAssetList() {
         <AnimatePresence mode="popLayout">
           {results.map((asset, i) => {
             const { price, change } = getPriceData(asset);
-            const trekSignal = getTrekSignal(asset.symbol);
-            const reason = TREK_REASONS[asset.symbol] || 'Market dynamics analysis';
+            const signal = getLiveSignal(asset);
             
             return (
               <motion.button
@@ -208,9 +207,10 @@ export default function ExpandedAssetList() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ delay: i * 0.02 }}
                 onClick={() => navigate(`/Asset/${asset.symbol}`)}
-                className={`text-left rounded-lg p-3 border-l-4 transition-all hover:scale-[1.02] group ${getTrekBorderColor(trekSignal)} ${
-                  trekSignal === 'Buy' ? 'bg-chart-3/5 hover:bg-chart-3/10' :
-                  trekSignal === 'Sell' ? 'bg-destructive/5 hover:bg-destructive/10' :
+                className={`text-left rounded-lg p-3 border-l-4 transition-all hover:scale-[1.02] group ${getSignalBorderColor(signal.signal)} ${
+                  signal.signal === 'BUY' ? 'bg-chart-3/5 hover:bg-chart-3/10' :
+                  signal.signal === 'SELL' ? 'bg-destructive/5 hover:bg-destructive/10' :
+                  signal.signal === 'WATCH' ? 'bg-warning/5 hover:bg-warning/10' :
                   'bg-white/[0.03] hover:bg-white/[0.08]'
                 } border border-white/5`}
               >
@@ -220,13 +220,23 @@ export default function ExpandedAssetList() {
                     <div className="font-mono font-bold text-white text-sm">{asset.symbol}</div>
                     <div className="text-xs text-white/50 truncate">{asset.name}</div>
                   </div>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${getTrekColor(trekSignal)}`}>
-                    {trekSignal}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${getSignalColor(signal.signal)}`}>
+                      {signal.signal}
+                    </span>
+                    {signal.isLiveDerived && (
+                      <span className="text-[10px] text-primary/60" title="Derived from live market data">
+                        ●
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {/* TREK Reason (1 line) */}
-                <p className="text-xs text-white/60 mb-2 line-clamp-1">{reason}</p>
+                {/* Live Signal Reason (1 line) */}
+                <p className="text-xs text-white/60 mb-2 line-clamp-1">
+                  {signal.reason}
+                  {!signal.isLiveDerived && <span className="text-white/30 ml-1">(demo)</span>}
+                </p>
 
                 {/* Price & Change */}
                 {price !== null ? (
