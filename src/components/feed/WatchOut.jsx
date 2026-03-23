@@ -56,9 +56,15 @@ export default function WatchOut() {
 
             <p className="text-sm text-foreground leading-relaxed">{risk.why}</p>
             
+            <div className="bg-destructive/10 rounded-lg p-2.5 border border-destructive/20">
+              <p className="text-xs text-foreground">
+                <span className="font-semibold text-destructive">Do this:</span> {risk.action}
+              </p>
+            </div>
+
             <div className="bg-black/30 rounded-lg p-2 border border-white/5">
               <p className="text-xs text-muted-foreground">
-                <span className="font-semibold text-foreground">What to do:</span> {risk.action}
+                <span className="font-semibold text-foreground">Could work if:</span> {risk.fails}
               </p>
             </div>
           </motion.div>
