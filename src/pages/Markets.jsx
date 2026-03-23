@@ -126,6 +126,9 @@ export default function Markets() {
       {/* Stocks Tab */}
       {activeTab === 'stocks' && (
         <>
+          {/* Expanded Asset List with Search */}
+          <ExpandedAssetList />
+
           {/* Sector Heatmap */}
           <SectorHeatmap />
 
