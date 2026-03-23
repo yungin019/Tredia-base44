@@ -67,7 +67,7 @@ export function deriveSignal(asset, priceData, context = {}) {
       ? `Moderate decline: ${dailyChange.toFixed(1)}%, monitor support`
       : `Underperforming sector, caution advised`;
   } else {
-    signal = 'HOLD';
+    signal = 'WATCH';
     confidence = 50 + Math.abs(momentumScore) * 8;
     reason = Math.abs(dailyChange) < 1
       ? `Sideways action: ${dailyChange.toFixed(1)}% change, low volatility`

@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 export function NextJumpDetector({ signal, onSeeWhy }) {
   if (!signal) return null;
 
-  const isLong = signal.direction === 'LONG' || signal.direction === 'BUY';
+  const isLong = signal.direction === 'BUY' || signal.direction === 'WATCH';
   const DirectionIcon = isLong ? TrendingUp : TrendingDown;
   const directionColor = isLong ? 'text-[#00D68F]' : 'text-[#FF3B3B]';
   const borderColor = isLong ? 'border-[#00D68F]/30' : 'border-[#FF3B3B]/30';

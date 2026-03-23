@@ -32,13 +32,14 @@ function deriveSignal(rsi, change24h) {
   if (rsi > 68 || change24h < -4) return 'SELL';
   if (change24h > 1.5) return 'BUY';
   if (change24h < -1.5) return 'SELL';
-  return 'HOLD';
+  return 'WATCH';
 }
 
 function buildOneLiner(symbol, signal, rsi, change24h) {
   const chg = change24h != null ? `${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%` : 'N/A';
   if (signal === 'BUY') return `${symbol} showing momentum (RSI ${rsi}, ${chg}) — potential entry zone.`;
   if (signal === 'SELL') return `${symbol} showing weakness (RSI ${rsi}, ${chg}) — consider risk management.`;
+  if (signal === 'AVOID') return `${symbol} showing weakness (RSI ${rsi}, ${chg}) — avoid entry.`;
   return `${symbol} in consolidation (RSI ${rsi}, ${chg}) — watch for breakout direction.`;
 }
 
@@ -98,7 +99,7 @@ export async function runTREKEngine() {
     ...stockSignals.map((r, i) =>
       r.status === 'fulfilled' ? r.value : {
         symbol: SYMBOLS[i], price: null, change24h: 0, rsi: 55,
-        signal: 'HOLD', confidence: 50, jumpDetected: false, lossDetected: false,
+        signal: 'WATCH', confidence: 50, jumpDetected: false, lossDetected: false,
         oneLiner: `${SYMBOLS[i]} data unavailable`,
       }
     ),

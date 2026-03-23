@@ -92,7 +92,7 @@ export default function Home() {
             <NextJumpDetector
               signal={{
                 asset: liveStocks[0]?.symbol || 'NVDA',
-                direction: liveStocks[0]?.change > 0 ? 'LONG' : 'SHORT',
+                direction: liveStocks[0]?.change > 0 ? 'BUY' : 'SELL',
                 confidence: Math.min(87, Math.max(50, Math.abs(liveStocks[0]?.change || 0) * 10)),
                 quote: `Live market data: ${liveStocks[0]?.symbol} ${liveStocks[0]?.change > 0 ? 'up' : 'down'} ${Math.abs(liveStocks[0]?.change || 0).toFixed(2)}% today.`,
                 entry: liveStocks[0]?.change > 0 ? 'Buy dips, do not chase.' : 'Wait for reversal signals.',
