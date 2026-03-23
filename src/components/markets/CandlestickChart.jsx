@@ -95,7 +95,7 @@ export default function CandlestickChart({ symbol, timeframe = '1D', initialData
       {!loading && data.length > 0 && dataSource && dataSource !== 'unavailable' && (
         <div className="flex items-center justify-end mt-1">
           <span className="text-[9px] text-white/15 font-mono">
-            {dataSource === 'polygon' ? 'Polygon.io' : dataSource === 'twelvedata' ? 'Twelve Data' : dataSource === 'finnhub' ? 'Finnhub' : dataSource}
+            {dataSource === 'polygon' ? 'Polygon.io' : dataSource === 'twelvedata' ? 'Twelve Data' : dataSource === 'finnhub' ? 'Finnhub' : dataSource === 'alphavantage' ? 'Alpha Vantage' : dataSource}
           </span>
         </div>
       )}
