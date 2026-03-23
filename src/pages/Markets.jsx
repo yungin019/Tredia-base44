@@ -260,8 +260,11 @@ export default function Markets() {
                           <div className="text-[10px] text-white/30">{stock.name}</div>
                         </td>
                         <td className="px-4 py-3 text-right font-mono text-[12px] text-white/85 font-bold">
-                          ${(livePrices[stock.symbol] || stock.price).toFixed(2)}
-                          {livePrices[stock.symbol] && <span className="text-[8px] text-chart-3 ml-1">●</span>}
+                          ${(() => {
+                            const livePrice = livePrices[stock.symbol]?.price;
+                            return (livePrice || stock.price).toFixed(2);
+                          })()}
+                          {livePrices[stock.symbol]?.price && <span className="text-[8px] text-chart-3 ml-1">●</span>}
                         </td>
                         <td className={`px-4 py-3 text-right font-mono text-[12px] font-bold flex items-center justify-end gap-1 ${stock.change >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
                           {stock.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
