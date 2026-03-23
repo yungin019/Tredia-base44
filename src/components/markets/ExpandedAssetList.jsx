@@ -177,9 +177,19 @@ export default function ExpandedAssetList() {
         />
       </div>
 
-      {/* Results Count */}
-      <div className="text-xs text-white/50 px-1">
-        Showing {results.length} of {EXPANDED_ASSETS.length} assets {loading && <span className="animate-pulse">• Fetching live prices...</span>}
+      {/* Results Count + Refresh Status */}
+      <div className="flex items-center justify-between text-xs text-white/50 px-1">
+        <span>
+          Showing {results.length} of {EXPANDED_ASSETS.length} assets
+          {loading && <span className="animate-pulse ml-2">• Fetching live prices...</span>}
+        </span>
+        {lastRefresh && (
+          <span className="flex items-center gap-1.5">
+            <RefreshCw className={`h-3 w-3 ${refreshCount > 0 ? 'text-primary' : ''}`} />
+            Live • {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {refreshCount > 0 && <span className="text-primary/70">(+{refreshCount} updates)</span>}
+          </span>
+        )}
       </div>
 
       {/* Asset Grid - Scrollable */}
