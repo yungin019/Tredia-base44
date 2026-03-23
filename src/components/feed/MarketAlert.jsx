@@ -21,22 +21,25 @@ export default function MarketAlert() {
 
       <div className="bg-black/30 rounded-lg p-3 border border-gold/10 space-y-2">
         <p className="text-xs text-foreground leading-relaxed">
-          <span className="font-semibold text-gold">Here's what happened:</span> CPI came in cooler than expected this morning. Bond yields collapsed. The Fed looks less aggressive. Classic result: dollar weakness, commodities rally, tech outperforms, risk-off trades get crushed.
-        </p>
-        <p className="text-xs text-foreground leading-relaxed">
-          <span className="font-semibold text-gold">So what?</span> This is a broad risk-ON day. Growth > Value. Tech > Defensive. Duration matters. Your NVDA/AMZN longs benefit. Your energy shorts are up. This momentum usually runs for 2-3 days minimum.
+          <span className="font-semibold text-gold">What happened:</span> CPI cooler than expected. Bond yields down 8bp. Fed looks less aggressive. Result: dollar weakness, commodities rally, tech outperforms.
         </p>
       </div>
 
-      <div className="border-t border-white/5 pt-3 space-y-2 text-xs">
-        <div className="flex items-start gap-2">
-          <span className="text-primary font-bold mt-0.5">→</span>
-          <p className="text-foreground"><span className="font-semibold">Your edge:</span> Play growth longs today. Avoid chasing defensive plays. Watch for the 10Y to hold above 4.1%—if it bounces back, this reverses.</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-success/10 border border-success/20 rounded-lg p-3">
+          <p className="text-xs text-success font-semibold mb-2">Do this</p>
+          <p className="text-xs text-foreground leading-tight">Buy growth (NVDA/AMZN). Hold longs. This runs 2-3 days minimum.</p>
         </div>
-        <div className="flex items-start gap-2">
-          <span className="text-warning font-bold mt-0.5">⚠</span>
-          <p className="text-muted-foreground"><span className="font-semibold">The risk:</span> If economic data turns hot again (jobs, spending), we pivot back to rate hikes and this trade dies. Dollar reversal kills commodities fast.</p>
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+          <p className="text-xs text-destructive font-semibold mb-2">Don't do this</p>
+          <p className="text-xs text-foreground leading-tight">Chase defensives or energy. This is a growth day, not safe.</p>
         </div>
+      </div>
+
+      <div className="border-t border-white/5 pt-3">
+        <p className="text-xs text-foreground">
+          <span className="font-semibold text-destructive">This breaks if:</span> Economic data turns hot (jobs, spending) or 10Y bounces above 4.3%. Then pivot back to rate hike trades. Watch 10Y closely.
+        </p>
       </div>
     </motion.div>
   );
