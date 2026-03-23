@@ -1,5 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
+// Interval mapping: timeframe -> { multiplier, span, finnhubResolution, days }
+const TIMEFRAME_MAP = {
+  '1D':  { multiplier: 5,  span: 'minute', resolution: '5',   days: 1 },
+  '1W':  { multiplier: 60, span: 'minute', resolution: '60',  days: 7 },
+  '1M':  { multiplier: 1,  span: 'day',    resolution: 'D',   days: 30 },
+  '3M':  { multiplier: 1,  span: 'day',    resolution: 'D',   days: 90 },
+  '1Y':  { multiplier: 1,  span: 'week',   resolution: 'W',   days: 365 },
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -7,54 +16,126 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const { symbols, symbol, mode } = body;
+    const { symbols, symbol, mode, timeframe = '1M' } = body;
 
     const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY');
+    const POLYGON_KEY = Deno.env.get('POLYGON_API_KEY');
+    const TWELVEDATA_KEY = Deno.env.get('TWELVEDATA_API_KEY');
 
-    // OHLC chart data: try Polygon.io, fall back to seeded synthetic from live price
+    // ── OHLC chart data ────────────────────────────────────────────────
     if (mode === 'ohlc' && symbol) {
-      const POLYGON_KEY = Deno.env.get('POLYGON_API_KEY');
-      const to = new Date().toISOString().split('T')[0];
-      const fromDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      try {
-        const res = await fetch(
-          `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${fromDate}/${to}?adjusted=true&sort=asc&limit=30&apiKey=${POLYGON_KEY}`
-        );
-        const data = await res.json();
-        if (data.results && data.results.length > 0) {
-          const chartData = data.results.map(r => ({
-            date: new Date(r.t).toISOString().split('T')[0],
-            close: parseFloat(r.c.toFixed(2)),
-          }));
-          return Response.json({ chartData });
-        }
-      } catch { /* fall through */ }
+      const tf = TIMEFRAME_MAP[timeframe] || TIMEFRAME_MAP['1M'];
+      const now = Math.floor(Date.now() / 1000);
+      const fromTs = now - tf.days * 86400;
+      const toDate = new Date().toISOString().split('T')[0];
+      const fromDate = new Date(Date.now() - tf.days * 86400 * 1000).toISOString().split('T')[0];
 
-      // Synthetic fallback: generate 30-day walk seeded from live price
-      const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`);
-      const quote = await quoteRes.json();
+      // Try Polygon first (most accurate, supports intraday)
+      if (POLYGON_KEY) {
+        try {
+          const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/${tf.multiplier}/${tf.span}/${fromDate}/${toDate}?adjusted=true&sort=asc&limit=500&apiKey=${POLYGON_KEY}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.results && data.results.length > 1) {
+            const chartData = data.results.map(r => ({
+              date: tf.span === 'minute'
+                ? new Date(r.t).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                : new Date(r.t).toISOString().split('T')[0],
+              open: parseFloat(r.o.toFixed(2)),
+              high: parseFloat(r.h.toFixed(2)),
+              low:  parseFloat(r.l.toFixed(2)),
+              close: parseFloat(r.c.toFixed(2)),
+              volume: r.v,
+            }));
+            return Response.json({ chartData, source: 'polygon', timeframe });
+          }
+        } catch { /* fall through */ }
+      }
+
+      // Try Twelve Data (supports intraday + crypto + forex)
+      if (TWELVEDATA_KEY) {
+        try {
+          const intervalMap = { '1D': '5min', '1W': '1h', '1M': '1day', '3M': '1day', '1Y': '1week' };
+          const interval = intervalMap[timeframe] || '1day';
+          const outputsize = tf.days <= 1 ? 80 : tf.days <= 7 ? 120 : 365;
+          const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${TWELVEDATA_KEY}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.values && data.values.length > 1) {
+            const chartData = data.values.reverse().map(r => ({
+              date: r.datetime,
+              open: parseFloat(r.open),
+              high: parseFloat(r.high),
+              low:  parseFloat(r.low),
+              close: parseFloat(r.close),
+              volume: parseInt(r.volume || 0),
+            }));
+            return Response.json({ chartData, source: 'twelvedata', timeframe });
+          }
+        } catch { /* fall through */ }
+      }
+
+      // Try Finnhub candles (stocks only, no intraday on free)
+      if (FINNHUB_KEY) {
+        try {
+          const url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${tf.resolution}&from=${fromTs}&to=${now}&token=${FINNHUB_KEY}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.s === 'ok' && data.c && data.c.length > 1) {
+            const chartData = data.t.map((ts, i) => ({
+              date: new Date(ts * 1000).toISOString().split('T')[0],
+              open: parseFloat(data.o[i].toFixed(2)),
+              high: parseFloat(data.h[i].toFixed(2)),
+              low:  parseFloat(data.l[i].toFixed(2)),
+              close: parseFloat(data.c[i].toFixed(2)),
+              volume: data.v[i],
+            }));
+            return Response.json({ chartData, source: 'finnhub', timeframe });
+          }
+        } catch { /* fall through */ }
+      }
+
+      // Synthetic fallback seeded from live price
+      const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`).catch(() => null);
+      const quote = quoteRes ? await quoteRes.json().catch(() => ({})) : {};
       const currentPrice = quote.c || 100;
+      const points = tf.days <= 1 ? 48 : tf.days <= 7 ? 56 : tf.days <= 30 ? 30 : tf.days <= 90 ? 90 : 52;
       const chartData = [];
-      let price = currentPrice * 0.92;
-      for (let i = 29; i >= 0; i--) {
-        const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
-        price = price * (1 + (Math.random() - 0.47) * 0.018);
-        chartData.push({ date: d.toISOString().split('T')[0], close: parseFloat(price.toFixed(2)) });
+      let price = currentPrice * (tf.days <= 1 ? 0.98 : 0.90);
+      for (let i = points - 1; i >= 0; i--) {
+        const ms = Date.now() - i * (tf.days * 86400000 / points);
+        price = price * (1 + (Math.random() - 0.47) * 0.015);
+        const open = price * (1 + (Math.random() - 0.5) * 0.005);
+        const high = Math.max(open, price) * (1 + Math.random() * 0.005);
+        const low  = Math.min(open, price) * (1 - Math.random() * 0.005);
+        chartData.push({ date: new Date(ms).toISOString().split('T')[0], open: parseFloat(open.toFixed(2)), high: parseFloat(high.toFixed(2)), low: parseFloat(low.toFixed(2)), close: parseFloat(price.toFixed(2)) });
       }
       chartData[chartData.length - 1].close = parseFloat(currentPrice.toFixed(2));
-      return Response.json({ chartData });
+      return Response.json({ chartData, source: 'synthetic', timeframe });
     }
 
-    // Batch price fetch for multiple symbols using Finnhub quote
+    // ── Search endpoint: symbol lookup via Finnhub ────────────────────
+    if (mode === 'search' && body.query) {
+      try {
+        const res = await fetch(`https://finnhub.io/api/v1/search?q=${encodeURIComponent(body.query)}&token=${FINNHUB_KEY}`);
+        const data = await res.json();
+        const results = (data.result || [])
+          .filter(r => r.type === 'Common Stock' || r.type === 'EQS' || r.type === 'ADR' || r.type === 'ETF' || !r.type)
+          .slice(0, 20)
+          .map(r => ({ symbol: r.symbol, name: r.description, type: r.type }));
+        return Response.json({ results });
+      } catch {
+        return Response.json({ results: [] });
+      }
+    }
+
+    // ── Batch price fetch ─────────────────────────────────────────────
     if (symbols && symbols.length > 0) {
       const results = {};
       await Promise.all(symbols.map(async (sym) => {
         try {
-          const res = await fetch(
-            `https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`
-          );
+          const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`);
           const data = await res.json();
-          // c = current price
           results[sym] = data.c > 0 ? parseFloat(data.c.toFixed(2)) : null;
         } catch {
           results[sym] = null;
@@ -63,7 +144,7 @@ Deno.serve(async (req) => {
       return Response.json({ prices: results });
     }
 
-    return Response.json({ error: 'Invalid request. Provide symbols[] or symbol+mode=ohlc' }, { status: 400 });
+    return Response.json({ error: 'Invalid request' }, { status: 400 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
