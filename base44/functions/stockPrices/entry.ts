@@ -246,9 +246,36 @@ Deno.serve(async (req) => {
       const results = {};
       await Promise.all(symbols.map(async (sym) => {
         try {
+          // 1. Try Finnhub quote (works well for US equities + crypto)
           const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`);
           const data = await res.json();
-          results[sym] = data.c > 0 ? parseFloat(data.c.toFixed(2)) : null;
+          if (data.c > 0) {
+            results[sym] = parseFloat(data.c.toFixed(2));
+            return;
+          }
+
+          // 2. Fallback: Twelve Data real-time price (handles EU/Asian exchanges + forex + gold)
+          if (TWELVEDATA_KEY) {
+            const tdRes = await fetch(`https://api.twelvedata.com/price?symbol=${sym}&apikey=${TWELVEDATA_KEY}`);
+            const tdData = await tdRes.json();
+            if (tdData.price && parseFloat(tdData.price) > 0) {
+              results[sym] = parseFloat(parseFloat(tdData.price).toFixed(4));
+              return;
+            }
+          }
+
+          // 3. Fallback: AlphaVantage for forex + commodities
+          if (AV_KEY) {
+            const forexMatch = sym.match(/^([A-Z]{3})(USD|EUR|GBP|JPY|CHF|AUD|CAD|NZD)$/i);
+            if (forexMatch) {
+              const avRes = await fetch(`https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${forexMatch[1]}&to_currency=${forexMatch[2]}&apikey=${AV_KEY}`);
+              const avData = await avRes.json();
+              const rate = parseFloat(avData?.['Realtime Currency Exchange Rate']?.['5. Exchange Rate'] || 0);
+              if (rate > 0) { results[sym] = parseFloat(rate.toFixed(4)); return; }
+            }
+          }
+
+          results[sym] = null;
         } catch {
           results[sym] = null;
         }
