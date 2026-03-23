@@ -282,6 +282,9 @@ export default function AssetDetail() {
     }).catch(() => {});
   }, [watchlistEntry]);
 
+  const isForexOrCommodity = /^(EUR|GBP|XAU|XAG|USD|JPY|AUD|CAD|NZD|CHF)[A-Z]{3}$/.test(symbol);
+  const pricePrefix = isForexOrCommodity ? '' : '$';
+
   const asset = {
     ...staticAsset,
     price: livePrice || staticAsset.price,
