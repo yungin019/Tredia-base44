@@ -52,83 +52,73 @@ Deno.serve(async (req) => {
       const cryptoSymbols = symbols.filter(s => ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'MATIC', 'AVAX', 'LINK', 'UNI', 'DOT', 'ATOM'].includes(s));
       const stockSymbols = symbols.filter(s => !cryptoSymbols.includes(s));
 
-      // Fetch stocks: Try Polygon first, then Finnhub, then AlphaVantage
+      // Fetch stocks: Polygon PRIMARY → AlphaVantage FALLBACK (Finnhub exhausted)
       if (stockSymbols.length > 0) {
-        await Promise.all(stockSymbols.map(async (sym) => {
-          // 1. Try Polygon (paid, reliable)
-          if (POLYGON_KEY) {
-            try {
-              const res = await fetch(
-                `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`
-              );
-              const data = await res.json();
-              const price = data?.results?.[0]?.c;
-              const prevClose = data?.results?.[0]?.o;
-              
-              if (price && price > 0) {
-                results[sym] = {
-                  price: parseFloat(price.toFixed(2)),
-                  prevClose: prevClose ? parseFloat(prevClose.toFixed(2)) : null,
-                  timestamp: data?.results?.[0]?.t || Date.now(),
-                  source: 'polygon'
-                };
-                return;
+        const CHUNK_SIZE = 10; // Batch to avoid timeout
+        
+        for (let i = 0; i < stockSymbols.length; i += CHUNK_SIZE) {
+          const chunk = stockSymbols.slice(i, i + CHUNK_SIZE);
+          
+          await Promise.all(chunk.map(async (sym) => {
+            // 1. TRY POLYGON (primary - you have paid access)
+            if (POLYGON_KEY) {
+              try {
+                const res = await fetch(
+                  `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`,
+                  { signal: AbortSignal.timeout(3000) }
+                );
+                const data = await res.json();
+                const price = data?.results?.[0]?.c;
+                const prevClose = data?.results?.[0]?.o;
+                
+                if (price && price > 0) {
+                  results[sym] = {
+                    price: parseFloat(price.toFixed(2)),
+                    prevClose: prevClose ? parseFloat(prevClose.toFixed(2)) : null,
+                    timestamp: data?.results?.[0]?.t || Date.now(),
+                    source: 'polygon'
+                  };
+                  return;
+                }
+              } catch (e) {
+                console.log(`[Polygon] ${sym} failed:`, e.message);
               }
-            } catch {
-              // Fall through to next provider
             }
-          }
 
-          // 2. Try Finnhub (if quota available)
-          if (FINNHUB_KEY && !results[sym]) {
-            try {
-              const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`);
-              const data = await res.json();
-              if (data.error) throw new Error(data.error);
-              const price = data?.c;
-              const prevClose = data?.pc;
-              
-              if (price && price > 0) {
-                results[sym] = {
-                  price: parseFloat(price.toFixed(2)),
-                  prevClose: prevClose ? parseFloat(prevClose.toFixed(2)) : null,
-                  timestamp: data?.t ? data.t * 1000 : Date.now(),
-                  source: 'finnhub'
-                };
-                return;
+            // 2. FALLBACK TO ALPHAVANTAGE
+            if (AV_KEY && !results[sym]) {
+              try {
+                const res = await fetch(
+                  `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${sym}&apikey=${AV_KEY}`,
+                  { signal: AbortSignal.timeout(3000) }
+                );
+                const data = await res.json();
+                const price = parseFloat(data?.['Global Quote']?.['05. price'] || 0);
+                const prevClose = parseFloat(data?.['Global Quote']?.['08. previous close'] || 0);
+                
+                if (price && price > 0) {
+                  results[sym] = {
+                    price: parseFloat(price.toFixed(2)),
+                    prevClose: prevClose > 0 ? parseFloat(prevClose.toFixed(2)) : null,
+                    timestamp: Date.now(),
+                    source: 'alphavantage'
+                  };
+                  return;
+                }
+              } catch (e) {
+                console.log(`[AlphaVantage] ${sym} failed:`, e.message);
               }
-            } catch {
-              // Fall through to next provider
             }
-          }
 
-          // 3. Try AlphaVantage (fallback)
-          if (AV_KEY && !results[sym]) {
-            try {
-              const res = await fetch(
-                `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${sym}&apikey=${AV_KEY}`
-              );
-              const data = await res.json();
-              const price = parseFloat(data?.['Global Quote']?.['05. price'] || 0);
-              const prevClose = parseFloat(data?.['Global Quote']?.['08. previous close'] || 0);
-              
-              if (price && price > 0) {
-                results[sym] = {
-                  price: parseFloat(price.toFixed(2)),
-                  prevClose: prevClose > 0 ? parseFloat(prevClose.toFixed(2)) : null,
-                  timestamp: Date.now(),
-                  source: 'alphavantage'
-                };
-                return;
-              }
-            } catch {
-              // No more providers
-            }
+            // No data available
+            results[sym] = null;
+          }));
+          
+          // Rate limit protection between chunks
+          if (i + CHUNK_SIZE < stockSymbols.length) {
+            await new Promise(r => setTimeout(r, 200));
           }
-
-          // All providers failed
-          results[sym] = null;
-        }));
+        }
       }
 
       // Fetch crypto from CoinGecko
