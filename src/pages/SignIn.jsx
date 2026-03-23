@@ -48,14 +48,23 @@ export default function SignIn() {
     setError('');
     setLoading(true);
     try {
-      await base44.auth.verifyEmail(email, verifyCode);
-      // After verification, log in
+      // Correct Base44 SDK method: verifyOtp
+      await base44.auth.verifyOtp({ email, otpCode: verifyCode });
       await base44.auth.loginViaEmailPassword(email, password);
       window.location.href = '/Home';
     } catch (err) {
       setError(err?.message || 'Invalid code. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      await base44.auth.resendOtp(email);
+      setError('');
+    } catch (err) {
+      setError('Could not resend code. Please try again.');
     }
   };
 
