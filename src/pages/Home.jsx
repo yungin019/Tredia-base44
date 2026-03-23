@@ -20,6 +20,8 @@ import WatchOut from '@/components/feed/WatchOut';
 import MarketPulse from '@/components/feed/MarketPulse';
 import SmartNews from '@/components/feed/SmartNews';
 import UpgradeCall from '@/components/feed/UpgradeCall';
+import TrendingAssets from '@/components/markets/TrendingAssets';
+import WatchlistQuick from '@/components/markets/WatchlistQuick';
 
 
 
@@ -93,6 +95,12 @@ export default function Home() {
 
           {/* Daily Morning Brief */}
           <DailyBrief mode="morning" />
+
+          {/* Your Watchlist (Top 4 stocks) */}
+          <WatchlistQuick stocks={liveStocks} />
+
+          {/* Trending Assets (Horizontal scroll) */}
+          <TrendingAssets stocks={liveStocks} />
 
           {/* Next Best Opportunity - Show only if we have live data */}
           {liveStocks.length > 0 && (
