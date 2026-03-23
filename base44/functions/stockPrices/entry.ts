@@ -217,46 +217,42 @@ Deno.serve(async (req) => {
         const isCrypto = /^(BTC|ETH|XRP|LTC|BCH|ADA|DOT|SOL|AVAX|MATIC|LINK|UNI|DOGE|SHIB)$/.test(sym);
         const isPriority = PRIORITY_ASSETS.includes(sym);
 
-        // Strategy: Try multiple providers, ensure we get data for priority assets
+        // Strategy: Use Finnhub for US stocks (most reliable)
         const providers = [];
 
-        // 1. Yahoo Finance (fastest, reliable for all US stocks + ETFs)
-        if (!isCrypto && !isFx) {
-          providers.push(async () => fetchYahoo(sym));
-        }
-
-        // 2. Polygon (best overall - US + international stocks, NOT crypto)
-        if (POLYGON_KEY && !isFx && !isCrypto) {
-          providers.push(async () => {
-            const url = `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
-            const res = await fetchWithTimeout(url);
-            const data = await res.json();
-            const price = data?.results?.c || data?.results?.[0]?.c;
-            const prevClose = data?.results?.c || data?.results?.[0]?.c;
-            if (price && price > 0) {
-              return {
-                price: parseFloat(price.toFixed(2)),
-                prevClose: prevClose ? parseFloat(prevClose.toFixed(2)) : null,
-                timestamp: data?.results?.t || Date.now()
-              };
-            }
-            throw new Error('Polygon no data');
-          });
-        }
-
-        // 3. Finnhub (US stocks - very reliable for priority assets)
+        // 1. Finnhub (US stocks + ETFs - very reliable)
         if (FINNHUB_KEY && !isIntl && !isFx && !isCrypto) {
           providers.push(async () => {
-            const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`);
+            const res = await fetchWithTimeout(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`, 4000);
             const data = await res.json();
-            if (data.c && data.c > 0 && data.pc && data.pc > 0) {
+            if (data.c && data.c > 0) {
               return {
                 price: parseFloat(data.c.toFixed(2)),
-                prevClose: parseFloat(data.pc.toFixed(2)),
+                prevClose: parseFloat((data.pc || data.c).toFixed(2)),
+                change: data.dp ? parseFloat(data.dp.toFixed(2)) : null,
                 timestamp: data.t ? data.t * 1000 : Date.now()
               };
             }
             throw new Error('Finnhub no data');
+          });
+        }
+
+        // 2. Polygon (fallback for US stocks)
+        if (POLYGON_KEY && !isFx && !isCrypto) {
+          providers.push(async () => {
+            const url = `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
+            const res = await fetchWithTimeout(url, 4000);
+            const data = await res.json();
+            const price = data?.results?.[0]?.c;
+            const prevClose = data?.results?.[0]?.o;
+            if (price && price > 0) {
+              return {
+                price: parseFloat(price.toFixed(2)),
+                prevClose: prevClose ? parseFloat(prevClose.toFixed(2)) : null,
+                timestamp: data?.results?.[0]?.t || Date.now()
+              };
+            }
+            throw new Error('Polygon no data');
           });
         }
 
