@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 import { getStockPrice } from '../MarketData';
 import MobileSelect from '@/components/ui/mobile-select';
+import BrokerDisclosureBanner from '@/components/broker/BrokerDisclosureBanner';
 
 const ORDER_TYPES = [
   { value: 'market', label: 'Market' },
