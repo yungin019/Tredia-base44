@@ -340,34 +340,10 @@ Deno.serve(async (req) => {
           console.log(`All providers failed for ${sym}: ${lastError}`);
         }
 
-        // If all providers failed for a priority asset, try harder with retries
-        if (!results[sym] && isPriority) {
-          for (let retry = 0; retry < 3; retry++) {
-            try {
-              await new Promise(resolve => setTimeout(resolve, 1000 * (retry + 1)));
-              if (POLYGON_KEY) {
-                const url = `https://api.polygon.io/v2/aggs/ticker/${sym}/prev?adjusted=true&apiKey=${POLYGON_KEY}`;
-                const res = await fetchWithTimeout(url);
-                const data = await res.json();
-                const price = data?.results?.c || data?.results?.[0]?.c;
-                if (price && price > 0) {
-                  results[sym] = {
-                    price: parseFloat(price.toFixed(2)),
-                    prevClose: parseFloat(price.toFixed(2)),
-                    timestamp: Date.now()
-                  };
-                  break;
-                }
-              }
-            } catch {
-              continue;
-            }
-          }
-        }
-
-        // Last resort: return null (but this should rarely happen for priority assets)
+        // No data = null (honest)
         if (!results[sym]) {
           results[sym] = null;
+          console.log(`[Result] ${sym}: null`);
         }
       }));
 
