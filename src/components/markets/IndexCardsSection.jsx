@@ -2,54 +2,84 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { base44 } from '@/api/base44Client';
 
-const INDICES = [
-  {
-    symbol: 'SPX',
-    name: 'S&P 500',
-    price: 5180.45,
-    change: 1.23,
-    chartData: [5100, 5120, 5110, 5140, 5135, 5150, 5155, 5170, 5165, 5180],
-  },
-  {
-    symbol: 'COMP',
-    name: 'NASDAQ',
-    price: 16340.87,
-    change: 2.15,
-    chartData: [16000, 16050, 16020, 16100, 16150, 16200, 16250, 16300, 16320, 16340],
-  },
-  {
-    symbol: 'DJI',
-    name: 'DOW JONES',
-    price: 38789.23,
-    change: 0.87,
-    chartData: [38500, 38550, 38520, 38600, 38650, 38700, 38720, 38750, 38770, 38789],
-  },
+const INDEX_SYMBOLS = [
+  { symbol: 'SPY', name: 'S&P 500 ETF' },
+  { symbol: 'QQQ', name: 'NASDAQ 100 ETF' },
+  { symbol: 'DIA', name: 'Dow Jones ETF' },
 ];
 
 export default function IndexCardsSection() {
-  const [indices, setIndices] = useState(INDICES);
+  const [indices, setIndices] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate real-time updates (optional)
-    const interval = setInterval(() => {
-      setIndices((prev) =>
-        prev.map((index) => ({
-          ...index,
-          price: index.price + (Math.random() - 0.5) * 2,
-          change: index.change + (Math.random() - 0.5) * 0.1,
-        }))
-      );
-    }, 5000);
+    async function fetchIndices() {
+      try {
+        const symbols = INDEX_SYMBOLS.map(s => s.symbol);
+        const res = await base44.functions.invoke('stockPrices', { symbols });
+        
+        if (res?.data?.prices) {
+          const liveIndices = INDEX_SYMBOLS
+            .filter(s => res.data.prices[s.symbol] && res.data.prices[s.symbol].price > 0)
+            .map(s => {
+              const data = res.data.prices[s.symbol];
+              const change = data.prevClose ? ((data.price - data.prevClose) / data.prevClose) * 100 : 0;
+              // Generate simple sparkline data (last 10 days would need historical API)
+              const basePrice = data.price;
+              const sparkline = Array.from({ length: 10 }, (_, i) => ({
+                v: basePrice * (0.998 + (i * 0.002) + (Math.random() - 0.5) * 0.004)
+              }));
+              
+              return {
+                symbol: s.symbol,
+                name: s.name,
+                price: data.price,
+                change: parseFloat(change.toFixed(2)),
+                chartData: sparkline
+              };
+            });
+          
+          if (liveIndices.length > 0) {
+            setIndices(liveIndices);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching indices:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchIndices();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchIndices, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  if (loading || indices.length === 0) {
+    return (
+      <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide mb-5">
+        <div className="flex gap-3 pb-2">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="flex-shrink-0 rounded-2xl p-4 glass-card border border-white/[0.07]" style={{ width: '280px' }}>
+              <div className="h-4 w-24 bg-white/5 rounded mb-2 animate-pulse" />
+              <div className="h-6 w-32 bg-white/5 rounded mb-3 animate-pulse" />
+              <div className="h-12 w-full bg-white/5 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide mb-5">
       <div className="flex gap-3 pb-2">
         {indices.map((index, i) => {
           const isUp = index.change >= 0;
-          const chartData = index.chartData.map((v, idx) => ({ v, idx }));
 
           return (
             <motion.div
@@ -87,7 +117,7 @@ export default function IndexCardsSection() {
               {/* Sparkline */}
               <div className="h-12 -mx-2">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                  <LineChart data={index.chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                     <Line
                       type="monotone"
                       dataKey="v"

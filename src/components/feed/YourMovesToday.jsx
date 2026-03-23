@@ -2,42 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight, TrendingUp } from 'lucide-react';
 
-const MOVES = [
-  {
-    symbol: 'NVDA',
-    action: 'BUY',
-    entry: 'Buy between $870–$885 on dips. Do NOT chase above $900.',
-    positionSize: 'Normal size (no event risk)',
-    timeframe: '1–2 weeks',
-    why: 'Growth rally on. Yields down = multiple expansion. AI demand remains structural.',
-    exitTarget: 'Sell 50% at $920, trail stop on remainder.',
-    risk: 'If 10Y yields bounce above 4.3% + Fed signals hawkish, expect 8–12% drop quickly.',
-    confidence: 'High (macro tailwind)',
-  },
-  {
-    symbol: 'XLE',
-    action: 'AVOID',
-    entry: 'N/A',
-    positionSize: 'Do not enter',
-    timeframe: 'N/A',
-    why: 'Energy sector divergence: Oil up 2.8% but XLE lagging. Structural weakness, not a bounce. Sell on strength if you hold.',
-    exitTarget: 'Sell any longs into strength.',
-    risk: 'If oil breaks above $95 AND energy catches up with heavy volume, could reverse. But odds favor 5–8% more downside first.',
-    confidence: 'Medium (mean reversion play)',
-  },
-  {
-    symbol: 'GLD',
-    action: 'WATCH',
-    entry: 'Wait for pullback to $195–$200. Do NOT chase current strength.',
-    positionSize: 'Small size (tactical only)',
-    timeframe: 'Intraday to 3 days',
-    why: 'Gold up today on weak dollar + flight to safety. But risk-on days usually see gold reverse by close or next day. Better setup = lower entry.',
-    exitTarget: 'Scalp 1–2% on quick bounce, do not hold overnight.',
-    risk: 'If Fed cuts more aggressively or equity fear spikes, gold could squeeze higher 2–4%. But consolidation is more likely.',
-    confidence: 'Medium (technical setup forming)',
-  },
-];
-
 function MoveCard({ move, onExplore }) {
   const actionColors = {
     BUY: { bg: 'bg-success/10', border: 'border-success/20', label: 'text-success', labelBg: 'bg-success/15' },
@@ -111,13 +75,25 @@ function MoveCard({ move, onExplore }) {
   );
 }
 
-export default function YourMovesToday({ onExplore }) {
+export default function YourMovesToday({ moves = [], onExplore }) {
+  if (!moves || moves.length === 0) {
+    return (
+      <div>
+        <h2 className="text-base font-bold text-foreground mb-1">Your Moves Today</h2>
+        <p className="text-xs text-muted-foreground mb-4">Based on today's market context. TREK's mentor guidance for each trade.</p>
+        <div className="text-center py-8 text-xs text-white/40">
+          Loading live signals...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h2 className="text-base font-bold text-foreground mb-1">Your Moves Today</h2>
       <p className="text-xs text-muted-foreground mb-4">Based on today's market context. TREK's mentor guidance for each trade.</p>
       <div className="space-y-3">
-        {MOVES.map((move) => (
+        {moves.map((move) => (
           <MoveCard key={move.symbol} move={move} onExplore={() => onExplore?.(move)} />
         ))}
       </div>
