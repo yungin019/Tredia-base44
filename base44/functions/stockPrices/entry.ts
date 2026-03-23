@@ -73,36 +73,23 @@ Deno.serve(async (req) => {
         return `OANDA:${m[1].toUpperCase()}_${m[2].toUpperCase()}`;
       };
 
-      // 2. Finnhub candles
-      //    - For stocks/ETFs: use /stock/candle with daily resolution for international
-      //    - For forex/commodities: use /forex/candle with OANDA: prefix
-      if (FINNHUB_KEY) {
+      // 2. Finnhub /stock/candle — US equities only on free plan
+      //    NOTE: Finnhub free plan blocks: /forex/candle, international exchanges (PA/DE/AS/T/HK/etc), BABA
+      //    Only reliable for: AAPL, NVDA, MSFT, TSLA, GOOGL, META, AMZN, SPY, QQQ, etc. (US-listed)
+      if (FINNHUB_KEY && !isInternational && !isForex) {
         try {
-          let url;
-          let resolut;
-          // For 1D timeframe on daily-only assets, expand lookback to 7 days
-          const adjustedFrom = (timeframe === '1D' && (isInternational || isForex)) ? now - 7 * 86400 : fromTs;
-
-          if (isForex) {
-            const finnhubSym = toFinnhubForex(symbol);
-            if (!finnhubSym) throw new Error('unmappable forex');
-            resolut = (timeframe === '1D') ? 'D' : tf.resolution === '5' ? 'D' : tf.resolution;
-            url = `https://finnhub.io/api/v1/forex/candle?symbol=${finnhubSym}&resolution=${resolut}&from=${adjustedFrom}&to=${now}&token=${FINNHUB_KEY}`;
-          } else {
-            resolut = isInternational ? 'D' : tf.resolution;
-            url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${resolut}&from=${adjustedFrom}&to=${now}&token=${FINNHUB_KEY}`;
-          }
-
+          const url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${tf.resolution}&from=${fromTs}&to=${now}&token=${FINNHUB_KEY}`;
           const res = await fetchWithTimeout(url, 5000);
           const data = await res.json();
-          if (data.s === 'ok' && data.c && data.c.length > 0) {
-            const dp = isForex ? 4 : 2;
+          if (data.s === 'ok' && data.c && data.c.length > 1) {
             const chartData = data.t.map((ts, i) => ({
-              date: new Date(ts * 1000).toISOString().split('T')[0],
-              open: parseFloat(data.o[i].toFixed(dp)),
-              high: parseFloat(data.h[i].toFixed(dp)),
-              low:  parseFloat(data.l[i].toFixed(dp)),
-              close: parseFloat(data.c[i].toFixed(dp)),
+              date: tf.resolution === '5' || tf.resolution === '60'
+                ? new Date(ts * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : new Date(ts * 1000).toISOString().split('T')[0],
+              open: parseFloat(data.o[i].toFixed(2)),
+              high: parseFloat(data.h[i].toFixed(2)),
+              low:  parseFloat(data.l[i].toFixed(2)),
+              close: parseFloat(data.c[i].toFixed(2)),
               volume: data.v[i],
             }));
             return Response.json({ chartData, source: 'finnhub', timeframe });
