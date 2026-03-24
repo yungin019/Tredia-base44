@@ -1,11 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-const FINNHUB_API_KEY = Deno.env.get('FINNHUB_API_KEY');
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+const POLYGON_API_KEY = Deno.env.get('POLYGON_API_KEY');
 
 Deno.serve(async (req) => {
   const report = {
-    source: 'Finnhub',
+    source: 'Polygon.io',
     rawStatusCode: null,
     rawResponseBody: null,
     rawNewsCount: 0,
@@ -22,36 +22,36 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // STEP 1: Fetch raw news from Finnhub with diagnostic logging
-    console.log('[CATALYST PIPELINE] Step 1: Fetch raw news from Finnhub');
-    console.log(`[CATALYST PIPELINE] FINNHUB_API_KEY present: ${!!FINNHUB_API_KEY}`);
+    // STEP 1: Fetch real market news from Polygon.io (reliable alternative to Finnhub)
+    console.log('[CATALYST PIPELINE] Step 1: Fetch raw news from Polygon.io');
+    console.log(`[CATALYST PIPELINE] POLYGON_API_KEY present: ${!!POLYGON_API_KEY}`);
     
-    const finnhubUrl = `https://finnhub.io/api/news?category=general&minId=0&apikey=${FINNHUB_API_KEY}`;
-    console.log(`[CATALYST PIPELINE] Finnhub URL: ${finnhubUrl.replace(FINNHUB_API_KEY, '***')}`);
+    const polygonUrl = `https://api.polygon.io/v2/reference/news?limit=10&apikey=${POLYGON_API_KEY}`;
+    console.log(`[CATALYST PIPELINE] Polygon URL: ${polygonUrl.replace(POLYGON_API_KEY, '***')}`);
 
-    let finnhubResponse;
+    let polygonResponse;
     let rawResponseText;
 
     try {
-      finnhubResponse = await fetch(finnhubUrl);
-      report.rawStatusCode = finnhubResponse.status;
-      rawResponseText = await finnhubResponse.text();
+      polygonResponse = await fetch(polygonUrl);
+      report.rawStatusCode = polygonResponse.status;
+      rawResponseText = await polygonResponse.text();
       report.rawResponseBody = rawResponseText.substring(0, 500);
       
-      console.log(`[CATALYST PIPELINE] Finnhub Status: ${finnhubResponse.status}`);
-      console.log(`[CATALYST PIPELINE] Finnhub Response (first 500 chars): ${rawResponseText.substring(0, 500)}`);
+      console.log(`[CATALYST PIPELINE] Polygon Status: ${polygonResponse.status}`);
+      console.log(`[CATALYST PIPELINE] Polygon Response (first 500 chars): ${rawResponseText.substring(0, 500)}`);
     } catch (fetchError) {
-      console.error('[CATALYST PIPELINE] Finnhub fetch failed:', fetchError.message);
-      report.failurePoint = 'FINNHUB_FETCH_ERROR';
+      console.error('[CATALYST PIPELINE] Polygon fetch failed:', fetchError.message);
+      report.failurePoint = 'POLYGON_FETCH_ERROR';
       report.realFixApplied = `Network error: ${fetchError.message}`;
       return Response.json(report);
     }
 
     // Check HTTP status
-    if (!finnhubResponse.ok) {
-      console.error(`[CATALYST PIPELINE] Finnhub returned HTTP ${finnhubResponse.status}`);
-      report.failurePoint = 'FINNHUB_HTTP_ERROR';
-      report.realFixApplied = `HTTP ${finnhubResponse.status}: ${rawResponseText.substring(0, 200)}`;
+    if (!polygonResponse.ok) {
+      console.error(`[CATALYST PIPELINE] Polygon returned HTTP ${polygonResponse.status}`);
+      report.failurePoint = 'POLYGON_HTTP_ERROR';
+      report.realFixApplied = `HTTP ${polygonResponse.status}: ${rawResponseText.substring(0, 200)}`;
       return Response.json(report);
     }
 
