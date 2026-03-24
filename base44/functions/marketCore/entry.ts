@@ -279,27 +279,6 @@ function buildCoreResponse() {
   });
 }
 
-// ── RATE LIMITER ─────────────────────────────────────────────────────────
-// Max 4 Polygon requests per second (free tier safe)
-const requestTimestamps = [];
-const MAX_REQUESTS_PER_SEC = 4;
-
-async function polygonRateLimitedFetch(url, signal) {
-  const now = Date.now();
-  // Remove timestamps older than 1 second
-  while (requestTimestamps.length > 0 && now - requestTimestamps[0] >= 1000) {
-    requestTimestamps.shift();
-  }
-  // If at limit, wait until oldest request is 1s old
-  if (requestTimestamps.length >= MAX_REQUESTS_PER_SEC) {
-    const waitMs = 1000 - (now - requestTimestamps[0]) + 10;
-    await new Promise(r => setTimeout(r, waitMs));
-    requestTimestamps.shift();
-  }
-  requestTimestamps.push(Date.now());
-  return fetch(url, { signal });
-}
-
 // ── BACKGROUND POLLER ────────────────────────────────────────────────────
 let lastPollTime = 0;
 let pollInProgress = false;
