@@ -104,12 +104,15 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
       </div>
 
       {/* ── MARKET STATE ─────────────────────────────────────────── */}
-      <div className="px-4 pt-3 pb-4">
+      <div className={`px-4 pt-3 ${isPrimary ? 'pb-5' : 'pb-4'}`}>
         <div className="flex items-start gap-2.5">
-          <div className="mt-0.5 p-1.5 rounded-lg flex-shrink-0" style={{ background: `${stateColor}14`, border: `1px solid ${stateColor}22` }}>
-            <StateIcon className="h-4 w-4" style={{ color: stateColor }} />
+          <div
+            className={`mt-0.5 flex-shrink-0 ${isPrimary ? 'p-2 rounded-xl' : 'p-1.5 rounded-lg'}`}
+            style={{ background: `${stateColor}${isPrimary ? '20' : '14'}`, border: `1px solid ${stateColor}${isPrimary ? '35' : '22'}` }}
+          >
+            <StateIcon className={isPrimary ? 'h-5 w-5' : 'h-4 w-4'} style={{ color: stateColor }} />
           </div>
-          <h2 className="text-[15px] font-bold text-white/95 leading-snug flex-1 tracking-tight">
+          <h2 className={`${isPrimary ? 'text-[17px] font-extrabold text-white' : 'text-[15px] font-bold text-white/95'} leading-snug flex-1 tracking-tight`}>
             {reaction.marketState}
           </h2>
         </div>
