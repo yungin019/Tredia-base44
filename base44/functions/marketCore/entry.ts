@@ -328,40 +328,11 @@ async function handleSearch(query, polygonKey) {
   });
 
   if (matched.length === 0) {
-    // No local match — try Polygon search
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
-      const res = await fetch(
-        `https://api.polygon.io/v3/reference/tickers?search=${encodeURIComponent(query)}&active=true&limit=10&apiKey=${polygonKey}`,
-        { signal: controller.signal }
-      );
-      clearTimeout(timeoutId);
-
-      if (res.status === 200) {
-        const data = await res.json();
-        (data.results || []).slice(0, 10).forEach(item => {
-          matched.push({
-            symbol: item.ticker,
-            name: item.name,
-            type: (item.type || 'stock').toLowerCase() === 'cs' ? 'stock' : (item.type || 'stock').toLowerCase(),
-            sector: item.sic_description || 'Unknown',
-            fromPolygon: true
-          });
-          seen.add(item.ticker);
-        });
-      }
-    } catch (err) {
-      console.warn('[Search] Polygon search failed:', err.message);
-    }
-  }
-
-  if (matched.length === 0) {
     return [];
   }
 
-  // 2. Fetch live prices for matched symbols (max 10)
-  const symbolsToFetch = matched.slice(0, 10).map(m => m.symbol);
+  // 2. Fetch live prices for matched symbols (max 5)
+  const symbolsToFetch = matched.slice(0, 5).map(m => m.symbol);
   const stockSymbols = symbolsToFetch.filter(s => {
     const meta = SYMBOL_META[s];
     return !meta || meta.type !== 'crypto';
@@ -374,7 +345,7 @@ async function handleSearch(query, polygonKey) {
   const priceResults = {};
 
   const [stockPrices, cryptoPrices] = await Promise.all([
-    stockSymbols.length > 0 ? fetchPolygonQuotes(stockSymbols.slice(0, 5), polygonKey) : Promise.resolve({}),
+    stockSymbols.length > 0 ? fetchStockQuotes(stockSymbols.slice(0, 5), finnhubKey) : Promise.resolve({}),
     cryptoSymbols.length > 0 ? fetchCoinGeckoQuotes(cryptoSymbols.slice(0, 5)) : Promise.resolve({})
   ]);
 
