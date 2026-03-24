@@ -104,8 +104,53 @@ export default function Home() {
         </div>
 
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
-          {/* OG100 Badge */}
-          <OG100Card />
+          {/* ╔════════════════════════════════════════════════════════════════ */}
+          {/* ║ SIGNALS FIRST (NON-NEGOTIABLE) — Above the fold */}
+          {/* ╚════════════════════════════════════════════════════════════════ */}
+
+          {/* ── STICKY REGION SWITCHER (Hero priority) ─────────────────── */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
+              <h2 className="text-sm font-bold text-white/80">Live Signals</h2>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full ml-1 uppercase tracking-wide" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
+                {({ Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm' })[activeRegion] || activeRegion}
+              </span>
+            </div>
+            <IntelligenceFeed activeRegion={activeRegion} onRegionChange={handleRegionChange} />
+          </div>
+
+          {/* ╔════════════════════════════════════════════════════════════════ */}
+          {/* ║ EXECUTION LAYER — Your Moves Today */}
+          {/* ╚════════════════════════════════════════════════════════════════ */}
+          <YourMovesToday
+            moves={liveStocks.slice(0, 3).map(stock => ({
+              symbol: stock.symbol,
+              action: stock.signal,
+              entry: stock.signal === 'BUY' ? `Buy on dips to $${(stock.price * 0.98).toFixed(0)}` : stock.signal === 'SELL' ? 'Do not enter, wait for reversal' : `Watch for breakout above $${(stock.price * 1.02).toFixed(0)}`,
+              positionSize: stock.signal === 'BUY' ? 'Normal size' : stock.signal === 'SELL' ? 'Avoid' : 'Small size',
+              timeframe: '1-2 weeks',
+              why: `${stock.symbol} ${stock.change > 0 ? 'up' : 'down'} ${Math.abs(stock.change).toFixed(2)}% today. Market ${stock.change > 2 ? 'showing strength' : stock.change < -2 ? 'showing weakness' : 'consolidating'}.`,
+              exitTarget: stock.signal === 'BUY' ? `Sell at $${(stock.price * 1.05).toFixed(0)}` : 'N/A',
+              risk: stock.change < -2 ? 'Further downside risk' : stock.change > 2 ? 'Pullback risk' : 'Sideways movement',
+              confidence: `${stock.signal === 'BUY' || stock.signal === 'SELL' ? 'High' : 'Medium'}`
+            }))}
+            onExplore={(move) => navigate(`/Asset/${move.symbol}`)}
+          />
+
+          {/* ╔════════════════════════════════════════════════════════════════ */}
+          {/* ║ CONTEXT LAYERS — Below primary signals */}
+          {/* ╚════════════════════════════════════════════════════════════════ */}
+
+          {/* ── WATCH OUT ────────────────────────────────────────────── */}
+          <WatchOut />
+
+          {/* ── MARKET PULSE ─────────────────────────────────────────── */}
+          <MarketPulse sentiment={fearGreed?.value || 50} />
+
+          {/* ╔════════════════════════════════════════════════════════════════ */}
+          {/* ║ SUPPORTING CONTENT (after primary signals) */}
+          {/* ╚════════════════════════════════════════════════════════════════ */}
 
           {/* Daily Morning Brief */}
           <DailyBrief mode="morning" />
@@ -116,19 +161,8 @@ export default function Home() {
           {/* Trending Assets */}
           <TrendingAssets stocks={liveStocks} />
 
-          {/* ── INTELLIGENCE FEED (replaces scattered components) ─── */}
-          <div className="space-y-2">
-            {/* Section header */}
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
-              <h2 className="text-sm font-bold text-white/80">Market Intelligence</h2>
-              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full ml-1 uppercase tracking-wide" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
-                {({ Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm' })[activeRegion] || activeRegion}
-              </span>
-              <span className="text-[9px] text-white/25 ml-auto">Interpretation-first</span>
-            </div>
-            <IntelligenceFeed activeRegion={activeRegion} onRegionChange={handleRegionChange} />
-          </div>
+          {/* OG100 Badge */}
+          <OG100Card />
 
           {/* ── NEXT JUMP ───────────────────────────────────────────── */}
           {liveStocks.length > 0 && (
