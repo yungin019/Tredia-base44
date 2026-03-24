@@ -139,12 +139,11 @@ export const getProviderForAsset = (symbol) => {
   const assetClass = getAssetClass(symbol);
   switch (assetClass) {
     case 'crypto':
-      return ['coingecko']; // Only CoinGecko, no fallback needed
+      return 'coingecko';
     case 'stock':
     case 'etf':
-      return ['fallback']; // Use cached fallback until API recovers
     default:
-      return ['fallback'];
+      return 'polygon';
   }
 };
 
