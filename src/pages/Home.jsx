@@ -22,7 +22,7 @@ import SmartNews from '@/components/feed/SmartNews';
 import UpgradeCall from '@/components/feed/UpgradeCall';
 import TrendingAssets from '@/components/markets/TrendingAssets';
 import WatchlistQuick from '@/components/markets/WatchlistQuick';
-import { fetchTier1Assets, fetchCryptoPrices } from '@/api/marketDataClient';
+import { fetchCoreAssets } from '@/api/marketDataClient';
 
 export default function Home() {
   const navigate = useNavigate();
