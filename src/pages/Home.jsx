@@ -122,7 +122,7 @@ export default function Home() {
               <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
               <h2 className="text-sm font-bold text-white/80">Market Intelligence</h2>
               <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 ml-1 uppercase tracking-wide">
-                {activeRegion === 'EU' ? 'Europe' : activeRegion === 'APAC' ? 'Asia' : activeRegion}
+                {({ Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm' })[activeRegion] || activeRegion}
               </span>
               <span className="text-[9px] text-white/25 ml-auto">Interpretation-first</span>
             </div>

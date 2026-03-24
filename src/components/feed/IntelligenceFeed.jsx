@@ -286,14 +286,24 @@ const WATCH_LAYER = {
   ],
 };
 
-// ── RANKING: Region relevance ────────────────────────────────────────────────
+// ── RANKING ──────────────────────────────────────────────────────────────────
+// Global: show only reactions tagged affectedRegions includes 'Global', ranked by importance desc.
+// This makes Global first-class (high-impact cross-market) not a fallback dump.
+// Regional: score = regional match (10) + region tag (5) + importance. Pure JS, no backend.
 
 function rankForRegion(reactions, region) {
-  if (region === 'Global') return reactions.sort((a, b) => b.importance - a.importance);
+  if (region === 'Global') {
+    return reactions
+      .filter(r => r.affectedRegions?.includes('Global'))
+      .sort((a, b) => b.importance - a.importance);
+  }
   return reactions
     .map(r => ({
       ...r,
-      _score: (r.affectedRegions?.includes(region) ? 10 : 0) + (r.region === region || r.region === 'Global' || r.region === 'US / Global' ? 5 : 0) + r.importance,
+      _score:
+        (r.affectedRegions?.includes(region) ? 10 : 0) +
+        (r.region === region || r.region === 'Global' ? 5 : 0) +
+        r.importance,
     }))
     .sort((a, b) => b._score - a._score);
 }

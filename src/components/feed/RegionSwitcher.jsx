@@ -11,6 +11,11 @@ const REGIONS = [
   { id: 'LatAm',  label: 'LatAm',  flag: '🌎' },
 ];
 
+// Exported for use in feed header badge
+export const REGION_LABELS = {
+  Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm',
+};
+
 export default function RegionSwitcher({ activeRegion, onChange }) {
   return (
     <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
