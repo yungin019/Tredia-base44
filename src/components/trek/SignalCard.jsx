@@ -72,42 +72,25 @@ export default function SignalCard({ signal }) {
       {/* accent line */}
       <div style={{ height: 2, background: `linear-gradient(90deg, ${color}88 0%, ${color}20 60%, transparent 100%)` }} />
 
-      {/* ── TOP: symbol + signal + confidence ───────────────── */}
-      <div className="px-4 pt-4 pb-3">
-        <div className="flex items-start justify-between gap-3">
-          {/* Left: signal badge + symbol */}
-          <div className="flex flex-col gap-1.5">
-            <span
-              className="inline-flex items-center gap-1.5 font-black tracking-widest rounded-full self-start"
-              style={{ fontSize: 10, color, background: bg, border: `1px solid ${border}`, padding: '3px 10px', letterSpacing: '0.12em' }}
-            >
-              <Icon style={{ width: 10, height: 10 }} />
+      {/* ── SYMBOL — SIGNAL + CONFIDENCE ──────────────────── */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-start justify-between gap-3 mb-2">
+          {/* SYMBOL — SIGNAL */}
+          <h3 style={{ fontSize: 16, fontWeight: 900, color: 'rgba(255,255,255,0.97)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+            <span className="font-mono">{signal.symbol}</span>
+            {' — '}
+            <span style={{ color }}>
               {cfg.label}
             </span>
-            <span style={{ fontSize: 22, fontFamily: 'monospace', fontWeight: 900, color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.02em', lineHeight: 1 }}>
-              {signal.symbol}
-            </span>
-            {signal.title && (
-              <p style={{ fontSize: 11, color: 'rgba(200,225,255,0.55)', lineHeight: 1.35, marginTop: 2 }}>{signal.title}</p>
-            )}
-          </div>
-
-          {/* Right: confidence */}
-          <div className="flex flex-col items-end gap-1 flex-shrink-0">
-            <span style={{ fontSize: 26, fontFamily: 'monospace', fontWeight: 900, color, lineHeight: 1 }}>
-              {signal.confidence}%
-            </span>
-            <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>confidence</span>
-            {isFresh && (
-              <span style={{ fontSize: 8, fontWeight: 700, color: '#0ec8dc', background: 'rgba(14,200,220,0.1)', border: '1px solid rgba(14,200,220,0.2)', borderRadius: 99, padding: '1px 7px' }}>
-                LIVE
-              </span>
-            )}
-          </div>
+          </h3>
+          {/* Confidence */}
+          <span style={{ fontSize: 18, fontFamily: 'monospace', fontWeight: 900, color, lineHeight: 1, flexShrink: 0 }}>
+            {signal.confidence}%
+          </span>
         </div>
-
+        
         {/* Confidence bar */}
-        <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden', marginTop: 12 }}>
+        <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${signal.confidence}%` }}
@@ -117,38 +100,38 @@ export default function SignalCard({ signal }) {
         </div>
       </div>
 
-      {/* ── DRIVER line (why now) ─────────────────────────── */}
+      {/* ── ACTION (2nd visible line) ─────────────────────── */}
+      <div className="px-4 py-2" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: `${color}06` }}>
+        <div className="flex items-center gap-2">
+          <Zap className="h-3 w-3 flex-shrink-0" style={{ color }} />
+          <p className="text-sm font-black uppercase tracking-tight" style={{ color: 'rgba(255,255,255,0.95)' }}>
+            {signal.signal === 'BUY' ? 'BUY ABOVE BREAKOUT' :
+             signal.signal === 'SELL' ? 'SELL / SHORT BELOW' :
+             signal.signal === 'WATCH' ? 'MONITOR — WAIT' :
+             'HOLD POSITION'}
+          </p>
+        </div>
+      </div>
+
+      {/* ── DRIVER (why now, secondary) ────────────────── */}
       {(signal.oneLiner || signal.technicalSummary) && (
-        <div className="px-4 pb-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', paddingTop: 10 }}>
+        <div className="px-4 py-2" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
           <div className="flex items-start gap-2">
-            <span className="text-[10px] text-white/30 font-mono mt-0.5 flex-shrink-0">→</span>
-            <p className="text-xs leading-snug" style={{ color: 'rgba(200,225,255,0.6)' }}>
+            <span className="text-[9px] text-white/20 font-mono mt-0.5 flex-shrink-0">→</span>
+            <p className="text-[10px] leading-tight" style={{ color: 'rgba(200,225,255,0.4)' }}>
               {signal.oneLiner || (signal.technicalSummary?.split('.')[0] + '.')}
             </p>
           </div>
         </div>
       )}
 
-      {/* ── ACTION + RISK ─────────────────────────────────── */}
-      <div style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
-        {/* Action */}
-        <div className="px-4 py-2.5 flex items-start gap-2" style={{ background: `${color}08` }}>
-          <Zap className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" style={{ color }} />
-          <p className="text-xs font-bold leading-snug" style={{ color: 'rgba(255,255,255,0.9)' }}>
-            <span style={{ color }}>Action: </span>
-            {signal.signal === 'BUY' ? `Buy above $${signal.entry || 'breakout'}` :
-             signal.signal === 'SELL' ? `Exit / short below $${signal.stopLoss || 'breakdown'}` :
-             signal.signal === 'WATCH' ? 'Monitor — no entry yet' :
-             'Hold current position'}
-          </p>
-        </div>
-        {/* Risk */}
-        <div className="px-4 py-2.5 flex items-start gap-2" style={{ borderTop: '1px solid rgba(239,68,68,0.08)', background: 'rgba(239,68,68,0.04)' }}>
-          <ShieldAlert className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: '#f87171' }} />
-          <p className="text-xs leading-snug" style={{ color: 'rgba(252,165,165,0.7)' }}>
-            <span className="font-bold" style={{ color: 'rgba(248,113,113,0.85)' }}>Risk: </span>
-            -{riskPct}% if support breaks
-            {signal.lossReason ? ` — ${signal.lossReason}` : ''}
+      {/* ── RISK ──────────────────────────────────────────── */}
+      <div className="px-4 py-2" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: 'rgba(239,68,68,0.04)' }}>
+        <div className="flex items-start gap-2">
+          <span className="text-[9px] flex-shrink-0">⚠</span>
+          <p className="text-[10px] leading-tight" style={{ color: 'rgba(252,165,165,0.7)' }}>
+            -{riskPct}% if breaks
+            {signal.lossReason ? `: ${signal.lossReason}` : ''}
           </p>
         </div>
       </div>
