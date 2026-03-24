@@ -463,7 +463,7 @@ export default function IntelligenceFeed({ activeRegion, onRegionChange }) {
   useEffect(() => {
     setLoading(true);
     const t = setTimeout(() => {
-      setReactions(rankForRegion([...ALL_REACTIONS], activeRegion).slice(0, 4));
+      setReactions(filterAndRank([...ALL_REACTIONS], activeRegion).slice(0, 4));
       setLoading(false);
     }, 400);
     return () => clearTimeout(t);
