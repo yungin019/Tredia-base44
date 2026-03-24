@@ -18,6 +18,7 @@ import TickerTape from '@/components/dashboard/TickerTape';
 import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
 import PullToRefresh from '@/components/ui/PullToRefresh';
+import DiscoverySection, { POPULAR_STOCKS, POPULAR_CRYPTO, MAJOR_ETFS, COMMODITIES_SNAPSHOT } from '@/components/markets/DiscoverySection.jsx';
 
 // Index chart data
 const CHART_DATA = {
