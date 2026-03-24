@@ -67,13 +67,20 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07 }}
-      className="rounded-2xl border border-white/[0.07] overflow-hidden"
-      style={{ background: 'rgba(14,19,30,0.7)' }}
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: 'rgba(8, 16, 36, 0.55)',
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)',
+        border: '1px solid rgba(100, 220, 255, 0.09)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(100,220,255,0.06)',
+      }}
     >
-      {/* ── TOP STRIPE: Region + Importance + Timing ─────────────── */}
+      {/* ── ACCENT LINE (direction-aware) ────────────────────────── */}
+      <div className="h-[2px] w-full" style={{ background: `linear-gradient(90deg, ${stateColor}60 0%, ${stateColor}18 60%, transparent 100%)` }} />
+
+      {/* ── TOP STRIPE: Importance + Timing ──────────────────────── */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-0">
-        <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">{reaction.region || 'Global'}</span>
-        <span className="text-white/15">·</span>
         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${importanceMeta.bg} ${importanceMeta.color}`}>
           {importanceMeta.label}
         </span>
@@ -85,7 +92,7 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
       {/* ── MARKET STATE ─────────────────────────────────────────── */}
       <div className="px-4 pt-3 pb-4">
         <div className="flex items-start gap-2.5">
-          <div className="mt-0.5 p-1.5 rounded-lg" style={{ background: `${stateColor}18` }}>
+          <div className="mt-0.5 p-1.5 rounded-lg flex-shrink-0" style={{ background: `${stateColor}14`, border: `1px solid ${stateColor}22` }}>
             <StateIcon className="h-4 w-4" style={{ color: stateColor }} />
           </div>
           <h2 className="text-[15px] font-bold text-white/95 leading-snug flex-1 tracking-tight">
@@ -95,36 +102,30 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
       </div>
 
       {/* ── DRIVER ───────────────────────────────────────────────── */}
-      <div className="border-t border-white/[0.05] px-4 py-3 space-y-1">
-        <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.1em]">Why</span>
-        <p className="text-xs text-white/70 leading-relaxed">{reaction.driver}</p>
+      <div className="px-4 py-3 space-y-1" style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
+        <span className="text-[9px] font-black text-cyan-400/40 uppercase tracking-[0.12em]">Why</span>
+        <p className="text-xs text-white/65 leading-relaxed">{reaction.driver}</p>
       </div>
 
       {/* ── IMPACT ───────────────────────────────────────────────── */}
-      <div className="border-t border-white/[0.05] px-4 py-3 space-y-2.5">
-        <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.1em]">Impact</span>
-        <p className="text-xs text-white/70 leading-relaxed">{reaction.impactText}</p>
+      <div className="px-4 py-3 space-y-2.5" style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
+        <span className="text-[9px] font-black text-cyan-400/40 uppercase tracking-[0.12em]">Impact</span>
+        <p className="text-xs text-white/65 leading-relaxed">{reaction.impactText}</p>
 
-        {/* Related Asset Pills */}
         {relatedAssets.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1">
             {relatedAssets.map((a, i) => (
-              <AssetPill
-                key={i}
-                symbol={a.symbol}
-                direction={a.direction}
-                onClick={(sym) => navigate(`/Asset/${sym}`)}
-              />
+              <AssetPill key={i} symbol={a.symbol} direction={a.direction} onClick={(sym) => navigate(`/Asset/${sym}`)} />
             ))}
           </div>
         )}
       </div>
 
       {/* ── ACTION BIAS ──────────────────────────────────────────── */}
-      <div className="border-t border-white/[0.05] px-4 py-3" style={{ background: `${stateColor}08` }}>
+      <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: `${stateColor}07` }}>
         <div className="flex items-start gap-2">
           <Zap className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" style={{ color: stateColor }} />
-          <p className="text-xs text-white/85 leading-relaxed font-semibold">{reaction.actionBias}</p>
+          <p className="text-xs text-white/88 leading-relaxed font-semibold">{reaction.actionBias}</p>
         </div>
       </div>
 
@@ -135,31 +136,28 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.22 }}
             className="overflow-hidden"
           >
-            {/* Risk invalidation */}
-            <div className="border-t border-white/[0.05] px-4 py-3 bg-red-400/5">
-              <span className="text-[9px] font-black text-red-400/60 uppercase tracking-[0.1em]">⚠ Invalidated if</span>
-              <p className="text-xs text-red-300/70 leading-relaxed mt-1">{reaction.riskInvalidation}</p>
+            <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: 'rgba(239,68,68,0.04)' }}>
+              <span className="text-[9px] font-black text-red-400/55 uppercase tracking-[0.1em]">⚠ Invalidated if</span>
+              <p className="text-xs text-red-300/65 leading-relaxed mt-1">{reaction.riskInvalidation}</p>
             </div>
 
-            {/* Macro context (if present) */}
             {reaction.macroContext && (
-              <div className="border-t border-white/[0.05] px-4 py-3">
+              <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
                 <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.1em]">Macro Context</span>
-                <p className="text-xs text-white/55 leading-relaxed mt-1">{reaction.macroContext}</p>
+                <p className="text-xs text-white/52 leading-relaxed mt-1">{reaction.macroContext}</p>
               </div>
             )}
 
-            {/* What TREK is watching */}
             {reaction.watchNext && (
-              <div className="border-t border-white/[0.05] px-4 py-3 bg-primary/5">
+              <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: 'rgba(14,200,220,0.04)' }}>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <Eye className="h-3 w-3 text-primary/60" />
-                  <span className="text-[9px] font-black text-primary/60 uppercase tracking-[0.1em]">Trek Watching</span>
+                  <Eye className="h-3 w-3 text-cyan-400/50" />
+                  <span className="text-[9px] font-black text-cyan-400/50 uppercase tracking-[0.1em]">Trek Watching</span>
                 </div>
-                <p className="text-xs text-white/60 leading-relaxed">{reaction.watchNext}</p>
+                <p className="text-xs text-white/58 leading-relaxed">{reaction.watchNext}</p>
               </div>
             )}
           </motion.div>
@@ -168,20 +166,21 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
 
       {/* ── FOOTER: Confidence + Expand ──────────────────────────── */}
       <div
-        className="border-t border-white/[0.05] px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] transition-colors"
+        className="px-4 py-2.5 flex items-center justify-between cursor-pointer transition-colors"
+        style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}
         onClick={() => setExpanded(e => !e)}
       >
         <div className="flex items-center gap-3">
-          <span className="text-[9px] text-white/25">Confidence {reaction.importance}/10</span>
+          <span className="text-[9px] text-white/22">Confidence {reaction.importance}/10</span>
           {reaction.sectors && (
             <div className="flex gap-1">
               {reaction.sectors.slice(0, 2).map((s, i) => (
-                <span key={i} className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/30 border border-white/[0.05]">{s}</span>
+                <span key={i} className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(100,220,255,0.05)', border: '1px solid rgba(100,220,255,0.1)', color: 'rgba(150,230,255,0.35)' }}>{s}</span>
               ))}
             </div>
           )}
         </div>
-        <div className="flex items-center gap-1 text-white/25">
+        <div className="flex items-center gap-1" style={{ color: 'rgba(100,220,255,0.3)' }}>
           <span className="text-[9px]">{expanded ? 'Less' : 'More'}</span>
           {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </div>
