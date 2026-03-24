@@ -335,25 +335,40 @@ async function handleSearch(query, finnhubKey) {
     return [];
   }
 
-  // 2. Fetch live prices for matched symbols (max 5)
+  // 2. For each matched symbol — check core cache first, only fetch if missing
   const symbolsToFetch = matched.slice(0, 5).map(m => m.symbol);
-  const stockSymbols = symbolsToFetch.filter(s => {
-    const meta = SYMBOL_META[s];
-    return !meta || meta.type !== 'crypto';
-  });
-  const cryptoSymbols = symbolsToFetch.filter(s => {
-    const meta = SYMBOL_META[s];
-    return meta && meta.type === 'crypto';
-  });
-
   const priceResults = {};
+  const needsFetch = { stock: [], crypto: [] };
 
-  const [stockPrices, cryptoPrices] = await Promise.all([
-    stockSymbols.length > 0 ? fetchStockQuotes(stockSymbols.slice(0, 5), finnhubKey) : Promise.resolve({}),
-    cryptoSymbols.length > 0 ? fetchCoinGeckoQuotes(cryptoSymbols.slice(0, 5)) : Promise.resolve({})
-  ]);
+  for (const sym of symbolsToFetch) {
+    const cached = coreCache.get(sym);
+    const status = computeStatus(cached);
+    if (cached && status !== 'unavailable') {
+      // ✅ Core cache hit — reuse directly, no provider call
+      console.log(`[Search] Core cache hit for ${sym}: $${cached.price}`);
+      priceResults[sym] = { status: 'live', price: cached.price, changePct: cached.changePct, timestamp: cached.timestamp, provider: cached.provider };
+    } else {
+      // ❌ Not in core cache — queue for provider fetch
+      const meta = SYMBOL_META[sym];
+      if (meta && meta.type === 'crypto') {
+        needsFetch.crypto.push(sym);
+      } else {
+        needsFetch.stock.push(sym);
+      }
+    }
+  }
 
-  Object.assign(priceResults, stockPrices, cryptoPrices);
+  // Only call providers for symbols not already in core cache
+  if (needsFetch.stock.length > 0 || needsFetch.crypto.length > 0) {
+    console.log(`[Search] Provider fetch needed for: ${[...needsFetch.stock, ...needsFetch.crypto].join(',')}`);
+    const [stockPrices, cryptoPrices] = await Promise.all([
+      needsFetch.stock.length > 0 ? fetchStockQuotes(needsFetch.stock, finnhubKey) : Promise.resolve({}),
+      needsFetch.crypto.length > 0 ? fetchCoinGeckoQuotes(needsFetch.crypto) : Promise.resolve({})
+    ]);
+    Object.assign(priceResults, stockPrices, cryptoPrices);
+  } else {
+    console.log(`[Search] All symbols served from core cache — no provider calls made`);
+  }
 
   // 3. Build response
   const results = matched.slice(0, 10).map(meta => {
