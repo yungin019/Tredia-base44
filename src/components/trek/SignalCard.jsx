@@ -50,7 +50,10 @@ function BreakdownBar({ label, value }) {
 export default function SignalCard({ signal }) {
   const [expanded, setExpanded] = useState(false);
   const cfg = SIGNAL_CFG[signal.signal] || SIGNAL_CFG.HOLD;
-  const { color, bg, border, Icon } = cfg;
+  const color = cfg.color;
+  const bg = cfg.bg;
+  const border = cfg.border;
+  const Icon = cfg.Icon;
   const conviction = getConviction(signal.confidence);
   const riskPct = getRiskPct(signal);
   const isFresh = signal.detectedMinsAgo <= 15 || signal.time?.includes('m') || signal.time === 'live';

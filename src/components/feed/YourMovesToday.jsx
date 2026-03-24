@@ -16,7 +16,11 @@ const ACTION_CFG = {
 function MoveCard({ move, index, onExplore }) {
   const action = (move.action || 'WATCH').toUpperCase();
   const cfg = ACTION_CFG[action] || ACTION_CFG.WATCH;
-  const { color, bg, border, accentBg, Icon } = cfg;
+  const color = cfg.color;
+  const bg = cfg.bg;
+  const border = cfg.border;
+  const accentBg = cfg.accentBg;
+  const Icon = cfg.Icon;
 
   return (
     <motion.div

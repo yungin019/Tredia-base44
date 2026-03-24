@@ -41,7 +41,8 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
   const isPrimary = index === 0;
   const dir = (reaction.direction || 'neutral').toLowerCase();
   const sig = SIGNAL_CFG[dir] || SIGNAL_CFG.neutral;
-  const { color: sigColor, Icon: SigIcon } = sig;
+  const sigColor = sig.color;
+  const SigIcon = sig.Icon;
 
   const relatedAssets = reaction.relatedAssets || [];
 
