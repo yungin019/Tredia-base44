@@ -22,6 +22,13 @@ function MoveCard({ move, index, onExplore }) {
   const accentBg = cfg.accentBg;
   const Icon = cfg.Icon;
 
+  // Parse entry into uppercase action command
+  const actionCmd = move.entry ? 
+    (move.entry.includes('Buy') ? 'BUY DIPS' : 
+     move.entry.includes('Do not') ? 'AVOID' :
+     move.entry.includes('Watch') ? 'WAIT BREAKOUT' : 'MONITOR')
+    : 'WATCH';
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
