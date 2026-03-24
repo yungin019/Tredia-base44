@@ -7,20 +7,34 @@ export default function UpgradeCall({ onUpgrade }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl p-5 bg-gradient-to-r from-primary/20 to-gold/10 border border-primary/30 card-shadow"
+      className="rounded-2xl p-5"
+      style={{
+        background: 'rgba(10, 22, 52, 0.70)',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+        border: '1px solid rgba(14,200,220,0.18)',
+        boxShadow: '0 0 32px rgba(14,200,220,0.07), 0 8px 32px rgba(0,0,0,0.4)',
+      }}
     >
       <div className="flex items-start gap-3">
-        <Zap className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
+        <div className="p-2 rounded-xl flex-shrink-0 mt-0.5" style={{ background: 'rgba(14,200,220,0.12)', border: '1px solid rgba(14,200,220,0.25)' }}>
+          <Zap className="h-4 w-4" style={{ color: '#0ec8dc' }} />
+        </div>
         <div className="flex-1">
-          <h3 className="font-bold text-foreground mb-1">Want Real-Time Signals Before They Hit?</h3>
-          <p className="text-sm text-muted-foreground mb-3">
-            TREK Elite gives you instant alerts when the next big move is forming. Entry, exit, risk—all spelled out. No guessing.
+          <h3 className="font-bold text-white mb-1">Real-Time Signals Before They Hit</h3>
+          <p className="text-sm mb-4" style={{ color: 'rgba(180,210,240,0.6)' }}>
+            TREK Elite delivers instant alerts when the next move is forming. Entry, exit, risk — all spelled out.
           </p>
           <button
             onClick={onUpgrade}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary/80 text-primary-foreground font-semibold text-sm transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all"
+            style={{
+              background: 'linear-gradient(135deg, rgba(14,200,220,0.88), rgba(8,160,185,0.88))',
+              color: '#040d1e',
+              boxShadow: '0 4px 20px rgba(14,200,220,0.25)',
+            }}
           >
-            View Premium
+            View Elite
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
