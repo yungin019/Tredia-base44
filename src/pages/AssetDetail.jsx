@@ -256,8 +256,10 @@ export default function AssetDetail() {
     async function loadPrice() {
       setLoadingData(true);
       try {
-        const priceRes = await base44.functions.invoke('stockPrices', { symbols: [symbol] });
-        const price = priceRes?.data?.prices?.[symbol];
+        // ── Cache-first: check marketCore/search cache before hitting stockPrices ──
+        const cached = await fetchSingleAsset(symbol);
+        const price = cached?.status === 'live' ? cached.price : null;
+
         if (price) {
           if (watchlistEntry?.alert_price && prevPriceRef.current !== null) {
             const prev = prevPriceRef.current;
@@ -270,6 +272,14 @@ export default function AssetDetail() {
           }
           prevPriceRef.current = price;
           setLivePrice(price);
+        } else {
+          // Fallback: direct stockPrices call for symbols not in marketCore universe
+          const priceRes = await base44.functions.invoke('stockPrices', { symbols: [symbol] });
+          const fallbackPrice = priceRes?.data?.prices?.[symbol];
+          if (fallbackPrice) {
+            prevPriceRef.current = fallbackPrice;
+            setLivePrice(fallbackPrice);
+          }
         }
       } catch { /* keep static */ } finally {
         setLoadingData(false);
