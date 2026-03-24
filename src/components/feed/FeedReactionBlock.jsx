@@ -26,19 +26,19 @@ const TIMING_STYLE = {
   'Follow-up':  'text-blue-400 bg-blue-400/10 border-blue-400/20',
 };
 
-// Direction cue for related asset pills
+// Direction cue for related asset pills — glass chip style
 function AssetPill({ symbol, direction, onClick }) {
   const isUp = direction === 'up';
   const isDown = direction === 'down';
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(symbol); }}
-      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border transition-all min-h-0 min-w-0 ${
+      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border transition-all min-h-0 min-w-0 backdrop-blur-sm ${
         isUp
-          ? 'bg-emerald-400/10 border-emerald-400/20 text-emerald-400 hover:bg-emerald-400/20'
+          ? 'bg-cyan-400/[0.08] border-cyan-400/25 text-cyan-300 hover:bg-cyan-400/15 hover:border-cyan-400/40'
           : isDown
-          ? 'bg-red-400/10 border-red-400/20 text-red-400 hover:bg-red-400/20'
-          : 'bg-white/[0.05] border-white/10 text-white/60 hover:bg-white/10'
+          ? 'bg-red-400/[0.08] border-red-400/20 text-red-400 hover:bg-red-400/15'
+          : 'bg-white/[0.04] border-white/10 text-white/50 hover:bg-white/[0.08]'
       }`}
     >
       {isUp ? <TrendingUp className="h-2.5 w-2.5" /> : isDown ? <TrendingDown className="h-2.5 w-2.5" /> : null}
