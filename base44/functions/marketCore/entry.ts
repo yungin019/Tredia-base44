@@ -472,6 +472,8 @@ Deno.serve(async (req) => {
       const debugPayload = {
         cache: cacheState,
         polygon_aapl: aaplResult.AAPL,
+        polygon_tsla: aaplResult.TSLA,
+        polygon_nvda: aaplResult.NVDA,
         coingecko_btc: cryptoResult.BTC,
         polygonKeyPresent: !!POLYGON_KEY,
         polygonKeyPrefix: POLYGON_KEY ? POLYGON_KEY.slice(0, 6) + '...' : 'MISSING',
