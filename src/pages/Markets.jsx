@@ -117,12 +117,23 @@ export default function Markets() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="space-y-6"
           >
-            <DiscoverySection title="Popular Stocks" items={POPULAR_STOCKS} />
-            <DiscoverySection title="Popular Crypto" items={POPULAR_CRYPTO} />
-            <DiscoverySection title="Major ETFs" items={MAJOR_ETFS} />
-            <DiscoverySection title="Commodities Snapshot" items={COMMODITIES_SNAPSHOT} />
+            {/* Explore header */}
+            <div className="flex items-center gap-2 mb-5 pb-3 border-b border-white/[0.05]">
+              <div className="h-1.5 w-1.5 rounded-full bg-white/20" />
+              <h2 className="text-sm font-bold text-white/50">Explore More Assets</h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/[0.05] text-white/30 border border-white/[0.08] ml-1">
+                DISCOVER
+              </span>
+              <span className="text-[10px] text-white/20 ml-auto">Tap any card for live quote</span>
+            </div>
+
+            <div className="space-y-6">
+              <DiscoverySection title="Popular Stocks" items={POPULAR_STOCKS} />
+              <DiscoverySection title="Popular Crypto" items={POPULAR_CRYPTO} />
+              <DiscoverySection title="Major ETFs" items={MAJOR_ETFS} />
+              <DiscoverySection title="Commodities Snapshot" items={COMMODITIES_SNAPSHOT} />
+            </div>
           </motion.div>
 
           {/* Sector Heatmap */}
