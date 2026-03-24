@@ -107,16 +107,17 @@ export default function Markets() {
             </div>
           </motion.div>
 
-          {/* Search Gateway for 200+ */}
+          {/* Discovery Sections — metadata only, no backend calls */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="rounded-lg border border-white/10 bg-white/[0.02] p-6 text-center space-y-2"
+            className="space-y-6"
           >
-            <Search className="h-6 w-6 text-primary mx-auto opacity-50" />
-            <h3 className="text-sm font-bold text-white/70">Explore 200+ Assets</h3>
-            <p className="text-xs text-white/40">Search by ticker or name to discover stocks, crypto, ETFs, and forex</p>
+            <DiscoverySection title="Popular Stocks" items={POPULAR_STOCKS} />
+            <DiscoverySection title="Popular Crypto" items={POPULAR_CRYPTO} />
+            <DiscoverySection title="Major ETFs" items={MAJOR_ETFS} />
+            <DiscoverySection title="Commodities Snapshot" items={COMMODITIES_SNAPSHOT} />
           </motion.div>
 
           {/* Sector Heatmap */}
