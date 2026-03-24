@@ -1,28 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Zap, TrendingUp, TrendingDown, AlertTriangle, ChevronRight } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { fetchFearGreed } from '@/api/marketData';
 import TickerTape from '@/components/dashboard/TickerTape';
 import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import PullToRefresh from '@/components/ui/PullToRefresh';
-import { getFoundingStats, getFoundingMemberInfo } from '@/api/foundingMembers';
 import { NextJumpDetector } from '@/components/ai/NextJumpDetector';
 import { IntelligenceTicker } from '@/components/ai/IntelligenceTicker';
 import { OG100Card } from '@/components/ai/OG100Card';
 import { LogTradeButton } from '@/components/ai/LogTradeButton';
 import DailyBrief from '@/components/ai/DailyBrief';
-import RegionalMarketIntelligence from '@/components/ai/RegionalMarketIntelligence';
-import MarketAlert from '@/components/feed/MarketAlert';
 import YourMovesToday from '@/components/feed/YourMovesToday';
 import WatchOut from '@/components/feed/WatchOut';
 import MarketPulse from '@/components/feed/MarketPulse';
-import SmartNews from '@/components/feed/SmartNews';
 import UpgradeCall from '@/components/feed/UpgradeCall';
 import TrendingAssets from '@/components/markets/TrendingAssets';
 import WatchlistQuick from '@/components/markets/WatchlistQuick';
 import { fetchCoreAssets } from '@/api/marketDataClient';
+import RegionSwitcher from '@/components/feed/RegionSwitcher';
+import IntelligenceFeed from '@/components/feed/IntelligenceFeed';
+import { base44 } from '@/api/base44Client';
 
 export default function Home() {
   const navigate = useNavigate();
