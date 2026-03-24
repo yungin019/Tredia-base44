@@ -147,6 +147,7 @@ export default function CoreAssetDisplay() {
     }, 2500);
 
     const assets = await fetchCoreAssets();
+    console.log('FRONT DATA:', JSON.stringify(assets));
     clearTimeout(timeoutRef.current);
 
     const map = {};
