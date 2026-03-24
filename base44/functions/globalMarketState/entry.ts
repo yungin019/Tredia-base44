@@ -175,7 +175,14 @@ Generate the global market state.`;
       }
     }
 
-    result.valid = result.marketState.length > 0 && result.bias.length > 0 && result.watch.length > 0;
+    // Reject forbidden empty-feeling phrases
+    const forbiddenPhrases = ['market quiet', 'no major moves', 'nothing happening', 'not much', 'no action', 'sideways', 'flat'];
+    const hasEmptyPhrase = forbiddenPhrases.some(phrase => result.marketState.toLowerCase().includes(phrase));
+    
+    result.valid = !hasEmptyPhrase && result.marketState.length > 0 && result.bias.length > 0 && result.watch.length > 0;
+    if (hasEmptyPhrase) {
+      console.warn('[GLOBAL STATE] ✗ Output contains forbidden empty phrase, marking invalid for retry');
+    }
     return result;
   } catch (error) {
     console.error('[GLOBAL STATE] LLM generation error:', error.message);
@@ -219,19 +226,21 @@ Deno.serve(async (req) => {
     // Step 3: Generate market state with retry
     let state = null;
     let retryCount = 0;
-    const maxRetries = 1;
+    const maxRetries = 2;
 
-    while (retryCount <= maxRetries && (!state?.valid || state.raw.includes('quiet') || state.raw.includes('nothing'))) {
+    while (retryCount <= maxRetries && !state?.valid) {
       state = await generateMarketState(marketData, catalysts, retryCount);
-      if (state?.valid && !state.raw.includes('quiet') && !state.raw.includes('nothing')) {
+      if (state?.valid) {
+        console.log('[GLOBAL STATE] ✓ Valid state generated');
         break;
       }
+      console.log(`[GLOBAL STATE] Invalid, retrying... (attempt ${retryCount + 2})`);
       retryCount++;
     }
 
     // Use fallback if all attempts failed
-    if (!state?.valid || state.raw.includes('quiet') || state.raw.includes('nothing')) {
-      console.log('[GLOBAL STATE] Using fallback state');
+    if (!state?.valid) {
+      console.log('[GLOBAL STATE] ✗ All retries failed, using fallback');
       state = FALLBACK_STATE;
     }
 
