@@ -494,30 +494,31 @@ Deno.serve(async (req) => {
 
     // ── ACTION: core ──────────────────────────────────────────────────────
     if (action === 'core') {
-      // 1. Log cache state
-      const cacheState = {};
-      coreCache.forEach((v, k) => { cacheState[k] = v; });
-      console.log('CACHE STATE:', JSON.stringify(cacheState));
+      console.log('[Core] cache size:', coreCache.size, 'pollInProgress:', globalThis._pollInProgress, 'lastPollTime:', globalThis._lastPollTime);
 
-      // 2. Trigger background poll (non-blocking)
-      console.log('POLL START — lastPollTime:', lastPollTime, 'pollInProgress:', pollInProgress);
-      pollCoreAssets(POLYGON_KEY).catch(err => console.error('[BG Poll]', err.message));
+      if (coreCache.size === 0) {
+        // First request or cold boot — block until poll completes
+        console.log('[Core] Cold cache — running sync poll');
+        await pollCoreAssets(POLYGON_KEY);
+      } else {
+        // Cache warm — refresh in background only
+        pollCoreAssets(POLYGON_KEY).catch(err => console.error('[BG Poll]', err.message));
+      }
 
       const response = buildCoreResponse();
       const liveCount = response.filter(r => r.status === 'live').length;
+      console.log('[Core] Returning', liveCount, '/', response.length, 'live assets');
 
-      const payload = {
+      return Response.json({
         assets: response,
         meta: {
           total: response.length,
           live: liveCount,
           unavailable: response.length - liveCount,
-          cacheAgeMs: lastPollTime ? Date.now() - lastPollTime : null,
+          cacheAgeMs: globalThis._lastPollTime ? Date.now() - globalThis._lastPollTime : null,
           timestamp: Date.now()
         }
-      };
-      console.log('FINAL PAYLOAD:', JSON.stringify(payload.meta));
-      return Response.json(payload);
+      });
     }
 
     // ── ACTION: search ────────────────────────────────────────────────────
