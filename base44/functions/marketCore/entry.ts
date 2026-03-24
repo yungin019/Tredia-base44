@@ -30,7 +30,8 @@ const CORE_SYMBOLS_CRYPTO = ['BTC', 'ETH'];
 const ALL_CORE = [...CORE_SYMBOLS_STOCK, ...CORE_SYMBOLS_CRYPTO];
 
 // Staleness thresholds
-const LIVE_THRESHOLD_MS = 60000;   // <60s → "live"
+const LIVE_THRESHOLD_MS = 120000;  // <2min → "live" (crypto is slow to change)
+const STALE_THRESHOLD_MS = 300000; // <5min → serve stale rather than unavailable
 const SEARCH_CACHE_TTL_MS = 45000; // 45s search cache
 
 // ── CRYPTO COIN MAP ──────────────────────────────────────────────────────
