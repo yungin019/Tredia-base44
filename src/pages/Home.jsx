@@ -34,32 +34,30 @@ export default function Home() {
   const [cryptoPrices, setCryptoPrices] = useState([]);
   const [dataStatus, setDataStatus] = useState('loading');
 
-  // TIER 1: Core assets for Home feed (REAL-TIME PRIORITY)
+  // Core assets for Home feed
   useEffect(() => {
-    async function fetchTier1() {
+    async function loadCore() {
       try {
         setDataStatus('loading');
-        const [stocks, crypto] = await Promise.all([
-          fetchTier1Assets(),
-          fetchCryptoPrices()
-        ]);
-        
-        if (stocks.length > 0) {
-          setLiveStocks(stocks);
-          setCryptoPrices(crypto);
-          setDataStatus('live');
-          console.log(`[Home] Loaded ${stocks.length} stocks + ${crypto.length} crypto (TIER 1)`);
-        }
+        const assets = await fetchCoreAssets();
+        const live = assets.filter(a => a.status === 'live');
+        const stocks = live.filter(a => a.type !== 'crypto').map(a => ({
+          ...a,
+          change: a.changePct || 0,
+          signal: a.changePct > 1 ? 'BUY' : a.changePct < -1 ? 'SELL' : 'HOLD'
+        }));
+        const crypto = live.filter(a => a.type === 'crypto');
+        setLiveStocks(stocks);
+        setCryptoPrices(crypto);
+        setDataStatus(live.length > 0 ? 'live' : 'stale');
       } catch (error) {
-        console.error('[Home] Tier 1 fetch failed:', error.message);
+        console.error('[Home] Core fetch failed:', error.message);
         setDataStatus('stale');
       }
     }
-    
-    fetchTier1();
-    
-    // Auto-refresh Tier 1 every 15 seconds (real-time feel)
-    const interval = setInterval(fetchTier1, 15000);
+
+    loadCore();
+    const interval = setInterval(loadCore, 15000);
     return () => clearInterval(interval);
   }, []);
 
