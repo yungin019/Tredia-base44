@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, TrendingUp, TrendingDown } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
 import FeedReactionBlock from './FeedReactionBlock';
-import RegionSwitcher from './RegionSwitcher';
 
 // ── REACTION DATABASE ──────────────────────────────────────────────────────
 //
