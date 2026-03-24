@@ -170,12 +170,12 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
     const loadCatalysts = async () => {
       try {
         setLoading(true);
-        console.log(`[CatalystFeed] Loading catalysts for region: ${activeRegion}`);
+        console.log('[CatalystFeed] ✓ COMPONENT MOUNTED');
         
-        // Fetch ALL catalysts first
+        // Fetch ALL catalysts — NO FILTERING
         const allCatalysts = await base44.entities.Catalyst.list();
-        console.log(`[CatalystFeed] Total catalysts in DB: ${allCatalysts.length}`);
-        console.log(`[CatalystFeed] Raw payload:`, allCatalysts);
+        console.log(`[CatalystFeed] ✓ FETCHED ${allCatalysts.length} catalysts from DB`);
+        console.log('[CatalystFeed] Raw data:', allCatalysts);
 
         // Debug info
         const regionBreakdown = {};
@@ -184,7 +184,7 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
             regionBreakdown[r] = (regionBreakdown[r] || 0) + 1;
           });
         });
-        console.log(`[CatalystFeed] Region breakdown:`, regionBreakdown);
+        console.log('[CatalystFeed] Region breakdown:', regionBreakdown);
         setDebugInfo({
           totalInDb: allCatalysts.length,
           regionBreakdown,
@@ -192,29 +192,18 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
           allCatalystsRaw: allCatalysts
         });
 
-        // Filter by region
+        // DISABLED: Region filtering for debugging
+        console.log('[CatalystFeed] ⚠ FILTERING DISABLED — showing all catalysts');
         let filtered = allCatalysts;
-        if (activeRegion !== 'Global') {
-          console.log(`[CatalystFeed] Filtering for region: ${activeRegion}`);
-          filtered = allCatalysts.filter(c => {
-            const hasRegion = c.regions && c.regions.includes(activeRegion);
-            if (!hasRegion) {
-              console.log(`  Filtered out: "${c.headline.substring(0, 40)}..." (regions: ${c.regions?.join(', ') || 'none'})`);
-            }
-            return hasRegion;
-          });
-          console.log(`[CatalystFeed] After region filter: ${filtered.length} catalysts`);
-        }
 
         const sorted = filtered.sort((a, b) => 
           new Date(b.published_at) - new Date(a.published_at)
         );
-        const final = sorted.slice(0, 4);
-        console.log(`[CatalystFeed] Final catalysts to render: ${final.length}`);
+        const final = sorted.slice(0, 10);
+        console.log(`[CatalystFeed] ✓ RENDERING ${final.length} catalysts`);
         setCatalysts(final);
       } catch (error) {
-        console.error('[CatalystFeed] Error loading catalysts:', error);
-        console.error('[CatalystFeed] Error stack:', error.stack);
+        console.error('[CatalystFeed] ✗ ERROR:', error);
         setCatalysts([]);
       } finally {
         setLoading(false);
@@ -222,7 +211,7 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
     };
 
     loadCatalysts();
-    const interval = setInterval(loadCatalysts, 60000); // refresh every 1 min for debugging
+    const interval = setInterval(loadCatalysts, 60000);
     return () => clearInterval(interval);
   }, [activeRegion]);
 
