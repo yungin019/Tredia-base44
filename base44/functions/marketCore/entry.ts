@@ -303,43 +303,33 @@ function buildCoreResponse() {
 }
 
 // ── POLLER ───────────────────────────────────────────────────────────────
-const POLL_INTERVAL_MS = 60000; // full refresh every 60s
-const BATCH_DELAY_MS = 1500;    // 1.5s between each stock symbol (safe for free tier)
+// Polygon grouped endpoint = 1 API call for ALL stocks → no per-symbol 429s
+const POLL_INTERVAL_MS = 60000; // refresh every 60s
 
 async function pollCoreAssets(polygonKey) {
   const now = Date.now();
   if (now - globalThis._lastPollTime < POLL_INTERVAL_MS) return; // too soon
-  if (globalThis._pollInProgress) return; // single lock — no racing
+  if (globalThis._pollInProgress) return; // single global lock
   globalThis._pollInProgress = true;
   globalThis._lastPollTime = now;
   console.log('[Poll] START');
 
   try {
-    // ── Step 1: Staggered Polygon fetches in batches of 2 ──
-    const BATCH_SIZE = 2;
-    for (let i = 0; i < CORE_SYMBOLS_STOCK.length; i += BATCH_SIZE) {
-      const batch = CORE_SYMBOLS_STOCK.slice(i, i + BATCH_SIZE);
-      const batchResults = await fetchPolygonQuotes(batch, polygonKey);
-      Object.entries(batchResults).forEach(([sym, data]) => {
-        if (data.status === 'live') {
-          coreCache.set(sym, { price: data.price, changePct: data.changePct, timestamp: data.timestamp, provider: data.provider });
-          console.log(`[Poll] ✓ ${sym}: $${data.price}`);
-        } else {
-          console.warn(`[Poll] ✗ ${sym}: ${data.error}`);
-        }
-      });
-      // Stagger between batches (skip delay after last batch)
-      if (i + BATCH_SIZE < CORE_SYMBOLS_STOCK.length) {
-        await new Promise(r => setTimeout(r, BATCH_DELAY_MS));
+    // ONE Polygon call for all 6 stocks
+    const stockResults = await fetchPolygonQuotes(CORE_SYMBOLS_STOCK, polygonKey);
+    Object.entries(stockResults).forEach(([sym, data]) => {
+      if (data.status === 'live') {
+        coreCache.set(sym, { price: data.price, changePct: data.changePct, timestamp: data.timestamp, provider: data.provider });
+      } else {
+        console.warn(`[Poll] ✗ ${sym}: ${data.error}`);
       }
-    }
+    });
 
-    // ── Step 2: CoinGecko (single batch call, no stagger needed) ──
+    // ONE CoinGecko call for all crypto
     const cryptoResults = await fetchCoinGeckoQuotes(CORE_SYMBOLS_CRYPTO);
     Object.entries(cryptoResults).forEach(([sym, data]) => {
       if (data.status === 'live') {
         coreCache.set(sym, { price: data.price, changePct: data.changePct, timestamp: data.timestamp, provider: data.provider });
-        console.log(`[Poll] ✓ ${sym}: $${data.price}`);
       } else {
         console.warn(`[Poll] ✗ ${sym}: ${data.error}`);
       }
@@ -348,7 +338,7 @@ async function pollCoreAssets(polygonKey) {
     console.error('[Poll] Error:', err.message);
   } finally {
     globalThis._pollInProgress = false;
-    console.log('[Poll] DONE — cache size:', coreCache.size);
+    console.log('[Poll] DONE — cache size:', coreCache.size, '| keys:', [...coreCache.keys()].join(','));
   }
 }
 
