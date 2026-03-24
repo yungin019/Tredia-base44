@@ -491,7 +491,7 @@ export default function IntelligenceFeed({ activeRegion, onRegionChange }) {
         className="space-y-3"
       >
         {/* ── MACRO CONTEXT BLURB ─────────────────────────────── */}
-        <div className="rounded-xl px-4 py-3 border border-white/[0.06]" style={{ background: 'rgba(16,185,129,0.04)' }}>
+        <div className="rounded-xl px-4 py-3 border border-white/[0.06]" style={{ background: 'rgba(14,200,220,0.04)' }}>
           <p className="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-1">{context.headline}</p>
           <p className="text-xs text-white/55 leading-relaxed">{context.text}</p>
         </div>
