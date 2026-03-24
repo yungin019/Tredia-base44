@@ -373,8 +373,8 @@ async function handleSearch(query, polygonKey) {
   const priceResults = {};
 
   const [stockPrices, cryptoPrices] = await Promise.all([
-    stockSymbols.length > 0 ? fetchPolygonQuotes(stockSymbols, polygonKey) : Promise.resolve({}),
-    cryptoSymbols.length > 0 ? fetchCoinGeckoQuotes(cryptoSymbols) : Promise.resolve({})
+    stockSymbols.length > 0 ? fetchPolygonQuotes(stockSymbols.slice(0, 5), polygonKey) : Promise.resolve({}),
+    cryptoSymbols.length > 0 ? fetchCoinGeckoQuotes(cryptoSymbols.slice(0, 5)) : Promise.resolve({})
   ]);
 
   Object.assign(priceResults, stockPrices, cryptoPrices);
