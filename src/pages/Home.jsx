@@ -89,15 +89,15 @@ export default function Home() {
         setLiveStocks(live.filter(a => a.type !== 'crypto').map(a => ({ ...a, change: a.changePct || 0, signal: a.changePct > 1 ? 'BUY' : a.changePct < -1 ? 'SELL' : 'HOLD' })));
       }
     }}>
-      <div className="w-full min-h-screen" style={{ background: '#080B12' }}>
+      <div className="w-full min-h-screen app-bg">
         <IntelligenceTicker />
         <IndexCardsSection />
 
         {/* ── STICKY REGION BAR ──────────────────────────────────────── */}
         <div
           ref={stickyRef}
-          className="sticky top-0 z-30 px-5 py-3 border-b border-white/[0.05]"
-          style={{ background: 'rgba(8,11,18,0.92)', backdropFilter: 'blur(16px)' }}
+          className="sticky top-0 z-30 px-5 py-3 border-b border-white/[0.04]"
+          style={{ background: 'rgba(4,8,20,0.88)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
         >
           <RegionSwitcher activeRegion={activeRegion} onChange={handleRegionChange} />
         </div>
@@ -119,9 +119,9 @@ export default function Home() {
           <div className="space-y-2">
             {/* Section header */}
             <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
               <h2 className="text-sm font-bold text-white/80">Market Intelligence</h2>
-              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 ml-1 uppercase tracking-wide">
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full ml-1 uppercase tracking-wide" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
                 {({ Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm' })[activeRegion] || activeRegion}
               </span>
               <span className="text-[9px] text-white/25 ml-auto">Interpretation-first</span>
