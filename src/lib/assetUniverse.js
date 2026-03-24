@@ -9,14 +9,14 @@
 
 // ── TIER 1: CORE LIVE ASSETS ────────────────────────────────────────────
 export const TIER1_ASSETS = [
-  { symbol: 'NVDA', name: 'NVIDIA', type: 'stock', sector: 'Technology', provider: 'coingecko|fallback' },
-  { symbol: 'AAPL', name: 'Apple', type: 'stock', sector: 'Technology', provider: 'coingecko|fallback' },
-  { symbol: 'MSFT', name: 'Microsoft', type: 'stock', sector: 'Technology', provider: 'coingecko|fallback' },
-  { symbol: 'TSLA', name: 'Tesla', type: 'stock', sector: 'Automotive', provider: 'coingecko|fallback' },
-  { symbol: 'AMZN', name: 'Amazon', type: 'stock', sector: 'Technology', provider: 'coingecko|fallback' },
-  { symbol: 'SPY', name: 'S&P 500 ETF', type: 'etf', sector: 'Index', provider: 'coingecko|fallback' },
-  { symbol: 'BTC', name: 'Bitcoin', type: 'crypto', sector: 'Crypto', provider: 'coingecko' },
-  { symbol: 'ETH', name: 'Ethereum', type: 'crypto', sector: 'Crypto', provider: 'coingecko' },
+  { symbol: 'AAPL', name: 'Apple',     type: 'stock',  sector: 'Technology', provider: 'polygon' },
+  { symbol: 'NVDA', name: 'NVIDIA',    type: 'stock',  sector: 'Technology', provider: 'polygon' },
+  { symbol: 'TSLA', name: 'Tesla',     type: 'stock',  sector: 'Automotive', provider: 'polygon' },
+  { symbol: 'AMZN', name: 'Amazon',    type: 'stock',  sector: 'Technology', provider: 'polygon' },
+  { symbol: 'SPY',  name: 'S&P 500 ETF', type: 'etf', sector: 'Index',      provider: 'polygon' },
+  { symbol: 'QQQ',  name: 'Nasdaq 100 ETF', type: 'etf', sector: 'Index',   provider: 'polygon' },
+  { symbol: 'BTC',  name: 'Bitcoin',   type: 'crypto', sector: 'Crypto',    provider: 'coingecko' },
+  { symbol: 'ETH',  name: 'Ethereum',  type: 'crypto', sector: 'Crypto',    provider: 'coingecko' },
 ];
 
 // ── TIER 3: SEARCHABLE UNIVERSE ─────────────────────────────────────────
