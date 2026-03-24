@@ -1,169 +1,200 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { formatPrice, formatPercent, validatePrice, validatePercent } from '@/lib/dataValidation';
-import { SkeletonCard } from '@/components/ui/SkeletonLoader';
-import { fetchTier1Assets } from '@/api/marketDataClient';
+import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { fetchCoreAssets } from '@/api/marketDataClient';
 
 /**
- * Core Asset Display - 12-14 high-priority assets only
- * Shows real data or honest loading states, never fake prices
+ * CoreAssetDisplay
+ *
+ * States per card:
+ *   skeleton   → 0–1s loading
+ *   live       → real price data from backend
+ *   unavailable → provider down / stale / failed
+ *
+ * NEVER shows: infinite loading, blank, fake prices, NaN.
+ *
+ * Refreshes every 10s automatically.
  */
 
-// Reduced to 8 core assets to minimize API calls and stay within budget
-const CORE_ASSETS = [
-  { symbol: 'NVDA', name: 'NVIDIA', sector: 'Technology' },
-  { symbol: 'AAPL', name: 'Apple', sector: 'Technology' },
-  { symbol: 'MSFT', name: 'Microsoft', sector: 'Technology' },
-  { symbol: 'TSLA', name: 'Tesla', sector: 'Automotive' },
-  { symbol: 'AMZN', name: 'Amazon', sector: 'Technology' },
-  { symbol: 'SPY', name: 'S&P 500', sector: 'Index' },
-  { symbol: 'BTC', name: 'Bitcoin', sector: 'Crypto' },
-  { symbol: 'ETH', name: 'Ethereum', sector: 'Crypto' },
-];
+const CORE_SYMBOLS = ['AAPL', 'NVDA', 'TSLA', 'AMZN', 'SPY', 'QQQ', 'BTC', 'ETH'];
+
+const CORE_META = {
+  AAPL: { name: 'Apple',     sector: 'Technology' },
+  NVDA: { name: 'NVIDIA',    sector: 'Technology' },
+  TSLA: { name: 'Tesla',     sector: 'Automotive' },
+  AMZN: { name: 'Amazon',    sector: 'Technology' },
+  SPY:  { name: 'S&P 500',   sector: 'Index' },
+  QQQ:  { name: 'Nasdaq 100',sector: 'Index' },
+  BTC:  { name: 'Bitcoin',   sector: 'Crypto' },
+  ETH:  { name: 'Ethereum',  sector: 'Crypto' },
+};
+
+function AssetCardSkeleton({ symbol }) {
+  const meta = CORE_META[symbol] || { name: symbol, sector: '' };
+  return (
+    <div className="rounded-lg border border-white/5 bg-white/[0.03] p-4">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <div className="font-mono font-bold text-white text-sm">{symbol}</div>
+          <div className="text-xs text-white/40">{meta.name}</div>
+        </div>
+        <div className="text-[10px] text-white/20 px-2 py-1 rounded-full bg-white/[0.04]">
+          {meta.sector}
+        </div>
+      </div>
+      <div className="flex items-baseline justify-between gap-2">
+        <div className="h-5 w-20 rounded bg-white/5 animate-pulse" />
+        <div className="h-4 w-12 rounded bg-white/5 animate-pulse" />
+      </div>
+      <div className="mt-2 pt-2 border-t border-white/5 flex items-center gap-1">
+        <div className="h-1.5 w-1.5 rounded-full bg-white/10 animate-pulse" />
+        <div className="h-3 w-16 rounded bg-white/5 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+function AssetCardUnavailable({ symbol }) {
+  const meta = CORE_META[symbol] || { name: symbol, sector: '' };
+  return (
+    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4 opacity-60">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <div className="font-mono font-bold text-white/50 text-sm">{symbol}</div>
+          <div className="text-xs text-white/25">{meta.name}</div>
+        </div>
+        <div className="text-[10px] text-white/20 px-2 py-1 rounded-full bg-white/[0.03]">
+          {meta.sector}
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5 text-white/30 text-xs">
+        <AlertCircle className="h-3 w-3" />
+        <span>Unavailable</span>
+      </div>
+      <div className="mt-2 pt-2 border-t border-white/5 text-[9px] text-white/20 flex items-center gap-1">
+        <div className="h-1.5 w-1.5 rounded-full bg-white/15" />
+        Offline
+      </div>
+    </div>
+  );
+}
+
+function AssetCardLive({ symbol, data, onClick }) {
+  const meta = CORE_META[symbol] || { name: data.name || symbol, sector: data.sector || '' };
+  const isPositive = data.changePct >= 0;
+  const price = typeof data.price === 'number' ? data.price : null;
+  const changePct = typeof data.changePct === 'number' ? data.changePct : null;
+
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      onClick={onClick}
+      className="text-left rounded-lg border border-white/5 bg-white/[0.03] p-4 hover:bg-white/[0.06] hover:border-white/10 transition-all group w-full"
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <div className="font-mono font-bold text-white text-sm">{symbol}</div>
+          <div className="text-xs text-white/40">{meta.name}</div>
+        </div>
+        <div className="text-[10px] text-white/30 px-2 py-1 rounded-full bg-white/[0.05] group-hover:bg-white/10 transition-colors">
+          {meta.sector}
+        </div>
+      </div>
+
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="font-mono font-bold text-white text-base">
+          {price !== null ? `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
+        </span>
+        {changePct !== null && (
+          <div className={`flex items-center gap-0.5 text-xs font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+            {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {isPositive ? '+' : ''}{changePct.toFixed(2)}%
+          </div>
+        )}
+      </div>
+
+      <div className="mt-2 pt-2 border-t border-white/5 text-[9px] text-white/30 flex items-center gap-1">
+        <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        Live · {data.provider === 'polygon' ? 'Polygon' : 'CoinGecko'}
+      </div>
+    </motion.button>
+  );
+}
 
 export default function CoreAssetDisplay() {
   const navigate = useNavigate();
-  const [liveData, setLiveData] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [assetMap, setAssetMap] = useState({}); // symbol → data or null (skeleton)
+  const [phase, setPhase] = useState('skeleton'); // skeleton | loaded
+  const timeoutRef = useRef(null);
+  const refreshRef = useRef(null);
 
-  // Load core assets on mount
+  async function load() {
+    // After 2.5s with no data → force all to unavailable
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setAssetMap(prev => {
+        const next = { ...prev };
+        CORE_SYMBOLS.forEach(s => {
+          if (!next[s] || next[s]._skeleton) {
+            next[s] = { status: 'unavailable' };
+          }
+        });
+        return next;
+      });
+      setPhase('loaded');
+    }, 2500);
+
+    const assets = await fetchCoreAssets();
+    clearTimeout(timeoutRef.current);
+
+    const map = {};
+    assets.forEach(a => { map[a.symbol] = a; });
+
+    // For any missing symbol, mark unavailable
+    CORE_SYMBOLS.forEach(s => {
+      if (!map[s]) map[s] = { status: 'unavailable' };
+    });
+
+    setAssetMap(map);
+    setPhase('loaded');
+  }
+
   useEffect(() => {
-    async function loadCore() {
-      try {
-        const assets = await fetchTier1Assets();
-        
-        if (assets && assets.length > 0) {
-          const priceMap = {};
-          assets.forEach(asset => {
-            if (CORE_ASSETS.find(ca => ca.symbol === asset.symbol)) {
-              priceMap[asset.symbol] = {
-                price: asset.price,
-                prevClose: asset.prevClose || asset.price,
-                change: asset.change || 0
-              };
-            }
-          });
-          setLiveData(priceMap);
-        }
-      } catch (err) {
-        console.error('[CoreAssets] Load failed:', err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    loadCore();
+    load();
+
+    // Refresh every 10s
+    refreshRef.current = setInterval(load, 10000);
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (refreshRef.current) clearInterval(refreshRef.current);
+    };
   }, []);
 
-
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {CORE_ASSETS.slice(0, 12).map((asset) => (
-            <SkeletonCard key={asset.symbol} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // No data available
-  if (Object.keys(liveData).length === 0) {
-    return (
-      <div className="rounded-lg border border-white/5 bg-white/[0.03] p-6 text-center">
-        <p className="text-sm text-white/50">
-          Live market data temporarily unavailable. Please refresh in a moment.
-        </p>
-      </div>
-    );
-  }
-
-  // Real data render
-  const displayAssets = CORE_ASSETS.filter(a => liveData[a.symbol]);
-  const missingCount = CORE_ASSETS.length - displayAssets.length;
-
   return (
-    <div className="space-y-4">
-      {/* Core Assets Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        <AnimatePresence mode="popLayout">
-          {displayAssets.map((asset, i) => {
-            const priceInfo = liveData[asset.symbol];
-            if (!priceInfo || !priceInfo.price) return null;
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      {CORE_SYMBOLS.map((symbol, i) => {
+        if (phase === 'skeleton') {
+          return <AssetCardSkeleton key={symbol} symbol={symbol} />;
+        }
 
-            const change = validatePercent(
-              ((priceInfo.price - (priceInfo.prevClose || priceInfo.price)) / (priceInfo.prevClose || priceInfo.price)) * 100
-            );
-            const priceStr = formatPrice(validatePrice(priceInfo.price), 2);
-            const changeStr = formatPercent(change, 1);
+        const data = assetMap[symbol];
 
-            return (
-              <motion.button
-                key={asset.symbol}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ delay: i * 0.03 }}
-                onClick={() => navigate(`/Asset/${asset.symbol}`)}
-                className="text-left rounded-lg border border-white/5 bg-white/[0.03] p-4 hover:bg-white/[0.06] hover:border-white/10 transition-all group"
-              >
-                {/* Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="font-mono font-bold text-white text-sm">{asset.symbol}</div>
-                    <div className="text-xs text-white/40">{asset.name}</div>
-                  </div>
-                  <div className="text-[10px] text-white/30 px-2 py-1 rounded-full bg-white/[0.05] group-hover:bg-white/10 transition-colors">
-                    {asset.sector}
-                  </div>
-                </div>
+        if (!data || data.status === 'unavailable') {
+          return <AssetCardUnavailable key={symbol} symbol={symbol} />;
+        }
 
-                {/* Price & Change */}
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-mono font-bold text-white text-base">${priceStr}</span>
-                  <div className={`flex items-center gap-0.5 text-xs font-bold ${
-                    change >= 0 ? 'text-chart-3' : 'text-destructive'
-                  }`}>
-                    {change >= 0 ? (
-                      <TrendingUp className="h-3 w-3" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3" />
-                    )}
-                    {changeStr}
-                  </div>
-                </div>
-
-                {/* Live indicator */}
-                <div className="mt-2 pt-2 border-t border-white/5 text-[9px] text-white/30 flex items-center gap-1">
-                  {priceInfo.source === 'cached-fallback' ? (
-                    <>
-                      <div className="h-1.5 w-1.5 rounded-full bg-warning" />
-                      Cached
-                    </>
-                  ) : (
-                    <>
-                      <div className="h-1.5 w-1.5 rounded-full bg-chart-3 animate-pulse" />
-                      Live
-                    </>
-                  )}
-                </div>
-              </motion.button>
-            );
-          })}
-        </AnimatePresence>
-      </div>
-
-      {/* Missing assets note */}
-      {missingCount > 0 && (
-        <p className="text-xs text-white/30 text-center">
-          {missingCount} assets unavailable • Search to explore 200+ options
-        </p>
-      )}
+        return (
+          <AssetCardLive
+            key={symbol}
+            symbol={symbol}
+            data={data}
+            onClick={() => navigate(`/Asset/${symbol}`)}
+          />
+        );
+      })}
     </div>
   );
 }
