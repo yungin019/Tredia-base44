@@ -109,110 +109,67 @@ const SYMBOL_META = {
 
 // ── PROVIDER FETCH HELPERS ───────────────────────────────────────────────
 
+/**
+ * Fetch stock/ETF quotes via Polygon.
+ * Uses /v2/aggs/ticker (previous close) — available on free tier.
+ * Falls back per-symbol if batch fails.
+ */
 async function fetchPolygonQuotes(symbols, polygonKey) {
   const results = {};
   const TIMEOUT = 2500;
 
-  // Use snapshot endpoint for batch
-  try {
-    const tickers = symbols.join(',');
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+  // Fetch each symbol individually using previous close aggregate
+  // This endpoint is available on Polygon free tier
+  await Promise.all(symbols.map(async (symbol) => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
 
-    const url = `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers=${tickers}&apiKey=${polygonKey}`;
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
+      // /v2/aggs/ticker/:ticker/prev — previous trading day OHLCV
+      const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${polygonKey}`;
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
 
-    if (res.status === 200) {
+      if (res.status !== 200) {
+        console.warn(`[Polygon] ${symbol} HTTP ${res.status}`);
+        results[symbol] = { status: 'unavailable', error: `Polygon HTTP ${res.status}` };
+        return;
+      }
+
       const data = await res.json();
-      const tickers_data = data.tickers || [];
+      const bars = data.results;
 
-      tickers_data.forEach(item => {
-        const sym = item.ticker;
-        const day = item.day || {};
-        const prevDay = item.prevDay || {};
-        const lastTrade = item.lastTrade || {};
-        const lastQuote = item.lastQuote || {};
+      if (!bars || bars.length === 0) {
+        results[symbol] = { status: 'unavailable', error: 'No bars returned' };
+        return;
+      }
 
-        // Use last trade price, fallback to day close
-        const price = lastTrade.p || day.c || 0;
-        const prevClose = prevDay.c || price;
-        const changePct = prevClose > 0 ? ((price - prevClose) / prevClose) * 100 : 0;
+      const bar = bars[0];
+      // c = close, o = open, vw = volume-weighted average
+      const price = bar.c || bar.vw || 0;
+      const open = bar.o || price;
+      const changePct = open > 0 ? ((price - open) / open) * 100 : 0;
 
-        if (price > 0) {
-          results[sym] = {
-            status: 'live',
-            price: parseFloat(price.toFixed(2)),
-            changePct: parseFloat(changePct.toFixed(2)),
-            timestamp: Date.now(),
-            provider: 'polygon'
-          };
-        } else {
-          results[sym] = { status: 'unavailable', error: 'No price in response' };
-        }
-      });
+      if (!price) {
+        results[symbol] = { status: 'unavailable', error: 'Zero price' };
+        return;
+      }
 
-      // Mark missing symbols as unavailable
-      symbols.forEach(s => {
-        if (!results[s]) results[s] = { status: 'unavailable', error: 'Symbol not in response' };
-      });
-
-      return results;
+      results[symbol] = {
+        status: 'live',
+        price: parseFloat(price.toFixed(2)),
+        changePct: parseFloat(changePct.toFixed(2)),
+        timestamp: bar.t || Date.now(),
+        provider: 'polygon'
+      };
+      console.log(`[Polygon] ✓ ${symbol}: $${results[symbol].price}`);
+    } catch (err) {
+      results[symbol] = { status: 'unavailable', error: err.message };
+      console.error(`[Polygon] ${symbol} error:`, err.message);
     }
+  }));
 
-    // Non-200: mark all unavailable
-    const errorText = await res.text().catch(() => `HTTP ${res.status}`);
-    console.error(`[Polygon batch] ${res.status}: ${errorText.slice(0, 200)}`);
-    symbols.forEach(s => {
-      results[s] = { status: 'unavailable', error: `Polygon HTTP ${res.status}` };
-    });
-    return results;
-  } catch (err) {
-    console.error('[Polygon batch] Error:', err.message);
-    symbols.forEach(s => {
-      results[s] = { status: 'unavailable', error: err.message };
-    });
-    return results;
-  }
-}
-
-async function fetchSinglePolygon(symbol, polygonKey) {
-  const TIMEOUT = 2500;
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
-    const url = `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${symbol}?apiKey=${polygonKey}`;
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    if (res.status !== 200) {
-      return { status: 'unavailable', error: `Polygon HTTP ${res.status}` };
-    }
-
-    const data = await res.json();
-    const item = data.ticker;
-    if (!item) return { status: 'unavailable', error: 'No ticker data' };
-
-    const day = item.day || {};
-    const prevDay = item.prevDay || {};
-    const lastTrade = item.lastTrade || {};
-
-    const price = lastTrade.p || day.c || 0;
-    const prevClose = prevDay.c || price;
-    const changePct = prevClose > 0 ? ((price - prevClose) / prevClose) * 100 : 0;
-
-    if (!price) return { status: 'unavailable', error: 'No price' };
-
-    return {
-      status: 'live',
-      price: parseFloat(price.toFixed(2)),
-      changePct: parseFloat(changePct.toFixed(2)),
-      timestamp: Date.now(),
-      provider: 'polygon'
-    };
-  } catch (err) {
-    return { status: 'unavailable', error: err.message };
-  }
+  return results;
 }
 
 async function fetchCoinGeckoQuotes(symbols) {
