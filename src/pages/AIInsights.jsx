@@ -251,8 +251,19 @@ export default function AIInsights() {
                 <SignalCard key={i} signal={toEngineSignalCardProps(signal)} />
               ))
             ) : (
-              <div className="lg:col-span-2 p-8 rounded-lg bg-white/[0.02] border border-white/[0.08] text-center">
-                <p className="text-sm text-white/30">{t('ai.signalsUnavailable')}</p>
+              <div className="lg:col-span-2 space-y-4">
+                <div className="p-8 rounded-lg bg-white/[0.02] border border-white/[0.08]">
+                  <p className="text-sm font-semibold text-white/70 mb-2">Market state neutral</p>
+                  <p className="text-xs text-white/40">No strong signals at this time. Market is waiting for key data releases.</p>
+                </div>
+                <div className="space-y-2 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+                  <p className="text-xs font-bold text-white/30 uppercase tracking-wider">Watch for</p>
+                  <div className="space-y-1">
+                    <p className="text-xs text-white/50">• Economic data releases</p>
+                    <p className="text-xs text-white/50">• Fed speakers/statements</p>
+                    <p className="text-xs text-white/50">• Earnings reports</p>
+                  </div>
+                </div>
               </div>
             )}
             {!isElite && (
