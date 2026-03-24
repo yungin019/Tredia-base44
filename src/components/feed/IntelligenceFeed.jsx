@@ -491,9 +491,14 @@ export default function IntelligenceFeed({ activeRegion, onRegionChange }) {
         className="space-y-3"
       >
         {/* ── MACRO CONTEXT BLURB ─────────────────────────────── */}
-        <div className="rounded-xl px-4 py-3 border border-white/[0.06]" style={{ background: 'rgba(14,200,220,0.04)' }}>
-          <p className="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-1">{context.headline}</p>
-          <p className="text-xs text-white/55 leading-relaxed">{context.text}</p>
+        <div className="rounded-xl px-4 py-3.5" style={{
+          background: 'rgba(14,200,220,0.06)',
+          border: '1px solid rgba(14,200,220,0.14)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+        }}>
+          <p className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: 'rgba(14,200,220,0.75)' }}>{context.headline}</p>
+          <p className="text-xs leading-relaxed" style={{ color: 'rgba(200,230,255,0.6)' }}>{context.text}</p>
         </div>
 
         {/* ── TOP REACTIONS ────────────────────────────────────── */}
@@ -505,7 +510,12 @@ export default function IntelligenceFeed({ activeRegion, onRegionChange }) {
         <FeedSeparator label="Trek is watching" />
 
         {/* ── WATCH LAYER ──────────────────────────────────────── */}
-        <div className="rounded-xl border border-white/[0.06] px-4 py-3.5 space-y-2.5" style={{ background: 'rgba(11,15,25,0.6)' }}>
+        <div className="rounded-xl px-4 py-3.5 space-y-2.5" style={{
+          background: 'rgba(3, 7, 18, 0.82)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          border: '1px solid rgba(100,220,255,0.07)',
+        }}>
           <div className="flex items-center gap-2 mb-1">
             <Eye className="h-3.5 w-3.5 text-primary/50" />
             <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">On the radar</span>
