@@ -198,13 +198,13 @@ html, body {
 
 /* Gradient text */
 .text-gradient-primary {
-  background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #10b981 100%);
+  background: linear-gradient(135deg, #0ed8e8 0%, #38f0f8 50%, #0bbcd4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 .text-gradient-success {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #0ed8e8, #0aa8be);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
