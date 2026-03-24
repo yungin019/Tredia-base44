@@ -20,28 +20,12 @@ import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import DiscoverySection, { POPULAR_STOCKS, POPULAR_CRYPTO, MAJOR_ETFS, COMMODITIES_SNAPSHOT } from '@/components/markets/DiscoverySection.jsx';
 
-// Index chart data
-const CHART_DATA = {
-  '1D': [
-    { time: '09:30', value: 4100 }, { time: '10:00', value: 4120 }, { time: '10:30', value: 4095 },
-    { time: '11:00', value: 4150 }, { time: '11:30', value: 4140 }, { time: '12:00', value: 4160 },
-    { time: '12:30', value: 4155 }, { time: '13:00', value: 4180 }, { time: '13:30', value: 4175 },
-  ],
-  '1W': [
-    { time: 'Mon', value: 4050 }, { time: 'Tue', value: 4100 }, { time: 'Wed', value: 4080 },
-    { time: 'Thu', value: 4150 }, { time: 'Fri', value: 4180 }, { time: 'Today', value: 4175 },
-  ],
-  '1M': [
-    { time: 'W1', value: 4000 }, { time: 'W2', value: 4080 }, { time: 'W3', value: 4050 },
-    { time: 'W4', value: 4180 }, { time: 'Today', value: 4175 },
-  ],
-  '3M': [
-    { time: 'Jan', value: 3900 }, { time: 'Feb', value: 4000 }, { time: 'Mar', value: 4175 },
-  ],
-  '1Y': [
-    { time: 'Jan', value: 3600 }, { time: 'Apr', value: 3850 }, { time: 'Jul', value: 4050 },
-    { time: 'Oct', value: 4100 }, { time: 'Today', value: 4175 },
-  ],
+// Chart data state (loaded from API)
+const useChartData = () => {
+  const [data, setData] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  
+  return { data, setData, loading, setLoading };
 };
 
 export default function Markets() {
@@ -50,6 +34,8 @@ export default function Markets() {
   const [activeTab, setActiveTab] = useState('stocks');
   const [timeframe, setTimeframe] = useState('1D');
   const [cryptoData, setCryptoData] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [chartLoading, setChartLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -58,6 +44,26 @@ export default function Markets() {
     };
     load();
   }, []);
+
+  useEffect(() => {
+    const loadChart = async () => {
+      setChartLoading(true);
+      try {
+        const res = await base44.functions.invoke('marketData', { 
+          symbol: 'SPX', 
+          timeframe: timeframe.replace(/([0-9]+)([A-Z])/g, '$1$2').toLowerCase() 
+        });
+        if (res?.data?.history) {
+          setChartData(res.data.history.map(d => ({ time: d.timestamp, value: d.close })));
+        }
+      } catch {
+        setChartData([]);
+      } finally {
+        setChartLoading(false);
+      }
+    };
+    loadChart();
+  }, [timeframe]);
 
   return (
     <PullToRefresh onRefresh={async () => {
@@ -152,29 +158,39 @@ export default function Markets() {
               <TimeframeSelector timeframe={timeframe} onTimeframeChange={setTimeframe} />
             </div>
             <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={CHART_DATA[timeframe]}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                  <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" style={{ fontSize: '11px' }} />
-                  <YAxis stroke="rgba(255,255,255,0.2)" style={{ fontSize: '11px' }} />
-                  <Tooltip
-                    contentStyle={{
-                      background: 'rgba(6,14,32,0.95)',
-                      border: '1px solid rgba(100,220,255,0.12)',
-                      borderRadius: '8px',
-                    }}
-                    labelStyle={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="rgb(14,200,220)"
-                    strokeWidth={2}
-                    dot={false}
-                    isAnimationActive={true}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {chartLoading ? (
+                <div className="flex items-center justify-center h-full text-white/30 text-sm">
+                  Loading chart data...
+                </div>
+              ) : chartData.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-white/30 text-sm">
+                  Chart data unavailable
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                    <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" style={{ fontSize: '11px' }} />
+                    <YAxis stroke="rgba(255,255,255,0.2)" style={{ fontSize: '11px' }} />
+                    <Tooltip
+                      contentStyle={{
+                        background: 'rgba(6,14,32,0.95)',
+                        border: '1px solid rgba(100,220,255,0.12)',
+                        borderRadius: '8px',
+                      }}
+                      labelStyle={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px' }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="rgb(14,200,220)"
+                      strokeWidth={2}
+                      dot={false}
+                      isAnimationActive={true}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </motion.div>
         </>
