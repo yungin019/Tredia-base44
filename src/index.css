@@ -99,8 +99,8 @@ html, body {
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(16,185,129,0.15); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(16,185,129,0.3); }
+::-webkit-scrollbar-thumb { background: rgba(14,200,220,0.12); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(14,200,220,0.25); }
 
 /* Glow effects — cyan/turquoise */
 .glow-primary {
