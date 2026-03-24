@@ -112,27 +112,6 @@ const SYMBOL_META = {
   LTC:   { name: 'Litecoin', type: 'crypto', sector: 'Crypto', coinId: 'litecoin' },
 };
 
-// ── RATE LIMITER ─────────────────────────────────────────────────────────
-// Max 4 Polygon requests per second (free tier safe)
-const requestTimestamps = [];
-const MAX_REQUESTS_PER_SEC = 4;
-
-async function polygonRateLimitedFetch(url, signal) {
-  const now = Date.now();
-  // Drop timestamps older than 1 second
-  while (requestTimestamps.length > 0 && now - requestTimestamps[0] >= 1000) {
-    requestTimestamps.shift();
-  }
-  // If at limit, wait until we're under the cap
-  if (requestTimestamps.length >= MAX_REQUESTS_PER_SEC) {
-    const waitMs = 1000 - (now - requestTimestamps[0]) + 10;
-    await new Promise(r => setTimeout(r, waitMs));
-    requestTimestamps.shift();
-  }
-  requestTimestamps.push(Date.now());
-  return fetch(url, { signal });
-}
-
 // ── PROVIDER FETCH HELPERS ───────────────────────────────────────────────
 
 /**
