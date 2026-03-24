@@ -197,6 +197,18 @@ export default function Home() {
           </div>
 
           {/* ╔════════════════════════════════════════════════════════════════ */}
+          {/* ║ CATALYST FEED — Real market catalysts interpreted by TREK */}
+          {/* ╚════════════════════════════════════════════════════════════════ */}
+
+          <CatalystFeed 
+            activeRegion={activeRegion}
+            onSeeWhy={(catalyst) => {
+              // Placeholder for TREK explanation modal
+              console.log('See why:', catalyst);
+            }}
+          />
+
+          {/* ╔════════════════════════════════════════════════════════════════ */}
           {/* ║ EXPLORATION LAYER — Watchlist + Assets + Offers */}
           {/* ╚════════════════════════════════════════════════════════════════ */}
 
