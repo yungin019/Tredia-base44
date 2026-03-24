@@ -118,16 +118,15 @@ async function fetchPolygonQuotes(symbols, polygonKey) {
   const results = {};
   const TIMEOUT = 2500;
 
-  // Fetch each symbol individually using previous close aggregate
-  // This endpoint is available on Polygon free tier
-  await Promise.all(symbols.map(async (symbol) => {
+  // Fetch each symbol individually — sequential to respect rate limits
+  for (const symbol of symbols) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
 
       // /v2/aggs/ticker/:ticker/prev — previous trading day OHLCV
       const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${polygonKey}`;
-      const res = await fetch(url, { signal: controller.signal });
+      const res = await polygonRateLimitedFetch(url, controller.signal);
       clearTimeout(timeoutId);
 
       if (res.status !== 200) {
