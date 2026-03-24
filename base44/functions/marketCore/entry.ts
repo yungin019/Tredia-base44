@@ -284,18 +284,17 @@ function buildCoreResponse() {
   });
 }
 
-// ── BACKGROUND POLLER ────────────────────────────────────────────────────
-let lastPollTime = 0;
-let pollInProgress = false;
-const POLL_INTERVAL_MS = 12000; // poll every 12s (stable, no burst)
-const BATCH_DELAY_MS = 250;     // 250ms between batches
+// ── POLLER ───────────────────────────────────────────────────────────────
+const POLL_INTERVAL_MS = 12000;
+const BATCH_DELAY_MS = 300;
 
 async function pollCoreAssets(polygonKey) {
   const now = Date.now();
-  if (now - lastPollTime < POLL_INTERVAL_MS) return; // too soon
-  if (pollInProgress) return; // already running, skip
-  pollInProgress = true;
-  lastPollTime = now;
+  if (now - globalThis._lastPollTime < POLL_INTERVAL_MS) return; // too soon
+  if (globalThis._pollInProgress) return; // single lock — no racing
+  globalThis._pollInProgress = true;
+  globalThis._lastPollTime = now;
+  console.log('[Poll] START');
 
   try {
     // ── Step 1: Staggered Polygon fetches in batches of 2 ──
