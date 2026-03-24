@@ -106,7 +106,7 @@ export default function SignIn() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#080B12',
+      background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14, 50, 90, 0.35) 0%, transparent 70%), linear-gradient(180deg, #040d1e 0%, #030810 60%, #020608 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -122,17 +122,20 @@ export default function SignIn() {
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <img src="/logo-icon.svg" alt="TREDIO" style={{ height: '52px', width: '52px', margin: '0 auto 12px' }} />
           <img src="/logo-full.svg" alt="TREDIO" style={{ height: '32px', margin: '0 auto 6px' }} />
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', letterSpacing: '2px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(100,220,255,0.35)', letterSpacing: '2px', textTransform: 'uppercase' }}>
             AI Trading Intelligence
           </div>
         </div>
 
         {/* Card */}
         <div style={{
-          background: '#111118',
-          border: '1px solid rgba(255,255,255,0.07)',
-          borderRadius: '16px',
+          background: 'rgba(8, 16, 36, 0.55)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(100, 220, 255, 0.09)',
+          borderRadius: '20px',
           padding: '28px',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(100,220,255,0.06)',
         }}>
           <AnimatePresence mode="wait">
 
