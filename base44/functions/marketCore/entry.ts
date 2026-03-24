@@ -491,7 +491,7 @@ Deno.serve(async (req) => {
         return Response.json({ results: [], meta: { query: '' } });
       }
 
-      const results = await handleSearch(query, POLYGON_KEY);
+      const results = await handleSearch(query, FINNHUB_KEY);
 
       return Response.json({
         results,
