@@ -263,7 +263,7 @@ function buildCoreResponse() {
 // Polygon grouped endpoint = 1 API call for ALL stocks → no per-symbol 429s
 const POLL_INTERVAL_MS = 60000; // refresh every 60s
 
-async function pollCoreAssets(polygonKey) {
+async function pollCoreAssets(finnhubKey) {
   const now = Date.now();
   if (now - globalThis._lastPollTime < POLL_INTERVAL_MS) return; // too soon
   if (globalThis._pollInProgress) return; // single global lock
@@ -273,7 +273,7 @@ async function pollCoreAssets(polygonKey) {
 
   try {
     // Finnhub: sequential with 200ms gap — 6 calls, well within 60 req/min
-    const stockResults = await fetchStockQuotes(CORE_SYMBOLS_STOCK, polygonKey);
+    const stockResults = await fetchStockQuotes(CORE_SYMBOLS_STOCK, finnhubKey);
     Object.entries(stockResults).forEach(([sym, data]) => {
       if (data.status === 'live') {
         coreCache.set(sym, { price: data.price, changePct: data.changePct, timestamp: data.timestamp, provider: data.provider });
