@@ -91,8 +91,6 @@ export default function Home() {
       }
     }}>
       <div className="w-full min-h-screen app-bg">
-        <IntelligenceTicker />
-        <IndexCardsSection />
 
         {/* ── STICKY REGION BAR ──────────────────────────────────────── */}
         <div
