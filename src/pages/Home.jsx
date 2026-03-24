@@ -15,6 +15,7 @@ import DailyBrief from '@/components/ai/DailyBrief';
 import YourMovesToday from '@/components/feed/YourMovesToday';
 import WatchOut from '@/components/feed/WatchOut';
 import MarketPulse from '@/components/feed/MarketPulse';
+import CatalystFeed from '@/components/feed/CatalystFeed';
 import UpgradeCall from '@/components/feed/UpgradeCall';
 import TrendingAssets from '@/components/markets/TrendingAssets';
 import WatchlistQuick from '@/components/markets/WatchlistQuick';
