@@ -115,77 +115,55 @@ const SYMBOL_META = {
 // ── PROVIDER FETCH HELPERS ───────────────────────────────────────────────
 
 /**
- * Fetch stock/ETF quotes via Polygon grouped daily bars endpoint.
- * ONE API call returns ALL tickers — avoids per-symbol 429s on free tier.
- * Falls back to individual /prev calls only if grouped endpoint fails.
+ * Fetch stock/ETF quotes via Finnhub — sequential with 200ms gap.
+ * Finnhub free tier: 60 req/min — easily handles 6 symbols.
  */
-async function fetchPolygonQuotes(symbols, polygonKey) {
+async function fetchStockQuotes(symbols, finnhubKey) {
   const results = {};
-  const TIMEOUT = 5000;
+  const TIMEOUT = 4000;
 
-  try {
-    // Use yesterday's date (market may be closed today)
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    // Roll back to Friday if weekend
-    const day = yesterday.getDay();
-    if (day === 0) yesterday.setDate(yesterday.getDate() - 2); // Sunday → Friday
-    if (day === 6) yesterday.setDate(yesterday.getDate() - 1); // Saturday → Friday
-    const dateStr = yesterday.toISOString().slice(0, 10);
+  for (const symbol of symbols) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+      const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${finnhubKey}`;
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
-    const url = `https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/${dateStr}?adjusted=true&apiKey=${polygonKey}`;
-    console.log(`[Polygon] Grouped fetch for ${dateStr}`);
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    if (res.status === 429) {
-      console.warn('[Polygon] Grouped endpoint 429 — rate limited');
-      symbols.forEach(s => { results[s] = { status: 'unavailable', error: 'Polygon rate limited' }; });
-      return results;
-    }
-
-    if (res.status !== 200) {
-      console.warn(`[Polygon] Grouped endpoint HTTP ${res.status}`);
-      symbols.forEach(s => { results[s] = { status: 'unavailable', error: `Polygon HTTP ${res.status}` }; });
-      return results;
-    }
-
-    const data = await res.json();
-    const bars = data.results || [];
-    console.log(`[Polygon] Grouped returned ${bars.length} tickers`);
-
-    // Build a fast lookup map
-    const barMap = {};
-    bars.forEach(bar => { barMap[bar.T] = bar; });
-
-    symbols.forEach(symbol => {
-      const bar = barMap[symbol];
-      if (!bar) {
-        results[symbol] = { status: 'unavailable', error: 'Not in grouped response' };
-        return;
+      if (res.status === 429) {
+        console.warn(`[Finnhub] ${symbol} 429`);
+        results[symbol] = { status: 'unavailable', error: 'Finnhub rate limited' };
+        continue;
       }
-      const price = bar.c || bar.vw || 0;
-      const open = bar.o || price;
-      const changePct = open > 0 ? ((price - open) / open) * 100 : 0;
+      if (res.status !== 200) {
+        results[symbol] = { status: 'unavailable', error: `Finnhub HTTP ${res.status}` };
+        continue;
+      }
+
+      const data = await res.json();
+      // Finnhub: c=current, pc=prev close, d=change, dp=change%
+      const price = data.c || 0;
+      const changePct = data.dp || 0;
+
       if (!price) {
-        results[symbol] = { status: 'unavailable', error: 'Zero price' };
-        return;
+        results[symbol] = { status: 'unavailable', error: 'Zero price from Finnhub' };
+        continue;
       }
+
       results[symbol] = {
         status: 'live',
         price: parseFloat(price.toFixed(2)),
         changePct: parseFloat(changePct.toFixed(2)),
-        timestamp: bar.t || Date.now(),
-        provider: 'polygon'
+        timestamp: Date.now(),
+        provider: 'finnhub'
       };
-      console.log(`[Polygon] ✓ ${symbol}: $${results[symbol].price}`);
-    });
-
-  } catch (err) {
-    console.error('[Polygon] Grouped fetch error:', err.message);
-    symbols.forEach(s => { results[s] = { status: 'unavailable', error: err.message }; });
+      console.log(`[Finnhub] ✓ ${symbol}: $${results[symbol].price}`);
+    } catch (err) {
+      results[symbol] = { status: 'unavailable', error: err.message };
+      console.error(`[Finnhub] ${symbol} error:`, err.message);
+    }
+    // Small gap between calls — polite, not rate-limit-driven
+    await new Promise(r => setTimeout(r, 200));
   }
 
   return results;
