@@ -136,47 +136,64 @@ async function polygonRateLimitedFetch(url, signal) {
 // ── PROVIDER FETCH HELPERS ───────────────────────────────────────────────
 
 /**
- * Fetch stock/ETF quotes via Polygon — sequential, rate-limited.
- * Uses /v2/aggs/ticker (previous close) — available on free tier.
- * Each symbol is independent: failure marks only that symbol unavailable.
+ * Fetch stock/ETF quotes via Polygon grouped daily bars endpoint.
+ * ONE API call returns ALL tickers — avoids per-symbol 429s on free tier.
+ * Falls back to individual /prev calls only if grouped endpoint fails.
  */
 async function fetchPolygonQuotes(symbols, polygonKey) {
   const results = {};
-  const TIMEOUT = 2500;
+  const TIMEOUT = 5000;
 
-  for (const symbol of symbols) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+  try {
+    // Use yesterday's date (market may be closed today)
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    // Roll back to Friday if weekend
+    const day = yesterday.getDay();
+    if (day === 0) yesterday.setDate(yesterday.getDate() - 2); // Sunday → Friday
+    if (day === 6) yesterday.setDate(yesterday.getDate() - 1); // Saturday → Friday
+    const dateStr = yesterday.toISOString().slice(0, 10);
 
-      const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${polygonKey}`;
-      const res = await polygonRateLimitedFetch(url, controller.signal);
-      clearTimeout(timeoutId);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+    const url = `https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/${dateStr}?adjusted=true&apiKey=${polygonKey}`;
+    console.log(`[Polygon] Grouped fetch for ${dateStr}`);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
 
-      if (res.status !== 200) {
-        console.warn(`[Polygon] ${symbol} HTTP ${res.status}`);
-        results[symbol] = { status: 'unavailable', error: `Polygon HTTP ${res.status}` };
-        continue; // only this symbol fails, keep going
+    if (res.status === 429) {
+      console.warn('[Polygon] Grouped endpoint 429 — rate limited');
+      symbols.forEach(s => { results[s] = { status: 'unavailable', error: 'Polygon rate limited' }; });
+      return results;
+    }
+
+    if (res.status !== 200) {
+      console.warn(`[Polygon] Grouped endpoint HTTP ${res.status}`);
+      symbols.forEach(s => { results[s] = { status: 'unavailable', error: `Polygon HTTP ${res.status}` }; });
+      return results;
+    }
+
+    const data = await res.json();
+    const bars = data.results || [];
+    console.log(`[Polygon] Grouped returned ${bars.length} tickers`);
+
+    // Build a fast lookup map
+    const barMap = {};
+    bars.forEach(bar => { barMap[bar.T] = bar; });
+
+    symbols.forEach(symbol => {
+      const bar = barMap[symbol];
+      if (!bar) {
+        results[symbol] = { status: 'unavailable', error: 'Not in grouped response' };
+        return;
       }
-
-      const data = await res.json();
-      const bars = data.results;
-
-      if (!bars || bars.length === 0) {
-        results[symbol] = { status: 'unavailable', error: 'No bars returned' };
-        continue;
-      }
-
-      const bar = bars[0];
       const price = bar.c || bar.vw || 0;
       const open = bar.o || price;
       const changePct = open > 0 ? ((price - open) / open) * 100 : 0;
-
       if (!price) {
         results[symbol] = { status: 'unavailable', error: 'Zero price' };
-        continue;
+        return;
       }
-
       results[symbol] = {
         status: 'live',
         price: parseFloat(price.toFixed(2)),
@@ -185,10 +202,11 @@ async function fetchPolygonQuotes(symbols, polygonKey) {
         provider: 'polygon'
       };
       console.log(`[Polygon] ✓ ${symbol}: $${results[symbol].price}`);
-    } catch (err) {
-      results[symbol] = { status: 'unavailable', error: err.message };
-      console.error(`[Polygon] ${symbol} error:`, err.message);
-    }
+    });
+
+  } catch (err) {
+    console.error('[Polygon] Grouped fetch error:', err.message);
+    symbols.forEach(s => { results[s] = { status: 'unavailable', error: err.message }; });
   }
 
   return results;
