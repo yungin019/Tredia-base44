@@ -420,9 +420,9 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const POLYGON_KEY = Deno.env.get('POLYGON_API_KEY');
-    if (!POLYGON_KEY) {
-      return Response.json({ error: 'POLYGON_API_KEY not set' }, { status: 500 });
+    const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY');
+    if (!FINNHUB_KEY) {
+      return Response.json({ error: 'FINNHUB_API_KEY not set' }, { status: 500 });
     }
 
     const body = await req.json().catch(() => ({}));
