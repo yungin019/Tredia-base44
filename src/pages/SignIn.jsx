@@ -197,14 +197,15 @@ export default function SignIn() {
             /* FORM STEP */
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               {/* Tab Toggle */}
-              <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '4px' }}>
+              <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', background: 'rgba(14,200,220,0.05)', border: '1px solid rgba(14,200,220,0.1)', borderRadius: '12px', padding: '4px' }}>
                 {['login', 'register'].map(m => (
                   <button key={m} onClick={() => { setMode(m); setError(''); setConfirmPassword(''); }}
                     style={{
-                      flex: 1, padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: '700',
+                      flex: 1, padding: '8px', borderRadius: '9px', fontSize: '13px', fontWeight: '700',
                       border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                      background: mode === m ? '#F59E0B' : 'transparent',
-                      color: mode === m ? '#0A0A0F' : 'rgba(255,255,255,0.4)',
+                      background: mode === m ? 'rgba(14,200,220,0.18)' : 'transparent',
+                      color: mode === m ? 'rgb(120,230,245)' : 'rgba(255,255,255,0.35)',
+                      boxShadow: mode === m ? '0 0 10px rgba(14,200,220,0.15)' : 'none',
                     }}>
                     {m === 'login' ? 'Sign In' : 'Register'}
                   </button>
