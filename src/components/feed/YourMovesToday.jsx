@@ -121,16 +121,13 @@ function MoveCard({ move, index, onExplore }) {
 
       {/* ── ACTION + RISK ────────────────────────────────────── */}
       <div style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
-        {/* Action instruction */}
+        {/* Action instruction — UPPERCASE, command-style */}
         <div className="px-4 py-2.5 flex items-start gap-2" style={{ background: `${color}08` }}>
-          <span className="text-[10px] font-mono flex-shrink-0 mt-0.5" style={{ color }}>⚡</span>
-          <p className="text-xs font-bold leading-snug" style={{ color: 'rgba(255,255,255,0.9)' }}>
-            <span style={{ color }}>Action: </span>
+          <span className="text-lg flex-shrink-0 mt-0.5" style={{ color }}>⚡</span>
+          <p className="text-xs font-black leading-snug uppercase" style={{ color: 'rgba(255,255,255,0.95)', letterSpacing: '0.02em' }}>
             {move.entry === 'N/A'
-              ? 'DO NOT ENTER — conditions not met'
-              : move.entry
-              ? `Wait for ${move.entry}`
-              : safeRender(move.exitTarget) || 'Monitor for setup'}
+              ? 'DO NOT ENTER'
+              : actionCmd}
           </p>
         </div>
         {/* Risk */}
