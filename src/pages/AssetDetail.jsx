@@ -12,6 +12,7 @@ import AssetNewsSection from '@/components/news/AssetNewsSection';
 import { SkeletonPrice, SkeletonSignal, LoadingMessage } from '@/components/ui/SkeletonLoader';
 import { formatPrice, formatPercent, validatePrice, validatePercent, safeRender } from '@/lib/dataValidation';
 import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
+import { fetchSingleAsset } from '@/api/marketDataClient';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
