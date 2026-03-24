@@ -285,8 +285,9 @@ function buildCoreResponse() {
 }
 
 // ── POLLER ───────────────────────────────────────────────────────────────
-const POLL_INTERVAL_MS = 12000;
-const BATCH_DELAY_MS = 300;
+// Polygon free tier: 5 requests/min total. Stagger at 15s per symbol to stay safe.
+const POLL_INTERVAL_MS = 90000; // full refresh every 90s (6 stocks × 15s gap)
+const BATCH_DELAY_MS = 15000;   // 15s between each stock symbol
 
 async function pollCoreAssets(polygonKey) {
   const now = Date.now();
