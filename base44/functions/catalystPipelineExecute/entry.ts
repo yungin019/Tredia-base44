@@ -59,21 +59,21 @@ Deno.serve(async (req) => {
     let rawNews = [];
     try {
       const parsed = JSON.parse(rawResponseText);
-      rawNews = Array.isArray(parsed) ? parsed : (parsed.news || []);
+      rawNews = parsed.results || [];
       report.rawNewsCount = rawNews.length;
-      console.log(`[CATALYST PIPELINE] Parsed ${rawNews.length} raw news items from Finnhub`);
+      console.log(`[CATALYST PIPELINE] Parsed ${rawNews.length} raw news items from Polygon.io`);
     } catch (parseError) {
       console.error('[CATALYST PIPELINE] JSON parse error:', parseError.message);
-      report.failurePoint = 'FINNHUB_JSON_PARSE_ERROR';
+      report.failurePoint = 'POLYGON_JSON_PARSE_ERROR';
       report.realFixApplied = `Parse error: ${parseError.message}`;
       return Response.json(report);
     }
 
-    // No fake data. If Finnhub returns nothing, return empty state.
+    // No fake data. If Polygon returns nothing, return empty state.
     if (rawNews.length === 0) {
-      console.log('[CATALYST PIPELINE] Finnhub returned 0 articles');
+      console.log('[CATALYST PIPELINE] Polygon returned 0 articles');
       report.failurePoint = 'NO_NEWS_AVAILABLE';
-      report.realFixApplied = 'Finnhub API returned empty news list. This is a real condition, not an error.';
+      report.realFixApplied = 'Polygon.io API returned empty news list. This is a real condition, not an error.';
       return Response.json(report);
     }
 
