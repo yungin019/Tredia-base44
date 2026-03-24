@@ -238,8 +238,26 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
 
   if (catalysts.length === 0) {
     return (
-      <div className="text-center py-8 text-xs text-white/30">
-        No catalysts at the moment. Check back soon.
+      <div className="text-center py-8 space-y-3">
+        <div className="text-xs text-white/30">
+          No catalysts at the moment. Check back soon.
+        </div>
+        {debugInfo && (
+          <div className="text-[9px] text-white/20 space-y-1 max-w-sm mx-auto">
+            <p>Debug info:</p>
+            <p>Total in DB: {debugInfo.totalInDb}</p>
+            <p>Region: {debugInfo.activeRegion}</p>
+            <p>Breakdown: {JSON.stringify(debugInfo.regionBreakdown)}</p>
+            {debugInfo.totalInDb > 0 && (
+              <button
+                onClick={() => console.log('All catalysts:', debugInfo.allCatalystsRaw)}
+                className="underline text-white/40 hover:text-white/60"
+              >
+                Log to console
+              </button>
+            )}
+          </div>
+        )}
       </div>
     );
   }
