@@ -72,6 +72,11 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleRegionChange = (r) => {
+    setActiveRegion(r);
+    localStorage.setItem('tredio_region', r);
+  };
+
   const sentimentLabel = fearGreed
     ? fearGreed.value >= 70 ? t('trek.greed') : fearGreed.value >= 50 ? t('common.neutral') : fearGreed.value >= 30 ? t('trek.fear') : t('trek.extremeFear')
     : t('common.neutral');
