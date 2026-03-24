@@ -69,6 +69,15 @@ export default function Home() {
       }
     }
 
+    // Run catalyst pipeline on load
+    try {
+      base44.functions.invoke('catalystPipelineExecute', {}).catch(e => {
+        console.log('[Home] Catalyst pipeline skipped:', e.message);
+      });
+    } catch (e) {
+      console.log('[Home] Catalyst invoke error:', e.message);
+    }
+
     loadCore();
     const interval = setInterval(loadCore, 15000);
     return () => clearInterval(interval);
