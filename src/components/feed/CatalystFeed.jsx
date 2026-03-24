@@ -164,32 +164,57 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
 export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
   const [catalysts, setCatalysts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState(null);
 
   useEffect(() => {
     const loadCatalysts = async () => {
       try {
         setLoading(true);
+        console.log(`[CatalystFeed] Loading catalysts for region: ${activeRegion}`);
         
-        // Fetch catalysts from database
-        let query = { stage: 'confirmed_catalyst' };
-        
-        // Filter by region if not global
+        // Fetch ALL catalysts first
+        const allCatalysts = await base44.entities.Catalyst.list();
+        console.log(`[CatalystFeed] Total catalysts in DB: ${allCatalysts.length}`);
+        console.log(`[CatalystFeed] Raw payload:`, allCatalysts);
+
+        // Debug info
+        const regionBreakdown = {};
+        allCatalysts.forEach(c => {
+          c.regions?.forEach(r => {
+            regionBreakdown[r] = (regionBreakdown[r] || 0) + 1;
+          });
+        });
+        console.log(`[CatalystFeed] Region breakdown:`, regionBreakdown);
+        setDebugInfo({
+          totalInDb: allCatalysts.length,
+          regionBreakdown,
+          activeRegion,
+          allCatalystsRaw: allCatalysts
+        });
+
+        // Filter by region
+        let filtered = allCatalysts;
         if (activeRegion !== 'Global') {
-          const allCatalysts = await base44.entities.Catalyst.list();
-          const filtered = allCatalysts.filter(c => 
-            c.regions && c.regions.includes(activeRegion)
-          );
-          setCatalysts(filtered.sort((a, b) => 
-            new Date(b.published_at) - new Date(a.published_at)
-          ).slice(0, 4));
-        } else {
-          const all = await base44.entities.Catalyst.list();
-          setCatalysts(all.sort((a, b) => 
-            new Date(b.published_at) - new Date(a.published_at)
-          ).slice(0, 4));
+          console.log(`[CatalystFeed] Filtering for region: ${activeRegion}`);
+          filtered = allCatalysts.filter(c => {
+            const hasRegion = c.regions && c.regions.includes(activeRegion);
+            if (!hasRegion) {
+              console.log(`  Filtered out: "${c.headline.substring(0, 40)}..." (regions: ${c.regions?.join(', ') || 'none'})`);
+            }
+            return hasRegion;
+          });
+          console.log(`[CatalystFeed] After region filter: ${filtered.length} catalysts`);
         }
+
+        const sorted = filtered.sort((a, b) => 
+          new Date(b.published_at) - new Date(a.published_at)
+        );
+        const final = sorted.slice(0, 4);
+        console.log(`[CatalystFeed] Final catalysts to render: ${final.length}`);
+        setCatalysts(final);
       } catch (error) {
-        console.error('Error loading catalysts:', error);
+        console.error('[CatalystFeed] Error loading catalysts:', error);
+        console.error('[CatalystFeed] Error stack:', error.stack);
         setCatalysts([]);
       } finally {
         setLoading(false);
@@ -197,7 +222,7 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
     };
 
     loadCatalysts();
-    const interval = setInterval(loadCatalysts, 300000); // refresh every 5 min
+    const interval = setInterval(loadCatalysts, 60000); // refresh every 1 min for debugging
     return () => clearInterval(interval);
   }, [activeRegion]);
 
