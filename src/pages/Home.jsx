@@ -23,15 +23,27 @@ import RegionSwitcher from '@/components/feed/RegionSwitcher';
 import IntelligenceFeed from '@/components/feed/IntelligenceFeed';
 import { base44 } from '@/api/base44Client';
 
+// Detect region from timezone
+function detectDefaultRegion() {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  if (tz.includes('Europe') || tz.includes('London')) return 'EU';
+  if (tz.includes('Asia') || tz.includes('Tokyo') || tz.includes('Hong_Kong') || tz.includes('Singapore')) return 'APAC';
+  if (tz.includes('Africa')) return 'Africa';
+  if (tz.includes('America/Sao_Paulo') || tz.includes('America/Mexico') || tz.includes('America/Bogota') || tz.includes('America/Santiago')) return 'LatAm';
+  return 'US';
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [fearGreed, setFearGreed] = useState(null);
-  const [ogStats, setOgStats] = useState(null);
-  const [isOgMember, setIsOgMember] = useState(false);
   const [liveStocks, setLiveStocks] = useState([]);
   const [cryptoPrices, setCryptoPrices] = useState([]);
   const [dataStatus, setDataStatus] = useState('loading');
+  const [activeRegion, setActiveRegion] = useState(() => {
+    return localStorage.getItem('tredio_region') || detectDefaultRegion();
+  });
+  const stickyRef = useRef(null);
 
   // Core assets for Home feed
   useEffect(() => {
