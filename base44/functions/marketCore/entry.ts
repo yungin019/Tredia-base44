@@ -272,8 +272,8 @@ async function pollCoreAssets(polygonKey) {
   console.log('[Poll] START');
 
   try {
-    // ONE Polygon call for all 6 stocks
-    const stockResults = await fetchPolygonQuotes(CORE_SYMBOLS_STOCK, polygonKey);
+    // Finnhub: sequential with 200ms gap — 6 calls, well within 60 req/min
+    const stockResults = await fetchStockQuotes(CORE_SYMBOLS_STOCK, polygonKey);
     Object.entries(stockResults).forEach(([sym, data]) => {
       if (data.status === 'live') {
         coreCache.set(sym, { price: data.price, changePct: data.changePct, timestamp: data.timestamp, provider: data.provider });
