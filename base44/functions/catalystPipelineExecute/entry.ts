@@ -106,10 +106,31 @@ Deno.serve(async (req) => {
             model: 'gpt-4o-mini',
             messages: [{
               role: 'system',
-              content: 'Output ONLY this JSON: {"market_state":"state","driver":"driver","impact":"impact","action_bias":"bullish|bearish|neutral","risk":"risk","confidence":75}'
+              content: `You are a market decision engine. Output ONLY concrete, visual intelligence.
+
+RULES:
+- NO: "neutral", "positive", "negative", "mixed", "uncertain", "recovery", "advancement", "performance"
+- YES: "stocks bouncing", "yields falling", "buyers stepping back", "sellers in control"
+- market_state: Visual observation user can picture (e.g., "stocks bouncing after heavy selling")
+- driver: Concrete CAUSE (e.g., "Fed signals pause, yields falling 8bps")
+- impact: Direct EFFECT on assets (e.g., "Tech rallying, bonds gaining")
+- action_bias: ONLY "bullish" or "bearish" (never neutral)
+- risk: Specific invalidation event (e.g., "PCE inflation spikes above 3.5%")
+
+Output ONLY valid JSON, no markdown.`
             }, {
               role: 'user',
-              content: `News: ${headline}`
+              content: `Headline: ${headline}
+
+Respond with this exact JSON structure:
+{
+  "market_state": "concrete visual market observation",
+  "driver": "specific cause",
+  "impact": "direct asset/sector effects",
+  "action_bias": "bullish or bearish",
+  "risk": "specific invalidation event",
+  "confidence": 0-100
+}`
             }],
             temperature: 0.7
           })
@@ -130,22 +151,39 @@ Deno.serve(async (req) => {
         if (headlineLower.match(/latam|brazil|mexico/)) regions.push('LatAm');
         if (regions.length === 0) regions.push('Global');
 
+        // Validate: reject if forbidden words
+        const forbiddenWords = ['neutral', 'positive', 'negative', 'mixed', 'uncertain', 'recovery', 'advancement', 'performance'];
+        const checkText = `${interp.market_state || ''} ${interp.driver || ''} ${interp.impact || ''} ${interp.action_bias || ''}`.toLowerCase();
+        const hasForbidden = forbiddenWords.some(word => checkText.includes(word));
+
+        if (hasForbidden) {
+         console.warn(`[CATALYST PIPELINE] ✗ Rejected catalyst with forbidden language: ${headline}`);
+         continue;
+        }
+
+        // Enforce action_bias is only bullish or bearish
+        const bias = (interp.action_bias || 'bearish').toLowerCase();
+        if (!['bullish', 'bearish'].includes(bias)) {
+         console.warn(`[CATALYST PIPELINE] ✗ Rejected catalyst with invalid bias: ${bias}`);
+         continue;
+        }
+
         catalysts.push({
-          headline,
-          source_url: news.article_url,
-          source_name: news.source?.name || 'Polygon.io',
-          market_state: interp.market_state || 'Market shift',
-          driver: interp.driver || headline,
-          impact: interp.impact || 'Volatility expected',
-          action_bias: (interp.action_bias || 'neutral').toLowerCase(),
-          risk: interp.risk || 'Unexpected developments',
-          stage: 'confirmed_catalyst',
-          regions,
-          category: 'macro',
-          confidence: interp.confidence || 70,
-          related_assets: [],
-          published_at: news.published_utc ? new Date(news.published_utc).toISOString() : new Date().toISOString(),
-          interpretation_updated_at: new Date().toISOString()
+         headline,
+         source_url: news.article_url,
+         source_name: news.source?.name || 'Polygon.io',
+         market_state: interp.market_state || 'Market shift',
+         driver: interp.driver || headline,
+         impact: interp.impact || 'Multiple assets affected',
+         action_bias: bias,
+         risk: interp.risk || 'Market conditions change',
+         stage: 'confirmed_catalyst',
+         regions,
+         category: 'macro',
+         confidence: Math.max(0, Math.min(100, interp.confidence || 70)),
+         related_assets: [],
+         published_at: news.published_utc ? new Date(news.published_utc).toISOString() : new Date().toISOString(),
+         interpretation_updated_at: new Date().toISOString()
         });
       } catch (e) {
         console.error('[CATALYST PIPELINE] LLM interpretation error:', e.message);
