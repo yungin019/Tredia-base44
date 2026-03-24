@@ -230,24 +230,25 @@ const ALL_REACTIONS = [
   // ── GLOBAL ───────────────────────────────────────────────────────────────
   {
     id: 'global-rates',
-    marketState: 'Global rate regime shift underway — peak rates debate',
+    marketState: 'Peak rate cycle: bonds leading, growth tech front-running cuts',
     region: 'Global',
     timing: 'Developing',
-    driver: 'Multiple G10 central banks signaling rate plateau; inflation globally subsiding from 2022 peaks',
-    impactText: 'Bond markets globally rally. Growth stocks regaining leadership. EM equities benefiting from softer DXY.',
+    driver: 'Multiple G10 central banks signaling rate plateau; inflation globally subsiding from 2022 peaks; Fed, ECB and BoE all on pause',
+    impactText: 'Long-duration bonds rallying globally. Growth tech regaining leadership vs defensives. EM equities and gold benefiting from softer DXY. Short-duration and cash losing relative ground.',
     relatedAssets: [
-      { symbol: 'TLT',  direction: 'up' }, { symbol: 'QQQ',  direction: 'up' },
-      { symbol: 'EEM',  direction: 'up' }, { symbol: 'GLD',  direction: 'up' },
+      { symbol: 'TLT',  direction: 'up' },  { symbol: 'QQQ',  direction: 'up' },
+      { symbol: 'GLD',  direction: 'up' },  { symbol: 'EEM',  direction: 'up' },
+      { symbol: 'NVDA', direction: 'up' },  { symbol: 'BTC',  direction: 'up' },
       { symbol: 'DXY',  direction: 'down' },
     ],
     affectedRegions: ['US', 'EU', 'APAC', 'LatAm', 'Africa', 'Global'],
     direction: 'bullish',
     importance: 9,
-    actionBias: 'Favor long duration bonds, growth tech, EM equities, gold. Reduce cash and short-duration.',
-    riskInvalidation: 'Inflation re-accelerates globally. Oil spike. Geopolitical risk premium spikes.',
-    macroContext: 'Peak rate environments historically last 3–6 months before first cut. Equities front-run cuts by 9–12 months.',
-    watchNext: 'US Core PCE, Eurozone CPI, BoJ June meeting, and Fed June dot plot.',
-    sectors: ['Growth', 'Bonds', 'Gold'],
+    actionBias: 'Favor long duration bonds, large-cap growth tech, EM equities, gold, BTC. Reduce cash, short-duration, defensives.',
+    riskInvalidation: 'Inflation re-accelerates globally (oil spike, wage surge). Geopolitical risk premium spikes unexpectedly.',
+    macroContext: 'Peak rate environments historically precede 6–12 months of equity outperformance. Duration trade is the structural setup. Equities front-run cuts by 9–12 months — the window is now.',
+    watchNext: 'US Core PCE (Fri) + Fed dot plot. Eurozone CPI flash. BoJ June meeting. Break above QQQ $450 = full confirmation.',
+    sectors: ['Growth', 'Bonds', 'Gold', 'Crypto'],
   },
 ];
 
@@ -311,7 +312,7 @@ function rankForRegion(reactions, region) {
 // ── CONTEXT BLURB (region-aware) ────────────────────────────────────────────
 
 const CONTEXT_BLURBS = {
-  Global: { headline: 'Global macro pivot underway', text: 'Multiple G10 central banks approaching peak rates. Bond markets leading — equities following. Watch DXY direction as the macro compass.' },
+  Global: { headline: 'Cross-market macro regime — highest impact signals', text: 'Peak rate cycle globally. Bond markets leading equities. DXY is the compass: softer dollar = EM relief, growth tech, gold. Watch US PCE + BoJ as the two global swing factors.' },
   US:     { headline: 'Fed pivot = growth rotation', text: 'Rate hike cycle nearing end. Historically: growth tech wins 6–12 months post-peak. Duration trade building. Watch yields + PCE.' },
   EU:     { headline: 'ECB still hawkish, but earnings recovering', text: 'European equities cheap vs US. Earnings season positive. ECB may overtighten — watch banking sector for stress.' },
   APAC:   { headline: 'China stimulus vs BoJ tightening = split APAC', text: 'PBOC expected to ease while BoJ exits YCC. Opposite forces. Favor Japan exporters hedge plays; watch CNY for China re-entry signal.' },
