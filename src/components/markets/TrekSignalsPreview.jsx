@@ -3,8 +3,11 @@ import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Zap, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EXPANDED_ASSETS } from '@/lib/assetDatabase';
-import { base44 } from '@/api/base44Client';
 import { deriveSignal } from '@/api/signalEngine';
+import { fetchCoreAssets } from '@/api/marketDataClient';
+
+// Single source of truth: all data from marketCore
+const SIGNAL_SYMBOLS = ['NVDA', 'AMZN', 'TSLA', 'AAPL', 'BTC', 'ETH'];
 
 export default function TrekSignalsPreview() {
   const navigate = useNavigate();
@@ -15,73 +18,45 @@ export default function TrekSignalsPreview() {
   useEffect(() => {
     async function fetchSignals() {
       try {
-        const stockSymbols = ['NVDA', 'AMZN', 'TSLA', 'META', 'AAPL', 'MSFT'];
-        
-        // Fetch stock prices with full data (price, prevClose, change)
-        const res = await base44.functions.invoke('stockPrices', { symbols: stockSymbols });
-        const stockPrices = res?.data?.prices || {};
+        // ── Single source: same cache as CoreAssetDisplay ──
+        const assets = await fetchCoreAssets();
+        console.log('[Trek] Raw assets from marketCore:', assets.map(a => `${a.symbol}:${a.status}:${a.price}`));
 
-        // Fetch crypto prices
-        const cryptoRes = await fetch(
-          'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true'
-        );
-        const cryptoData = await cryptoRes.json();
-        
-        const cryptoPrices = {
-          BTC: {
-            price: cryptoData.bitcoin?.usd || 0,
-            change: cryptoData.bitcoin?.usd_24h_change || 0,
-            prevClose: cryptoData.bitcoin?.usd / (1 + (cryptoData.bitcoin?.usd_24h_change || 0) / 100)
-          },
-          ETH: {
-            price: cryptoData.ethereum?.usd || 0,
-            change: cryptoData.ethereum?.usd_24h_change || 0,
-            prevClose: cryptoData.ethereum?.usd / (1 + (cryptoData.ethereum?.usd_24h_change || 0) / 100)
-          }
-        };
-
-        // Derive signals for each asset
         const derivedSignals = [];
-        [...stockSymbols, 'BTC', 'ETH'].forEach(symbol => {
+        for (const symbol of SIGNAL_SYMBOLS) {
           const asset = EXPANDED_ASSETS.find(a => a.symbol === symbol);
-          if (!asset) return;
+          if (!asset) continue;
 
-          const priceInfo = symbol === 'BTC' || symbol === 'ETH' 
-            ? cryptoPrices[symbol]
-            : stockPrices[symbol];
-
-          if (!priceInfo || !priceInfo.price) return;
+          const data = assets.find(a => a.symbol === symbol);
+          if (!data || data.status !== 'live' || !data.price) {
+            console.log(`[Trek] ${symbol} unavailable — skipping signal`);
+            continue;
+          }
 
           const signal = deriveSignal(asset, {
-            price: priceInfo.price,
-            prevClose: priceInfo.prevClose || priceInfo.price,
-            change24h: priceInfo.change || 0,
-            high24h: priceInfo.price * 1.02,
-            low24h: priceInfo.price * 0.98
+            price: data.price,
+            prevClose: data.price / (1 + (data.changePct || 0) / 100),
+            change24h: data.changePct || 0,
+            high24h: data.price * 1.02,
+            low24h: data.price * 0.98
           }, {
-            marketSentiment: priceInfo.change > 2 ? 'BULLISH' : priceInfo.change < -2 ? 'BEARISH' : 'NEUTRAL'
+            marketSentiment: (data.changePct || 0) > 2 ? 'BULLISH' : (data.changePct || 0) < -2 ? 'BEARISH' : 'NEUTRAL'
           });
 
-          derivedSignals.push({
-            symbol,
-            ...signal
-          });
-        });
+          derivedSignals.push({ symbol, ...signal });
+        }
 
-        // Sort by confidence (highest first) and take top 4
         derivedSignals.sort((a, b) => b.confidence - a.confidence);
         setSignals(derivedSignals.slice(0, 4));
         setLastUpdate(new Date());
       } catch (error) {
-        console.error('Error fetching signals:', error);
+        console.error('[Trek] Error fetching signals:', error);
       } finally {
         setLoading(false);
       }
     }
 
     fetchSignals();
-    
-    // Refresh every 60 seconds
     const interval = setInterval(fetchSignals, 60000);
     return () => clearInterval(interval);
   }, []);
