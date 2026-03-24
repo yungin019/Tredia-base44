@@ -95,42 +95,18 @@ export default function Home() {
         {/* ── STICKY REGION BAR ──────────────────────────────────────── */}
         <div
           ref={stickyRef}
-          className="sticky top-0 z-30 px-5 py-3 border-b border-white/[0.04]"
-          style={{ background: 'rgba(4,8,20,0.88)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
+          className="sticky top-0 z-40 px-5 py-3 border-b border-white/[0.04]"
+          style={{ background: 'rgba(4,8,20,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
         >
           <RegionSwitcher activeRegion={activeRegion} onChange={handleRegionChange} />
         </div>
 
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
           {/* ╔════════════════════════════════════════════════════════════════ */}
-          {/* ║ TOP SECTION — Morning Brief + Watchlist + News */}
+          {/* ║ DECISION LAYER (NO SCROLL) — Hero + Secondaries */}
           {/* ╚════════════════════════════════════════════════════════════════ */}
 
-          {/* Daily Morning Brief (with embedded news) */}
-          <DailyBrief mode="morning" />
-
-          {/* Watchlist Quick */}
-          <WatchlistQuick stocks={liveStocks} />
-
-          {/* ╔════════════════════════════════════════════════════════════════ */}
-          {/* ║ LIVE ASSETS SECTION */}
-          {/* ╚════════════════════════════════════════════════════════════════ */}
-
-          {/* Trending Assets (Live Assets) */}
-          <TrendingAssets stocks={liveStocks} />
-
-          {/* ╔════════════════════════════════════════════════════════════════ */}
-          {/* ║ FOUNDING MEMBER GLASS */}
-          {/* ╚════════════════════════════════════════════════════════════════ */}
-
-          {/* OG100 Badge */}
-          <OG100Card />
-
-          {/* ╔════════════════════════════════════════════════════════════════ */}
-          {/* ║ REAL-TIME SIGNALS (PRIMARY) — Above the fold */}
-          {/* ╚════════════════════════════════════════════════════════════════ */}
-
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
               <h2 className="text-sm font-bold text-white/80">Live Signals</h2>
@@ -142,7 +118,7 @@ export default function Home() {
           </div>
 
           {/* ╔════════════════════════════════════════════════════════════════ */}
-          {/* ║ EXECUTION LAYER — Your Moves Today (at end before hero) */}
+          {/* ║ EXECUTION LAYER — Your Moves Today */}
           {/* ╚════════════════════════════════════════════════════════════════ */}
           <YourMovesToday
             moves={liveStocks.slice(0, 3).map(stock => ({
@@ -159,11 +135,53 @@ export default function Home() {
             onExplore={(move) => navigate(`/Asset/${move.symbol}`)}
           />
 
-          {/* ── WATCH OUT ────────────────────────────────────────────── */}
-          <WatchOut />
+          {/* ╔════════════════════════════════════════════════════════════════ */}
+          {/* ║ CONTEXT LAYER — Compressed Morning Context */}
+          {/* ╚════════════════════════════════════════════════════════════════ */}
 
-          {/* ── MARKET PULSE ─────────────────────────────────────────── */}
-          <MarketPulse sentiment={fearGreed?.value || 50} />
+          <div
+            className="rounded-xl px-4 py-3.5 space-y-2"
+            style={{
+              background: 'rgba(8, 18, 42, 0.65)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(100,220,255,0.09)',
+            }}
+          >
+            <h3 className="text-xs font-black text-white/80 uppercase tracking-widest">This Morning</h3>
+            <p className="text-[11px] text-white/60 leading-snug">Fed signals pause, bond yields falling. Tech rotation forming.</p>
+            <div className="space-y-1">
+              <div className="flex items-start gap-2">
+                <span className="text-[9px] text-white/30 mt-0.5 flex-shrink-0">→</span>
+                <span className="text-[10px] text-white/50">Rate hike cycle nearing end historically leads to 6–12 month equity outperformance</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-[9px] text-white/30 mt-0.5 flex-shrink-0">→</span>
+                <span className="text-[10px] text-white/50">Growth sectors rotating in, bonds benefiting from lower yields</span>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 pt-1">
+              <span className="text-sm flex-shrink-0" style={{ color: 'rgb(14,200,220)' }}>⚡</span>
+              <span className="text-[10px] font-bold text-white/70">Bias: Long continuation</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-[10px] flex-shrink-0">⚠</span>
+              <span className="text-[10px] text-white/50">Risk: Inflation surprise above 3.5%</span>
+            </div>
+          </div>
+
+          {/* ╔════════════════════════════════════════════════════════════════ */}
+          {/* ║ EXPLORATION LAYER — Watchlist + Assets + Offers */}
+          {/* ╚════════════════════════════════════════════════════════════════ */}
+
+          {/* Watchlist Quick */}
+          <WatchlistQuick stocks={liveStocks} />
+
+          {/* Trending Assets (Live Assets) */}
+          <TrendingAssets stocks={liveStocks} />
+
+          {/* OG100 Founding Offer */}
+          <OG100Card />
 
           {/* ── UPGRADE (at end, not intrusive) ──────────────────────────── */}
           <UpgradeCall onUpgrade={() => navigate('/Upgrade')} />
