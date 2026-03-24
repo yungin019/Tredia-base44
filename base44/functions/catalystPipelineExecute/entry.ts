@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
 
     // Success
     report.failurePoint = null;
-    report.realFixApplied = 'PIPELINE COMPLETE: Real catalysts from Finnhub → OpenAI interpretation → Database';
+    report.realFixApplied = 'PIPELINE COMPLETE: Real catalysts from Polygon.io → OpenAI interpretation → Database';
 
     return Response.json(report);
   } catch (error) {
