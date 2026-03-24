@@ -114,46 +114,55 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
           </div>
         )}
 
-        {/* Confidence + Source Links */}
-        <div className="flex items-center justify-between pt-2 border-t border-white/[0.05]">
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] text-white/30">Confidence:</span>
-            <div className="w-12 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
-              <div
-                className="h-full rounded-full transition-all"
-                style={{
-                  width: `${catalyst.confidence}%`,
-                  background: catalyst.confidence > 75 ? '#22c55e' : catalyst.confidence > 50 ? '#f59e0b' : '#ef4444'
-                }}
-              />
-            </div>
-            <span className="text-[9px] text-white/50">{catalyst.confidence}%</span>
+        {/* Metadata & Confidence */}
+        <div className="space-y-2 pt-2 border-t border-white/[0.05]">
+          {/* Source metadata */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[8px] text-white/20 uppercase tracking-wider font-mono">Source: {catalyst.source_name} | ID: {catalyst.id.substring(0, 8)}...</span>
+            <div className="text-[8px] text-white/25 truncate font-mono">{catalyst.source_url.substring(0, 60)}...</div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onSeeWhy?.(catalyst)}
-              className="text-[9px] px-2.5 py-1.5 rounded-lg font-bold transition-all"
-              style={{
-                background: 'rgba(14,200,220,0.1)',
-                border: '1px solid rgba(14,200,220,0.2)',
-                color: '#0ec8dc'
-              }}
-            >
-              <Eye className="h-3 w-3" />
-            </button>
-            <button
-              onClick={handleViewSource}
-              className="text-[9px] px-2.5 py-1.5 rounded-lg font-bold transition-all"
-              style={{
-                background: 'rgba(100,220,255,0.08)',
-                border: '1px solid rgba(100,220,255,0.15)',
-                color: 'rgba(150,230,255,0.6)'
-              }}
-            >
-              <ExternalLink className="h-3 w-3" />
-            </button>
+          {/* Confidence + Action Buttons */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] text-white/30">Confidence:</span>
+              <div className="w-12 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${catalyst.confidence}%`,
+                    background: catalyst.confidence > 75 ? '#22c55e' : catalyst.confidence > 50 ? '#f59e0b' : '#ef4444'
+                  }}
+                />
+              </div>
+              <span className="text-[9px] text-white/50">{catalyst.confidence}%</span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onSeeWhy?.(catalyst)}
+                className="text-[9px] px-2.5 py-1.5 rounded-lg font-bold transition-all"
+                style={{
+                  background: 'rgba(14,200,220,0.1)',
+                  border: '1px solid rgba(14,200,220,0.2)',
+                  color: '#0ec8dc'
+                }}
+              >
+                <Eye className="h-3 w-3" />
+              </button>
+              <button
+                onClick={handleViewSource}
+                className="text-[9px] px-2.5 py-1.5 rounded-lg font-bold transition-all"
+                style={{
+                  background: 'rgba(100,220,255,0.08)',
+                  border: '1px solid rgba(100,220,255,0.15)',
+                  color: 'rgba(150,230,255,0.6)'
+                }}
+              >
+                <ExternalLink className="h-3 w-3" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
