@@ -1,45 +1,30 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, TrendingDown, AlertCircle, ChevronDown, ChevronUp, Zap, Eye } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Clock, ChevronDown, ChevronUp, Zap, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-/**
- * FeedReactionBlock
- * 
- * Premium reaction card with:
- * - Layer 1: Market State (big, interpretation-first)
- * - Layer 2: Driver + Impact
- * - Layer 3: Related Asset Pills (direction-aware)
- * - Layer 4: Action Bias + Risk
- * - Layer 5: Expandable context / macro note
- */
-
-const IMPORTANCE_LABEL = {
-  9: { label: 'Critical', color: 'text-red-400',  bg: 'bg-red-400/10 border-red-400/20' },
-  8: { label: 'High',     color: 'text-gold',     bg: 'bg-gold/10 border-gold/20' },
-  7: { label: 'Medium',   color: 'text-cyan-400', bg: 'bg-cyan-400/10 border-cyan-400/20' },
+// ── SIGNAL BADGE CONFIG ─────────────────────────────────────────────────────
+const SIGNAL_CFG = {
+  bullish: { label: 'BULLISH', color: '#0ec8dc', bg: 'rgba(14,200,220,0.12)', border: 'rgba(14,200,220,0.3)',  Icon: TrendingUp },
+  bearish: { label: 'BEARISH', color: '#ef4444', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.3)',   Icon: TrendingDown },
+  neutral: { label: 'NEUTRAL', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)',  Icon: Minus },
+  wait:    { label: 'WAIT',    color: '#6b7280', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.25)', Icon: Clock },
 };
 
-const TIMING_STYLE = {
-  'Live':       'text-cyan-300 bg-cyan-400/10 border-cyan-400/25',
-  'Developing': 'text-gold bg-gold/10 border-gold/20',
-  'Follow-up':  'text-blue-400 bg-blue-400/10 border-blue-400/20',
-};
-
-// Direction cue for related asset pills — glass chip style
+// Direction cue for related asset pills
 function AssetPill({ symbol, direction, onClick }) {
   const isUp = direction === 'up';
   const isDown = direction === 'down';
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(symbol); }}
-      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border transition-all min-h-0 min-w-0 backdrop-blur-sm ${
-        isUp
-          ? 'bg-cyan-400/[0.08] border-cyan-400/25 text-cyan-300 hover:bg-cyan-400/15 hover:border-cyan-400/40'
-          : isDown
-          ? 'bg-red-400/[0.08] border-red-400/20 text-red-400 hover:bg-red-400/15'
-          : 'bg-white/[0.04] border-white/10 text-white/50 hover:bg-white/[0.08]'
-      }`}
+      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border transition-all min-h-0 min-w-0"
+      style={isUp
+        ? { background: 'rgba(14,200,220,0.08)', border: '1px solid rgba(14,200,220,0.25)', color: '#7ee8f0' }
+        : isDown
+        ? { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }
+        : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }
+      }
     >
       {isUp ? <TrendingUp className="h-2.5 w-2.5" /> : isDown ? <TrendingDown className="h-2.5 w-2.5" /> : null}
       {symbol}
@@ -54,29 +39,23 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
   if (!reaction) return null;
 
   const isPrimary = index === 0;
-  const dir = reaction.direction;
-  // Bullish → cyan (matches theme), bearish → red, neutral → gold
-  const stateColor = dir === 'bullish' ? '#0ec8dc' : dir === 'bearish' ? '#ef4444' : '#F59E0B';
-  const StateIcon = dir === 'bullish' ? TrendingUp : dir === 'bearish' ? TrendingDown : AlertCircle;
-  const importanceMeta = IMPORTANCE_LABEL[reaction.importance] || IMPORTANCE_LABEL[7];
-  const timingStyle = TIMING_STYLE[reaction.timing] || 'text-white/40 bg-white/5 border-white/10';
+  const dir = (reaction.direction || 'neutral').toLowerCase();
+  const sig = SIGNAL_CFG[dir] || SIGNAL_CFG.neutral;
+  const { color: sigColor, Icon: SigIcon } = sig;
 
-  // Assets split by direction
-  const relatedAssets = reaction.relatedAssets || reaction.affectedAssets?.map(s => ({ symbol: s, direction: dir === 'bullish' ? 'up' : 'down' })) || [];
+  const relatedAssets = reaction.relatedAssets || [];
 
-  // Layer 3 (hero) for index=0, Layer 2 (standard) for rest
   const cardStyle = isPrimary ? {
     background: 'rgba(12, 26, 62, 0.78)',
     backdropFilter: 'blur(32px) saturate(200%)',
     WebkitBackdropFilter: 'blur(32px) saturate(200%)',
-    border: `1px solid ${stateColor}30`,
-    boxShadow: `0 0 40px ${stateColor}0f, 0 0 0 1px ${stateColor}08 inset, 0 12px 40px rgba(0,0,0,0.5)`,
+    border: `1px solid ${sigColor}30`,
+    boxShadow: `0 0 40px ${sigColor}10, 0 12px 40px rgba(0,0,0,0.5)`,
   } : {
     background: 'rgba(8, 18, 42, 0.60)',
     backdropFilter: 'blur(24px) saturate(180%)',
     WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-    border: '1px solid rgba(100, 220, 255, 0.09)',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(100,220,255,0.05)',
+    border: '1px solid rgba(100,220,255,0.09)',
   };
 
   return (
@@ -87,48 +66,73 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
       className="rounded-2xl overflow-hidden"
       style={cardStyle}
     >
-      {/* ── ACCENT LINE — thicker + brighter for primary ──────────── */}
+      {/* ── ACCENT LINE ───────────────────────────────────────────── */}
       <div
-        className={isPrimary ? 'h-[3px]' : 'h-[2px]'}
-        style={{ background: `linear-gradient(90deg, ${stateColor}${isPrimary ? '90' : '55'} 0%, ${stateColor}22 55%, transparent 100%)` }}
+        style={{
+          height: isPrimary ? 3 : 2,
+          background: `linear-gradient(90deg, ${sigColor}${isPrimary ? 'cc' : '66'} 0%, ${sigColor}22 60%, transparent 100%)`,
+        }}
       />
 
-      {/* ── TOP STRIPE: Importance + Timing ──────────────────────── */}
-      <div className="flex items-center gap-2 px-4 pt-3 pb-0">
-        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${importanceMeta.bg} ${importanceMeta.color}`}>
-          {importanceMeta.label}
-        </span>
-        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ml-auto ${timingStyle}`}>
-          {reaction.timing || 'Now'}
-        </span>
-      </div>
-
-      {/* ── MARKET STATE ─────────────────────────────────────────── */}
-      <div className={`px-4 pt-3 ${isPrimary ? 'pb-5' : 'pb-4'}`}>
-        <div className="flex items-start gap-2.5">
-          <div
-            className={`mt-0.5 flex-shrink-0 ${isPrimary ? 'p-2 rounded-xl' : 'p-1.5 rounded-lg'}`}
-            style={{ background: `${stateColor}${isPrimary ? '20' : '14'}`, border: `1px solid ${stateColor}${isPrimary ? '35' : '22'}` }}
+      {/* ── MARKET STATE + SIGNAL BADGE ─────────────────────────── */}
+      <div className={`px-4 pt-4 ${isPrimary ? 'pb-4' : 'pb-3'}`}>
+        {/* Signal badge — top, prominent */}
+        <div className="flex items-center gap-2 mb-3">
+          <span
+            className="inline-flex items-center gap-1.5 font-black tracking-widest rounded-full"
+            style={{
+              fontSize: isPrimary ? 11 : 10,
+              color: sigColor,
+              background: sig.bg,
+              border: `1px solid ${sig.border}`,
+              padding: isPrimary ? '5px 14px' : '3px 10px',
+              letterSpacing: '0.12em',
+            }}
           >
-            <StateIcon className={isPrimary ? 'h-5 w-5' : 'h-4 w-4'} style={{ color: stateColor }} />
-          </div>
-          <h2 className={`${isPrimary ? 'text-[17px] font-extrabold text-white' : 'text-[15px] font-bold text-white/95'} leading-snug flex-1 tracking-tight`}>
-            {reaction.marketState}
-          </h2>
+            <SigIcon style={{ width: isPrimary ? 12 : 10, height: isPrimary ? 12 : 10 }} />
+            {sig.label}
+          </span>
+          <span
+            className="text-[9px] font-bold px-2 py-0.5 rounded-full border ml-auto"
+            style={{
+              color: reaction.timing === 'Live' ? '#7ee8f0' : 'rgba(245,158,11,0.8)',
+              background: reaction.timing === 'Live' ? 'rgba(14,200,220,0.08)' : 'rgba(245,158,11,0.08)',
+              border: reaction.timing === 'Live' ? '1px solid rgba(14,200,220,0.2)' : '1px solid rgba(245,158,11,0.2)',
+            }}
+          >
+            {reaction.timing || 'Now'}
+          </span>
         </div>
+
+        {/* Market state headline */}
+        <h2
+          className="leading-snug tracking-tight"
+          style={{
+            fontSize: isPrimary ? 19 : 15,
+            fontWeight: isPrimary ? 900 : 700,
+            color: 'rgba(255,255,255,0.97)',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          {reaction.marketState}
+        </h2>
       </div>
 
-      {/* ── DRIVER ───────────────────────────────────────────────── */}
-      <div className="px-4 py-3 space-y-1" style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
-        <span className="text-[9px] font-black text-cyan-400/40 uppercase tracking-[0.12em]">Why</span>
-        <p className="text-xs text-white/65 leading-relaxed">{reaction.driver}</p>
-      </div>
+      {/* ── DRIVER + IMPACT (2 tight lines) ─────────────────────── */}
+      <div
+        className="px-4 py-3 space-y-2"
+        style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}
+      >
+        <div className="flex items-start gap-2">
+          <span className="text-[10px] text-white/30 font-mono mt-0.5 flex-shrink-0">→</span>
+          <p className="text-xs text-white/65 leading-snug">{reaction.driver}</p>
+        </div>
+        <div className="flex items-start gap-2">
+          <span className="text-[10px] text-white/30 font-mono mt-0.5 flex-shrink-0">→</span>
+          <p className="text-xs text-white/65 leading-snug">{reaction.impactText}</p>
+        </div>
 
-      {/* ── IMPACT ───────────────────────────────────────────────── */}
-      <div className="px-4 py-3 space-y-2.5" style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
-        <span className="text-[9px] font-black text-cyan-400/40 uppercase tracking-[0.12em]">Impact</span>
-        <p className="text-xs text-white/65 leading-relaxed">{reaction.impactText}</p>
-
+        {/* Asset pills */}
         {relatedAssets.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1">
             {relatedAssets.map((a, i) => (
@@ -138,64 +142,71 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
         )}
       </div>
 
-      {/* ── ACTION BIAS ──────────────────────────────────────────── */}
-      <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: `${stateColor}07` }}>
-        <div className="flex items-start gap-2">
-          <Zap className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" style={{ color: stateColor }} />
-          <p className="text-xs text-white/88 leading-relaxed font-semibold">{reaction.actionBias}</p>
+      {/* ── ACTION + RISK ────────────────────────────────────────── */}
+      <div style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
+        {/* Action */}
+        <div
+          className="px-4 py-2.5 flex items-start gap-2"
+          style={{ background: `${sigColor}08` }}
+        >
+          <Zap className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" style={{ color: sigColor }} />
+          <p className="text-xs font-bold leading-snug" style={{ color: 'rgba(255,255,255,0.92)' }}>
+            <span style={{ color: sigColor }}>Action: </span>
+            {reaction.actionBias}
+          </p>
+        </div>
+        {/* Risk */}
+        <div
+          className="px-4 py-2.5 flex items-start gap-2"
+          style={{ borderTop: '1px solid rgba(239,68,68,0.08)', background: 'rgba(239,68,68,0.04)' }}
+        >
+          <span className="text-[10px] flex-shrink-0 mt-0.5">⚠</span>
+          <p className="text-xs leading-snug" style={{ color: 'rgba(252,165,165,0.7)' }}>
+            <span className="font-bold" style={{ color: 'rgba(248,113,113,0.85)' }}>Risk: </span>
+            {reaction.riskInvalidation}
+          </p>
         </div>
       </div>
 
-      {/* ── EXPANDABLE CONTEXT ───────────────────────────────────── */}
+      {/* ── EXPANDABLE: macro + watch ────────────────────────────── */}
       <AnimatePresence>
         {expanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22 }}
+            transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: 'rgba(239,68,68,0.04)' }}>
-              <span className="text-[9px] font-black text-red-400/55 uppercase tracking-[0.1em]">⚠ Invalidated if</span>
-              <p className="text-xs text-red-300/65 leading-relaxed mt-1">{reaction.riskInvalidation}</p>
-            </div>
-
             {reaction.macroContext && (
               <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
-                <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.1em]">Macro Context</span>
-                <p className="text-xs text-white/52 leading-relaxed mt-1">{reaction.macroContext}</p>
+                <p className="text-[9px] font-black text-white/25 uppercase tracking-[0.12em] mb-1">Macro Context</p>
+                <p className="text-xs text-white/50 leading-relaxed">{reaction.macroContext}</p>
               </div>
             )}
-
             {reaction.watchNext && (
-              <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: 'rgba(14,200,220,0.04)' }}>
+              <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: 'rgba(14,200,220,0.03)' }}>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <Eye className="h-3 w-3 text-cyan-400/50" />
-                  <span className="text-[9px] font-black text-cyan-400/50 uppercase tracking-[0.1em]">Trek Watching</span>
+                  <Eye className="h-3 w-3" style={{ color: 'rgba(14,200,220,0.5)' }} />
+                  <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'rgba(14,200,220,0.5)' }}>Watch</span>
                 </div>
-                <p className="text-xs text-white/58 leading-relaxed">{reaction.watchNext}</p>
+                <p className="text-xs text-white/50 leading-relaxed">{reaction.watchNext}</p>
               </div>
             )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── FOOTER: Confidence + Expand ──────────────────────────── */}
+      {/* ── FOOTER ───────────────────────────────────────────────── */}
       <div
-        className="px-4 py-2.5 flex items-center justify-between cursor-pointer transition-colors"
+        className="px-4 py-2 flex items-center justify-between cursor-pointer"
         style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}
         onClick={() => setExpanded(e => !e)}
       >
-        <div className="flex items-center gap-3">
-          <span className="text-[9px] text-white/22">Confidence {reaction.importance}/10</span>
-          {reaction.sectors && (
-            <div className="flex gap-1">
-              {reaction.sectors.slice(0, 2).map((s, i) => (
-                <span key={i} className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(100,220,255,0.05)', border: '1px solid rgba(100,220,255,0.1)', color: 'rgba(150,230,255,0.35)' }}>{s}</span>
-              ))}
-            </div>
-          )}
+        <div className="flex gap-1">
+          {reaction.sectors?.slice(0, 2).map((s, i) => (
+            <span key={i} className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(100,220,255,0.05)', border: '1px solid rgba(100,220,255,0.08)', color: 'rgba(150,230,255,0.3)' }}>{s}</span>
+          ))}
         </div>
         <div className="flex items-center gap-1" style={{ color: 'rgba(100,220,255,0.3)' }}>
           <span className="text-[9px]">{expanded ? 'Less' : 'More'}</span>

@@ -1,78 +1,137 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, TrendingUp } from 'lucide-react';
+import { TrendingUp, TrendingDown, Clock, Eye, ChevronRight } from 'lucide-react';
 import { safeRender, validateSignal, validateConfidence } from '@/lib/dataValidation';
+import { useNavigate } from 'react-router-dom';
 
-function MoveCard({ move, onExplore }) {
-  const actionColors = {
-    BUY: { bg: 'bg-success/10', border: 'border-success/20', label: 'text-success', labelBg: 'bg-success/15' },
-    AVOID: { bg: 'bg-destructive/10', border: 'border-destructive/20', label: 'text-destructive', labelBg: 'bg-destructive/15' },
-    WATCH: { bg: 'bg-warning/10', border: 'border-warning/20', label: 'text-warning', labelBg: 'bg-warning/15' },
-  };
+// ── SIGNAL badge config aligned with global theme ──────────────────────────
+const ACTION_CFG = {
+  BUY:   { label: 'BULLISH', color: '#0ec8dc', bg: 'rgba(14,200,220,0.12)',   border: 'rgba(14,200,220,0.3)',   accentBg: 'rgba(14,200,220,0.06)',   Icon: TrendingUp },
+  SELL:  { label: 'BEARISH', color: '#ef4444', bg: 'rgba(239,68,68,0.12)',    border: 'rgba(239,68,68,0.3)',    accentBg: 'rgba(239,68,68,0.05)',    Icon: TrendingDown },
+  AVOID: { label: 'BEARISH', color: '#ef4444', bg: 'rgba(239,68,68,0.12)',    border: 'rgba(239,68,68,0.3)',    accentBg: 'rgba(239,68,68,0.05)',    Icon: TrendingDown },
+  WATCH: { label: 'WAIT',    color: '#6b7280', bg: 'rgba(107,114,128,0.1)',   border: 'rgba(107,114,128,0.25)', accentBg: 'rgba(107,114,128,0.04)',  Icon: Clock },
+  WAIT:  { label: 'WAIT',    color: '#6b7280', bg: 'rgba(107,114,128,0.1)',   border: 'rgba(107,114,128,0.25)', accentBg: 'rgba(107,114,128,0.04)',  Icon: Clock },
+};
 
-  const colors = actionColors[move.action] || actionColors.WATCH;
+function MoveCard({ move, index, onExplore }) {
+  const action = (move.action || 'WATCH').toUpperCase();
+  const cfg = ACTION_CFG[action] || ACTION_CFG.WATCH;
+  const { color, bg, border, accentBg, Icon } = cfg;
 
   return (
-    <motion.button
+    <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      onClick={onExplore}
-      className={`w-full text-left rounded-xl p-4 ${colors.bg} border ${colors.border} transition-all hover:bg-opacity-20 group space-y-3`}
+      transition={{ delay: index * 0.06 }}
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: 'rgba(8, 18, 42, 0.65)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        border: `1px solid rgba(100,220,255,0.09)`,
+      }}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-mono font-bold text-lg text-foreground">{safeRender(move.symbol)}</span>
-          <span className={`text-xs font-bold px-2 py-1 rounded-lg ${colors.labelBg} ${colors.label}`}>
-            {safeRender(validateSignal(move.action), 'WATCH')}
+      {/* accent line */}
+      <div style={{ height: 2, background: `linear-gradient(90deg, ${color}66 0%, ${color}18 60%, transparent 100%)` }} />
+
+      {/* ── HEADER: symbol + signal badge ─────────────────────── */}
+      <div className="px-4 pt-3 pb-3 flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-1.5">
+          {/* Signal badge */}
+          <span
+            className="inline-flex items-center gap-1.5 font-black tracking-widest rounded-full self-start"
+            style={{ fontSize: 10, color, background: bg, border: `1px solid ${border}`, padding: '3px 10px', letterSpacing: '0.12em' }}
+          >
+            <Icon style={{ width: 10, height: 10 }} />
+            {cfg.label}
           </span>
-          {move.confidence !== undefined && (
-            <span className="text-xs text-muted-foreground ml-auto">{validateConfidence(move.confidence)}%</span>
+          {/* Symbol */}
+          <span className="font-mono font-black text-white" style={{ fontSize: 22, letterSpacing: '-0.02em', lineHeight: 1 }}>
+            {safeRender(move.symbol)}
+          </span>
+          {move.name && (
+            <span className="text-[10px]" style={{ color: 'rgba(180,210,240,0.4)' }}>{move.name}</span>
           )}
         </div>
-        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+
+        {/* Confidence + arrow */}
+        <button
+          onClick={onExplore}
+          className="flex flex-col items-end gap-1 flex-shrink-0 mt-1"
+          style={{ color: 'rgba(100,220,255,0.3)' }}
+        >
+          {move.confidence !== undefined && (
+            <span className="font-mono font-black" style={{ fontSize: 20, color, lineHeight: 1 }}>
+              {validateConfidence(move.confidence)}%
+            </span>
+          )}
+          <ChevronRight className="h-4 w-4" />
+        </button>
       </div>
 
-      {/* Why + Action + Timing + Risk */}
-      <div className="space-y-3">
-        <p className="text-sm text-foreground leading-relaxed">{safeRender(move.why)}</p>
-        
-        {move.entry !== 'N/A' && move.entry && (
-          <div className="bg-success/10 rounded-lg p-2.5 border border-success/20 space-y-1.5">
-            <p className="text-xs text-foreground">
-              <span className="font-semibold text-success">→ Entry:</span> {safeRender(move.entry)}
-            </p>
+      {/* ── WHY (1 line) ──────────────────────────────────────── */}
+      {move.why && (
+        <div className="px-4 pb-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', paddingTop: 10 }}>
+          <div className="flex items-start gap-2">
+            <span className="text-[10px] text-white/30 font-mono mt-0.5 flex-shrink-0">→</span>
+            <p className="text-xs leading-snug" style={{ color: 'rgba(200,225,255,0.6)' }}>{safeRender(move.why)}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── TRADE PLAN (compact grid) ─────────────────────────── */}
+      {(move.entry || move.positionSize || move.timeframe) && (
+        <div
+          className="px-4 py-3"
+          style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: accentBg }}
+        >
+          <div className="grid grid-cols-3 gap-3">
+            {move.entry && move.entry !== 'N/A' && (
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>Entry</span>
+                <span className="text-xs font-mono font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>{safeRender(move.entry)}</span>
+              </div>
+            )}
             {move.positionSize && (
-              <p className="text-xs text-foreground">
-                <span className="font-semibold text-foreground">→ Size:</span> {safeRender(move.positionSize)}
-              </p>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>Size</span>
+                <span className="text-xs font-mono font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>{safeRender(move.positionSize)}</span>
+              </div>
             )}
             {move.timeframe && (
-              <p className="text-xs text-foreground">
-                <span className="font-semibold text-foreground">→ Hold:</span> {safeRender(move.timeframe)}
-              </p>
-            )}
-            {move.exitTarget && (
-              <p className="text-xs text-foreground">
-                <span className="font-semibold text-primary">→ Exit:</span> {safeRender(move.exitTarget)}
-              </p>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>Hold</span>
+                <span className="text-xs font-mono font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>{safeRender(move.timeframe)}</span>
+              </div>
             )}
           </div>
-        )}
+        </div>
+      )}
 
-        {move.entry === 'N/A' && (
-          <div className="bg-destructive/10 rounded-lg p-2.5 border border-destructive/20">
-            <p className="text-xs text-destructive font-semibold">→ Do NOT enter. {safeRender(move.exitTarget)}</p>
-          </div>
-        )}
-
-        <div className="bg-destructive/5 rounded-lg p-2 border border-destructive/20">
-          <p className="text-xs text-destructive">
-            <span className="font-semibold">⚠ Risk Trigger:</span> {safeRender(move.risk)}
+      {/* ── ACTION + RISK ────────────────────────────────────── */}
+      <div style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
+        {/* Action instruction */}
+        <div className="px-4 py-2.5 flex items-start gap-2" style={{ background: `${color}08` }}>
+          <span className="text-[10px] font-mono flex-shrink-0 mt-0.5" style={{ color }}>⚡</span>
+          <p className="text-xs font-bold leading-snug" style={{ color: 'rgba(255,255,255,0.9)' }}>
+            <span style={{ color }}>Action: </span>
+            {move.entry === 'N/A'
+              ? 'DO NOT ENTER — conditions not met'
+              : move.entry
+              ? `Wait for ${move.entry}`
+              : safeRender(move.exitTarget) || 'Monitor for setup'}
+          </p>
+        </div>
+        {/* Risk */}
+        <div className="px-4 py-2.5 flex items-start gap-2" style={{ borderTop: '1px solid rgba(239,68,68,0.08)', background: 'rgba(239,68,68,0.04)' }}>
+          <span className="text-[10px] flex-shrink-0 mt-0.5">⚠</span>
+          <p className="text-xs leading-snug" style={{ color: 'rgba(252,165,165,0.7)' }}>
+            <span className="font-bold" style={{ color: 'rgba(248,113,113,0.85)' }}>Risk: </span>
+            {safeRender(move.risk)}
           </p>
         </div>
       </div>
-    </motion.button>
+    </motion.div>
   );
 }
 
@@ -80,9 +139,11 @@ export default function YourMovesToday({ moves = [], onExplore }) {
   if (!moves || moves.length === 0) {
     return (
       <div>
-        <h2 className="text-base font-bold text-foreground mb-1">Your Moves Today</h2>
-        <p className="text-xs text-muted-foreground mb-4">Based on today's market context. TREK's mentor guidance for each trade.</p>
-        <div className="text-center py-8 text-xs text-white/40">
+        <div className="mb-4">
+          <h2 className="text-base font-black text-white tracking-tight">Your Moves Today</h2>
+          <p className="text-[11px] mt-0.5" style={{ color: 'rgba(180,210,240,0.4)' }}>Live desk instructions — not advice</p>
+        </div>
+        <div className="text-center py-8 text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
           Loading live signals...
         </div>
       </div>
@@ -91,11 +152,13 @@ export default function YourMovesToday({ moves = [], onExplore }) {
 
   return (
     <div>
-      <h2 className="text-base font-bold text-foreground mb-1">Your Moves Today</h2>
-      <p className="text-xs text-muted-foreground mb-4">Based on today's market context. TREK's mentor guidance for each trade.</p>
+      <div className="mb-4">
+        <h2 className="text-base font-black text-white tracking-tight">Your Moves Today</h2>
+        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(180,210,240,0.4)' }}>Live desk instructions — not advice</p>
+      </div>
       <div className="space-y-3">
-        {moves.map((move) => (
-          <MoveCard key={move.symbol} move={move} onExplore={() => onExplore?.(move)} />
+        {moves.map((move, i) => (
+          <MoveCard key={move.symbol || i} move={move} index={i} onExplore={() => onExplore?.(move)} />
         ))}
       </div>
     </div>
