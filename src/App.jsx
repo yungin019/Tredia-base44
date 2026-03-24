@@ -31,6 +31,7 @@ import AlpacaConnect from './pages/AlpacaConnect';
 import AlpacaCallback from './pages/AlpacaCallback';
 import TrekPortfolioWelcome from './pages/TrekPortfolioWelcome';
 import OnboardingQuick from './pages/OnboardingQuick';
+import CatalystDebug from './pages/CatalystDebug';
 
 const LoadingSpinner = () => (
   <div style={{
