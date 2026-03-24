@@ -36,6 +36,7 @@ export default function Markets() {
   const [cryptoData, setCryptoData] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [chartLoading, setChartLoading] = useState(false);
+  const [indexContext, setIndexContext] = useState('Loading market state...');
 
   useEffect(() => {
     const load = async () => {
@@ -55,9 +56,20 @@ export default function Markets() {
         });
         if (res?.data?.history) {
           setChartData(res.data.history.map(d => ({ time: d.timestamp, value: d.close })));
+          // Set context based on recent trend
+          const recent = res.data.history.slice(-2);
+          if (recent.length === 2) {
+            const change = recent[1].close - recent[0].close;
+            if (change > 0) setIndexContext('Market recovering — Watch for continuation');
+            else if (change < 0) setIndexContext('Market pressured — Monitor for support');
+            else setIndexContext('Market consolidating — Waiting for direction');
+          }
+        } else {
+          setIndexContext('Unable to load chart data');
         }
       } catch {
         setChartData([]);
+        setIndexContext('Chart temporarily unavailable');
       } finally {
         setChartLoading(false);
       }
@@ -157,16 +169,17 @@ export default function Markets() {
               <h2 className="text-sm font-bold text-white/80">{t('markets.sp500')}</h2>
               <TimeframeSelector timeframe={timeframe} onTimeframeChange={setTimeframe} />
             </div>
-            <div className="h-[280px]">
-              {chartLoading ? (
-                <div className="flex items-center justify-center h-full text-white/30 text-sm">
-                  Loading chart data...
-                </div>
-              ) : chartData.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-white/30 text-sm">
-                  Chart data unavailable
-                </div>
-              ) : (
+            <div className="space-y-3">
+              <div className="h-[280px]">
+                {chartLoading ? (
+                  <div className="flex items-center justify-center h-full text-white/30 text-sm">
+                    Loading chart data...
+                  </div>
+                ) : chartData.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-white/30 text-sm">
+                    Chart data unavailable
+                  </div>
+                ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
@@ -191,6 +204,10 @@ export default function Markets() {
                   </LineChart>
                 </ResponsiveContainer>
               )}
+              </div>
+              <div className="px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                <p className="text-xs text-white/60">{indexContext}</p>
+              </div>
             </div>
           </motion.div>
         </>
