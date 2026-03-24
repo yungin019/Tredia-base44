@@ -430,31 +430,25 @@ Deno.serve(async (req) => {
 
     // ── ACTION: debug ─────────────────────────────────────────────────────
     if (action === 'debug') {
-      // 1. Log cache state
       const cacheState = {};
       coreCache.forEach((v, k) => { cacheState[k] = v; });
       console.log('CACHE STATE:', JSON.stringify(cacheState));
 
-      // 2. Direct stock fetch via grouped endpoint
-      console.log('POLL START (debug mode)');
-      const aaplResult = await fetchPolygonQuotes(['AAPL', 'TSLA', 'NVDA'], POLYGON_KEY);
-      console.log('FETCH RESULT: AAPL', JSON.stringify(aaplResult.AAPL));
-      console.log('FETCH RESULT: TSLA', JSON.stringify(aaplResult.TSLA));
-      console.log('FETCH RESULT: NVDA', JSON.stringify(aaplResult.NVDA));
+      const stockResult = await fetchStockQuotes(['AAPL', 'TSLA', 'NVDA'], FINNHUB_KEY);
+      console.log('FETCH RESULT: AAPL', JSON.stringify(stockResult.AAPL));
+      console.log('FETCH RESULT: TSLA', JSON.stringify(stockResult.TSLA));
+      console.log('FETCH RESULT: NVDA', JSON.stringify(stockResult.NVDA));
 
-      // 3. Also fetch crypto
       const cryptoResult = await fetchCoinGeckoQuotes(['BTC']);
       console.log('FETCH RESULT: BTC', JSON.stringify(cryptoResult.BTC));
 
-      // 4. Final payload
       const debugPayload = {
         cache: cacheState,
-        polygon_aapl: aaplResult.AAPL,
-        polygon_tsla: aaplResult.TSLA,
-        polygon_nvda: aaplResult.NVDA,
+        finnhub_aapl: stockResult.AAPL,
+        finnhub_tsla: stockResult.TSLA,
+        finnhub_nvda: stockResult.NVDA,
         coingecko_btc: cryptoResult.BTC,
-        polygonKeyPresent: !!POLYGON_KEY,
-        polygonKeyPrefix: POLYGON_KEY ? POLYGON_KEY.slice(0, 6) + '...' : 'MISSING',
+        finnhubKeyPresent: !!FINNHUB_KEY,
         timestamp: Date.now()
       };
       console.log('FINAL PAYLOAD:', JSON.stringify(debugPayload));
