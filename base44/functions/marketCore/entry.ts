@@ -171,7 +171,7 @@ async function fetchStockQuotes(symbols, finnhubKey) {
 }
 
 async function fetchCoinGeckoQuotes(symbols) {
-  const TIMEOUT = 2500;
+  const TIMEOUT = 5000;
   const results = {};
 
   const coinIds = symbols.map(s => COIN_ID_MAP[s]).filter(Boolean);
