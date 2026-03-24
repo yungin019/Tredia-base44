@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import TredioAssistant from '@/components/ai/TredioAssistant';
 import NotificationsPanel from '@/components/ui/NotificationsPanel';
 import SearchModal from '@/components/ui/SearchModal';
+import GlobalAssetSearch from '@/components/ui/GlobalAssetSearch';
 import { useNavigation } from '@/lib/NavigationManager';
 
 const NAV_CONFIG = [
