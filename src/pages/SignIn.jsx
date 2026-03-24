@@ -322,20 +322,21 @@ export default function SignIn() {
 
 const inputStyle = {
   width: '100%', padding: '12px 14px', borderRadius: '10px', fontSize: '14px',
-  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-  color: 'rgba(255,255,255,0.85)', outline: 'none', boxSizing: 'border-box',
+  background: 'rgba(6,14,32,0.6)', border: '1px solid rgba(100,220,255,0.1)',
+  color: 'rgba(255,255,255,0.88)', outline: 'none', boxSizing: 'border-box',
 };
 
 const submitBtnStyle = {
   padding: '13px', borderRadius: '12px', fontWeight: '800', fontSize: '14px',
-  background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F',
+  background: 'linear-gradient(135deg, #0ec8dc, #0aa8be)', color: '#030810',
   border: 'none', letterSpacing: '0.5px', width: '100%',
+  boxShadow: '0 4px 20px rgba(14,200,220,0.3)',
 };
 
 const socialBtnStyle = {
   width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '600',
-  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-  color: 'rgba(255,255,255,0.7)', cursor: 'pointer', display: 'flex',
+  background: 'rgba(100,220,255,0.04)', border: '1px solid rgba(100,220,255,0.1)',
+  color: 'rgba(255,255,255,0.65)', cursor: 'pointer', display: 'flex',
   alignItems: 'center', justifyContent: 'center', gap: '8px',
 };
 
