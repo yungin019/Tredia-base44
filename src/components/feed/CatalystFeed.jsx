@@ -117,9 +117,8 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
         {/* Metadata & Confidence */}
         <div className="space-y-2 pt-2 border-t border-white/[0.05]">
           {/* Source metadata */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-[8px] text-white/20 uppercase tracking-wider font-mono">Source: {catalyst.source_name} | ID: {catalyst.id.substring(0, 8)}...</span>
-            <div className="text-[8px] text-white/25 truncate font-mono">{catalyst.source_url.substring(0, 60)}...</div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] text-white/25 uppercase tracking-wider">Source: {catalyst.source_name}</span>
           </div>
 
           {/* Confidence + Action Buttons */}
@@ -201,9 +200,13 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
           allCatalystsRaw: allCatalysts
         });
 
-        // DISABLED: Region filtering for debugging
-        console.log('[CatalystFeed] ⚠ FILTERING DISABLED — showing all catalysts');
-        let filtered = allCatalysts;
+        // Region filtering: Global always included, regional prioritized
+        let filtered = allCatalysts.filter(c => {
+          const isGlobal = c.regions?.includes('Global');
+          const isRegional = c.regions?.includes(activeRegion);
+          return activeRegion === 'Global' ? isGlobal : (isRegional || isGlobal);
+        });
+        console.log(`[CatalystFeed] ✓ FILTERED ${filtered.length} catalysts for region: ${activeRegion}`);
 
         const sorted = filtered.sort((a, b) => 
           new Date(b.published_at) - new Date(a.published_at)
