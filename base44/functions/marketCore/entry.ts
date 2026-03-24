@@ -15,10 +15,15 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
  * No cache fallback. No fake data. Honest "unavailable" on failure.
  */
 
-// ── IN-MEMORY CACHE ─────────────────────────────────────────────────────
-// Persists across requests within same isolate session
-const coreCache = new Map(); // symbol → { price, changePct, timestamp, provider }
-const searchCache = new Map(); // queryKey → { results, fetchedAt }
+// ── GLOBAL CACHE (persists across requests in same isolate) ──────────────
+// Using globalThis so cache survives between requests without reset
+globalThis._marketCache = globalThis._marketCache || new Map();
+globalThis._searchCache = globalThis._searchCache || new Map();
+globalThis._pollInProgress = globalThis._pollInProgress || false;
+globalThis._lastPollTime = globalThis._lastPollTime || 0;
+
+const coreCache = globalThis._marketCache;
+const searchCache = globalThis._searchCache;
 
 const CORE_SYMBOLS_STOCK = ['AAPL', 'NVDA', 'TSLA', 'AMZN', 'SPY', 'QQQ'];
 const CORE_SYMBOLS_CRYPTO = ['BTC', 'ETH'];
