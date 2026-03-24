@@ -136,29 +136,45 @@ html, body {
   box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.4);
 }
 
-/* Glass morphism — deep blue / cyan theme */
+/* Glass morphism — 3-layer depth system */
+
+/* Layer 2: Standard glass card */
 .glass {
-  background: rgba(6, 12, 28, 0.55);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(100, 220, 255, 0.07);
+  background: rgba(8, 18, 42, 0.60);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(100, 220, 255, 0.09);
 }
+/* Layer 2 dark: recessed / sub-section */
 .glass-dark {
-  background: rgba(4, 8, 18, 0.80);
+  background: rgba(3, 7, 18, 0.85);
   backdrop-filter: blur(32px) saturate(200%);
   -webkit-backdrop-filter: blur(32px) saturate(200%);
-  border: 1px solid rgba(100, 220, 255, 0.05);
+  border: 1px solid rgba(100, 220, 255, 0.06);
 }
+/* Layer 3: Important / elevated card */
 .glass-card {
-  background: rgba(8, 16, 36, 0.45);
-  backdrop-filter: blur(18px) saturate(170%);
-  -webkit-backdrop-filter: blur(18px) saturate(170%);
-  border: 1px solid rgba(100, 220, 255, 0.08);
+  background: rgba(10, 22, 52, 0.70);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(100, 220, 255, 0.13);
+  box-shadow: 0 0 0 1px rgba(100,220,255,0.04) inset, 0 8px 32px rgba(0,0,0,0.45);
 }
-/* App-wide background */
+/* Layer 3 hero: primary / dominant card */
+.glass-hero {
+  background: rgba(12, 26, 62, 0.78);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border: 1px solid rgba(100, 220, 255, 0.18);
+  box-shadow: 0 0 40px rgba(14,200,220,0.08), 0 0 0 1px rgba(100,220,255,0.06) inset, 0 12px 40px rgba(0,0,0,0.5);
+}
+/* App-wide background — premium deep navy with blue/cyan depth */
 .app-bg {
-  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14, 50, 90, 0.35) 0%, transparent 70%),
-              linear-gradient(180deg, #040d1e 0%, #030810 60%, #020608 100%);
+  background:
+    radial-gradient(ellipse 120% 60% at 50% -5%, rgba(6, 30, 80, 0.55) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(0, 40, 90, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 30% at 20% 60%, rgba(5, 20, 60, 0.2) 0%, transparent 50%),
+    linear-gradient(180deg, #060e24 0%, #04091a 45%, #030711 80%, #020609 100%);
 }
 
 /* Grid background */
@@ -310,19 +326,21 @@ button, a, [role="button"] {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Premium button styles */
+/* Premium button styles — cyan theme */
 .btn-primary {
-  background: linear-gradient(135deg, #10b981, #059669);
-  box-shadow: 0 4px 14px rgba(16,185,129,0.4);
+  background: linear-gradient(135deg, rgba(14,200,220,0.9), rgba(8,160,185,0.9));
+  box-shadow: 0 4px 20px rgba(14,200,220,0.25), 0 1px 0 rgba(255,255,255,0.08) inset;
+  color: #040d1e;
+  font-weight: 700;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-primary:hover {
-  box-shadow: 0 6px 20px rgba(16,185,129,0.5);
+  box-shadow: 0 6px 28px rgba(14,200,220,0.35);
   transform: translateY(-1px);
 }
 .btn-primary:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(16,185,129,0.4);
+  box-shadow: 0 2px 10px rgba(14,200,220,0.25);
 }
 
 /* Card press feedback */
