@@ -90,17 +90,22 @@ Market Data:
     ? `\n\nRecent Catalysts:\n${catalysts.map(c => `- ${c.headline}: ${c.market_state}`).join('\n')}`
     : '\n\nNo breaking catalysts in system (market moving on structure alone).';
 
+  const forbiddenList = FORBIDDEN_PHRASES.join(', ');
+
   const systemPrompt = retryCount === 0
     ? `You are a market state summarizer for active traders. Your job is to describe what the market is doing RIGHT NOW in a way that NEVER feels empty.
 
-CRITICAL RULES:
-1. NEVER say "market quiet", "no major moves", "nothing happening"
-2. ALWAYS describe the current STATE — what is visible in price action, momentum, positioning
-3. Even low activity IS a state: "consolidating", "holding steady", "waiting for catalyst", "digesting gains"
-4. Use simple, concrete language like a human trader would speak
-5. No generic words: neutral, mixed, uncertain, positive, negative
+ABSOLUTELY FORBIDDEN WORDS (will be rejected):
+${forbiddenList}
 
-OUTPUT EXACTLY:
+CRITICAL RULES:
+1. NEVER use forbidden words above
+2. ALWAYS describe a visible market condition (consolidating, rallying, digesting, grinding, bouncing, waiting, pausing, rotating, etc.)
+3. Even low-activity days have a STATE: "consolidating after gains", "holding ahead of data", "waiting for confirmation", "momentum cooling after move"
+4. Be concrete and specific
+5. Use human trader language
+
+OUTPUT EXACTLY THIS FORMAT (no extra text):
 
 MARKET STATE:
 [ONE sentence describing what the market is doing RIGHT NOW]
@@ -109,13 +114,11 @@ BIAS:
 [SHORT directional stance — 1 line max]
 
 WATCH:
-[2-3 key upcoming triggers, risks, or data points]
+[2-3 key upcoming triggers, risks, or data points]`
+    : `Rewrite with MORE CONCRETE language. Use ACTIVE verbs: consolidating, rallying, digesting, grinding, bouncing, rotating, waiting, pausing.
+FORBIDDEN WORDS (will cause rejection): ${forbiddenList}
 
-Style: human, concrete, visual. Assume reader must understand in 2 seconds.`
-    : `Rewrite the market state. Make it MORE CONCRETE. Use ACTIVE language. 
-NEVER use: market quiet, no moves, uncertain, neutral, mixed.
-ALWAYS describe a state of action: rallying, falling, consolidating, waiting, bouncing, grinding.
-Output the exact format again.`;
+Describe a VISIBLE STATE even if low activity. Output exact format again.`;
 
   const prompt = `${systemPrompt}
 
@@ -175,14 +178,28 @@ Generate the global market state.`;
       }
     }
 
-    // Reject forbidden empty-feeling phrases
-    const forbiddenPhrases = ['market quiet', 'no major moves', 'nothing happening', 'not much', 'no action', 'sideways', 'flat'];
-    const hasEmptyPhrase = forbiddenPhrases.some(phrase => result.marketState.toLowerCase().includes(phrase));
+    // Multi-layer validation
+    const stateText = result.marketState.toLowerCase();
+    const biasText = result.bias.toLowerCase();
+    const fullText = `${stateText} ${biasText}`;
     
-    result.valid = !hasEmptyPhrase && result.marketState.length > 0 && result.bias.length > 0 && result.watch.length > 0;
-    if (hasEmptyPhrase) {
-      console.warn('[GLOBAL STATE] ✗ Output contains forbidden empty phrase, marking invalid for retry');
+    // Check for forbidden phrases
+    const hasForbiddenPhrase = FORBIDDEN_PHRASES.some(phrase => fullText.includes(phrase));
+    const hasRequiredFields = result.marketState.length > 10 && result.bias.length > 5 && result.watch.length >= 2;
+    const isActionable = stateText.length > 20; // Must have substance
+    
+    result.valid = !hasForbiddenPhrase && hasRequiredFields && isActionable;
+    
+    if (hasForbiddenPhrase) {
+      console.warn('[GLOBAL STATE] ✗ Forbidden phrase detected, marking invalid');
     }
+    if (!hasRequiredFields) {
+      console.warn('[GLOBAL STATE] ✗ Missing required fields, marking invalid');
+    }
+    if (!isActionable) {
+      console.warn('[GLOBAL STATE] ✗ Output not actionable, marking invalid');
+    }
+    
     return result;
   } catch (error) {
     console.error('[GLOBAL STATE] LLM generation error:', error.message);
@@ -190,14 +207,22 @@ Generate the global market state.`;
   }
 }
 
+// Forbidden phrases that indicate empty or generic output
+const FORBIDDEN_PHRASES = [
+  'market quiet', 'no major moves', 'nothing happening', 'not much action',
+  'no action', 'sideways', 'flat', 'neutral', 'mixed', 'uncertain',
+  'positive', 'negative', 'sentiment', 'performance', 'recovery',
+  'advancement', 'not much', 'lacking', 'no direction', 'without direction'
+];
+
 // Fallback state for when LLM fails
 const FALLBACK_STATE = {
-  marketState: 'Market holding steadily as traders assess conditions',
-  bias: 'Neutral-constructive, waiting for directional signal',
+  marketState: 'Market consolidating after recent moves, traders waiting for next catalyst',
+  bias: 'Hold for breakout confirmation',
   watch: [
-    'Data releases',
-    'Sector rotation',
-    'Key support/resistance levels'
+    'Key support/resistance levels',
+    'Volume confirmation on directional move',
+    'Macro data releases'
   ],
   valid: true
 };
