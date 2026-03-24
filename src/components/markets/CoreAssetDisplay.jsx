@@ -33,13 +33,13 @@ const CORE_META = {
 function AssetCardSkeleton({ symbol }) {
   const meta = CORE_META[symbol] || { name: symbol, sector: '' };
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.03] p-4">
+    <div className="rounded-xl p-4" style={{ background: 'rgba(8,16,36,0.5)', border: '1px solid rgba(100,220,255,0.07)' }}>
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="font-mono font-bold text-white text-sm">{symbol}</div>
           <div className="text-xs text-white/40">{meta.name}</div>
         </div>
-        <div className="text-[10px] text-white/20 px-2 py-1 rounded-full bg-white/[0.04]">
+        <div className="text-[10px] text-white/20 px-2 py-1 rounded-full" style={{ background: 'rgba(100,220,255,0.05)', border: '1px solid rgba(100,220,255,0.08)' }}>
           {meta.sector}
         </div>
       </div>
@@ -58,7 +58,7 @@ function AssetCardSkeleton({ symbol }) {
 function AssetCardUnavailable({ symbol }) {
   const meta = CORE_META[symbol] || { name: symbol, sector: '' };
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4 opacity-60">
+    <div className="rounded-xl p-4 opacity-50" style={{ background: 'rgba(8,16,36,0.4)', border: '1px solid rgba(100,220,255,0.05)' }}>
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="font-mono font-bold text-white/50 text-sm">{symbol}</div>
@@ -91,14 +91,17 @@ function AssetCardLive({ symbol, data, onClick }) {
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={onClick}
-      className="text-left rounded-lg border border-white/5 bg-white/[0.03] p-4 hover:bg-white/[0.06] hover:border-white/10 transition-all group w-full"
+      className="text-left rounded-xl p-4 transition-all group w-full"
+      style={{ background: 'rgba(8,16,36,0.5)', border: '1px solid rgba(100,220,255,0.07)' }}
+      onMouseEnter={e => e.currentTarget.style.border = '1px solid rgba(100,220,255,0.2)'}
+      onMouseLeave={e => e.currentTarget.style.border = '1px solid rgba(100,220,255,0.07)'}
     >
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="font-mono font-bold text-white text-sm">{symbol}</div>
           <div className="text-xs text-white/40">{meta.name}</div>
         </div>
-        <div className="text-[10px] text-white/30 px-2 py-1 rounded-full bg-white/[0.05] group-hover:bg-white/10 transition-colors">
+        <div className="text-[10px] text-white/30 px-2 py-1 rounded-full transition-colors" style={{ background: 'rgba(100,220,255,0.05)', border: '1px solid rgba(100,220,255,0.08)' }}>
           {meta.sector}
         </div>
       </div>
@@ -108,15 +111,15 @@ function AssetCardLive({ symbol, data, onClick }) {
           {price !== null ? `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
         </span>
         {changePct !== null && (
-          <div className={`flex items-center gap-0.5 text-xs font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+          <div className={`flex items-center gap-0.5 text-xs font-bold ${isPositive ? 'text-cyan-400' : 'text-red-400'}`}>
             {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
             {isPositive ? '+' : ''}{changePct.toFixed(2)}%
           </div>
         )}
       </div>
 
-      <div className="mt-2 pt-2 border-t border-white/5 text-[9px] text-white/30 flex items-center gap-1">
-        <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+      <div className="mt-2 pt-2 text-[9px] text-white/30 flex items-center gap-1" style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
+        <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
         Live · {data.provider === 'polygon' ? 'Polygon' : 'CoinGecko'}
       </div>
     </motion.button>
