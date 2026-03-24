@@ -229,22 +229,51 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
     return (
       <div className="text-center py-8 space-y-3">
         <div className="text-xs text-white/30">
-          No catalysts at the moment. Check back soon.
+          No catalysts found.
         </div>
         {debugInfo && (
-          <div className="text-[9px] text-white/20 space-y-1 max-w-sm mx-auto">
-            <p>Debug info:</p>
-            <p>Total in DB: {debugInfo.totalInDb}</p>
-            <p>Region: {debugInfo.activeRegion}</p>
+          <div className="text-[9px] text-white/20 space-y-1 max-w-sm mx-auto border border-white/10 p-3 rounded">
+            <p className="font-bold">DEBUG:</p>
+            <p>Total in DB: <span className="font-mono font-bold">{debugInfo.totalInDb}</span></p>
+            <p>Region: <span className="font-mono font-bold">{debugInfo.activeRegion}</span></p>
             <p>Breakdown: {JSON.stringify(debugInfo.regionBreakdown)}</p>
             {debugInfo.totalInDb > 0 && (
               <button
                 onClick={() => console.log('All catalysts:', debugInfo.allCatalystsRaw)}
-                className="underline text-white/40 hover:text-white/60"
+                className="underline text-white/40 hover:text-white/60 mt-2"
               >
                 Log to console
               </button>
             )}
+          </div>
+        )}
+
+        {/* HARDCODED TEST: Force render first 3 catalysts if they exist */}
+        {debugInfo?.totalInDb > 0 && (
+          <div className="mt-6 space-y-3">
+            <p className="text-[9px] font-bold text-yellow-400">⚠ HARDCODED RENDER TEST:</p>
+            {debugInfo.allCatalystsRaw.slice(0, 3).map((catalyst, i) => (
+              <motion.div
+                key={catalyst.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="rounded-xl overflow-hidden text-left"
+                style={{
+                  background: 'rgba(8, 18, 42, 0.65)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  border: '1px solid rgba(14,200,220,0.3)',
+                }}
+              >
+                <div style={{ height: 2, background: 'rgba(14,200,220,0.6)' }} />
+                <div className="px-4 py-3">
+                  <p className="text-xs font-bold text-white">{catalyst.headline.substring(0, 60)}...</p>
+                  <p className="text-[9px] text-white/50 mt-1">{catalyst.driver}</p>
+                  <p className="text-[9px] text-white/40 mt-1">Category: {catalyst.category}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         )}
       </div>
