@@ -163,7 +163,7 @@ export default function AppShell({ onLogout }) {
       </header>
 
       {/* ── Main Content ───────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto pb-20 lg:pb-6 w-full">
+      <main className="flex-1 overflow-y-auto pb-24 lg:pb-8 w-full">
         <AnimatePresence mode="wait" custom={slideDir}>
           <motion.div
             key={location.pathname}
@@ -180,7 +180,8 @@ export default function AppShell({ onLogout }) {
         </AnimatePresence>
       </main>
 
-      {/* ── Global AI Assistant ──────────────────────────────────── */}
+      {/* ── Global AI Assistant (NON-INTRUSIVE) ──────────────────── */}
+      {/* Positioned at bottom-right, no overlap with feed content */}
       <TredioAssistant />
 
       {/* ── Bottom Tab Nav (Mobile) ──────────────────────────────── */}
