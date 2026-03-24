@@ -77,8 +77,8 @@ Deno.serve(async (req) => {
       return Response.json(report);
     }
 
-    // STEP 2: Accept valid news items
-    const acceptedNews = rawNews.slice(0, 3).filter(item => item.headline && item.url);
+    // STEP 2: Accept valid news items (title + url required)
+    const acceptedNews = rawNews.slice(0, 3).filter(item => (item.title || item.headline) && item.article_url);
     report.acceptedNewsCount = acceptedNews.length;
     console.log(`[CATALYST PIPELINE] Accepted ${acceptedNews.length} valid news items`);
 
