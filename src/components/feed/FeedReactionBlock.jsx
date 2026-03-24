@@ -75,67 +75,63 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
         }}
       />
 
-      {/* ── MARKET STATE + SIGNAL BADGE ─────────────────────────── */}
-      <div className={`px-4 pt-4 ${isPrimary ? 'pb-4' : 'pb-3'}`}>
-        {/* Signal badge — top, prominent */}
-        <div className="flex items-center gap-2 mb-3">
-          <span
-            className="inline-flex items-center gap-1.5 font-black tracking-widest rounded-full"
+      {/* ── SIGNAL + STATE (FUSED HEADLINE) ─────────────────────── */}
+      <div className={`px-4 ${isPrimary ? 'pt-4 pb-2' : 'pt-3 pb-2'}`}>
+        <div className="flex items-start justify-between gap-3 mb-2.5">
+          {/* SIGNAL — STATE merged */}
+          <h2
             style={{
-              fontSize: isPrimary ? 11 : 10,
-              color: sigColor,
-              background: sig.bg,
-              border: `1px solid ${sig.border}`,
-              padding: isPrimary ? '5px 14px' : '3px 10px',
-              letterSpacing: '0.12em',
+              fontSize: isPrimary ? 16 : 14,
+              fontWeight: 900,
+              color: 'rgba(255,255,255,0.97)',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.3,
+              flex: 1,
             }}
           >
-            <SigIcon style={{ width: isPrimary ? 12 : 10, height: isPrimary ? 12 : 10 }} />
-            {sig.label}
-          </span>
+            <span style={{ color: sigColor, fontFamily: 'monospace', letterSpacing: '0.04em' }}>
+              {sig.label}
+            </span>
+            {' — '}
+            {reaction.marketState}
+          </h2>
+          {/* Timing badge (secondary, right) */}
           <span
-            className="text-[9px] font-bold px-2 py-0.5 rounded-full border ml-auto"
+            className="text-[8px] font-bold px-1.5 py-0.5 rounded-full border flex-shrink-0 mt-0.5 uppercase tracking-wide"
             style={{
-              color: reaction.timing === 'Live' ? '#7ee8f0' : 'rgba(245,158,11,0.8)',
-              background: reaction.timing === 'Live' ? 'rgba(14,200,220,0.08)' : 'rgba(245,158,11,0.08)',
-              border: reaction.timing === 'Live' ? '1px solid rgba(14,200,220,0.2)' : '1px solid rgba(245,158,11,0.2)',
+              color: reaction.timing === 'Live' ? '#7ee8f0' : 'rgba(245,158,11,0.7)',
+              background: reaction.timing === 'Live' ? 'rgba(14,200,220,0.06)' : 'rgba(245,158,11,0.05)',
+              border: reaction.timing === 'Live' ? '1px solid rgba(14,200,220,0.15)' : '1px solid rgba(245,158,11,0.15)',
             }}
           >
             {reaction.timing || 'Now'}
           </span>
         </div>
-
-        {/* Market state headline */}
-        <h2
-          className="leading-snug tracking-tight"
-          style={{
-            fontSize: isPrimary ? 19 : 15,
-            fontWeight: isPrimary ? 900 : 700,
-            color: 'rgba(255,255,255,0.97)',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          {reaction.marketState}
-        </h2>
       </div>
 
-      {/* ── DRIVER + IMPACT (2 tight lines) ─────────────────────── */}
-      <div
-        className="px-4 py-3 space-y-2"
-        style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}
-      >
-        <div className="flex items-start gap-2">
-          <span className="text-[10px] text-white/30 font-mono mt-0.5 flex-shrink-0">→</span>
-          <p className="text-xs text-white/65 leading-snug">{reaction.driver}</p>
+      {/* ── ACTION (2nd line, dominant) ─────────────────────────── */}
+      <div className="px-4 py-2" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: `${sigColor}06` }}>
+        <div className="flex items-center gap-2">
+          <Zap className="h-3 w-3 flex-shrink-0" style={{ color: sigColor }} />
+          <p className="text-sm font-black leading-tight" style={{ color: 'rgba(255,255,255,0.95)' }}>
+            {reaction.actionBias}
+          </p>
         </div>
-        <div className="flex items-start gap-2">
-          <span className="text-[10px] text-white/30 font-mono mt-0.5 flex-shrink-0">→</span>
-          <p className="text-xs text-white/65 leading-snug">{reaction.impactText}</p>
-        </div>
+      </div>
 
+      {/* ── DRIVER + IMPACT (secondary, muted) ────────────────── */}
+      <div className="px-4 py-2.5 space-y-1.5" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
+        <div className="flex items-start gap-2">
+          <span className="text-[9px] text-white/20 font-mono mt-0.5 flex-shrink-0">→</span>
+          <p className="text-[10px] text-white/40 leading-tight">{reaction.driver}</p>
+        </div>
+        <div className="flex items-start gap-2">
+          <span className="text-[9px] text-white/20 font-mono mt-0.5 flex-shrink-0">→</span>
+          <p className="text-[10px] text-white/40 leading-tight">{reaction.impactText}</p>
+        </div>
         {/* Asset pills */}
         {relatedAssets.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
+          <div className="flex flex-wrap gap-1 pt-1">
             {relatedAssets.map((a, i) => (
               <AssetPill key={i} symbol={a.symbol} direction={a.direction} onClick={(sym) => navigate(`/Asset/${sym}`)} />
             ))}
@@ -143,27 +139,11 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
         )}
       </div>
 
-      {/* ── ACTION + RISK ────────────────────────────────────────── */}
-      <div style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
-        {/* Action */}
-        <div
-          className="px-4 py-2.5 flex items-start gap-2"
-          style={{ background: `${sigColor}08` }}
-        >
-          <Zap className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" style={{ color: sigColor }} />
-          <p className="text-xs font-bold leading-snug" style={{ color: 'rgba(255,255,255,0.92)' }}>
-            <span style={{ color: sigColor }}>Action: </span>
-            {reaction.actionBias}
-          </p>
-        </div>
-        {/* Risk */}
-        <div
-          className="px-4 py-2.5 flex items-start gap-2"
-          style={{ borderTop: '1px solid rgba(239,68,68,0.08)', background: 'rgba(239,68,68,0.04)' }}
-        >
-          <span className="text-[10px] flex-shrink-0 mt-0.5">⚠</span>
-          <p className="text-xs leading-snug" style={{ color: 'rgba(252,165,165,0.7)' }}>
-            <span className="font-bold" style={{ color: 'rgba(248,113,113,0.85)' }}>Risk: </span>
+      {/* ── RISK ────────────────────────────────────────────────── */}
+      <div className="px-4 py-2" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: 'rgba(239,68,68,0.04)' }}>
+        <div className="flex items-start gap-2">
+          <span className="text-[9px] flex-shrink-0 mt-0.5 font-mono">⚠</span>
+          <p className="text-[10px] leading-tight" style={{ color: 'rgba(252,165,165,0.7)' }}>
             {reaction.riskInvalidation}
           </p>
         </div>
