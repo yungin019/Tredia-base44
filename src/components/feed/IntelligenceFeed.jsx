@@ -399,26 +399,17 @@ const WATCH_LAYER = {
   ],
 };
 
-// ── RANKING ──────────────────────────────────────────────────────────────────
-// Global: show only reactions tagged affectedRegions includes 'Global', ranked by importance desc.
-// This makes Global first-class (high-impact cross-market) not a fallback dump.
-// Regional: score = regional match (10) + region tag (5) + importance. Pure JS, no backend.
+// ── FILTERING + RANKING ──────────────────────────────────────────────────────
+// STRICT FILTER FIRST — a card only appears if its `regions` array contains the active region.
+// Global: ONLY cards with regions=['Global'] — no regional cards bleed in.
+// US/EU/APAC/Africa/LatAm: ONLY cards tagged for that exact region — no cross-contamination.
+// Then sort by importance desc within the filtered set.
+// Zero network calls. Pure JS array filter + sort.
 
-function rankForRegion(reactions, region) {
-  if (region === 'Global') {
-    return reactions
-      .filter(r => r.affectedRegions?.includes('Global'))
-      .sort((a, b) => b.importance - a.importance);
-  }
+function filterAndRank(reactions, region) {
   return reactions
-    .map(r => ({
-      ...r,
-      _score:
-        (r.affectedRegions?.includes(region) ? 10 : 0) +
-        (r.region === region || r.region === 'Global' ? 5 : 0) +
-        r.importance,
-    }))
-    .sort((a, b) => b._score - a._score);
+    .filter(r => r.regions?.includes(region))
+    .sort((a, b) => b.importance - a.importance);
 }
 
 // ── CONTEXT BLURB (region-aware) ────────────────────────────────────────────
