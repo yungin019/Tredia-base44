@@ -234,10 +234,16 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
-        <h2 className="text-sm font-bold text-white/80">Catalyst Feed</h2>
+    <div className="space-y-3" style={{ 
+      paddingTop: '16px',
+      borderTop: '2px solid rgba(14,200,220,0.2)',
+    }}>
+      <div className="flex items-center gap-2 mb-4">
+        <div className="h-2 w-2 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
+        <h2 className="text-sm font-black text-white uppercase tracking-widest">Breaking Market Catalysts</h2>
+        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full ml-auto" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
+          Real-time
+        </span>
       </div>
       <AnimatePresence mode="wait">
         <div className="space-y-3">
