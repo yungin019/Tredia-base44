@@ -21,6 +21,7 @@ import WatchlistQuick from '@/components/markets/WatchlistQuick';
 import { fetchCoreAssets } from '@/api/marketDataClient';
 import RegionSwitcher from '@/components/feed/RegionSwitcher';
 import IntelligenceFeed from '@/components/feed/IntelligenceFeed';
+import HeroSignalCard from '@/components/feed/HeroSignalCard';
 import { base44 } from '@/api/base44Client';
 
 // Detect region from timezone
