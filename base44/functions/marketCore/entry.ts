@@ -457,10 +457,12 @@ Deno.serve(async (req) => {
       coreCache.forEach((v, k) => { cacheState[k] = v; });
       console.log('CACHE STATE:', JSON.stringify(cacheState));
 
-      // 2. Direct AAPL fetch — synchronous, bypasses poller
+      // 2. Direct stock fetch via grouped endpoint
       console.log('POLL START (debug mode)');
-      const aaplResult = await fetchPolygonQuotes(['AAPL'], POLYGON_KEY);
+      const aaplResult = await fetchPolygonQuotes(['AAPL', 'TSLA', 'NVDA'], POLYGON_KEY);
       console.log('FETCH RESULT: AAPL', JSON.stringify(aaplResult.AAPL));
+      console.log('FETCH RESULT: TSLA', JSON.stringify(aaplResult.TSLA));
+      console.log('FETCH RESULT: NVDA', JSON.stringify(aaplResult.NVDA));
 
       // 3. Also fetch crypto
       const cryptoResult = await fetchCoinGeckoQuotes(['BTC']);
