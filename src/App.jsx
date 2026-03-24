@@ -84,6 +84,7 @@ const AppRoutes = ({ user, onLogout }) => {
         <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
         <Route path="/OnboardingQuick" element={<PageTransition><OnboardingQuick /></PageTransition>} />
         <Route path="/Admin" element={<PageTransition><Admin /></PageTransition>} />
+        <Route path="/CatalystDebug" element={<PageTransition><CatalystDebug /></PageTransition>} />
         <Route path="/alpaca-connect" element={<PageTransition><AlpacaConnect /></PageTransition>} />
         <Route path="/alpaca-callback" element={<AlpacaCallback />} />
         <Route path="/trek-portfolio-welcome" element={<PageTransition><TrekPortfolioWelcome /></PageTransition>} />
