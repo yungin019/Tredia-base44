@@ -329,7 +329,8 @@ async function pollCoreAssets(polygonKey) {
   } catch (err) {
     console.error('[Poll] Error:', err.message);
   } finally {
-    pollInProgress = false;
+    globalThis._pollInProgress = false;
+    console.log('[Poll] DONE — cache size:', coreCache.size);
   }
 }
 
