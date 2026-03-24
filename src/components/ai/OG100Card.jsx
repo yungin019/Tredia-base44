@@ -75,76 +75,74 @@ export function OG100Card({ onClaim }) {
       animate={{ opacity: 1, y: 0 }}
       className="relative"
     >
-      <Card
-        className="relative overflow-hidden bg-gradient-to-br from-[#0D1117] to-[#1a1f2e] border-2"
+      <div
+        className="relative overflow-hidden rounded-2xl"
         style={{
-          borderColor: '#F59E0B',
-          boxShadow: '0 0 30px rgba(245, 158, 11, 0.2)',
-          animation: 'pulse-border 3s ease-in-out infinite'
+          background: 'rgba(10, 22, 52, 0.75)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          border: '1px solid rgba(14,200,220,0.22)',
+          boxShadow: '0 0 40px rgba(14,200,220,0.08), 0 12px 40px rgba(0,0,0,0.45)',
         }}
       >
-        <div className="absolute top-0 right-0 w-40 h-40 bg-[#F59E0B]/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(14,200,220,0.07)' }} />
+        {/* top accent line */}
+        <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, rgba(14,200,220,0.7) 0%, rgba(14,200,220,0.2) 50%, transparent 100%)' }} />
 
         <div className="relative p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-[#F59E0B]" />
+              <Sparkles className="w-5 h-5" style={{ color: '#0ec8dc' }} />
               <h3 className="text-base font-black text-white">FOUNDING MEMBER OFFER</h3>
             </div>
-            <span className="text-xs font-bold px-2 py-1 rounded-lg bg-[#FF3B3B] text-white">
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: 'rgba(14,200,220,0.15)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.3)' }}>
               NEW
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-[#FF3B3B] animate-pulse" />
+            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#0ec8dc' }} />
             <p className="text-sm font-bold text-white">
               {remaining} of 100 spots remaining
             </p>
           </div>
 
-          <div className="space-y-2 text-sm text-white/80">
+          <div className="space-y-2 text-sm" style={{ color: 'rgba(180,210,240,0.7)' }}>
             <p className="font-bold text-white">First 100 members get:</p>
             <ul className="space-y-1 ml-4">
               <li className="flex items-start gap-2">
-                <span className="text-[#00D68F]">•</span>
+                <span style={{ color: '#0ec8dc' }}>•</span>
                 <span>Elite FREE for 30 days</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#00D68F]">•</span>
-                <span>Then Elite for 89 SEK forever <span className="text-white/50">(normally 179 SEK/month)</span></span>
+                <span style={{ color: '#0ec8dc' }}>•</span>
+                <span>Then Elite for 89 SEK forever <span style={{ color: 'rgba(180,210,240,0.4)' }}>(normally 179 SEK/month)</span></span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#00D68F]">•</span>
+                <span style={{ color: '#0ec8dc' }}>•</span>
                 <span>OG Founding Member badge</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#00D68F]">•</span>
+                <span style={{ color: '#0ec8dc' }}>•</span>
                 <span>Personal referral link</span>
               </li>
             </ul>
           </div>
 
-          <Button
+          <button
             onClick={handleClaim}
             disabled={claiming || loading}
-            className="w-full bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white font-bold h-12 disabled:opacity-50"
+            className="w-full font-bold h-12 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            style={{
+              background: 'linear-gradient(135deg, rgba(14,200,220,0.9), rgba(8,160,185,0.9))',
+              color: '#040d1e',
+              boxShadow: '0 4px 20px rgba(14,200,220,0.25)',
+            }}
           >
-            {claiming ? 'CLAIMING...' : 'CLAIM YOUR SPOT'} <ChevronRight className="ml-2 h-5 w-5" />
-          </Button>
+            {claiming ? 'CLAIMING...' : 'CLAIM YOUR SPOT'} <ChevronRight className="h-5 w-5" />
+          </button>
         </div>
-      </Card>
-
-      <style jsx>{`
-        @keyframes pulse-border {
-          0%, 100% {
-            box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
-          }
-          50% {
-            box-shadow: 0 0 40px rgba(245, 158, 11, 0.4);
-          }
-        }
-      `}</style>
+      </div>
     </motion.div>
   );
 }
