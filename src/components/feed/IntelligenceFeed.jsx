@@ -397,17 +397,27 @@ const WATCH_LAYER = {
   ],
 };
 
-// ── FILTERING + RANKING ──────────────────────────────────────────────────────
-// STRICT FILTER FIRST — a card only appears if its `regions` array contains the active region.
+// ── AUTO-RANKING SYSTEM (CRITICAL) ────────────────────────────────────────────
+// System automatically ranks signals by strength + relevance.
+// User NEVER chooses what matters. The system decides.
+//
+// FILTERING: STRICT FILTER FIRST — a card only appears if its `regions` array contains the active region.
 // Global: ONLY cards with regions=['Global'] — no regional cards bleed in.
 // US/EU/APAC/Africa/LatAm: ONLY cards tagged for that exact region — no cross-contamination.
-// Then sort by importance desc within the filtered set.
+//
+// RANKING: Sort by importance (descending), place strongest signal as HERO
 // Zero network calls. Pure JS array filter + sort.
 
 function filterAndRank(reactions, region) {
   return reactions
     .filter(r => r.regions?.includes(region))
-    .sort((a, b) => b.importance - a.importance);
+    .sort((a, b) => {
+      // Primary: importance (strength)
+      if (b.importance !== a.importance) return b.importance - a.importance;
+      // Secondary: timing (Live > Developing > Follow-up)
+      const timingScore = { 'Live': 3, 'Developing': 2, 'Follow-up': 1 };
+      return (timingScore[b.timing] || 0) - (timingScore[a.timing] || 0);
+    });
 }
 
 // ── CONTEXT BLURB (region-aware) ────────────────────────────────────────────
