@@ -64,34 +64,35 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
           </p>
         </div>
 
-        {/* Driver + Impact (compressed) */}
-        <div className="space-y-1">
+        {/* Driver + Impact - CONCRETE */}
+        <div className="space-y-2 text-[11px]">
           <div className="flex items-start gap-2">
-            <span className="text-[9px] text-white/20 mt-0.5 flex-shrink-0">→</span>
-            <span className="text-[10px] text-white/50">{catalyst.driver}</span>
+            <span className="text-white/30 font-bold flex-shrink-0">Why:</span>
+            <span className="text-white/65">{catalyst.driver || 'Market driver'}</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-[9px] text-white/20 mt-0.5 flex-shrink-0">→</span>
-            <span className="text-[10px] text-white/50">{catalyst.impact}</span>
+            <span className="text-white/30 font-bold flex-shrink-0">Effect:</span>
+            <span className="text-white/65">{catalyst.impact || 'Market impact'}</span>
           </div>
         </div>
 
-        {/* Action Bias + Risk */}
-        <div className="flex items-start gap-3 pt-1">
-          <div className="flex items-start gap-2">
+        {/* Action Bias + Risk - DECISION CLEAR */}
+        <div className="flex items-start justify-between gap-2 pt-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-bold text-white/25 uppercase">Bias</span>
             <span
-              className="text-xs font-black px-2 py-1 rounded"
+              className="text-xs font-black px-2 py-1 rounded-lg"
               style={{
-                background: catalyst.action_bias === 'bullish' ? 'rgba(14,200,220,0.12)' : 'rgba(239,68,68,0.12)',
-                color: catalyst.action_bias === 'bullish' ? '#0ec8dc' : '#ef4444'
+                background: catalyst.action_bias === 'bullish' ? 'rgba(14,200,220,0.12)' : catalyst.action_bias === 'bearish' ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.06)',
+                color: catalyst.action_bias === 'bullish' ? '#0ec8dc' : catalyst.action_bias === 'bearish' ? '#ef4444' : 'rgba(255,255,255,0.6)'
               }}
             >
-              {catalyst.action_bias.toUpperCase()}
+              {catalyst.action_bias === 'bullish' ? '↗ Up' : catalyst.action_bias === 'bearish' ? '↘ Down' : '→ Wait'}
             </span>
           </div>
-          <div className="flex items-start gap-2 flex-1">
-            <span className="text-[9px] text-white/20 flex-shrink-0">⚠</span>
-            <span className="text-[10px] text-white/50">{catalyst.risk}</span>
+          <div className="flex items-start gap-1.5 flex-1 min-w-0">
+            <span className="text-[9px] text-white/30 flex-shrink-0 mt-0.5">⚠</span>
+            <span className="text-[9px] text-white/45">{catalyst.risk || 'Monitor'}</span>
           </div>
         </div>
 
