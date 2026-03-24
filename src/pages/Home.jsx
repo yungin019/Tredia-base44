@@ -105,10 +105,33 @@ export default function Home() {
 
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
           {/* ╔════════════════════════════════════════════════════════════════ */}
-          {/* ║ SIGNALS FIRST (NON-NEGOTIABLE) — Above the fold */}
+          {/* ║ TOP SECTION — Morning Brief + Watchlist + News */}
           {/* ╚════════════════════════════════════════════════════════════════ */}
 
-          {/* ── STICKY REGION SWITCHER (Hero priority) ─────────────────── */}
+          {/* Daily Morning Brief (with embedded news) */}
+          <DailyBrief mode="morning" />
+
+          {/* Watchlist Quick */}
+          <WatchlistQuick stocks={liveStocks} />
+
+          {/* ╔════════════════════════════════════════════════════════════════ */}
+          {/* ║ LIVE ASSETS SECTION */}
+          {/* ╚════════════════════════════════════════════════════════════════ */}
+
+          {/* Trending Assets (Live Assets) */}
+          <TrendingAssets stocks={liveStocks} />
+
+          {/* ╔════════════════════════════════════════════════════════════════ */}
+          {/* ║ FOUNDING MEMBER GLASS */}
+          {/* ╚════════════════════════════════════════════════════════════════ */}
+
+          {/* OG100 Badge */}
+          <OG100Card />
+
+          {/* ╔════════════════════════════════════════════════════════════════ */}
+          {/* ║ REAL-TIME SIGNALS (PRIMARY) — Above the fold */}
+          {/* ╚════════════════════════════════════════════════════════════════ */}
+
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
@@ -121,7 +144,7 @@ export default function Home() {
           </div>
 
           {/* ╔════════════════════════════════════════════════════════════════ */}
-          {/* ║ EXECUTION LAYER — Your Moves Today */}
+          {/* ║ EXECUTION LAYER — Your Moves Today (at end before hero) */}
           {/* ╚════════════════════════════════════════════════════════════════ */}
           <YourMovesToday
             moves={liveStocks.slice(0, 3).map(stock => ({
@@ -138,31 +161,11 @@ export default function Home() {
             onExplore={(move) => navigate(`/Asset/${move.symbol}`)}
           />
 
-          {/* ╔════════════════════════════════════════════════════════════════ */}
-          {/* ║ CONTEXT LAYERS — Below primary signals */}
-          {/* ╚════════════════════════════════════════════════════════════════ */}
-
           {/* ── WATCH OUT ────────────────────────────────────────────── */}
           <WatchOut />
 
           {/* ── MARKET PULSE ─────────────────────────────────────────── */}
           <MarketPulse sentiment={fearGreed?.value || 50} />
-
-          {/* ╔════════════════════════════════════════════════════════════════ */}
-          {/* ║ SUPPORTING CONTENT (after primary signals) */}
-          {/* ╚════════════════════════════════════════════════════════════════ */}
-
-          {/* Daily Morning Brief */}
-          <DailyBrief mode="morning" />
-
-          {/* Watchlist Quick */}
-          <WatchlistQuick stocks={liveStocks} />
-
-          {/* Trending Assets */}
-          <TrendingAssets stocks={liveStocks} />
-
-          {/* OG100 Badge */}
-          <OG100Card />
 
           {/* ── UPGRADE (at end, not intrusive) ──────────────────────────── */}
           <UpgradeCall onUpgrade={() => navigate('/Upgrade')} />
