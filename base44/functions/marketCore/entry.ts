@@ -107,24 +107,43 @@ const SYMBOL_META = {
   LTC:   { name: 'Litecoin', type: 'crypto', sector: 'Crypto', coinId: 'litecoin' },
 };
 
+// ── RATE LIMITER ─────────────────────────────────────────────────────────
+// Max 4 Polygon requests per second (free tier safe)
+const requestTimestamps = [];
+const MAX_REQUESTS_PER_SEC = 4;
+
+async function polygonRateLimitedFetch(url, signal) {
+  const now = Date.now();
+  // Drop timestamps older than 1 second
+  while (requestTimestamps.length > 0 && now - requestTimestamps[0] >= 1000) {
+    requestTimestamps.shift();
+  }
+  // If at limit, wait until we're under the cap
+  if (requestTimestamps.length >= MAX_REQUESTS_PER_SEC) {
+    const waitMs = 1000 - (now - requestTimestamps[0]) + 10;
+    await new Promise(r => setTimeout(r, waitMs));
+    requestTimestamps.shift();
+  }
+  requestTimestamps.push(Date.now());
+  return fetch(url, { signal });
+}
+
 // ── PROVIDER FETCH HELPERS ───────────────────────────────────────────────
 
 /**
- * Fetch stock/ETF quotes via Polygon.
+ * Fetch stock/ETF quotes via Polygon — sequential, rate-limited.
  * Uses /v2/aggs/ticker (previous close) — available on free tier.
- * Falls back per-symbol if batch fails.
+ * Each symbol is independent: failure marks only that symbol unavailable.
  */
 async function fetchPolygonQuotes(symbols, polygonKey) {
   const results = {};
   const TIMEOUT = 2500;
 
-  // Fetch each symbol individually — sequential to respect rate limits
   for (const symbol of symbols) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
 
-      // /v2/aggs/ticker/:ticker/prev — previous trading day OHLCV
       const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${polygonKey}`;
       const res = await polygonRateLimitedFetch(url, controller.signal);
       clearTimeout(timeoutId);
@@ -132,7 +151,7 @@ async function fetchPolygonQuotes(symbols, polygonKey) {
       if (res.status !== 200) {
         console.warn(`[Polygon] ${symbol} HTTP ${res.status}`);
         results[symbol] = { status: 'unavailable', error: `Polygon HTTP ${res.status}` };
-        return;
+        continue; // only this symbol fails, keep going
       }
 
       const data = await res.json();
@@ -140,18 +159,17 @@ async function fetchPolygonQuotes(symbols, polygonKey) {
 
       if (!bars || bars.length === 0) {
         results[symbol] = { status: 'unavailable', error: 'No bars returned' };
-        return;
+        continue;
       }
 
       const bar = bars[0];
-      // c = close, o = open, vw = volume-weighted average
       const price = bar.c || bar.vw || 0;
       const open = bar.o || price;
       const changePct = open > 0 ? ((price - open) / open) * 100 : 0;
 
       if (!price) {
         results[symbol] = { status: 'unavailable', error: 'Zero price' };
-        return;
+        continue;
       }
 
       results[symbol] = {
