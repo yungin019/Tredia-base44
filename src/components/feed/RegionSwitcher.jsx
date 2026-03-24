@@ -18,25 +18,42 @@ export const REGION_LABELS = {
 
 export default function RegionSwitcher({ activeRegion, onChange }) {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
+    <div
+      className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1 px-1"
+      style={{
+        background: 'rgba(6,14,32,0.6)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(100,220,255,0.08)',
+        borderRadius: '999px',
+        boxShadow: 'inset 0 1px 0 rgba(100,220,255,0.05), 0 4px 16px rgba(0,0,0,0.3)',
+      }}
+    >
       {REGIONS.map((r) => {
         const isActive = activeRegion === r.id;
         return (
           <button
             key={r.id}
             onClick={() => onChange(r.id)}
-            className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all min-h-0 min-w-0 ${
-              isActive
-                ? 'bg-primary/15 text-primary border border-primary/30'
-                : 'bg-white/[0.04] text-white/40 border border-white/[0.06] hover:text-white/70 hover:bg-white/[0.07]'
-            }`}
+            className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all min-h-0 min-w-0"
+            style={isActive ? {
+              background: 'rgba(14,200,220,0.15)',
+              border: '1px solid rgba(14,200,220,0.35)',
+              color: 'rgb(120,230,245)',
+              boxShadow: '0 0 12px rgba(14,200,220,0.2), inset 0 1px 0 rgba(14,200,220,0.15)',
+            } : {
+              background: 'transparent',
+              border: '1px solid transparent',
+              color: 'rgba(255,255,255,0.35)',
+            }}
           >
             <span className="text-sm leading-none">{r.flag}</span>
             <span>{r.label}</span>
             {isActive && (
               <motion.span
                 layoutId="region-active-dot"
-                className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary"
+                className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full"
+                style={{ background: 'rgb(14,200,220)', boxShadow: '0 0 6px rgba(14,200,220,0.8)' }}
               />
             )}
           </button>
