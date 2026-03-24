@@ -15,13 +15,13 @@ import { useNavigate } from 'react-router-dom';
  */
 
 const IMPORTANCE_LABEL = {
-  9: { label: 'Critical', color: 'text-red-400', bg: 'bg-red-400/10 border-red-400/20' },
-  8: { label: 'High',     color: 'text-gold',    bg: 'bg-gold/10 border-gold/20' },
-  7: { label: 'Medium',   color: 'text-primary', bg: 'bg-primary/10 border-primary/20' },
+  9: { label: 'Critical', color: 'text-red-400',  bg: 'bg-red-400/10 border-red-400/20' },
+  8: { label: 'High',     color: 'text-gold',     bg: 'bg-gold/10 border-gold/20' },
+  7: { label: 'Medium',   color: 'text-cyan-400', bg: 'bg-cyan-400/10 border-cyan-400/20' },
 };
 
 const TIMING_STYLE = {
-  'Live':       'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+  'Live':       'text-cyan-300 bg-cyan-400/10 border-cyan-400/25',
   'Developing': 'text-gold bg-gold/10 border-gold/20',
   'Follow-up':  'text-blue-400 bg-blue-400/10 border-blue-400/20',
 };
