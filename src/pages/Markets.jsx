@@ -64,7 +64,7 @@ export default function Markets() {
       const data = await fetchCryptoData();
       if (data) setCryptoData(data);
     }}>
-      <div className="min-h-screen p-5 space-y-6 max-w-[1600px] mx-auto" style={{ background: '#080B12' }}>
+      <div className="min-h-screen p-5 space-y-6 max-w-[1600px] mx-auto app-bg">
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div className="min-w-0">
@@ -102,9 +102,9 @@ export default function Markets() {
             className="space-y-3"
           >
             <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
               <h2 className="text-sm font-bold text-white/85">Core Assets</h2>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 ml-1">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full ml-1" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
                 LIVE
               </span>
               <span className="text-[10px] text-white/25 ml-auto">Refreshes every 60s</span>
@@ -144,7 +144,8 @@ export default function Markets() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="rounded-xl border border-white/[0.07] bg-[#111118] p-5"
+            className="rounded-xl p-5"
+            style={{ background: 'rgba(8,16,36,0.55)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', border: '1px solid rgba(100,220,255,0.09)' }}
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-white/80">{t('markets.sp500')}</h2>
@@ -158,8 +159,8 @@ export default function Markets() {
                   <YAxis stroke="rgba(255,255,255,0.2)" style={{ fontSize: '11px' }} />
                   <Tooltip
                     contentStyle={{
-                      background: 'rgba(17,17,24,0.95)',
-                      border: '1px solid rgba(255,255,255,0.1)',
+                      background: 'rgba(6,14,32,0.95)',
+                      border: '1px solid rgba(100,220,255,0.12)',
                       borderRadius: '8px',
                     }}
                     labelStyle={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px' }}
@@ -167,7 +168,7 @@ export default function Markets() {
                   <Line
                     type="monotone"
                     dataKey="value"
-                    stroke="#F59E0B"
+                    stroke="rgb(14,200,220)"
                     strokeWidth={2}
                     dot={false}
                     isAnimationActive={true}
@@ -187,7 +188,7 @@ export default function Markets() {
 
       {/* Forex Tab */}
       {activeTab === 'forex' && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-white/[0.07] bg-[#111118] p-8 text-center">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl p-8 text-center" style={{ background: 'rgba(8,16,36,0.55)', border: '1px solid rgba(100,220,255,0.09)' }}>
           <p className="text-white/30 text-sm">{t('markets.forexComingSoon')}</p>
           <p className="text-white/15 text-xs mt-2">{t('markets.forexAPIs')}</p>
         </motion.div>
