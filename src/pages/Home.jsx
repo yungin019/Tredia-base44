@@ -83,30 +83,53 @@ export default function Home() {
 
   return (
     <PullToRefresh onRefresh={async () => {
-      await fetchFearGreed().then(fg => { if (fg) setFearGreed(fg); });
+      const assets = await fetchCoreAssets().catch(() => []);
+      const live = assets.filter(a => a.status === 'live');
+      if (live.length > 0) {
+        setLiveStocks(live.filter(a => a.type !== 'crypto').map(a => ({ ...a, change: a.changePct || 0, signal: a.changePct > 1 ? 'BUY' : a.changePct < -1 ? 'SELL' : 'HOLD' })));
+      }
     }}>
       <div className="w-full min-h-screen" style={{ background: '#080B12' }}>
         <IntelligenceTicker />
         <IndexCardsSection />
 
+        {/* ── STICKY REGION BAR ──────────────────────────────────────── */}
+        <div
+          ref={stickyRef}
+          className="sticky top-0 z-30 px-5 py-3 border-b border-white/[0.05]"
+          style={{ background: 'rgba(8,11,18,0.92)', backdropFilter: 'blur(16px)' }}
+        >
+          <RegionSwitcher activeRegion={activeRegion} onChange={handleRegionChange} />
+        </div>
+
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
-          {/* OG100 Badge (TOP) */}
+          {/* OG100 Badge */}
           <OG100Card />
 
           {/* Daily Morning Brief */}
           <DailyBrief mode="morning" />
 
-          {/* Your Watchlist (Top 4 stocks) */}
+          {/* Watchlist Quick */}
           <WatchlistQuick stocks={liveStocks} />
 
-          {/* Trending Assets (Horizontal scroll) */}
+          {/* Trending Assets */}
           <TrendingAssets stocks={liveStocks} />
 
-          {/* MARKET REACTIONS (HIGH PRIORITY - EVENT-FIRST) */}
-          {/* This replaces generic news with region-aware market reactions */}
-          <RegionalMarketIntelligence />
+          {/* ── INTELLIGENCE FEED (replaces scattered components) ─── */}
+          <div className="space-y-2">
+            {/* Section header */}
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              <h2 className="text-sm font-bold text-white/80">Market Intelligence</h2>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 ml-1 uppercase tracking-wide">
+                {activeRegion === 'EU' ? 'Europe' : activeRegion === 'APAC' ? 'Asia' : activeRegion}
+              </span>
+              <span className="text-[9px] text-white/25 ml-auto">Interpretation-first</span>
+            </div>
+            <IntelligenceFeed activeRegion={activeRegion} onRegionChange={handleRegionChange} />
+          </div>
 
-          {/* Next Best Opportunity - Show only if we have live data */}
+          {/* ── NEXT JUMP ───────────────────────────────────────────── */}
           {liveStocks.length > 0 && (
             <NextJumpDetector
               signal={{
@@ -123,11 +146,8 @@ export default function Home() {
             />
           )}
 
-          {/* 1. Market Alert (SECONDARY) */}
-          <MarketAlert />
-
-          {/* 3. Your Moves Today - Pass live stock data */}
-          <YourMovesToday 
+          {/* ── YOUR MOVES TODAY ─────────────────────────────────────── */}
+          <YourMovesToday
             moves={liveStocks.slice(0, 3).map(stock => ({
               symbol: stock.symbol,
               action: stock.signal,
@@ -139,32 +159,22 @@ export default function Home() {
               risk: stock.change < -2 ? 'Further downside risk' : stock.change > 2 ? 'Pullback risk' : 'Sideways movement',
               confidence: `${stock.signal === 'BUY' || stock.signal === 'SELL' ? 'High' : 'Medium'}`
             }))}
-            onExplore={(move) => navigate(`/Asset/${move.symbol}`)} 
+            onExplore={(move) => navigate(`/Asset/${move.symbol}`)}
           />
 
-          {/* 4. Watch Out */}
+          {/* ── WATCH OUT ────────────────────────────────────────────── */}
           <WatchOut />
 
-          {/* 5. Market Pulse (merged sentiment + drivers + sectors) */}
+          {/* ── MARKET PULSE ─────────────────────────────────────────── */}
           <MarketPulse sentiment={fearGreed?.value || 50} />
 
-          {/* 6. Smart News */}
-          <SmartNews />
-
-          {/* 7. Upgrade Section (at bottom) */}
+          {/* ── UPGRADE ──────────────────────────────────────────────── */}
           <UpgradeCall onUpgrade={() => navigate('/Upgrade')} />
-          
-          {/* Live data status indicator */}
+
+          {/* Live data indicator */}
           <div className="text-center text-xs pt-4 border-t border-white/5">
-            {dataStatus === 'loading' && (
-              <span className="text-white/30">⏳ Loading real-time data...</span>
-            )}
-            {dataStatus === 'live' && (
-              <span className="text-primary/60">✓ Real-time data active • Last update: {new Date().toLocaleTimeString()}</span>
-            )}
-            {dataStatus === 'stale' && (
-              <span className="text-warning/60">⚠ Using cached data (API unavailable)</span>
-            )}
+            {dataStatus === 'live' && <span className="text-primary/50">✓ Real-time data active</span>}
+            {dataStatus === 'stale' && <span className="text-warning/50">⚠ Using cached data</span>}
           </div>
         </div>
 
