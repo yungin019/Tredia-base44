@@ -300,7 +300,7 @@ async function pollCoreAssets(polygonKey) {
 }
 
 // ── SEARCH HANDLER ───────────────────────────────────────────────────────
-async function handleSearch(query, polygonKey) {
+async function handleSearch(query, finnhubKey) {
   if (!query || query.trim().length < 1) return [];
 
   const q = query.trim().toUpperCase();
