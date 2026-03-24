@@ -102,15 +102,15 @@ html, body {
 ::-webkit-scrollbar-thumb { background: rgba(16,185,129,0.15); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(16,185,129,0.3); }
 
-/* Glow effects */
+/* Glow effects — cyan/turquoise */
 .glow-primary {
-  box-shadow: 0 0 32px rgba(16,185,129,0.15), 0 0 80px rgba(16,185,129,0.05);
+  box-shadow: 0 0 32px rgba(14,200,220,0.15), 0 0 80px rgba(14,200,220,0.05);
 }
 .glow-primary-sm {
-  box-shadow: 0 0 16px rgba(16,185,129,0.2);
+  box-shadow: 0 0 16px rgba(14,200,220,0.2);
 }
 .glow-green {
-  box-shadow: 0 0 24px rgba(16,185,129,0.15);
+  box-shadow: 0 0 24px rgba(14,200,220,0.15);
 }
 .glow-red {
   box-shadow: 0 0 24px rgba(239,68,68,0.15);
