@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, TrendingUp, TrendingDown } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import FeedReactionBlock from './FeedReactionBlock';
 
 // ── REACTION DATABASE ──────────────────────────────────────────────────────
