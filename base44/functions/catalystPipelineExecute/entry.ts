@@ -1,5 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+// NOTE: This function now delegates to anticipatoryTrekCore for market-structure-first analysis
+// Legacy reactive pipeline preserved for reference, but anticipatory mode is primary
+
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const POLYGON_API_KEY = Deno.env.get('POLYGON_API_KEY');
 
@@ -85,7 +88,9 @@ Respond with ONLY this JSON structure:
 
 Deno.serve(async (req) => {
   const report = {
-    source: 'Polygon.io',
+    source: 'TREK_ANTICIPATORY_HYBRID',
+    phase: 'INITIALIZATION',
+    anticipatoryMode: true,
     rawStatusCode: null,
     rawResponseBody: null,
     rawNewsCount: 0,
@@ -102,6 +107,24 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // ROUTE TO ANTICIPATORY TREK CORE
+    console.log('[CATALYST PIPELINE] ✓ Delegating to anticipatoryTrekCore for market-structure-first analysis');
+    const anticipatoryResponse = await base44.asServiceRole.functions.invoke('anticipatoryTrekCore', {});
+    
+    if (anticipatoryResponse.data?.catalystInserted) {
+      report.phase = 'ANTICIPATORY_SUCCESS';
+      report.realFixApplied = 'TREK upgraded to anticipatory mode: market structure → news confirmation → signal generation';
+      report.interpretedCatalystCount = 1;
+      report.dbInsertCount = 1;
+      console.log('[CATALYST PIPELINE] ✓ Anticipatory signal generated and inserted');
+      return Response.json(report);
+    } else {
+      console.warn('[CATALYST PIPELINE] ✗ Anticipatory mode returned no catalyst');
+      report.failurePoint = 'ANTICIPATORY_MODE_NO_OUTPUT';
+      return Response.json(report);
+    }
+    
 
     // STEP 1: Fetch real market news from Polygon.io
     console.log('[CATALYST PIPELINE] Step 1: Fetch raw news from Polygon.io');
