@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Eye, ChevronRight, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { transformCatalystLanguage } from '@/lib/catalystLanguage';
 
 const CATEGORY_COLORS = {
   macro: { bg: 'rgba(14,200,220,0.08)', border: 'rgba(14,200,220,0.2)', text: '#0ec8dc' },
@@ -13,8 +14,10 @@ const CATEGORY_COLORS = {
 };
 
 function CatalystCard({ catalyst, index, onSeeWhy }) {
-  const colors = CATEGORY_COLORS[catalyst.category] || CATEGORY_COLORS.macro;
-  const timeAgo = getTimeAgo(catalyst.published_at);
+  // Transform generic language to concrete terms
+  const displayCatalyst = transformCatalystLanguage(catalyst);
+  const colors = CATEGORY_COLORS[displayCatalyst.category] || CATEGORY_COLORS.macro;
+  const timeAgo = getTimeAgo(displayCatalyst.published_at);
 
   const handleViewSource = () => {
     if (catalyst.source_url) {
@@ -60,7 +63,7 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
         {/* Signal: Market State */}
         <div>
           <p className="text-sm font-bold text-white leading-tight">
-            {catalyst.market_state}
+            {displayCatalyst.market_state}
           </p>
         </div>
 
@@ -68,11 +71,11 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
         <div className="space-y-2 text-[11px]">
           <div className="flex items-start gap-2">
             <span className="text-white/30 font-bold flex-shrink-0">Why:</span>
-            <span className="text-white/65">{catalyst.driver || 'Market driver'}</span>
+            <span className="text-white/65">{displayCatalyst.driver || 'Market driver'}</span>
           </div>
           <div className="flex items-start gap-2">
             <span className="text-white/30 font-bold flex-shrink-0">Effect:</span>
-            <span className="text-white/65">{catalyst.impact || 'Market impact'}</span>
+            <span className="text-white/65">{displayCatalyst.impact || 'Market impact'}</span>
           </div>
         </div>
 
@@ -83,23 +86,23 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
             <span
               className="text-xs font-black px-2 py-1 rounded-lg"
               style={{
-                background: catalyst.action_bias === 'bullish' ? 'rgba(14,200,220,0.12)' : catalyst.action_bias === 'bearish' ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.06)',
-                color: catalyst.action_bias === 'bullish' ? '#0ec8dc' : catalyst.action_bias === 'bearish' ? '#ef4444' : 'rgba(255,255,255,0.6)'
+                background: displayCatalyst.action_bias === 'bullish' ? 'rgba(14,200,220,0.12)' : displayCatalyst.action_bias === 'bearish' ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.06)',
+                color: displayCatalyst.action_bias === 'bullish' ? '#0ec8dc' : displayCatalyst.action_bias === 'bearish' ? '#ef4444' : 'rgba(255,255,255,0.6)'
               }}
             >
-              {catalyst.action_bias === 'bullish' ? '↗ Up' : catalyst.action_bias === 'bearish' ? '↘ Down' : '→ Wait'}
+              {displayCatalyst.action_bias === 'bullish' ? '↗ Up' : displayCatalyst.action_bias === 'bearish' ? '↘ Down' : '→ Wait'}
             </span>
           </div>
           <div className="flex items-start gap-1.5 flex-1 min-w-0">
             <span className="text-[9px] text-white/30 flex-shrink-0 mt-0.5">⚠</span>
-            <span className="text-[9px] text-white/45">{catalyst.risk || 'Monitor'}</span>
+            <span className="text-[9px] text-white/45">{displayCatalyst.risk || 'Monitor'}</span>
           </div>
         </div>
 
         {/* Related Assets (if any) */}
-        {catalyst.related_assets && catalyst.related_assets.length > 0 && (
+        {displayCatalyst.related_assets && displayCatalyst.related_assets.length > 0 && (
           <div className="flex flex-wrap gap-1 pt-1">
-            {catalyst.related_assets.map((symbol, i) => (
+            {displayCatalyst.related_assets.map((symbol, i) => (
               <span
                 key={i}
                 className="text-[9px] px-2 py-1 rounded-lg font-mono font-bold"
@@ -119,7 +122,7 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
         <div className="space-y-2 pt-2 border-t border-white/[0.05]">
           {/* Source metadata */}
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] text-white/25 uppercase tracking-wider">Source: {catalyst.source_name}</span>
+            <span className="text-[8px] text-white/25 uppercase tracking-wider">Source: {displayCatalyst.source_name}</span>
           </div>
 
           {/* Confidence + Action Buttons */}
@@ -130,18 +133,18 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
-                    width: `${catalyst.confidence}%`,
-                    background: catalyst.confidence > 75 ? '#22c55e' : catalyst.confidence > 50 ? '#f59e0b' : '#ef4444'
+                    width: `${displayCatalyst.confidence}%`,
+                    background: displayCatalyst.confidence > 75 ? '#22c55e' : displayCatalyst.confidence > 50 ? '#f59e0b' : '#ef4444'
                   }}
                 />
               </div>
-              <span className="text-[9px] text-white/50">{catalyst.confidence}%</span>
+              <span className="text-[9px] text-white/50">{displayCatalyst.confidence}%</span>
             </div>
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => onSeeWhy?.(catalyst)}
+                onClick={() => onSeeWhy?.(displayCatalyst)}
                 className="text-[9px] px-2.5 py-1.5 rounded-lg font-bold transition-all"
                 style={{
                   background: 'rgba(14,200,220,0.1)',
