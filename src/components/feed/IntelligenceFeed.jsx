@@ -423,12 +423,12 @@ function filterAndRank(reactions, region) {
 // ── CONTEXT BLURB (region-aware) ────────────────────────────────────────────
 
 const CONTEXT_BLURBS = {
-  Global: { headline: 'Cross-market macro regime — highest impact signals', text: 'Peak rate cycle globally. Bond markets leading equities. DXY is the compass: softer dollar = EM relief, growth tech, gold. Watch US PCE + BoJ as the two global swing factors.' },
-  US:     { headline: 'Fed pivot = growth rotation', text: 'Rate hike cycle nearing end. Historically: growth tech wins 6–12 months post-peak. Duration trade building. Watch yields + PCE.' },
-  EU:     { headline: 'ECB still hawkish, but earnings recovering', text: 'European equities cheap vs US. Earnings season positive. ECB may overtighten — watch banking sector for stress.' },
-  APAC:   { headline: 'China stimulus vs BoJ tightening = split APAC', text: 'PBOC expected to ease while BoJ exits YCC. Opposite forces. Favor Japan exporters hedge plays; watch CNY for China re-entry signal.' },
-  Africa: { headline: 'Commodity cycle is the Africa macro dial', text: 'Sub-Saharan economies co-move with commodity prices and DXY. China demand = primary leading indicator for the region.' },
-  LatAm:  { headline: 'EM cycle tied to Fed + commodities', text: 'LatAm is a leveraged bet on commodities + DXY softness. Fed cut cycle = EM bull market. Copper structural tailwind for Chile.' },
+  Global: { headline: 'Fed pause spreading globally', text: 'Central banks are done hiking. Bond yields falling. Growth stocks rallying. Dollar weakening. This is the setup for a 6-month equity bull run.' },
+  US:     { headline: 'Fed stops = tech wins', text: 'When the Fed stops raising rates, big tech stocks typically spike hard for months. Watch bond yields dropping and tech breaking out.' },
+  EU:     { headline: 'European stocks cheap vs US, earnings beating', text: 'European companies are winning on earnings. Stock prices still below US levels. Could be a bet on for 6-12 months.' },
+  APAC:   { headline: 'China easing vs Japan tightening = opposite forces', text: 'China central bank loosening money. Japan central bank tightening. China stocks could bounce. Japan stocks could sell off.' },
+  Africa: { headline: 'Commodity prices = Africa stock direction', text: 'When oil, copper, gold rise → African stocks rise. When they fall → African stocks fall. Watch commodity prices as your leading indicator.' },
+  LatAm:  { headline: 'Commodities rallying = Brazil, Mexico rally', text: 'When dollar weakens and commodity prices rise, LatAm currencies strengthen and stocks spike. This is that moment now.' },
 };
 
 // ── SEPARATOR ───────────────────────────────────────────────────────────────

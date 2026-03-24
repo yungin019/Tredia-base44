@@ -241,7 +241,7 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
   if (catalysts.length === 0) {
     return (
       <div className="text-center py-8">
-        <div className="text-xs text-white/30">No breaking catalysts at the moment.</div>
+        <div className="text-xs text-white/30">Market quiet — no major moves breaking right now.</div>
       </div>
     );
   }

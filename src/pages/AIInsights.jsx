@@ -253,15 +253,15 @@ export default function AIInsights() {
             ) : (
               <div className="lg:col-span-2 space-y-4">
                 <div className="p-8 rounded-lg bg-white/[0.02] border border-white/[0.08]">
-                  <p className="text-sm font-semibold text-white/70 mb-2">Market state neutral</p>
-                  <p className="text-xs text-white/40">No strong signals at this time. Market is waiting for key data releases.</p>
+                  <p className="text-sm font-semibold text-white/70 mb-2">Market waiting for catalyst</p>
+                  <p className="text-xs text-white/40">No big moves breaking. Next trigger likely from inflation data or Fed speakers.</p>
                 </div>
                 <div className="space-y-2 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-                  <p className="text-xs font-bold text-white/30 uppercase tracking-wider">Watch for</p>
+                  <p className="text-xs font-bold text-white/30 uppercase tracking-wider">On the radar</p>
                   <div className="space-y-1">
-                    <p className="text-xs text-white/50">• Economic data releases</p>
-                    <p className="text-xs text-white/50">• Fed speakers/statements</p>
-                    <p className="text-xs text-white/50">• Earnings reports</p>
+                    <p className="text-xs text-white/50">• PCE inflation print (Friday)</p>
+                    <p className="text-xs text-white/50">• Fed speakers this week</p>
+                    <p className="text-xs text-white/50">• Major earnings announcements</p>
                   </div>
                 </div>
               </div>

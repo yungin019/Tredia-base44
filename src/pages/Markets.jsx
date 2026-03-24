@@ -60,16 +60,16 @@ export default function Markets() {
           const recent = res.data.history.slice(-2);
           if (recent.length === 2) {
             const change = recent[1].close - recent[0].close;
-            if (change > 0) setIndexContext('Market recovering — Watch for continuation');
-            else if (change < 0) setIndexContext('Market pressured — Monitor for support');
-            else setIndexContext('Market consolidating — Waiting for direction');
+            if (change > 0) setIndexContext('S&P bouncing higher — strength holding into close');
+            else if (change < 0) setIndexContext('S&P selling off — buyers stepping back');
+            else setIndexContext('S&P stuck in range — no clear direction');
           }
         } else {
-          setIndexContext('Unable to load chart data');
+          setIndexContext('S&P price data unavailable');
         }
       } catch {
         setChartData([]);
-        setIndexContext('Chart temporarily unavailable');
+        setIndexContext('Market data loading...');
       } finally {
         setChartLoading(false);
       }

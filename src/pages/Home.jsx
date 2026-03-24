@@ -125,12 +125,12 @@ export default function Home() {
             moves={liveStocks.slice(0, 3).map(stock => ({
               symbol: stock.symbol,
               action: stock.signal,
-              entry: stock.signal === 'BUY' ? `Buy on dips to $${(stock.price * 0.98).toFixed(0)}` : stock.signal === 'SELL' ? 'Do not enter, wait for reversal' : `Watch for breakout above $${(stock.price * 1.02).toFixed(0)}`,
-              positionSize: stock.signal === 'BUY' ? 'Normal size' : stock.signal === 'SELL' ? 'Avoid' : 'Small size',
+              entry: stock.signal === 'BUY' ? `Wait for pullback to $${(stock.price * 0.98).toFixed(0)}` : stock.signal === 'SELL' ? 'Stay away until reversal forms' : `Buy if it breaks above $${(stock.price * 1.02).toFixed(0)}`,
+              positionSize: stock.signal === 'BUY' ? 'Full size' : stock.signal === 'SELL' ? 'No position' : 'Quarter size',
               timeframe: '1-2 weeks',
-              why: `${stock.symbol} ${stock.change > 0 ? 'up' : 'down'} ${Math.abs(stock.change).toFixed(2)}% today. Market ${stock.change > 2 ? 'showing strength' : stock.change < -2 ? 'showing weakness' : 'consolidating'}.`,
-              exitTarget: stock.signal === 'BUY' ? `Sell at $${(stock.price * 1.05).toFixed(0)}` : 'N/A',
-              risk: stock.change < -2 ? 'Further downside risk' : stock.change > 2 ? 'Pullback risk' : 'Sideways movement',
+              why: `${stock.symbol} up ${stock.change > 0 ? stock.change.toFixed(2) : 'and flat'}%. ${stock.change > 2 ? 'Buyers winning today' : stock.change < -2 ? 'Sellers in control' : 'No momentum either way'}.`,
+              exitTarget: stock.signal === 'BUY' ? `Take profit at $${(stock.price * 1.05).toFixed(0)}` : 'N/A',
+              risk: stock.change < -2 ? 'Could drop further' : stock.change > 2 ? 'Could pull back' : 'May stay stuck',
               confidence: `${stock.signal === 'BUY' || stock.signal === 'SELL' ? 'High' : 'Medium'}`
             }))}
             onExplore={(move) => navigate(`/Asset/${move.symbol}`)}
@@ -154,11 +154,11 @@ export default function Home() {
             <div className="space-y-1">
               <div className="flex items-start gap-2">
                 <span className="text-[9px] text-white/30 mt-0.5 flex-shrink-0">→</span>
-                <span className="text-[10px] text-white/50">Rate hike cycle nearing end historically leads to 6–12 month equity outperformance</span>
+                <span className="text-[10px] text-white/50">When Fed stops hiking, growth stocks typically rally for 6–12 months</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="text-[9px] text-white/30 mt-0.5 flex-shrink-0">→</span>
-                <span className="text-[10px] text-white/50">Growth sectors rotating in, bonds benefiting from lower yields</span>
+                <span className="text-[10px] text-white/50">Tech stocks rallying, bond prices rising as yields fall</span>
               </div>
             </div>
             <div className="flex items-start gap-2 pt-1">
@@ -178,19 +178,19 @@ export default function Home() {
                 border: '1px solid rgba(14,200,220,0.1)',
               }}
             >
-              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1.5">Key Catalysts Today</p>
+              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1.5">Watch Today For</p>
               <div className="space-y-1">
                 <div className="flex items-start gap-2">
                   <span className="text-[9px] text-white/25 flex-shrink-0">•</span>
-                  <span className="text-[10px] text-white/50">Fed decision announcement — 2pm EST</span>
+                  <span className="text-[10px] text-white/50">Fed rate decision — could spike yields or drop them</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-[9px] text-white/25 flex-shrink-0">•</span>
-                  <span className="text-[10px] text-white/50">NVDA earnings post-market</span>
+                  <span className="text-[10px] text-white/50">NVDA earnings — AI demand story on the line</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-[9px] text-white/25 flex-shrink-0">•</span>
-                  <span className="text-[10px] text-white/50">Oil inventory data — 10:30am EST</span>
+                  <span className="text-[10px] text-white/50">Oil inventory — energy stocks react</span>
                 </div>
               </div>
             </div>
