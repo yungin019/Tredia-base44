@@ -262,28 +262,61 @@ function buildCoreResponse() {
   });
 }
 
+// ── RATE LIMITER ─────────────────────────────────────────────────────────
+// Max 4 Polygon requests per second (free tier safe)
+const requestTimestamps = [];
+const MAX_REQUESTS_PER_SEC = 4;
+
+async function polygonRateLimitedFetch(url, signal) {
+  const now = Date.now();
+  // Remove timestamps older than 1 second
+  while (requestTimestamps.length > 0 && now - requestTimestamps[0] >= 1000) {
+    requestTimestamps.shift();
+  }
+  // If at limit, wait until oldest request is 1s old
+  if (requestTimestamps.length >= MAX_REQUESTS_PER_SEC) {
+    const waitMs = 1000 - (now - requestTimestamps[0]) + 10;
+    await new Promise(r => setTimeout(r, waitMs));
+    requestTimestamps.shift();
+  }
+  requestTimestamps.push(Date.now());
+  return fetch(url, { signal });
+}
+
 // ── BACKGROUND POLLER ────────────────────────────────────────────────────
 let lastPollTime = 0;
-const POLL_INTERVAL_MS = 8000; // poll every 8s
+let pollInProgress = false;
+const POLL_INTERVAL_MS = 12000; // poll every 12s (stable, no burst)
+const BATCH_DELAY_MS = 250;     // 250ms between batches
 
 async function pollCoreAssets(polygonKey) {
   const now = Date.now();
   if (now - lastPollTime < POLL_INTERVAL_MS) return; // too soon
+  if (pollInProgress) return; // already running, skip
+  pollInProgress = true;
   lastPollTime = now;
 
   try {
-    // Fetch stocks + ETFs from Polygon (batch)
-    const stockResults = await fetchPolygonQuotes(CORE_SYMBOLS_STOCK, polygonKey);
-    Object.entries(stockResults).forEach(([sym, data]) => {
-      if (data.status === 'live') {
-        coreCache.set(sym, { price: data.price, changePct: data.changePct, timestamp: data.timestamp, provider: data.provider });
-        console.log(`[Poll] ✓ ${sym}: $${data.price}`);
-      } else {
-        console.warn(`[Poll] ✗ ${sym}: ${data.error}`);
+    // ── Step 1: Staggered Polygon fetches in batches of 2 ──
+    const BATCH_SIZE = 2;
+    for (let i = 0; i < CORE_SYMBOLS_STOCK.length; i += BATCH_SIZE) {
+      const batch = CORE_SYMBOLS_STOCK.slice(i, i + BATCH_SIZE);
+      const batchResults = await fetchPolygonQuotes(batch, polygonKey);
+      Object.entries(batchResults).forEach(([sym, data]) => {
+        if (data.status === 'live') {
+          coreCache.set(sym, { price: data.price, changePct: data.changePct, timestamp: data.timestamp, provider: data.provider });
+          console.log(`[Poll] ✓ ${sym}: $${data.price}`);
+        } else {
+          console.warn(`[Poll] ✗ ${sym}: ${data.error}`);
+        }
+      });
+      // Stagger between batches (skip delay after last batch)
+      if (i + BATCH_SIZE < CORE_SYMBOLS_STOCK.length) {
+        await new Promise(r => setTimeout(r, BATCH_DELAY_MS));
       }
-    });
+    }
 
-    // Fetch crypto from CoinGecko
+    // ── Step 2: CoinGecko (single batch call, no stagger needed) ──
     const cryptoResults = await fetchCoinGeckoQuotes(CORE_SYMBOLS_CRYPTO);
     Object.entries(cryptoResults).forEach(([sym, data]) => {
       if (data.status === 'live') {
@@ -295,6 +328,8 @@ async function pollCoreAssets(polygonKey) {
     });
   } catch (err) {
     console.error('[Poll] Error:', err.message);
+  } finally {
+    pollInProgress = false;
   }
 }
 
