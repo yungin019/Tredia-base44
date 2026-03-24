@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Eye, ChevronRight, Clock, Zap } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import SignalExplanationModal from './SignalExplanationModal';
 
 const CATEGORY_COLORS = {
   macro: { bg: 'rgba(14,200,220,0.08)', border: 'rgba(14,200,220,0.2)', text: '#0ec8dc' },
@@ -153,8 +154,11 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
         {/* Footer: Buttons */}
         <div className="flex items-center gap-2 pt-3 border-t border-white/[0.05]">
           <button
-            onClick={() => onSeeWhy?.(catalyst)}
-            className="flex-1 text-[9px] px-2.5 py-2 rounded-lg font-bold transition-all"
+            onClick={() => {
+              setSelectedSignal(catalyst);
+              setModalOpen(true);
+            }}
+            className="flex-1 text-[9px] px-2.5 py-2 rounded-lg font-bold transition-all hover:opacity-80"
             style={{
               background: 'rgba(14,200,220,0.1)',
               border: '1px solid rgba(14,200,220,0.2)',
@@ -163,27 +167,31 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
           >
             See Why
           </button>
-          <button
-            onClick={handleViewSource}
-            className="flex-1 text-[9px] px-2.5 py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1"
-            style={{
-              background: 'rgba(100,220,255,0.08)',
-              border: '1px solid rgba(100,220,255,0.15)',
-              color: 'rgba(150,230,255,0.6)'
-            }}
-          >
-            <ExternalLink className="h-3 w-3" />
-            View Source
-          </button>
+          {catalyst.source_url && (
+            <button
+              onClick={handleViewSource}
+              className="flex-1 text-[9px] px-2.5 py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1 hover:opacity-80"
+              style={{
+                background: 'rgba(100,220,255,0.08)',
+                border: '1px solid rgba(100,220,255,0.15)',
+                color: 'rgba(150,230,255,0.6)'
+              }}
+            >
+              <ExternalLink className="h-3 w-3" />
+              View Source
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
   );
 }
 
-export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
+export default function CatalystFeed({ activeRegion = 'Global' }) {
   const [signals, setSignals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedSignal, setSelectedSignal] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const loadSignals = async () => {
@@ -259,31 +267,47 @@ export default function CatalystFeed({ activeRegion = 'Global', onSeeWhy }) {
   // Always show signals — never empty (minimum 3)
   const displaySignals = signals.length > 0 ? signals : [];
 
+  const handleSignalClick = (signal) => {
+    setSelectedSignal(signal);
+    setModalOpen(true);
+  };
+
   return (
-    <div className="space-y-3" style={{ 
-      paddingTop: '16px',
-      borderTop: '2px solid rgba(14,200,220,0.2)',
-    }}>
-      <div className="flex items-center gap-2 mb-4">
-        <div className="h-2 w-2 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
-        <h2 className="text-sm font-black text-white uppercase tracking-widest">Market Signals</h2>
-        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full ml-auto" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
-          News + Structure
-        </span>
-      </div>
-      <AnimatePresence mode="wait">
-        <div className="space-y-3">
-          {displaySignals.map((signal, i) => (
-            <CatalystCard
-              key={signal.id}
-              catalyst={signal}
-              index={i}
-              onSeeWhy={onSeeWhy}
-            />
-          ))}
+    <>
+      <div className="space-y-3" style={{ 
+        paddingTop: '16px',
+        borderTop: '2px solid rgba(14,200,220,0.2)',
+      }}>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="h-2 w-2 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
+          <h2 className="text-sm font-black text-white uppercase tracking-widest">Market Signals</h2>
+          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full ml-auto" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
+            News + Structure
+          </span>
         </div>
-      </AnimatePresence>
-    </div>
+        <AnimatePresence mode="wait">
+          <div className="space-y-3">
+            {displaySignals.map((signal, i) => (
+              <CatalystCard
+                key={signal.id}
+                catalyst={signal}
+                index={i}
+                onSeeWhy={handleSignalClick}
+              />
+            ))}
+          </div>
+        </AnimatePresence>
+      </div>
+
+      <SignalExplanationModal 
+        signal={selectedSignal} 
+        isOpen={modalOpen} 
+        onClose={() => {
+          setModalOpen(false);
+          setSelectedSignal(null);
+        }}
+      />
+    </>
   );
 }
 
