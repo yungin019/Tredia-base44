@@ -166,7 +166,7 @@ async function fetchPolygonQuotes(symbols, polygonKey) {
       results[symbol] = { status: 'unavailable', error: err.message };
       console.error(`[Polygon] ${symbol} error:`, err.message);
     }
-  }));
+  }
 
   return results;
 }
