@@ -164,46 +164,7 @@ export default function Home() {
           {/* OG100 Badge */}
           <OG100Card />
 
-          {/* ── NEXT JUMP ───────────────────────────────────────────── */}
-          {liveStocks.length > 0 && (
-            <NextJumpDetector
-              signal={{
-                asset: liveStocks[0]?.symbol || 'NVDA',
-                direction: liveStocks[0]?.change > 0 ? 'BUY' : 'SELL',
-                confidence: Math.min(87, Math.max(50, Math.abs(liveStocks[0]?.change || 0) * 10)),
-                quote: `Live market data: ${liveStocks[0]?.symbol} ${liveStocks[0]?.change > 0 ? 'up' : 'down'} ${Math.abs(liveStocks[0]?.change || 0).toFixed(2)}% today.`,
-                entry: liveStocks[0]?.change > 0 ? 'Buy dips, do not chase.' : 'Wait for reversal signals.',
-                positionSize: liveStocks[0]?.change > 2 ? 'Normal size' : 'Small size',
-                timing: 'Hold 1–2 weeks',
-                risk: 'Monitor volume and market sentiment.'
-              }}
-              onSeeWhy={() => navigate('/AIInsights')}
-            />
-          )}
-
-          {/* ── YOUR MOVES TODAY ─────────────────────────────────────── */}
-          <YourMovesToday
-            moves={liveStocks.slice(0, 3).map(stock => ({
-              symbol: stock.symbol,
-              action: stock.signal,
-              entry: stock.signal === 'BUY' ? `Buy on dips to $${(stock.price * 0.98).toFixed(0)}` : stock.signal === 'SELL' ? 'Do not enter, wait for reversal' : `Watch for breakout above $${(stock.price * 1.02).toFixed(0)}`,
-              positionSize: stock.signal === 'BUY' ? 'Normal size' : stock.signal === 'SELL' ? 'Avoid' : 'Small size',
-              timeframe: '1-2 weeks',
-              why: `${stock.symbol} ${stock.change > 0 ? 'up' : 'down'} ${Math.abs(stock.change).toFixed(2)}% today. Market ${stock.change > 2 ? 'showing strength' : stock.change < -2 ? 'showing weakness' : 'consolidating'}.`,
-              exitTarget: stock.signal === 'BUY' ? `Sell at $${(stock.price * 1.05).toFixed(0)}` : 'N/A',
-              risk: stock.change < -2 ? 'Further downside risk' : stock.change > 2 ? 'Pullback risk' : 'Sideways movement',
-              confidence: `${stock.signal === 'BUY' || stock.signal === 'SELL' ? 'High' : 'Medium'}`
-            }))}
-            onExplore={(move) => navigate(`/Asset/${move.symbol}`)}
-          />
-
-          {/* ── WATCH OUT ────────────────────────────────────────────── */}
-          <WatchOut />
-
-          {/* ── MARKET PULSE ─────────────────────────────────────────── */}
-          <MarketPulse sentiment={fearGreed?.value || 50} />
-
-          {/* ── UPGRADE ──────────────────────────────────────────────── */}
+          {/* ── UPGRADE (at end, not intrusive) ──────────────────────────── */}
           <UpgradeCall onUpgrade={() => navigate('/Upgrade')} />
 
           {/* Live data indicator */}
