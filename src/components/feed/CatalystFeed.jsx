@@ -154,10 +154,7 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
         {/* Footer: Buttons */}
         <div className="flex items-center gap-2 pt-3 border-t border-white/[0.05]">
           <button
-            onClick={() => {
-              setSelectedSignal(catalyst);
-              setModalOpen(true);
-            }}
+            onClick={() => onSeeWhy(catalyst)}
             className="flex-1 text-[9px] px-2.5 py-2 rounded-lg font-bold transition-all hover:opacity-80"
             style={{
               background: 'rgba(14,200,220,0.1)',
