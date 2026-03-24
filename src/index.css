@@ -136,24 +136,29 @@ html, body {
   box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.4);
 }
 
-/* Glass morphism */
+/* Glass morphism — deep blue / cyan theme */
 .glass {
-  background: rgba(11,15,23,0.6);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(6, 12, 28, 0.55);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(100, 220, 255, 0.07);
 }
 .glass-dark {
-  background: rgba(7,10,17,0.85);
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.03);
+  background: rgba(4, 8, 18, 0.80);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border: 1px solid rgba(100, 220, 255, 0.05);
 }
 .glass-card {
-  background: rgba(15,20,30,0.4);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(8, 16, 36, 0.45);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid rgba(100, 220, 255, 0.08);
+}
+/* App-wide background */
+.app-bg {
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14, 50, 90, 0.35) 0%, transparent 70%),
+              linear-gradient(180deg, #040d1e 0%, #030810 60%, #020608 100%);
 }
 
 /* Grid background */
