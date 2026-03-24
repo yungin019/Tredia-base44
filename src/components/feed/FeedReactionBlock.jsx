@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, Clock, ChevronDown, ChevronUp, Zap, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { calculateSignalStrength, getSignalColor } from '@/lib/signalStrength';
 
 // ── SIGNAL BADGE CONFIG ─────────────────────────────────────────────────────
 const SIGNAL_CFG = {
