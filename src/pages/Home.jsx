@@ -140,7 +140,7 @@ export default function Home() {
           {/* ╚════════════════════════════════════════════════════════════════ */}
 
           <div
-            className="rounded-xl px-4 py-3.5 space-y-2"
+            className="rounded-xl px-4 py-3.5 space-y-3"
             style={{
               background: 'rgba(8, 18, 42, 0.65)',
               backdropFilter: 'blur(24px)',
@@ -167,6 +167,31 @@ export default function Home() {
             <div className="flex items-start gap-2">
               <span className="text-[10px] flex-shrink-0">⚠</span>
               <span className="text-[10px] text-white/50">Risk: Inflation surprise above 3.5%</span>
+            </div>
+
+            {/* ── KEY CATALYSTS (lightweight) ────────────────────────────── */}
+            <div
+              className="rounded-lg px-3 py-2.5"
+              style={{
+                background: 'rgba(14,200,220,0.04)',
+                border: '1px solid rgba(14,200,220,0.1)',
+              }}
+            >
+              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1.5">Key Catalysts Today</p>
+              <div className="space-y-1">
+                <div className="flex items-start gap-2">
+                  <span className="text-[9px] text-white/25 flex-shrink-0">•</span>
+                  <span className="text-[10px] text-white/50">Fed decision announcement — 2pm EST</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[9px] text-white/25 flex-shrink-0">•</span>
+                  <span className="text-[10px] text-white/50">NVDA earnings post-market</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[9px] text-white/25 flex-shrink-0">•</span>
+                  <span className="text-[10px] text-white/50">Oil inventory data — 10:30am EST</span>
+                </div>
+              </div>
             </div>
           </div>
 
