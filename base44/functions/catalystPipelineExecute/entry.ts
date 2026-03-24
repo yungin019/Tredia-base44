@@ -95,6 +95,7 @@ Deno.serve(async (req) => {
 
     for (const news of acceptedNews) {
       try {
+        const headline = news.title || news.headline;
         const llmResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -108,7 +109,7 @@ Deno.serve(async (req) => {
               content: 'Output ONLY this JSON: {"market_state":"state","driver":"driver","impact":"impact","action_bias":"bullish|bearish|neutral","risk":"risk","confidence":75}'
             }, {
               role: 'user',
-              content: `News: ${news.headline}`
+              content: `News: ${headline}`
             }],
             temperature: 0.7
           })
@@ -120,21 +121,21 @@ Deno.serve(async (req) => {
         const interp = JSON.parse(jsonStr);
 
         // Infer regions from headline
-        const headline = news.headline.toLowerCase();
+        const headlineLower = headline.toLowerCase();
         const regions = [];
-        if (headline.match(/us|usa|fed|nasdaq|trump/)) regions.push('US');
-        if (headline.match(/eu|europe|ecb|germany|london|stoxx/)) regions.push('EU');
-        if (headline.match(/asia|japan|china|nikkei|shanghai/)) regions.push('APAC');
-        if (headline.match(/africa|south africa/)) regions.push('Africa');
-        if (headline.match(/latam|brazil|mexico/)) regions.push('LatAm');
+        if (headlineLower.match(/us|usa|fed|nasdaq|trump/)) regions.push('US');
+        if (headlineLower.match(/eu|europe|ecb|germany|london|stoxx/)) regions.push('EU');
+        if (headlineLower.match(/asia|japan|china|nikkei|shanghai/)) regions.push('APAC');
+        if (headlineLower.match(/africa|south africa/)) regions.push('Africa');
+        if (headlineLower.match(/latam|brazil|mexico/)) regions.push('LatAm');
         if (regions.length === 0) regions.push('Global');
 
         catalysts.push({
-          headline: news.headline,
-          source_url: news.url,
-          source_name: news.source || 'Finnhub',
+          headline,
+          source_url: news.article_url,
+          source_name: news.source?.name || 'Polygon.io',
           market_state: interp.market_state || 'Market shift',
-          driver: interp.driver || news.headline,
+          driver: interp.driver || headline,
           impact: interp.impact || 'Volatility expected',
           action_bias: (interp.action_bias || 'neutral').toLowerCase(),
           risk: interp.risk || 'Unexpected developments',
@@ -143,7 +144,7 @@ Deno.serve(async (req) => {
           category: 'macro',
           confidence: interp.confidence || 70,
           related_assets: [],
-          published_at: news.datetime ? new Date(news.datetime * 1000).toISOString() : new Date().toISOString(),
+          published_at: news.published_utc ? new Date(news.published_utc).toISOString() : new Date().toISOString(),
           interpretation_updated_at: new Date().toISOString()
         });
       } catch (e) {
