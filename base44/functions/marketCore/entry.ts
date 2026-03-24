@@ -460,12 +460,12 @@ Deno.serve(async (req) => {
       console.log('[Core] cache size:', coreCache.size, 'pollInProgress:', globalThis._pollInProgress, 'lastPollTime:', globalThis._lastPollTime);
 
       if (coreCache.size === 0) {
-        // First request or cold boot — block until poll completes
+        // First request or cold boot — block until poll completes so we return real data
         console.log('[Core] Cold cache — running sync poll');
-        await pollCoreAssets(POLYGON_KEY);
+        await pollCoreAssets(FINNHUB_KEY);
       } else {
         // Cache warm — refresh in background only
-        pollCoreAssets(POLYGON_KEY).catch(err => console.error('[BG Poll]', err.message));
+        pollCoreAssets(FINNHUB_KEY).catch(err => console.error('[BG Poll]', err.message));
       }
 
       const response = buildCoreResponse();
