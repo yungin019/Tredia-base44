@@ -53,8 +53,10 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
 
   if (!reaction) return null;
 
+  const isPrimary = index === 0;
   const dir = reaction.direction;
-  const stateColor = dir === 'bullish' ? '#22c55e' : dir === 'bearish' ? '#ef4444' : '#F59E0B';
+  // Bullish → cyan (matches theme), bearish → red, neutral → gold
+  const stateColor = dir === 'bullish' ? '#0ec8dc' : dir === 'bearish' ? '#ef4444' : '#F59E0B';
   const StateIcon = dir === 'bullish' ? TrendingUp : dir === 'bearish' ? TrendingDown : AlertCircle;
   const importanceMeta = IMPORTANCE_LABEL[reaction.importance] || IMPORTANCE_LABEL[7];
   const timingStyle = TIMING_STYLE[reaction.timing] || 'text-white/40 bg-white/5 border-white/10';
@@ -62,22 +64,34 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
   // Assets split by direction
   const relatedAssets = reaction.relatedAssets || reaction.affectedAssets?.map(s => ({ symbol: s, direction: dir === 'bullish' ? 'up' : 'down' })) || [];
 
+  // Layer 3 (hero) for index=0, Layer 2 (standard) for rest
+  const cardStyle = isPrimary ? {
+    background: 'rgba(12, 26, 62, 0.78)',
+    backdropFilter: 'blur(32px) saturate(200%)',
+    WebkitBackdropFilter: 'blur(32px) saturate(200%)',
+    border: `1px solid ${stateColor}30`,
+    boxShadow: `0 0 40px ${stateColor}0f, 0 0 0 1px ${stateColor}08 inset, 0 12px 40px rgba(0,0,0,0.5)`,
+  } : {
+    background: 'rgba(8, 18, 42, 0.60)',
+    backdropFilter: 'blur(24px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+    border: '1px solid rgba(100, 220, 255, 0.09)',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(100,220,255,0.05)',
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07 }}
       className="rounded-2xl overflow-hidden"
-      style={{
-        background: 'rgba(8, 16, 36, 0.55)',
-        backdropFilter: 'blur(18px)',
-        WebkitBackdropFilter: 'blur(18px)',
-        border: '1px solid rgba(100, 220, 255, 0.09)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(100,220,255,0.06)',
-      }}
+      style={cardStyle}
     >
-      {/* ── ACCENT LINE (direction-aware) ────────────────────────── */}
-      <div className="h-[2px] w-full" style={{ background: `linear-gradient(90deg, ${stateColor}60 0%, ${stateColor}18 60%, transparent 100%)` }} />
+      {/* ── ACCENT LINE — thicker + brighter for primary ──────────── */}
+      <div
+        className={isPrimary ? 'h-[3px]' : 'h-[2px]'}
+        style={{ background: `linear-gradient(90deg, ${stateColor}${isPrimary ? '90' : '55'} 0%, ${stateColor}22 55%, transparent 100%)` }}
+      />
 
       {/* ── TOP STRIPE: Importance + Timing ──────────────────────── */}
       <div className="flex items-center gap-2 px-4 pt-3 pb-0">
