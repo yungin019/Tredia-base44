@@ -405,7 +405,8 @@ export default function AssetDetail() {
 
       {/* Chart */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.07 }}
-        className="rounded-xl border border-white/[0.07] bg-[#111118] p-4 mb-4">
+        className="rounded-xl p-4 mb-4"
+        style={{ background: 'rgba(8,16,36,0.55)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', border: '1px solid rgba(100,220,255,0.09)' }}>
         {/* Timeframe Selector */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Price Chart</span>
@@ -575,7 +576,7 @@ export default function AssetDetail() {
           { label: t('trek.confidence'), value: `${asset.confidence}%`, color: 'rgba(255,255,255,0.7)' },
           { label: t('trek.conviction'), value: asset.conviction, color: cvColor },
         ].map((s, i) => (
-          <div key={i} className="rounded-xl p-3 text-center" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div key={i} className="rounded-xl p-3 text-center" style={{ background: 'rgba(8,16,36,0.55)', border: '1px solid rgba(100,220,255,0.09)' }}>
             <p className="text-[9px] text-white/25 uppercase tracking-wider mb-1">{s.label}</p>
             <p className="text-[13px] font-black font-mono" style={{ color: s.color }}>{s.value}</p>
           </div>
@@ -585,7 +586,7 @@ export default function AssetDetail() {
       {/* Key Metrics */}
       {staticAsset.keyMetrics && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
-          className="rounded-xl p-4 mb-4" style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)' }}>
+          className="rounded-xl p-4 mb-4" style={{ background: 'rgba(8,16,36,0.55)', border: '1px solid rgba(100,220,255,0.09)' }}>
           <h3 className="text-[11px] font-black text-white/70 uppercase tracking-wider mb-3">Key Metrics</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -618,7 +619,7 @@ export default function AssetDetail() {
       {(staticAsset.whyBullish || staticAsset.whyBearish) && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
           className="rounded-xl p-4 mb-4"
-          style={{ background: `${asset.color}08`, border: `1px solid ${asset.color}20` }}>
+          style={{ background: `${asset.color}0a`, backdropFilter: 'blur(12px)', border: `1px solid ${asset.color}25` }}>
           <h3 className="text-[11px] font-black uppercase tracking-wider mb-3" style={{ color: asset.color }}>
             Why TREK is {asset.signal === 'BUY' ? 'Bullish' : asset.signal === 'SELL' ? 'Bearish' : 'Watching'}
           </h3>
