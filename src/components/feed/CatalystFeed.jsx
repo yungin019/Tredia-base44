@@ -82,34 +82,45 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
         </div>
 
         {/* Driver + Impact - CONCRETE */}
-        <div className="space-y-2 text-[11px]">
+        <div className="space-y-2 text-[11px] pt-2 border-t border-white/[0.05]">
           <div className="flex items-start gap-2">
             <span className="text-white/30 font-bold flex-shrink-0">Why:</span>
-            <span className="text-white/65">{catalyst.driver || 'Market driver'}</span>
+            <span className="text-white/65">{catalyst.driver}</span>
           </div>
           <div className="flex items-start gap-2">
             <span className="text-white/30 font-bold flex-shrink-0">Effect:</span>
-            <span className="text-white/65">{catalyst.impact || 'Market impact'}</span>
+            <span className="text-white/65">{catalyst.impact}</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-white/30 font-bold flex-shrink-0">Risk:</span>
+            <span className="text-white/65">{catalyst.risk}</span>
           </div>
         </div>
 
-        {/* Action Bias + Risk - DECISION CLEAR */}
-        <div className="flex items-start justify-between gap-2 pt-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] font-bold text-white/25 uppercase">Bias</span>
-            <span
-              className="text-xs font-black px-2 py-1 rounded-lg"
-              style={{
-                background: catalyst.action_bias === 'bullish' ? 'rgba(14,200,220,0.12)' : catalyst.action_bias === 'bearish' ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.06)',
-                color: catalyst.action_bias === 'bullish' ? '#0ec8dc' : catalyst.action_bias === 'bearish' ? '#ef4444' : 'rgba(255,255,255,0.6)'
-              }}
-            >
-              {catalyst.action_bias === 'bullish' ? '↗ Up' : catalyst.action_bias === 'bearish' ? '↘ Down' : '→ Wait'}
-            </span>
-          </div>
-          <div className="flex items-start gap-1.5 flex-1 min-w-0">
-            <span className="text-[9px] text-white/30 flex-shrink-0 mt-0.5">⚠</span>
-            <span className="text-[9px] text-white/45">{catalyst.risk || 'Monitor'}</span>
+        {/* Action Bias */}
+        <div className="flex items-center gap-3 pt-2">
+          <span className="text-[9px] font-bold text-white/25 uppercase">Signal</span>
+          <span
+            className="text-xs font-black px-2.5 py-1 rounded-lg"
+            style={{
+              background: catalyst.action_bias === 'bullish' ? 'rgba(14,200,220,0.12)' : 'rgba(239,68,68,0.12)',
+              color: catalyst.action_bias === 'bullish' ? '#0ec8dc' : '#ef4444'
+            }}
+          >
+            {catalyst.action_bias === 'bullish' ? '↗ Bullish' : '↘ Bearish'}
+          </span>
+          <div className="flex-1 flex items-center gap-2">
+            <span className="text-[9px] text-white/30">Confidence:</span>
+            <div className="flex-1 max-w-24 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${catalyst.confidence}%`,
+                  background: catalyst.confidence > 75 ? '#0ec8dc' : catalyst.confidence > 50 ? '#f59e0b' : '#ef4444'
+                }}
+              />
+            </div>
+            <span className="text-[9px] text-white/50 w-8 text-right">{catalyst.confidence}%</span>
           </div>
         </div>
 
@@ -132,55 +143,31 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
           </div>
         )}
 
-        {/* Metadata & Confidence */}
-        <div className="space-y-2 pt-2 border-t border-white/[0.05]">
-          {/* Source metadata */}
-          <div className="flex flex-col gap-1">
-            <span className="text-[8px] text-white/25 uppercase tracking-wider">Source: {catalyst.source_name}</span>
-          </div>
-
-          {/* Confidence + Action Buttons */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] text-white/30">Confidence:</span>
-              <div className="w-12 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{
-                    width: `${catalyst.confidence}%`,
-                    background: catalyst.confidence > 75 ? '#22c55e' : catalyst.confidence > 50 ? '#f59e0b' : '#ef4444'
-                  }}
-                />
-              </div>
-              <span className="text-[9px] text-white/50">{catalyst.confidence}%</span>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onSeeWhy?.(catalyst)}
-                className="text-[9px] px-2.5 py-1.5 rounded-lg font-bold transition-all"
-                style={{
-                  background: 'rgba(14,200,220,0.1)',
-                  border: '1px solid rgba(14,200,220,0.2)',
-                  color: '#0ec8dc'
-                }}
-              >
-                <Eye className="h-3 w-3" />
-              </button>
-              <button
-                onClick={handleViewSource}
-                className="text-[9px] px-2.5 py-1.5 rounded-lg font-bold transition-all"
-                style={{
-                  background: 'rgba(100,220,255,0.08)',
-                  border: '1px solid rgba(100,220,255,0.15)',
-                  color: 'rgba(150,230,255,0.6)'
-                }}
-              >
-                <ExternalLink className="h-3 w-3" />
-              </button>
-            </div>
-          </div>
+        {/* Footer: Buttons */}
+        <div className="flex items-center gap-2 pt-3 border-t border-white/[0.05]">
+          <button
+            onClick={() => onSeeWhy?.(catalyst)}
+            className="flex-1 text-[9px] px-2.5 py-2 rounded-lg font-bold transition-all"
+            style={{
+              background: 'rgba(14,200,220,0.1)',
+              border: '1px solid rgba(14,200,220,0.2)',
+              color: '#0ec8dc'
+            }}
+          >
+            See Why
+          </button>
+          <button
+            onClick={handleViewSource}
+            className="flex-1 text-[9px] px-2.5 py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-1"
+            style={{
+              background: 'rgba(100,220,255,0.08)',
+              border: '1px solid rgba(100,220,255,0.15)',
+              color: 'rgba(150,230,255,0.6)'
+            }}
+          >
+            <ExternalLink className="h-3 w-3" />
+            View Source
+          </button>
         </div>
       </div>
     </motion.div>
