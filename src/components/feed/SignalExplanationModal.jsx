@@ -115,6 +115,16 @@ export default function SignalExplanationModal({ signal, isOpen, onClose }) {
               </div>
             </div>
 
+            {/* What Matters Now */}
+            {signal.watch_next && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">What Matters Now</h3>
+                <div className="px-4 py-3 rounded-lg bg-yellow-500/[0.05] border border-yellow-500/[0.15]">
+                  <p className="text-sm text-white/75">{signal.watch_next}</p>
+                </div>
+              </div>
+            )}
+
             {/* Affected Assets & Sectors */}
             {signal.related_assets && signal.related_assets.length > 0 && (
               <div className="space-y-2">
