@@ -368,3 +368,28 @@ button, a, [role="button"] {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Signal Simplified Mode (cognitive validation) */
+.signal-simplified {
+  --text-contrast: 0.98;
+}
+.signal-simplified [class*="text-white"] {
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
+.signal-simplified [class*="text-opacity"] {
+  opacity: 0.7 !important;
+}
+
+/* 1-Second Scan Optimization */
+@media (max-width: 640px) {
+  .hero-signal-card {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+  .signal-action {
+    font-size: 0.875rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+  }
+}
