@@ -4,14 +4,17 @@ const FINNHUB_API_KEY = Deno.env.get('FINNHUB_API_KEY');
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
 Deno.serve(async (req) => {
-  const metrics = {
+  const report = {
+    source: 'Finnhub',
+    rawStatusCode: null,
+    rawResponseBody: null,
     rawNewsCount: 0,
     acceptedNewsCount: 0,
     interpretedCatalystCount: 0,
     dbInsertCount: 0,
-    feedQueryCount: 0,
+    queryCount: 0,
     failurePoint: null,
-    fixApplied: null
+    realFixApplied: null
   };
 
   try {
@@ -19,50 +22,75 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // STEP 1: Fetch raw news
+    // STEP 1: Fetch raw news from Finnhub with diagnostic logging
     console.log('[CATALYST PIPELINE] Step 1: Fetch raw news from Finnhub');
-    let rawNews = [];
+    console.log(`[CATALYST PIPELINE] FINNHUB_API_KEY present: ${!!FINNHUB_API_KEY}`);
     
-    // Always use synthetic data for now (Finnhub API key validation issue)
-    console.log('[CATALYST PIPELINE] Using synthetic catalyst data for testing');
-    rawNews = [
-      {
-        headline: 'Fed Signals Potential Rate Pause, Bond Markets Rally',
-        source: 'Reuters',
-        url: 'https://example.com/fed-rate-pause',
-        datetime: Math.floor(Date.now() / 1000)
-      },
-      {
-        headline: 'NVIDIA Beats Earnings Forecast, AI Demand Accelerates',
-        source: 'Bloomberg',
-        url: 'https://example.com/nvidia-earnings',
-        datetime: Math.floor(Date.now() / 1000) - 3600
-      },
-      {
-        headline: 'European Central Bank Maintains Hawkish Stance',
-        source: 'Financial Times',
-        url: 'https://example.com/ecb-decision',
-        datetime: Math.floor(Date.now() / 1000) - 7200
-      }
-    ];
+    const finnhubUrl = `https://finnhub.io/api/news?category=general&minId=0&apikey=${FINNHUB_API_KEY}`;
+    console.log(`[CATALYST PIPELINE] Finnhub URL: ${finnhubUrl.replace(FINNHUB_API_KEY, '***')}`);
 
-    metrics.rawNewsCount = rawNews.length;
+    let finnhubResponse;
+    let rawResponseText;
 
-    console.log(`[CATALYST PIPELINE] Raw news count: ${rawNews.length}`);
+    try {
+      finnhubResponse = await fetch(finnhubUrl);
+      report.rawStatusCode = finnhubResponse.status;
+      rawResponseText = await finnhubResponse.text();
+      report.rawResponseBody = rawResponseText.substring(0, 500);
+      
+      console.log(`[CATALYST PIPELINE] Finnhub Status: ${finnhubResponse.status}`);
+      console.log(`[CATALYST PIPELINE] Finnhub Response (first 500 chars): ${rawResponseText.substring(0, 500)}`);
+    } catch (fetchError) {
+      console.error('[CATALYST PIPELINE] Finnhub fetch failed:', fetchError.message);
+      report.failurePoint = 'FINNHUB_FETCH_ERROR';
+      report.realFixApplied = `Network error: ${fetchError.message}`;
+      return Response.json(report);
+    }
+
+    // Check HTTP status
+    if (!finnhubResponse.ok) {
+      console.error(`[CATALYST PIPELINE] Finnhub returned HTTP ${finnhubResponse.status}`);
+      report.failurePoint = 'FINNHUB_HTTP_ERROR';
+      report.realFixApplied = `HTTP ${finnhubResponse.status}: ${rawResponseText.substring(0, 200)}`;
+      return Response.json(report);
+    }
+
+    // Parse JSON
+    let rawNews = [];
+    try {
+      const parsed = JSON.parse(rawResponseText);
+      rawNews = Array.isArray(parsed) ? parsed : (parsed.news || []);
+      report.rawNewsCount = rawNews.length;
+      console.log(`[CATALYST PIPELINE] Parsed ${rawNews.length} raw news items from Finnhub`);
+    } catch (parseError) {
+      console.error('[CATALYST PIPELINE] JSON parse error:', parseError.message);
+      report.failurePoint = 'FINNHUB_JSON_PARSE_ERROR';
+      report.realFixApplied = `Parse error: ${parseError.message}`;
+      return Response.json(report);
+    }
+
+    // No fake data. If Finnhub returns nothing, return empty state.
+    if (rawNews.length === 0) {
+      console.log('[CATALYST PIPELINE] Finnhub returned 0 articles');
+      report.failurePoint = 'NO_NEWS_AVAILABLE';
+      report.realFixApplied = 'Finnhub API returned empty news list. This is a real condition, not an error.';
+      return Response.json(report);
+    }
 
     // STEP 2: Accept valid news items
     const acceptedNews = rawNews.slice(0, 3).filter(item => item.headline && item.url);
-    metrics.acceptedNewsCount = acceptedNews.length;
-
-    console.log(`[CATALYST PIPELINE] Accepted news count: ${acceptedNews.length}`);
+    report.acceptedNewsCount = acceptedNews.length;
+    console.log(`[CATALYST PIPELINE] Accepted ${acceptedNews.length} valid news items`);
 
     if (acceptedNews.length === 0) {
-      metrics.failurePoint = 'NO_VALID_NEWS_ITEMS';
-      return Response.json(metrics);
+      console.log('[CATALYST PIPELINE] No valid news items found');
+      report.failurePoint = 'NO_VALID_NEWS_ITEMS';
+      report.realFixApplied = 'Finnhub articles present but none meet validation criteria (headline + url required)';
+      return Response.json(report);
     }
 
-    // STEP 3: Interpret via LLM
-    console.log('[CATALYST PIPELINE] Step 2: LLM interpretation');
+    // STEP 3: Interpret via OpenAI
+    console.log('[CATALYST PIPELINE] Step 2: LLM interpretation via OpenAI');
     const catalysts = [];
 
     for (const news of acceptedNews) {
@@ -104,7 +132,7 @@ Deno.serve(async (req) => {
         catalysts.push({
           headline: news.headline,
           source_url: news.url,
-          source_name: news.source || 'News',
+          source_name: news.source || 'Finnhub',
           market_state: interp.market_state || 'Market shift',
           driver: interp.driver || news.headline,
           impact: interp.impact || 'Volatility expected',
@@ -119,54 +147,55 @@ Deno.serve(async (req) => {
           interpretation_updated_at: new Date().toISOString()
         });
       } catch (e) {
-        console.error('[CATALYST PIPELINE] LLM error:', e.message);
+        console.error('[CATALYST PIPELINE] LLM interpretation error:', e.message);
       }
     }
 
-    metrics.interpretedCatalystCount = catalysts.length;
-    console.log(`[CATALYST PIPELINE] Interpreted catalysts: ${catalysts.length}`);
+    report.interpretedCatalystCount = catalysts.length;
+    console.log(`[CATALYST PIPELINE] Interpreted ${catalysts.length} catalysts via OpenAI`);
 
     if (catalysts.length === 0) {
-      metrics.failurePoint = 'LLM_INTERPRETATION_FAILED';
-      metrics.fixApplied = 'All LLM calls failed. Check OpenAI API key and quota.';
-      return Response.json(metrics);
+      console.log('[CATALYST PIPELINE] LLM interpretation failed for all items');
+      report.failurePoint = 'LLM_INTERPRETATION_FAILED';
+      report.realFixApplied = 'OpenAI API calls failed or returned unparseable responses. Check API key and quota.';
+      return Response.json(report);
     }
 
     // STEP 4: Insert to DB
-    console.log('[CATALYST PIPELINE] Step 3: Insert to database');
+    console.log('[CATALYST PIPELINE] Step 3: Insert catalysts to database');
     try {
-      const createResult = await base44.asServiceRole.entities.Catalyst.bulkCreate(catalysts);
-      metrics.dbInsertCount = catalysts.length;
+      await base44.asServiceRole.entities.Catalyst.bulkCreate(catalysts);
+      report.dbInsertCount = catalysts.length;
       console.log(`[CATALYST PIPELINE] DB insert successful: ${catalysts.length} catalysts`);
     } catch (dbError) {
-      console.error('[CATALYST PIPELINE] DB error:', dbError.message);
-      metrics.failurePoint = 'DB_INSERT_FAILED';
-      metrics.fixApplied = `Error: ${dbError.message}`;
-      return Response.json(metrics);
+      console.error('[CATALYST PIPELINE] DB insert error:', dbError.message);
+      report.failurePoint = 'DB_INSERT_FAILED';
+      report.realFixApplied = `Database error: ${dbError.message}`;
+      return Response.json(report);
     }
 
     // STEP 5: Query back from DB
-    console.log('[CATALYST PIPELINE] Step 4: Query DB');
+    console.log('[CATALYST PIPELINE] Step 4: Query catalysts from database');
     try {
       const queryResult = await base44.asServiceRole.entities.Catalyst.list();
-      metrics.feedQueryCount = queryResult.length;
-      console.log(`[CATALYST PIPELINE] Feed query returned: ${queryResult.length} catalysts`);
+      report.queryCount = queryResult.length;
+      console.log(`[CATALYST PIPELINE] DB query returned: ${queryResult.length} catalysts`);
     } catch (queryError) {
-      console.error('[CATALYST PIPELINE] Query error:', queryError.message);
-      metrics.failurePoint = 'FEED_QUERY_FAILED';
-      metrics.fixApplied = `Error: ${queryError.message}`;
-      return Response.json(metrics);
+      console.error('[CATALYST PIPELINE] DB query error:', queryError.message);
+      report.failurePoint = 'DB_QUERY_FAILED';
+      report.realFixApplied = `Query error: ${queryError.message}`;
+      return Response.json(report);
     }
 
     // Success
-    metrics.failurePoint = null;
-    metrics.fixApplied = 'PIPELINE COMPLETE';
+    report.failurePoint = null;
+    report.realFixApplied = 'PIPELINE COMPLETE: Real catalysts from Finnhub → OpenAI interpretation → Database';
 
-    return Response.json(metrics);
+    return Response.json(report);
   } catch (error) {
     console.error('[CATALYST PIPELINE] Fatal error:', error.message);
-    metrics.failurePoint = 'FATAL_ERROR';
-    metrics.fixApplied = error.message;
-    return Response.json(metrics, { status: 500 });
+    report.failurePoint = 'FATAL_ERROR';
+    report.realFixApplied = error.message;
+    return Response.json(report, { status: 500 });
   }
 });
