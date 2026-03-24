@@ -232,7 +232,8 @@ async function fetchCoinGeckoQuotes(symbols) {
 function computeStatus(cached) {
   if (!cached) return 'unavailable';
   const age = Date.now() - cached.timestamp;
-  if (age > LIVE_THRESHOLD_MS) return 'unavailable';
+  if (age > STALE_THRESHOLD_MS) return 'unavailable'; // truly too old
+  if (age > LIVE_THRESHOLD_MS) return 'stale';        // serve with stale label
   return 'live';
 }
 
@@ -246,6 +247,7 @@ function buildCoreResponse() {
       return { symbol, name: meta.name, type: meta.type, sector: meta.sector, status: 'unavailable' };
     }
 
+    // Return stale data as 'live' — it's real data, just slightly old (within 5 min)
     return {
       symbol,
       name: meta.name,
@@ -255,7 +257,8 @@ function buildCoreResponse() {
       price: cached.price,
       changePct: cached.changePct,
       timestamp: cached.timestamp,
-      provider: cached.provider
+      provider: cached.provider,
+      stale: status === 'stale' ? true : undefined
     };
   });
 }
