@@ -94,17 +94,22 @@ export default function Markets() {
             <TrekSignalsPreview />
           </motion.div>
 
-          {/* Core Assets - 12-14 only */}
+          {/* Core Assets — Live section */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="space-y-3"
           >
-            <div>
-              <h2 className="text-sm font-bold text-white/80 mb-3">Core Assets</h2>
-              <CoreAssetDisplay />
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <h2 className="text-sm font-bold text-white/85">Core Assets</h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 ml-1">
+                LIVE
+              </span>
+              <span className="text-[10px] text-white/25 ml-auto">Refreshes every 60s</span>
             </div>
+            <CoreAssetDisplay />
           </motion.div>
 
           {/* Discovery Sections — metadata only, no backend calls */}
