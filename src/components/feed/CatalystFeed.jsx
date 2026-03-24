@@ -39,8 +39,24 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
       <div style={{ height: 2, background: colors.text, opacity: 0.6 }} />
 
       <div className="px-4 py-3.5 space-y-3">
+        {/* HEADLINE - Primary Context */}
+        <a
+          href={catalyst.source_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group block"
+        >
+          <p className="text-sm font-bold text-white/90 leading-snug group-hover:text-primary transition-colors">
+            {catalyst.headline}
+          </p>
+          <span className="text-[8px] text-white/30 group-hover:text-white/50 transition-colors flex items-center gap-1 mt-1">
+            <ExternalLink className="h-2.5 w-2.5" />
+            {catalyst.source_name}
+          </span>
+        </a>
+
         {/* Header: Category + Time */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 pt-2">
           <span
             className="text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-wide"
             style={{
@@ -57,9 +73,10 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
           </span>
         </div>
 
-        {/* Signal: Market State */}
-        <div>
-          <p className="text-sm font-bold text-white leading-tight">
+        {/* TREK Interpretation Header */}
+        <div className="pt-2 border-t border-white/[0.05]">
+          <p className="text-[8px] font-black text-white/25 uppercase tracking-widest mb-2">TREK Interpretation</p>
+          <p className="text-sm font-bold text-white/80 leading-tight">
             {catalyst.market_state}
           </p>
         </div>
