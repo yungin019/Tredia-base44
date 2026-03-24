@@ -458,15 +458,50 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action || 'core';
 
+    // ── ACTION: debug ─────────────────────────────────────────────────────
+    if (action === 'debug') {
+      // 1. Log cache state
+      const cacheState = {};
+      coreCache.forEach((v, k) => { cacheState[k] = v; });
+      console.log('CACHE STATE:', JSON.stringify(cacheState));
+
+      // 2. Direct AAPL fetch — synchronous, bypasses poller
+      console.log('POLL START (debug mode)');
+      const aaplResult = await fetchPolygonQuotes(['AAPL'], POLYGON_KEY);
+      console.log('FETCH RESULT: AAPL', JSON.stringify(aaplResult.AAPL));
+
+      // 3. Also fetch crypto
+      const cryptoResult = await fetchCoinGeckoQuotes(['BTC']);
+      console.log('FETCH RESULT: BTC', JSON.stringify(cryptoResult.BTC));
+
+      // 4. Final payload
+      const debugPayload = {
+        cache: cacheState,
+        polygon_aapl: aaplResult.AAPL,
+        coingecko_btc: cryptoResult.BTC,
+        polygonKeyPresent: !!POLYGON_KEY,
+        polygonKeyPrefix: POLYGON_KEY ? POLYGON_KEY.slice(0, 6) + '...' : 'MISSING',
+        timestamp: Date.now()
+      };
+      console.log('FINAL PAYLOAD:', JSON.stringify(debugPayload));
+      return Response.json(debugPayload);
+    }
+
     // ── ACTION: core ──────────────────────────────────────────────────────
     if (action === 'core') {
-      // Trigger background poll (non-blocking)
+      // 1. Log cache state
+      const cacheState = {};
+      coreCache.forEach((v, k) => { cacheState[k] = v; });
+      console.log('CACHE STATE:', JSON.stringify(cacheState));
+
+      // 2. Trigger background poll (non-blocking)
+      console.log('POLL START — lastPollTime:', lastPollTime, 'pollInProgress:', pollInProgress);
       pollCoreAssets(POLYGON_KEY).catch(err => console.error('[BG Poll]', err.message));
 
       const response = buildCoreResponse();
       const liveCount = response.filter(r => r.status === 'live').length;
 
-      return Response.json({
+      const payload = {
         assets: response,
         meta: {
           total: response.length,
@@ -475,7 +510,9 @@ Deno.serve(async (req) => {
           cacheAgeMs: lastPollTime ? Date.now() - lastPollTime : null,
           timestamp: Date.now()
         }
-      });
+      };
+      console.log('FINAL PAYLOAD:', JSON.stringify(payload.meta));
+      return Response.json(payload);
     }
 
     // ── ACTION: search ────────────────────────────────────────────────────
