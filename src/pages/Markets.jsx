@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useTranslation } from 'react-i18next';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchCryptoData } from '@/api/marketData';
 import AssetClassTabs from '@/components/markets/AssetClassTabs.jsx';
 import SectorHeatmap from '@/components/markets/SectorHeatmap.jsx';
@@ -13,30 +12,17 @@ import CryptoAssets from '@/components/markets/CryptoAssets.jsx';
 import CommoditiesTab from '@/components/markets/CommoditiesTab.jsx';
 import CoreAssetDisplay from '@/components/markets/CoreAssetDisplay.jsx';
 import TrekSignalsPreview from '@/components/markets/TrekSignalsPreview.jsx';
-import TimeframeSelector from '@/components/markets/TimeframeSelector.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
 import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import DiscoverySection, { POPULAR_STOCKS, POPULAR_CRYPTO, MAJOR_ETFS, COMMODITIES_SNAPSHOT } from '@/components/markets/DiscoverySection.jsx';
 
-// Chart data state (loaded from API)
-const useChartData = () => {
-  const [data, setData] = React.useState([]);
-  const [loading, setLoading] = React.useState(false);
-  
-  return { data, setData, loading, setLoading };
-};
-
 export default function Markets() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('stocks');
-  const [timeframe, setTimeframe] = useState('1D');
   const [cryptoData, setCryptoData] = useState(null);
-  const [chartData, setChartData] = useState([]);
-  const [chartLoading, setChartLoading] = useState(false);
-  const [indexContext, setIndexContext] = useState('Loading market state...');
 
   useEffect(() => {
     const load = async () => {
@@ -46,36 +32,7 @@ export default function Markets() {
     load();
   }, []);
 
-  useEffect(() => {
-    const loadChart = async () => {
-      setChartLoading(true);
-      try {
-        const res = await base44.functions.invoke('marketData', { 
-          symbol: 'SPX', 
-          timeframe: timeframe.replace(/([0-9]+)([A-Z])/g, '$1$2').toLowerCase() 
-        });
-        if (res?.data?.history) {
-          setChartData(res.data.history.map(d => ({ time: d.timestamp, value: d.close })));
-          // Set context based on recent trend
-          const recent = res.data.history.slice(-2);
-          if (recent.length === 2) {
-            const change = recent[1].close - recent[0].close;
-            if (change > 0) setIndexContext('S&P bouncing higher — strength holding into close');
-            else if (change < 0) setIndexContext('S&P selling off — buyers stepping back');
-            else setIndexContext('S&P stuck in range — no clear direction');
-          }
-        } else {
-          setIndexContext('S&P price data unavailable');
-        }
-      } catch {
-        setChartData([]);
-        setIndexContext('Market data loading...');
-      } finally {
-        setChartLoading(false);
-      }
-    };
-    loadChart();
-  }, [timeframe]);
+
 
   return (
     <PullToRefresh onRefresh={async () => {
@@ -157,59 +114,7 @@ export default function Markets() {
           {/* Sector Heatmap */}
           <SectorHeatmap />
 
-          {/* Chart Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="rounded-xl p-5"
-            style={{ background: 'rgba(8,16,36,0.55)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', border: '1px solid rgba(100,220,255,0.09)' }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold text-white/80">{t('markets.sp500')}</h2>
-              <TimeframeSelector timeframe={timeframe} onTimeframeChange={setTimeframe} />
-            </div>
-            <div className="space-y-3">
-              <div className="h-[280px]">
-                {chartLoading ? (
-                  <div className="flex items-center justify-center h-full text-white/30 text-sm">
-                    Loading chart data...
-                  </div>
-                ) : chartData.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-white/30 text-sm">
-                    Chart data unavailable
-                  </div>
-                ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                    <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" style={{ fontSize: '11px' }} />
-                    <YAxis stroke="rgba(255,255,255,0.2)" style={{ fontSize: '11px' }} />
-                    <Tooltip
-                      contentStyle={{
-                        background: 'rgba(6,14,32,0.95)',
-                        border: '1px solid rgba(100,220,255,0.12)',
-                        borderRadius: '8px',
-                      }}
-                      labelStyle={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px' }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="rgb(14,200,220)"
-                      strokeWidth={2}
-                      dot={false}
-                      isAnimationActive={true}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-              </div>
-              <div className="px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-                <p className="text-xs text-white/60">{indexContext}</p>
-              </div>
-            </div>
-          </motion.div>
+
         </>
       )}
 
