@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
+const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY') || '';
+
 // In-memory cache (resets on deploy, but persists across function calls)
 const priceCache = new Map();
 
@@ -106,25 +108,60 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Fetch stocks: CHECK CACHE FIRST (providers exhausted)
+      // Fetch stocks via Finnhub (live), with cache + fallback
       if (stockSymbols.length > 0) {
+        // Separate cached from uncached
+        const uncached = [];
         stockSymbols.forEach(sym => {
-          // Try cache first
           const cached = priceCache.get(sym);
-          if (cached) {
+          if (cached && (Date.now() - (cached.fetchedAt || 0)) < 30000) {
             results[sym] = cached;
-            return;
-          }
-
-          // Fall back to hardcoded last-known-good prices
-          const fallback = FALLBACK_PRICES[sym];
-          if (fallback) {
-            results[sym] = { ...fallback, source: 'cached-fallback' };
-            priceCache.set(sym, results[sym]);
           } else {
-            results[sym] = null;
+            uncached.push(sym);
           }
         });
+
+        // Fetch uncached symbols from Finnhub in parallel
+        if (uncached.length > 0 && FINNHUB_KEY) {
+          await Promise.all(uncached.map(async (sym) => {
+            try {
+              const res = await fetch(
+                `https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`
+              );
+              const d = await res.json();
+              if (d && d.c > 0) {
+                const priceData = {
+                  price: d.c,
+                  prevClose: d.pc,
+                  high: d.h,
+                  low: d.l,
+                  open: d.o,
+                  timestamp: Date.now(),
+                  fetchedAt: Date.now(),
+                  source: 'finnhub'
+                };
+                priceCache.set(sym, priceData);
+                results[sym] = priceData;
+              } else {
+                // Try fallback or stale cache
+                const stale = priceCache.get(sym);
+                const fallback = FALLBACK_PRICES[sym];
+                results[sym] = stale || (fallback ? { ...fallback, source: 'cached-fallback' } : null);
+              }
+            } catch (e) {
+              const stale = priceCache.get(sym);
+              const fallback = FALLBACK_PRICES[sym];
+              results[sym] = stale || (fallback ? { ...fallback, source: 'cached-fallback' } : null);
+            }
+          }));
+        } else if (uncached.length > 0) {
+          // No API key — use fallback/stale cache
+          uncached.forEach(sym => {
+            const stale = priceCache.get(sym);
+            const fallback = FALLBACK_PRICES[sym];
+            results[sym] = stale || (fallback ? { ...fallback, source: 'cached-fallback' } : null);
+          });
+        }
       }
 
       return Response.json({ prices: results });
