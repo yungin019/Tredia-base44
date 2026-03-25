@@ -21,7 +21,8 @@ export function NavigationProvider({ children }) {
 
   // Resolve which tab root a given path belongs to
   const getTabForPath = useCallback((path) => {
-    return TAB_ROOTS.find(root => path.startsWith(root)) || '/Home';
+    // Exact match first, then prefix match (for sub-pages like /Asset/:symbol)
+    return TAB_ROOTS.find(root => path === root || path.startsWith(root + '/')) || '/Home';
   }, []);
 
   // Push a new path onto the current tab's stack

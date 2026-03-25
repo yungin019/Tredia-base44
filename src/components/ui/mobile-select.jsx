@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check } from 'lucide-react';
 
@@ -10,10 +10,23 @@ export default function MobileSelect({
   title = "Select an option"
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const sheetRef = useRef(null);
+  const dragStartY = useRef(null);
 
   const handleSelect = (optionValue) => {
     onChange(optionValue);
     setIsOpen(false);
+  };
+
+  // Swipe-down to dismiss
+  const handleTouchStart = (e) => {
+    dragStartY.current = e.touches[0].clientY;
+  };
+  const handleTouchEnd = (e) => {
+    if (dragStartY.current === null) return;
+    const delta = e.changedTouches[0].clientY - dragStartY.current;
+    if (delta > 60) setIsOpen(false);
+    dragStartY.current = null;
   };
 
   return (
@@ -30,57 +43,61 @@ export default function MobileSelect({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+              transition={{ duration: 0.18 }}
+              className="fixed inset-0 bg-black/65 backdrop-blur-sm z-[9998]"
               onClick={() => setIsOpen(false)}
             />
 
             {/* Bottom Sheet */}
             <motion.div
+              ref={sheetRef}
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#111118] rounded-t-3xl border-t border-white/[0.08] shadow-2xl max-h-[75vh] flex flex-col"
+              transition={{ type: 'spring', damping: 32, stiffness: 320 }}
+              className="fixed bottom-0 left-0 right-0 z-[9999] rounded-t-3xl border-t border-white/[0.09] shadow-2xl max-h-[78vh] flex flex-col"
+              style={{ background: 'rgba(10,10,20,0.97)', backdropFilter: 'blur(32px)' }}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
             >
-              {/* Header */}
-              <div className="px-6 py-5 border-b border-white/[0.08] flex-shrink-0">
-                <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-white">{title}</h3>
+              {/* Drag handle + header */}
+              <div className="px-6 pt-4 pb-4 border-b border-white/[0.07] flex-shrink-0">
+                <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+                <h3 className="text-[15px] font-bold text-white/90">{title}</h3>
               </div>
 
               {/* Options */}
-              <div className="overflow-y-auto flex-1">
-                {options.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleSelect(option.value)}
-                    className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-white/[0.03] active:bg-white/[0.05] transition-colors border-b border-white/[0.04] last:border-b-0"
-                    style={{ minHeight: '60px' }}
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      {option.icon && (
-                        <span className="text-xl flex-shrink-0">{option.icon}</span>
+              <div className="overflow-y-auto flex-1 pb-2">
+                {options.map((option) => {
+                  const isSelected = value === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => handleSelect(option.value)}
+                      className="w-full flex items-center justify-between px-6 py-4 text-left transition-colors border-b border-white/[0.04] last:border-b-0 active:bg-white/[0.05]"
+                      style={{
+                        background: isSelected ? 'rgba(14,200,220,0.06)' : 'transparent',
+                        minHeight: '56px',
+                      }}
+                    >
+                      <div className="flex items-center gap-3 flex-1">
+                        {option.icon && <span className="text-xl flex-shrink-0">{option.icon}</span>}
+                        <span className={`text-[15px] font-medium ${isSelected ? 'text-primary font-semibold' : 'text-white/80'}`}>
+                          {option.label}
+                        </span>
+                      </div>
+                      {isSelected && (
+                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex-shrink-0 ml-3">
+                          <Check className="h-5 w-5 text-primary" />
+                        </motion.div>
                       )}
-                      <span className="text-base font-medium text-white">
-                        {option.label}
-                      </span>
-                    </div>
-                    {value === option.value && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="flex-shrink-0"
-                      >
-                        <Check className="h-5 w-5 text-primary" />
-                      </motion.div>
-                    )}
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Safe area padding for iPhone home indicator */}
-              <div className="h-6 flex-shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
+              {/* Safe area */}
+              <div style={{ height: 'calc(8px + env(safe-area-inset-bottom))', flexShrink: 0 }} />
             </motion.div>
           </>
         )}

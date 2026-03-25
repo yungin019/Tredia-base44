@@ -279,6 +279,7 @@ export default function Trade() {
         )}
 
         {!isLive && <PaperTradeHistory />}
+
       </div>
     </div>
   );

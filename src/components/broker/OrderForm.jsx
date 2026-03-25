@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, Zap } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
+import { useQueryClient } from '@tanstack/react-query';
 import { getStockPrice } from '../MarketData';
 import MobileSelect from '@/components/ui/mobile-select';
 import BrokerDisclosureBanner from '@/components/broker/BrokerDisclosureBanner';
@@ -25,6 +26,7 @@ const TIF_OPTIONS = [
 ];
 
 export default function OrderForm({ isLive, onOrderSuccess }) {
+  const queryClient = useQueryClient();
   const [action, setAction] = useState('buy');
   const [symbol, setSymbol] = useState('');
   const [qty, setQty] = useState('');
@@ -64,7 +66,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
         toast.success(`🚀 ${action.toUpperCase()} ${preview.qty} ${preview.symbol} — ${preview.orderType.toUpperCase()} order submitted`);
       } else {
         const price = preview.limitPrice ? parseFloat(preview.limitPrice) : (preview.marketPrice || +(Math.random() * 200 + 50).toFixed(2));
-        await base44.entities.TradeLog.create({
+        const newTrade = {
           symbol: preview.symbol,
           name: preview.symbol,
           action,
@@ -72,7 +74,16 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
           price,
           total: +(price * preview.qty).toFixed(2),
           status: 'executed',
-        });
+        };
+        // Optimistic update — show trade instantly in history
+        const tempId = `temp-${Date.now()}`;
+        const optimistic = { ...newTrade, id: tempId, created_date: new Date().toISOString() };
+        queryClient.setQueryData(['tradelog'], (old) => [optimistic, ...(old || [])]);
+        base44.entities.TradeLog.create(newTrade)
+          .then(() => queryClient.invalidateQueries({ queryKey: ['tradelog'] }))
+          .catch(() => {
+            queryClient.setQueryData(['tradelog'], (old) => (old || []).filter(t => t.id !== tempId));
+          });
         toast.success(`${action.toUpperCase()} ${preview.qty} ${preview.symbol} (paper) executed`);
       }
       setSymbol(''); setQty(''); setLimitPrice(''); setStopPrice(''); setPreview(null);

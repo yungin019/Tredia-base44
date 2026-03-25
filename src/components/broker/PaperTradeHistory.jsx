@@ -1,4 +1,6 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, XCircle } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -7,7 +9,12 @@ const STATUS_CONFIG = {
   cancelled: { icon: XCircle,      color: 'text-destructive', bg: 'bg-destructive/8' },
 };
 
-export default function PaperTradeHistory({ trades }) {
+export default function PaperTradeHistory() {
+  const { data: trades = [] } = useQuery({
+    queryKey: ['tradelog'],
+    queryFn: () => base44.entities.TradeLog.list('-created_date', 50),
+  });
+
   return (
     <div className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden">
       <div className="px-5 py-3.5 border-b border-white/[0.05] flex items-center gap-2">
