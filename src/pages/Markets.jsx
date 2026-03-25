@@ -17,6 +17,7 @@ import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import DiscoverySection, { POPULAR_STOCKS, POPULAR_CRYPTO, MAJOR_ETFS, COMMODITIES_SNAPSHOT } from '@/components/markets/DiscoverySection.jsx';
+import SPYSection from '@/components/markets/SPYSection.jsx';
 
 export default function Markets() {
   const { t } = useTranslation();
@@ -47,6 +48,9 @@ export default function Markets() {
           <p className="text-[11px] text-white/30 font-medium tracking-wide">Core assets + search 200+ universe</p>
         </div>
       </motion.div>
+
+      {/* S&P 500 Core Section — renders only if live data exists */}
+      <SPYSection />
 
       {/* Index Cards */}
       <IndexCardsSection />

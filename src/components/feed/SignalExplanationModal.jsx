@@ -180,6 +180,32 @@ export default function SignalExplanationModal({ signal, isOpen, onClose }) {
               </div>
             </div>
 
+            {/* Trade Setup */}
+            {signal.trade_setup && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
+                  <Zap className="h-4 w-4" style={{ color: '#f59e0b' }} />
+                  Trade Setup
+                </h3>
+                <div className="rounded-lg overflow-hidden" style={{ border: '1px solid rgba(245,158,11,0.25)', background: 'rgba(245,158,11,0.05)' }}>
+                  <div className="px-4 py-3 space-y-2">
+                    <div className="flex items-start gap-3">
+                      <span className="text-[9px] font-black text-yellow-500/60 uppercase tracking-widest w-20 flex-shrink-0 pt-0.5">Entry</span>
+                      <span className="text-sm text-white/80 font-medium">{signal.trade_setup.entry}</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="text-[9px] font-black text-orange-500/60 uppercase tracking-widest w-20 flex-shrink-0 pt-0.5">Invalidation</span>
+                      <span className="text-sm text-white/80 font-medium">{signal.trade_setup.invalidation}</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="text-[9px] font-black text-white/25 uppercase tracking-widest w-20 flex-shrink-0 pt-0.5">Timeframe</span>
+                      <span className="text-sm text-white/60">{signal.trade_setup.timeframe}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Action Bias */}
             <div className="space-y-2">
               <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">TREK Signal</h3>
