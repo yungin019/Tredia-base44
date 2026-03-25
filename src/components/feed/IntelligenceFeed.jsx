@@ -14,6 +14,13 @@ import FeedReactionBlock from './FeedReactionBlock';
 //
 // `regions` key mapping: US | EU | APAC | Africa | LatAm | Global
 
+// ── SIGNAL VALIDATION ────────────────────────────────────────────────────────
+const BANNED = ['sentiment', 'narrative', 'momentum', 'uncertain'];
+function isValid(r) {
+  const t = [r.marketState, r.driver, r.impactText, r.riskInvalidation].join(' ').toLowerCase();
+  return !BANNED.some(p => t.includes(p)) && /\d/.test(t);
+}
+
 const ALL_REACTIONS = [
   // ── US ──────────────────────────────────────────────────────────────────
   {
@@ -21,6 +28,8 @@ const ALL_REACTIONS = [
     marketState: 'QQQ broke $420 resistance as traders price in the end of rate hikes. 10Y yield dropped -9bp in two sessions.',
     regions: ['US'],
     timing: 'Live',
+    source_name: 'Market Structure',
+    published_at: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
     driver: 'Three Fed governors signaled no more rate hikes this cycle; Fed funds futures repriced terminal rate from 5.5% to 5.25%',
     impactText: 'NVDA +2.5%, AAPL +1.8%, TLT +1.2%. Dollar weakening (-0.6% DXY). Growth leads, defensives lagging by 180bp.',
     relatedAssets: [
@@ -31,20 +40,26 @@ const ALL_REACTIONS = [
     importance: 9,
     actionBias: 'QQQ above $420 = confirmation. Buy dips in large-cap tech. TLT long-duration bonds benefiting. PCE print Friday is the make-or-break.',
     riskInvalidation: 'PCE inflation >3.2% on Friday OR Fed speakers turn hawkish = full reversal within 24h',
-    macroContext: 'Rates peaking historically leads to 6–9 months of outperformance in growth and long-duration assets. This is that setup.',
     watchNext: 'PCE print Friday — if >3.2% the whole trade reverses. QQQ needs to hold $418 on any pullback.',
     sectors: ['Technology', 'Bonds'],
     action_bias: 'bullish',
     confidence: 82,
     watch_next: 'PCE print Friday (>3.2% = reversal). Powell speech Thursday. QQQ must hold $418 on any pullback.',
-    risk: 'PCE inflation >3.2% on Friday OR Fed pivot narrative collapses',
+    risk: 'PCE inflation >3.2% on Friday OR Fed speakers turn hawkish',
     related_assets: ['QQQ', 'TLT', 'NVDA', 'AAPL', 'SPY'],
+    trade_setup: {
+      entry: 'QQQ above $420 on volume, SPY above $518',
+      invalidation: 'QQQ closes below $418 — breakout fails, reversal in play',
+      timeframe: 'Intraday to 2-session follow-through',
+    },
   },
   {
     id: 'nvidia-earnings',
     marketState: 'NVDA gapped up $8 after beating earnings by 12%. Data center revenue hit $18.1B vs $16.9B expected — semis confirming AI capex cycle.',
     regions: ['US'],
     timing: 'Developing',
+    source_name: 'Earnings',
+    published_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
     driver: 'NVDA Q4 data center revenue $18.1B (+200% YoY). Full-year guidance raised to $120B from $110B. H100 backlog sold out through Q2.',
     impactText: 'AMD +3.2%, SMCI +4.1%, TSM +2.8% in sympathy. QQQ outperforming SPY by 180bp. NVDA $180 is now first support.',
     relatedAssets: [
@@ -55,20 +70,26 @@ const ALL_REACTIONS = [
     importance: 8,
     actionBias: 'Semi breakout confirmed. AMD earnings next week = the next binary event. NVDA $180 is the new support to hold.',
     riskInvalidation: 'AMD misses next week or MSFT/GOOG cut AI capex guidance — entire pyramid unwinds',
-    macroContext: 'NVDA earnings are a real-time read on hyperscaler AI spend. $120B guidance means buildout is accelerating, not plateauing.',
     watchNext: 'AMD earnings in 7 days. NVDA hold above $180. MSFT Azure AI revenue in next quarterly call.',
     sectors: ['Semiconductors', 'AI Infrastructure'],
     action_bias: 'bullish',
     confidence: 85,
     watch_next: 'AMD earnings in 7 days — miss = semi selloff. NVDA must hold $180 as new support.',
-    risk: 'AMD misses OR hyperscaler capex cuts from MSFT/GOOG = fast reversal',
+    risk: 'AMD misses OR MSFT/GOOG cut AI capex guidance — entire sector pyramid unwinds',
     related_assets: ['NVDA', 'AMD', 'SMCI', 'TSM', 'QQQ'],
+    trade_setup: {
+      entry: 'NVDA above $180 gap fill, AMD above pre-earnings close',
+      invalidation: 'NVDA closes below $175 — gap filling reverses, exit semis',
+      timeframe: 'Swing 3-5 days into AMD earnings',
+    },
   },
   {
     id: 'us-jobs-strong',
     marketState: 'NFP beat by 60K jobs, unemployment 3.7%, wage growth +0.4% MoM — bond market repricing 2 more Fed hikes.',
     regions: ['US'],
     timing: 'Follow-up',
+    source_name: 'Economic Data',
+    published_at: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
     driver: 'Non-farm payrolls +253K vs 190K expected. Unemployment fell to 3.7%. Wage growth +4.4% YoY — well above Fed target zone.',
     impactText: 'TLT -1.8%, SPY -0.9%, QQQ -1.4%. DXY +0.7%. XLF (financials) +0.4% — only sector holding. 2Y yield spiked +14bp.',
     relatedAssets: [
@@ -79,7 +100,6 @@ const ALL_REACTIONS = [
     importance: 8,
     actionBias: 'Trim growth, rotate into financials (XLF) and short-duration. Avoid long bonds until CPI prints soft.',
     riskInvalidation: 'CPI next week prints <3.2% — market immediately reprices the hike risk back down',
-    macroContext: 'Hot jobs + rising wages = Fed has no reason to pause. The 2Y yield is the best real-time signal here.',
     watchNext: 'CPI next Tuesday. 2Y yield vs 5.25% — if it breaks higher, equity pain continues.',
     sectors: ['Financials', 'Value'],
     action_bias: 'bearish',
@@ -87,6 +107,11 @@ const ALL_REACTIONS = [
     watch_next: 'CPI Tuesday — <3.2% would reverse this. 2Y yield direction is the tell.',
     risk: 'CPI comes in soft next week — market reverses fast',
     related_assets: ['SPY', 'TLT', 'QQQ', 'XLF', 'DXY'],
+    trade_setup: {
+      entry: 'Short TLT below $93, rotate into XLF above $38',
+      invalidation: 'TLT reclaims $95 — yield spike reversing, exit shorts',
+      timeframe: 'Hold until CPI print next Tuesday',
+    },
   },
 
   // ── EUROPE ──────────────────────────────────────────────────────────────
@@ -95,6 +120,8 @@ const ALL_REACTIONS = [
     marketState: 'Eurozone CPI at 2.6% YoY — ECB held rates at 4.0% and pushed back on June cut expectations.',
     regions: ['EU'],
     timing: 'Live',
+    source_name: 'Central Bank',
+    published_at: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
     driver: 'ECB March meeting: rates unchanged at 4.0%. Lagarde said cuts need 3+ months of data — June is not guaranteed. Bund 10Y +8bp.',
     impactText: 'EUR/USD broke above 1.085 (+0.5%). European banks outperforming (BNP +1.3%, Deutsche +0.8%). Consumer stocks down -0.6%.',
     relatedAssets: [
@@ -105,7 +132,6 @@ const ALL_REACTIONS = [
     importance: 8,
     actionBias: 'Favor European banks (they benefit from rates staying high). Avoid rate-sensitive consumer names. EUR/USD above 1.085 = stay long EUR.',
     riskInvalidation: 'Eurozone PMI drops below 48 or Lagarde signals emergency cut — EUR/USD reverses to 1.07',
-    macroContext: 'ECB is 6 months behind the Fed. They hiked later, hold longer. EUR strength = headwind for European exporters.',
     watchNext: 'Eurozone PMI flash (April). Lagarde speech April 11. EUR/USD above 1.09 = next resistance.',
     sectors: ['Financials', 'FX'],
     action_bias: 'bearish',
@@ -113,12 +139,19 @@ const ALL_REACTIONS = [
     watch_next: 'Eurozone PMI flash next week. Lagarde speech April 11. EUR/USD 1.09 = next level.',
     risk: 'Eurozone PMI collapses below 47 — cuts back on the table immediately',
     related_assets: ['EURUSD', 'FEZ', 'ASML', 'EWG'],
+    trade_setup: {
+      entry: 'Long EUR/USD above 1.085, long European banks (BNP, Deutsche)',
+      invalidation: 'EUR/USD drops below 1.078 — ECB cut bets repriced',
+      timeframe: 'Hold until PMI flash data or Lagarde speech',
+    },
   },
   {
     id: 'stoxx-recovery',
     marketState: 'DAX broke 18,200 all-time high as ASML beat Q4 estimates by €400M and SAP raised full-year guidance.',
     regions: ['EU'],
     timing: 'Developing',
+    source_name: 'Earnings',
+    published_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
     driver: 'ASML Q4 revenue €7.24B vs €6.85B est (+5.7% beat). SAP FY guidance raised €200M. Germany PMI stabilized at 47.4 from 45.5.',
     impactText: 'DAX +1.8%, STOXX 50 +1.3%. ASML +4.2%, SAP +3.1%. EWG ETF testing breakout above $30. EUR/USD holding 1.085.',
     relatedAssets: [
@@ -129,7 +162,6 @@ const ALL_REACTIONS = [
     importance: 7,
     actionBias: 'EWG (Germany ETF) and FEZ (Euro Stoxx ETF) are the cleanest plays. ASML is the high-conviction single name.',
     riskInvalidation: 'ECB turns hawkish again or German PMI drops back below 46',
-    macroContext: 'Europe trades at 14x forward P/E vs 21x for S&P 500. Earnings recovery makes the valuation gap compelling.',
     watchNext: 'Germany IFO confidence Thursday. STOXX 50 breakout above 4,950. Next ASML order intake data.',
     sectors: ['Technology', 'Industrials'],
     action_bias: 'bullish',
@@ -137,12 +169,19 @@ const ALL_REACTIONS = [
     watch_next: 'Germany IFO Thursday. STOXX 50 above 4,950 = confirmed breakout. ASML order intake.',
     risk: 'ECB turns more hawkish OR German PMI slips below 46',
     related_assets: ['ASML', 'SAP', 'EWG', 'FEZ'],
+    trade_setup: {
+      entry: 'EWG above $30, ASML above post-earnings close',
+      invalidation: 'DAX closes below 18,000 — breakout fails',
+      timeframe: 'Swing 1-2 weeks into IFO data',
+    },
   },
   {
     id: 'eu-energy-crunch',
     marketState: 'EU gas storage 64% full vs 5-year average of 58% — TTF natural gas at €28/MWh, down from €340 peak.',
     regions: ['EU'],
     timing: 'Developing',
+    source_name: 'Market Structure',
+    published_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     driver: 'EU gas storage refilled ahead of schedule. LNG import capacity +45% YoY. Russian pipeline dependency down from 40% to 8%.',
     impactText: 'German chemical sector (BASF +2.1%) and manufacturing (Siemens +1.4%) outperforming. TTF below €30 = cost floor removed for industry.',
     relatedAssets: [
@@ -153,7 +192,6 @@ const ALL_REACTIONS = [
     importance: 7,
     actionBias: 'Rotation into European industrials and chemicals — biggest beneficiaries of lower energy costs. FEZ is the broad play.',
     riskInvalidation: 'Cold snap in March drives TTF above €40/MWh — storage draw accelerates',
-    macroContext: 'Energy normalization removes the single biggest margin headwind for European industry. BASF margins recovering from 3% to 8%.',
     watchNext: 'EU gas storage weekly report (Thursdays). TTF vs €30/MWh. BASF Q1 margin guidance.',
     sectors: ['Energy', 'Industrials', 'Chemicals'],
     action_bias: 'bullish',
@@ -161,6 +199,11 @@ const ALL_REACTIONS = [
     watch_next: 'EU gas storage Thursday. TTF must stay below €35. BASF Q1 results March 28.',
     risk: 'Late cold snap drives TTF above €40 — margins compress again fast',
     related_assets: ['EWG', 'FEZ', 'TTE'],
+    trade_setup: {
+      entry: 'FEZ above $43 or BASF on dips below €45',
+      invalidation: 'TTF breaks above €35 — energy cost headwind returns',
+      timeframe: 'Multi-week position into Q1 earnings season',
+    },
   },
 
   // ── ASIA ────────────────────────────────────────────────────────────────
@@ -169,6 +212,8 @@ const ALL_REACTIONS = [
     marketState: 'China Q4 GDP +4.9% vs 5.2% expected. Hang Seng dropped -2.1%. CNY weakening to 7.24 vs USD.',
     regions: ['APAC'],
     timing: 'Live',
+    source_name: 'Economic Data',
+    published_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
     driver: 'Q4 GDP missed by 30bp. Property sector drag: Evergrande liquidation order, Country Garden missing payments. PBOC cut MLF rate -10bp.',
     impactText: 'FXI -3.1%, BABA -2.4%, KWEB -3.6%. AUD/USD -0.5% on iron ore demand concerns. EWJ +0.9% — benefiting from China outflows.',
     relatedAssets: [
@@ -179,7 +224,6 @@ const ALL_REACTIONS = [
     importance: 8,
     actionBias: 'Avoid China tech longs. AUD/NZD shorts on China demand concern. PBOC stimulus would be the re-entry signal.',
     riskInvalidation: 'PBOC announces RRR cut or NPC stimulus package >5 trillion yuan',
-    macroContext: 'Property sector is 25% of China GDP — this is not a small drag. PBOC easing takes 2-3 quarters to show in data.',
     watchNext: 'PBOC MLF rate March 15. China PMI March 31 — needs to hold above 50. NPC stimulus size.',
     sectors: ['China Tech', 'EM Commodities'],
     action_bias: 'bearish',
@@ -187,12 +231,19 @@ const ALL_REACTIONS = [
     watch_next: 'PBOC MLF March 15. China PMI March 31 must hold 50+. NPC fiscal package size.',
     risk: 'PBOC announces large RRR cut — China names reverse fast +5-8%',
     related_assets: ['FXI', 'BABA', 'KWEB', 'EWJ', 'EWY'],
+    trade_setup: {
+      entry: 'Short FXI below $25, AUD/USD short below 0.645',
+      invalidation: 'PBOC announces RRR cut — FXI spikes +5%, exit all shorts immediately',
+      timeframe: 'Hold until PBOC meeting or China PMI print',
+    },
   },
   {
     id: 'japan-boj',
     marketState: 'BoJ ended negative rates at March meeting — first hike in 17 years. USDJPY dropped from 151 to 148.5.',
     regions: ['APAC'],
     timing: 'Developing',
+    source_name: 'Central Bank',
+    published_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
     driver: 'BoJ raised rates to 0.1% from -0.1%. Ended YCC bond yield cap. Spring wage negotiations (shunto) showed +5.3% wage growth — highest since 1991.',
     impactText: 'USDJPY -1.8% to 148.5. Nikkei -1.2% (yen headwind for exporters). Toyota -2.1%, Honda -1.7%. JGB 10Y yield +6bp to 0.77%.',
     relatedAssets: [
@@ -202,7 +253,6 @@ const ALL_REACTIONS = [
     importance: 7,
     actionBias: 'Avoid Japanese exporter stocks (yen strength = margin compression). Watch USDJPY 147 — if breaks, next stop 145.',
     riskInvalidation: 'BoJ flags one-and-done at next meeting — USDJPY bounces back to 150+',
-    macroContext: 'BoJ is a global rates story — their bond yield cap suppressed global bond yields for years. Removal = gradual global bond pressure.',
     watchNext: 'BoJ April meeting statement. USDJPY 147 level. Japan CPI April 19 — must confirm inflation is sticky.',
     sectors: ['FX', 'Japanese Exporters'],
     action_bias: 'bearish',
@@ -210,12 +260,19 @@ const ALL_REACTIONS = [
     watch_next: 'USDJPY 147 level — if breaks, target 145. BoJ April meeting April 26.',
     risk: 'BoJ signals pause — USDJPY snaps back to 150+, Nikkei recovers',
     related_assets: ['EWJ', 'TM', 'USDJPY'],
+    trade_setup: {
+      entry: 'Short USDJPY below 148.5, avoid EWJ and Toyota',
+      invalidation: 'USDJPY reclaims 150 — BoJ pause confirmed, exit yen longs',
+      timeframe: 'Hold through BoJ April 26 meeting',
+    },
   },
   {
     id: 'india-growth',
     marketState: 'India Q3 GDP +8.4% — highest in 18 months. INDA ETF at $50, up 12% YTD vs EM peers flat.',
     regions: ['APAC'],
     timing: 'Developing',
+    source_name: 'Economic Data',
+    published_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
     driver: 'India GDP +8.4% vs 6.6% expected. Government capex +Rs 11.1 trillion — infrastructure buildout. IT sector revenue growing +12% YoY.',
     impactText: 'INDA +1.8%, EPI +2.1%. INFY and HDB hitting 52-week highs. INR stable at 83 vs USD despite EM FX pressure.',
     relatedAssets: [
@@ -226,7 +283,6 @@ const ALL_REACTIONS = [
     importance: 7,
     actionBias: 'INDA ETF cleanest entry above $50. INFY and HDB are the individual stock plays. Avoid selling into strength here.',
     riskInvalidation: 'RBI tightens aggressively or global risk-off sells EM as a bloc',
-    macroContext: 'India growing 3x faster than China on a GDP basis. IT services, domestic consumption, and infrastructure = 3 independent engines.',
     watchNext: 'RBI rate decision April 5. India CPI March 12. INDA breakout above $52 = next target.',
     sectors: ['EM Growth', 'IT Services'],
     action_bias: 'bullish',
@@ -234,6 +290,11 @@ const ALL_REACTIONS = [
     watch_next: 'RBI April 5. India CPI March 12. INDA above $52 = confirmed breakout.',
     risk: 'RBI surprise hike or global EM risk-off — INR weakens, INDA pulls back to $47',
     related_assets: ['INDA', 'EPI', 'INFY', 'HDB'],
+    trade_setup: {
+      entry: 'INDA above $50 on breakout, INFY on any dip to $18',
+      invalidation: 'INDA closes below $48 — EM risk-off in play',
+      timeframe: 'Swing 2-4 weeks into RBI decision April 5',
+    },
   },
 
   // ── AFRICA ───────────────────────────────────────────────────────────────
@@ -242,6 +303,8 @@ const ALL_REACTIONS = [
     marketState: 'DXY above 104.5 + Brent below $82 = double squeeze on African commodity exporters. ZAR at 19.1 vs USD.',
     regions: ['Africa'],
     timing: 'Follow-up',
+    source_name: 'Market Structure',
+    published_at: new Date(Date.now() - 55 * 60 * 1000).toISOString(),
     driver: 'USD strength (DXY +1.2% on hot jobs data) combined with China growth miss (-demand) — iron ore -4%, copper -2.5% this week.',
     impactText: 'EZA (South Africa ETF) -2.8%. ZAR at 19.1, NGN at record low. BHP -2.1%, VALE -3.4%. Gold is the only buffer — GLD flat.',
     relatedAssets: [
@@ -252,7 +315,6 @@ const ALL_REACTIONS = [
     importance: 8,
     actionBias: 'Avoid EM FX and commodity miners until DXY breaks below 103. Gold (GLD/GDX) is the only African-adjacent trade with positive setup.',
     riskInvalidation: 'China announces RRR cut or infrastructure stimulus — commodity demand expectations flip in 24h',
-    macroContext: 'African equity markets are derivative plays on China growth + DXY. Both headwinds active simultaneously = no floor in sight.',
     watchNext: 'China NPC stimulus announcement. DXY vs 103 support. Brent crude vs $80 — key floor for Nigerian fiscal balance.',
     sectors: ['Mining', 'EM FX'],
     action_bias: 'bearish',
@@ -260,12 +322,19 @@ const ALL_REACTIONS = [
     watch_next: 'China stimulus announcement. DXY below 103 = reversal signal. Brent crude vs $80 floor.',
     risk: 'China announces stimulus — commodity demand flips, Africa names reverse +5-8%',
     related_assets: ['GLD', 'EZA', 'BHP', 'VALE', 'AEM'],
+    trade_setup: {
+      entry: 'Long GLD/GDX above $175 — only clean trade with DXY above 104',
+      invalidation: 'DXY breaks below 103 — EM reversal, exit defensive positioning',
+      timeframe: 'Hold until China NPC stimulus announcement',
+    },
   },
   {
     id: 'africa-gold-play',
     marketState: 'Gold at $2,180/oz — 3rd consecutive all-time high. Real yields falling -15bp this week, DXY softening to 103.8.',
     regions: ['Africa'],
     timing: 'Developing',
+    source_name: 'Market Structure',
+    published_at: new Date(Date.now() - 2.5 * 60 * 60 * 1000).toISOString(),
     driver: 'US real yields dropped -15bp as Fed cut bets repriced. Gold broke $2,100 resistance, now $2,180. GDX (miners) up 8% in 5 sessions.',
     impactText: 'GDX +8.1% in 5 days. AEM (Agnico Eagle) +7.4%. EZA getting a partial bid (+1.8%). South African gold miners outperforming EM peers.',
     relatedAssets: [
@@ -276,7 +345,6 @@ const ALL_REACTIONS = [
     importance: 7,
     actionBias: 'GDX offers 3-4x leveraged move vs gold spot. GLD for direct exposure. EZA for Africa equity expression.',
     riskInvalidation: 'Real yields spike above 2.2% (inflation surprise) — gold drops back to $2,050 fast',
-    macroContext: 'Gold at ATH with real yields still above 1.5% is unusual — means central bank buying (China, India) is the extra bid.',
     watchNext: 'Gold spot vs $2,200 resistance. GDX needs to hold $32. US real yield 10Y — watch TIPS.',
     sectors: ['Gold Miners', 'Precious Metals'],
     action_bias: 'bullish',
@@ -284,6 +352,11 @@ const ALL_REACTIONS = [
     watch_next: 'Gold spot $2,200 resistance. GDX hold above $32. US 10Y real yield — TIPS are the tell.',
     risk: 'Inflation surprise pushes real yields above 2.2% — gold drops to $2,050',
     related_assets: ['GLD', 'GDX', 'AEM', 'EZA'],
+    trade_setup: {
+      entry: 'GDX above $32, GLD above $200 — breakout continuation',
+      invalidation: 'Gold spot drops below $2,100 — real yield spike reversing the trade',
+      timeframe: 'Swing 1-3 weeks while real yields declining',
+    },
   },
 
   // ── LATAM ────────────────────────────────────────────────────────────────
@@ -292,6 +365,8 @@ const ALL_REACTIONS = [
     marketState: 'BRL at 5.02 vs USD, MXN at 17.3 — both under pressure as DXY holds above 104 and Brazil cuts Selic -50bp.',
     regions: ['LatAm'],
     timing: 'Live',
+    source_name: 'Central Bank',
+    published_at: new Date(Date.now() - 40 * 60 * 1000).toISOString(),
     driver: 'Brazil cut Selic rate -50bp to 11.25% — 4th consecutive cut. USD still strong (DXY 104.2). Brent below $82 pressuring PBR.',
     impactText: 'EWZ -2.1%, EWW -1.4%. PBR -3.2% on dual hit (rate cuts + oil). VALE -2.8% on China demand. EM bond spreads +15bp.',
     relatedAssets: [
