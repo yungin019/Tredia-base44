@@ -22,7 +22,7 @@ const TAB_ROOTS = NAV_CONFIG.map(n => n.path);
 export default function AppShell({ onLogout }) {
   const location = useLocation();
   const { t } = useTranslation();
-  const { switchTab, goBack, canGoBack, getTabForPath } = useNavigation();
+  const { switchTab, goBack, canGoBack, getTabForPath, syncExternalNavigation } = useNavigation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -33,6 +33,10 @@ export default function AppShell({ onLogout }) {
   useEffect(() => {
     const prev = prevPath.current;
     const curr = location.pathname;
+
+    // Sync any external navigate() calls into the tab stack
+    syncExternalNavigation(curr);
+
     const prevTab = getTabForPath(prev);
     const currTab = getTabForPath(curr);
     const prevIdx = TAB_ROOTS.indexOf(prevTab);
@@ -41,7 +45,6 @@ export default function AppShell({ onLogout }) {
     if (prevTab !== currTab) {
       setSlideDir(currIdx >= prevIdx ? 1 : -1);
     } else {
-      // Within same tab: forward if going deeper, back if popping
       setSlideDir(canGoBack() ? 1 : -1);
     }
     prevPath.current = curr;

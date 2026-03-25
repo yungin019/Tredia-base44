@@ -565,6 +565,13 @@ export default function Settings({ onLogout }) {
           onConfirm={async () => {
             setDeleteLoading(true);
             try {
+              // Purge all user data from backend before logging out
+              await base44.functions.invoke('deleteUserData', {});
+            } catch {
+              // Best-effort — proceed with logout even if purge fails
+            }
+            try {
+              localStorage.clear();
               await base44.auth.logout('/SignIn');
             } catch {
               window.location.href = '/SignIn';

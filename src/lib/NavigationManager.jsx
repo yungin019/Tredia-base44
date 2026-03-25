@@ -35,6 +35,17 @@ export function NavigationProvider({ children }) {
     navigate(path);
   }, [navigate, getTabForPath]);
 
+  // Sync external navigations (via useNavigate()) into the tab stacks
+  // Called by AppShell on every location change
+  const syncExternalNavigation = useCallback((path) => {
+    const tab = getTabForPath(path);
+    activeTab.current = tab;
+    const stack = tabStacks.current[tab];
+    if (stack[stack.length - 1] !== path) {
+      tabStacks.current[tab] = [...stack, path];
+    }
+  }, [getTabForPath]);
+
   // Go back within the current tab stack
   const goBack = useCallback(() => {
     const tab = activeTab.current;
@@ -64,7 +75,7 @@ export function NavigationProvider({ children }) {
   activeTab.current = currentTab;
 
   return (
-    <NavigationContext.Provider value={{ push, goBack, switchTab, canGoBack, getTabForPath, activeTab }}>
+    <NavigationContext.Provider value={{ push, goBack, switchTab, canGoBack, getTabForPath, activeTab, syncExternalNavigation }}>
       {children}
     </NavigationContext.Provider>
   );
