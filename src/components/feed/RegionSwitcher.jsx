@@ -4,8 +4,8 @@ import { Globe } from 'lucide-react';
 
 const REGIONS = [
   { id: 'Global', label: 'Global', flag: '🌍' },
-  { id: 'US',     label: 'US',     flag: '🇺🇸' },
-  { id: 'EU',     label: 'Europe', flag: '🇪🇺' },
+  { id: 'US',     label: 'US',     flag: '🌎' },
+  { id: 'EU',     label: 'Europe', flag: '🌍' },
   { id: 'APAC',   label: 'Asia',   flag: '🌏' },
   { id: 'Africa', label: 'Africa', flag: '🌍' },
   { id: 'LatAm',  label: 'LatAm',  flag: '🌎' },
