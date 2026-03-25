@@ -191,13 +191,13 @@ export default function AIInsights() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="xl:col-span-2 flex flex-col gap-5">
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl border border-white/[0.07] bg-[#111118] flex flex-col items-center justify-center p-4 col-span-1">
-              <SentimentGauge value={62} label="Overall Market" />
+              <SentimentGauge value={fngValue ?? 50} label="Fear & Greed" />
             </div>
             <div className="rounded-xl border border-white/[0.07] bg-[#111118] flex flex-col items-center justify-center p-4 col-span-1">
-              <SentimentGauge value={78} label="Equity Sentiment" />
+              <SentimentGauge value={engineSignals.filter(s => s.signal === 'BUY').length > engineSignals.filter(s => s.signal === 'SELL').length ? Math.min(75, (fngValue ?? 50) + 10) : Math.max(25, (fngValue ?? 50) - 10)} label="Equity Bias" />
             </div>
             <div className="rounded-xl border border-white/[0.07] bg-[#111118] flex flex-col items-center justify-center p-4 col-span-1">
-              <SentimentGauge value={45} label="Risk Appetite" />
+              <SentimentGauge value={fngValue != null ? Math.max(10, Math.min(90, 100 - fngValue)) : 50} label="Risk-Off Pressure" />
             </div>
           </div>
           <MarketScanner />
@@ -251,18 +251,10 @@ export default function AIInsights() {
                 <SignalCard key={i} signal={toEngineSignalCardProps(signal)} />
               ))
             ) : (
-              <div className="lg:col-span-2 space-y-4">
-                <div className="p-8 rounded-lg bg-white/[0.02] border border-white/[0.08]">
-                  <p className="text-sm font-semibold text-white/70 mb-2">Market waiting for catalyst</p>
-                  <p className="text-xs text-white/40">No big moves breaking. Next trigger likely from inflation data or Fed speakers.</p>
-                </div>
-                <div className="space-y-2 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-                  <p className="text-xs font-bold text-white/30 uppercase tracking-wider">On the radar</p>
-                  <div className="space-y-1">
-                    <p className="text-xs text-white/50">• PCE inflation print (Friday)</p>
-                    <p className="text-xs text-white/50">• Fed speakers this week</p>
-                    <p className="text-xs text-white/50">• Major earnings announcements</p>
-                  </div>
+              <div className="lg:col-span-2">
+                <div className="p-8 rounded-lg bg-white/[0.02] border border-white/[0.08] text-center">
+                  <p className="text-sm font-semibold text-white/70 mb-2">No active signals right now</p>
+                  <p className="text-xs text-white/40">TREK is monitoring markets. Signals appear when conditions align. Check back soon or pull to refresh.</p>
                 </div>
               </div>
             )}

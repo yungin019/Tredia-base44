@@ -338,7 +338,6 @@ export default function Settings({ onLogout }) {
             { name: 'eToro', desc: 'Social trading & investing', logo: '🟢', status: 'coming_soon' },
             { name: 'Binance', desc: 'Crypto & spot trading', logo: '🟡', status: 'coming_soon' },
             { name: 'Interactive Brokers', desc: 'Professional trading platform', logo: '🔵', status: 'coming_soon' },
-            { name: 'Alpaca', desc: 'Commission-free US stocks', logo: '⚪', status: 'coming_soon' },
           ].map(broker => (
             <div key={broker.name} className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
               <span className="text-xl flex-shrink-0">{broker.logo}</span>

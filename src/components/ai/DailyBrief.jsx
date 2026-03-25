@@ -39,6 +39,9 @@ const EVENING_RECAP = {
 };
 
 export default function DailyBrief({ mode = 'morning' }) {
+  // Disabled: hardcoded event data removed — connect to live earnings calendar before re-enabling
+  return null;
+
   const navigate = useNavigate();
   const brief = mode === 'morning' ? MORNING_BRIEF : EVENING_RECAP;
   const Icon = brief.icon;
