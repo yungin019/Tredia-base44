@@ -59,7 +59,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const AppRoutes = ({ user, onLogout }) => {
+const AppRoutes = ({ user, userProfile, onLogout }) => {
   const location = useLocation();
 
   if (!user) {
@@ -72,6 +72,12 @@ const AppRoutes = ({ user, onLogout }) => {
         </Routes>
       </AnimatePresence>
     );
+  }
+
+  // Redirect to onboarding if not completed
+  const needsOnboarding = userProfile && !userProfile.onboarding_completed;
+  if (needsOnboarding && location.pathname !== '/Onboarding') {
+    return <Navigate to="/Onboarding" replace />;
   }
 
   return (
@@ -109,6 +115,7 @@ const AppRoutes = ({ user, onLogout }) => {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -116,8 +123,10 @@ function App() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser || null);
+        setUserProfile(currentUser || null);
       } catch (error) {
         setUser(null);
+        setUserProfile(null);
       } finally {
         setLoading(false);
       }
@@ -127,6 +136,7 @@ function App() {
 
   const handleLogout = async () => {
     setUser(null);
+    setUserProfile(null);
     try {
       localStorage.removeItem('base44_access_token');
       localStorage.removeItem('token');
@@ -143,7 +153,7 @@ function App() {
       ) : (
         <Router>
           <NavigationProvider>
-            <AppRoutes user={user} onLogout={handleLogout} />
+            <AppRoutes user={user} userProfile={userProfile} onLogout={handleLogout} />
             <Toaster />
           </NavigationProvider>
         </Router>
