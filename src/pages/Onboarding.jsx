@@ -1,312 +1,652 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
-import { ArrowRight, Check, Brain, Zap, TrendingUp, Shield, Crown } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { claimFoundingMemberSlot, getFoundingStats } from '@/api/foundingMembers';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight, Zap, Newspaper, TrendingUp, Shield, Check, Sprout, BarChart3 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/lib/AuthContext';
 
-const fadeUp = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -10 },
-};
-
-const BUDGET_OPTIONS = ['Under 500 SEK', '500-5k SEK', '5k-50k SEK', '50k+ SEK'];
-const RISK_OPTIONS = ['Conservative', 'Moderate', 'Aggressive'];
-const HORIZON_OPTIONS = ['Days', 'Months', 'Years'];
-const INTERESTS_OPTIONS = ['Stocks', 'Crypto', 'Commodities', 'All'];
-
-function OptionButton({ label, selected, onClick, color = '#F59E0B' }) {
-  return (
-    <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.97 }}
-      onClick={onClick}
-      className="w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-semibold transition-all text-left"
-      style={{
-        background: selected ? `${color}12` : 'rgba(255,255,255,0.02)',
-        borderColor: selected ? `${color}60` : 'rgba(255,255,255,0.08)',
-        color: selected ? color : 'rgba(255,255,255,0.65)',
-        outline: 'none',
-      }}
-    >
-      {label}
-      {selected && <Check className="h-4 w-4 flex-shrink-0" style={{ color }} />}
-    </motion.button>
-  );
-}
+const PLATFORMS = [
+  { id: 'etoro', name: 'eToro' },
+  { id: 'avanza', name: 'Avanza' },
+  { id: 'robinhood', name: 'Robinhood' },
+  { id: 'coinbase', name: 'Coinbase' },
+  { id: 'other', name: 'Other' },
+];
 
 export default function Onboarding() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [saving, setSaving] = useState(false);
-  const [ogStats, setOgStats] = useState(null);
-  const [ogNumber, setOgNumber] = useState(null);
+  const { user } = useAuth();
+  const [currentScreen, setCurrentScreen] = useState(1);
+  const [experienceLevel, setExperienceLevel] = useState(null);
+  const [selectedPlatform, setSelectedPlatform] = useState(null);
+  const [isCompleting, setIsCompleting] = useState(false);
 
-  // Profile fields
-  const [budget, setBudget] = useState('');
-  const [risk, setRisk] = useState('');
-  const [horizon, setHorizon] = useState('');
-  const [interests, setInterests] = useState('');
+  const totalScreens = experienceLevel === 'existing' && selectedPlatform ? 8 : 7;
 
-  useEffect(() => {
-    getFoundingStats().then(stats => setOgStats(stats)).catch(() => {});
-  }, []);
-
-  const handleOGClaim = async () => {
-    try {
-      const user = await base44.auth.me();
-      if (user?.id || user?.email) {
-        const member = await claimFoundingMemberSlot(user.email || user.id);
-        if (member) {
-          setOgNumber(member.og_number);
-          setStep(2);
-        }
-      }
-    } catch (e) {
-      console.error('OG claim error:', e);
-      setStep(2);
+  const nextScreen = () => {
+    if (currentScreen < totalScreens) {
+      setCurrentScreen(prev => prev + 1);
     }
   };
 
-  const handleProfileSave = async () => {
-    setSaving(true);
-    try {
-      const profileData = {
-        onboarding_completed: true,
-        ...(budget && { budget_range: budget }),
-        ...(risk && { risk_tolerance: risk }),
-        ...(horizon && { time_horizon: horizon }),
-        ...(interests && { interests }),
-      };
-      await base44.auth.updateMe(profileData);
-    } catch (e) {
-      console.error('Profile save error:', e);
+  const skipToExperience = () => {
+    setCurrentScreen(6);
+  };
+
+  const selectExperience = (level) => {
+    setExperienceLevel(level);
+    if (level === 'new') {
+      setCurrentScreen(7);
+    } else {
+      setCurrentScreen(7);
     }
-    setSaving(false);
-    setStep(4);
+  };
+
+  const selectPlatform = (platformId) => {
+    setSelectedPlatform(platformId);
+    setCurrentScreen(8);
+  };
+
+  const completeOnboarding = async () => {
+    if (isCompleting) return;
+
+    setIsCompleting(true);
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          onboarding_completed: true,
+          experience_level: experienceLevel,
+          existing_platform: selectedPlatform,
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      navigate('/home');
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      navigate('/home');
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0
+    })
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden" style={{ backgroundColor: '#0A0A0F' }}>
-      <div className="absolute inset-0 grid-bg opacity-30" />
-      <div className="absolute w-96 h-96 rounded-full opacity-[0.05] blur-3xl pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #F59E0B, transparent)' }} />
+    <div className="min-h-screen bg-[#080B12] text-white overflow-hidden relative">
+      {currentScreen >= 2 && currentScreen <= 5 && (
+        <button
+          onClick={skipToExperience}
+          className="absolute top-6 right-6 z-50 text-gray-400 hover:text-white transition-colors text-sm"
+        >
+          Skip
+        </button>
+      )}
 
-      <div className="relative w-full max-w-xl">
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-center gap-2 mb-8">
-          <span className="text-2xl font-black" style={{ color: '#F59E0B', letterSpacing: '-0.03em' }}>TREDIO</span>
-        </motion.div>
-
-        <AnimatePresence mode="wait">
-
-          {/* STEP 1: OG Counter Offer */}
-          {step === 1 && (
-            <motion.div key="og" {...fadeUp} transition={{ duration: 0.4 }}>
-              <div className="rounded-2xl border border-[#F59E0B]/25 bg-[#111118] p-8" style={{ boxShadow: '0 0 40px rgba(245,158,11,0.08)' }}>
-                <div className="text-center mb-6">
-                  <div className="inline-flex items-center gap-1.5 bg-[#F59E0B]/10 border border-[#F59E0B]/20 rounded-full px-3 py-1 mb-3">
-                    <Crown className="h-3 w-3 text-[#F59E0B]" />
-                    <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">FOUNDING MEMBER OFFER</span>
-                  </div>
-                  <h1 className="text-2xl font-black text-white/90 mb-2">Join the OG100</h1>
-                  <p className="text-sm text-white/50 mb-1">🔴 LIVE — {ogStats?.foundingSpotsRemaining || 100} of 100 spots left</p>
-                </div>
-
-                <ul className="space-y-3 mb-6">
-                  {[
-                    'Elite FREE for 30 days',
-                    'Then Elite for 89 SEK/month for life (normally 179 SEK)',
-                    'OG Founding Member badge',
-                    'Personal referral link'
-                  ].map((f, i) => (
-                    <li key={i} className="flex items-center gap-3">
-                      <div className="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}>
-                        <Check className="h-3 w-3 text-[#F59E0B]" />
-                      </div>
-                      <span className="text-sm text-white/70">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={handleOGClaim}
-                    disabled={ogStats?.isSoldOut}
-                    className="py-3 rounded-xl font-black text-sm tracking-wide transition-all"
-                    style={{
-                      background: ogStats?.isSoldOut ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #F59E0B, #D97706)',
-                      color: ogStats?.isSoldOut ? 'rgba(255,255,255,0.3)' : '#0A0A0F',
-                      opacity: ogStats?.isSoldOut ? 0.5 : 1
-                    }}>
-                    {ogStats?.isSoldOut ? 'SOLD OUT' : 'CLAIM MY SPOT'}
-                  </button>
-                  <button
-                    onClick={() => setStep(2)}
-                    className="py-3 rounded-xl font-bold text-sm border border-white/[0.1] hover:border-white/20 transition-colors text-white/60">
-                    SKIP
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* STEP 2: AI Systems Intro */}
-          {step === 2 && (
-            <motion.div key="ai" {...fadeUp} transition={{ duration: 0.4 }}>
-              <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8 text-center">
-                <h1 className="text-2xl font-black text-white/90 mb-2">4 AI systems watching</h1>
-                <p className="text-sm text-white/40 mb-8">every market, 24/7</p>
-
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  {[
-                    { icon: Brain, label: 'Pattern Recognition', color: '#60A5FA' },
-                    { icon: Zap, label: 'Signal Engine', color: '#F59E0B' },
-                    { icon: TrendingUp, label: 'Trend Analysis', color: '#22C55E' },
-                    { icon: Shield, label: 'Risk Monitor', color: '#EF4444' },
-                  ].map((sys, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1 + i * 0.1 }}
-                      className="flex flex-col items-center gap-3 p-4 rounded-xl"
-                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div className="h-12 w-12 rounded-xl flex items-center justify-center"
-                        style={{ background: `${sys.color}15`, border: `1px solid ${sys.color}30` }}>
-                        <sys.icon className="h-6 w-6" style={{ color: sys.color }} />
-                      </div>
-                      <span className="text-xs font-semibold text-white/60">{sys.label}</span>
-                    </motion.div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setStep(3)}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
-                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                  CONTINUE <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* STEP 3: Profile Questions */}
-          {step === 3 && (
-            <motion.div key="profile" {...fadeUp} transition={{ duration: 0.4 }}>
-              <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-6">
-                <div className="text-center mb-6">
-                  <h1 className="text-xl font-black text-white/90 mb-1">Personalize TREK</h1>
-                  <p className="text-sm text-white/35">AI adapts to your profile</p>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Budget</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {BUDGET_OPTIONS.map(opt => (
-                        <OptionButton key={opt} label={opt} selected={budget === opt} onClick={() => setBudget(opt)} />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Risk</p>
-                    <div className="flex flex-col gap-2">
-                      {RISK_OPTIONS.map(opt => (
-                        <OptionButton key={opt} label={opt} selected={risk === opt} onClick={() => setRisk(opt)} />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Horizon</p>
-                    <div className="flex flex-col gap-2">
-                      {HORIZON_OPTIONS.map(opt => (
-                        <OptionButton key={opt} label={opt} selected={horizon === opt} onClick={() => setHorizon(opt)} />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Interests</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {INTERESTS_OPTIONS.map(opt => (
-                        <OptionButton key={opt} label={opt} selected={interests === opt} onClick={() => setInterests(opt)} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleProfileSave}
-                  disabled={saving}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mt-6"
-                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: saving ? 0.7 : 1 }}>
-                  {saving ? 'Loading...' : <><span>CONTINUE</span> <ArrowRight className="h-4 w-4" /></>}
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* STEP 4: Create Account CTA */}
-          {step === 4 && (
-            <motion.div key="account" {...fadeUp} transition={{ duration: 0.4 }}>
-              <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8 text-center">
-                <div className="h-16 w-16 rounded-2xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 flex items-center justify-center mx-auto mb-4">
-                  <Zap className="h-8 w-8 text-[#F59E0B]" />
-                </div>
-                <h1 className="text-2xl font-black text-white/90 mb-2">You're all set!</h1>
-                <p className="text-sm text-white/40 mb-8">One last step — create your account</p>
-
-                <button
-                  onClick={() => navigate('/SignIn')}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
-                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                  GET STARTED <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* STEP 5: OG Welcome (if claimed) */}
-          {step === 5 && ogNumber && (
-            <motion.div key="welcome" {...fadeUp} transition={{ duration: 0.4 }}>
-              <div className="rounded-2xl border border-[#F59E0B]/25 bg-[#111118] p-8 text-center">
-                <div className="inline-flex items-center gap-2 bg-[#F59E0B]/15 border border-[#F59E0B]/30 rounded-full px-4 py-2 mb-4">
-                  <Crown className="h-5 w-5 text-[#F59E0B]" />
-                  <span className="text-sm font-black text-[#F59E0B]">OG #{ogNumber}</span>
-                </div>
-                <h1 className="text-2xl font-black text-white/90 mb-2">Welcome, Founding Member</h1>
-                <p className="text-sm text-white/50 mb-8">Your referral link is ready</p>
-
-                <div className="rounded-xl p-4 mb-6" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                  <p className="text-xs font-mono text-white/60 mb-2">https://tredio.app/join?ref=OG{ogNumber}</p>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`https://tredio.app/join?ref=OG${ogNumber}`);
-                    }}
-                    className="text-xs font-bold text-[#F59E0B] hover:text-[#F59E0B]/80 transition-colors">
-                    Copy Link
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => navigate('/Home')}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
-                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                  ENTER TREDIO <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-        </AnimatePresence>
+      <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2 z-50">
+        {Array.from({ length: totalScreens }).map((_, idx) => (
+          <div
+            key={idx}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              idx + 1 === currentScreen
+                ? 'w-8 bg-[#F59E0B]'
+                : idx + 1 < currentScreen
+                ? 'w-2 bg-[#F59E0B]/50'
+                : 'w-2 bg-gray-600'
+            }`}
+          />
+        ))}
       </div>
+
+      <AnimatePresence mode="wait">
+        {currentScreen === 1 && (
+          <motion.div
+            key="screen1"
+            custom={1}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="min-h-screen flex flex-col items-center justify-center px-6"
+          >
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="mb-12"
+            >
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                <Zap className="w-12 h-12 text-white" />
+              </div>
+            </motion.div>
+
+            <motion.h1
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-4xl md:text-5xl font-bold mb-4 text-center"
+            >
+              Welcome to TREDIO
+            </motion.h1>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-xl text-gray-400 mb-16 text-center max-w-md"
+            >
+              Your personal AI trading mentor
+            </motion.p>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <Button
+                onClick={nextScreen}
+                size="lg"
+                className="bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white px-12 py-6 text-lg rounded-xl shadow-lg shadow-[#F59E0B]/20"
+              >
+                GET STARTED
+                <ChevronRight className="ml-2 w-5 h-5" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {currentScreen === 2 && (
+          <motion.div
+            key="screen2"
+            custom={1}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="min-h-screen flex flex-col items-center justify-center px-6"
+          >
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className="mb-12"
+            >
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                <Zap className="w-12 h-12 text-white" />
+              </div>
+            </motion.div>
+
+            <motion.h2
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-3xl md:text-4xl font-bold mb-6 text-center"
+            >
+              Meet TREK
+            </motion.h2>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-lg text-gray-300 mb-16 text-center max-w-lg leading-relaxed"
+            >
+              TREK is your AI mentor that analyzes every trade before you make it.
+              Think of it as having a Wall Street analyst in your pocket — 24/7.
+            </motion.p>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <Button
+                onClick={nextScreen}
+                size="lg"
+                className="bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white px-12 py-6 text-lg rounded-xl"
+              >
+                NEXT
+                <ChevronRight className="ml-2 w-5 h-5" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {currentScreen === 3 && (
+          <motion.div
+            key="screen3"
+            custom={1}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="min-h-screen flex flex-col items-center justify-center px-6"
+          >
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className="mb-12"
+            >
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                <Newspaper className="w-12 h-12 text-white" />
+              </div>
+            </motion.div>
+
+            <motion.h2
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-3xl md:text-4xl font-bold mb-6 text-center"
+            >
+              Your Intelligence Feed
+            </motion.h2>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-lg text-gray-300 mb-16 text-center max-w-lg leading-relaxed"
+            >
+              Every day TREK scans global markets and tells you exactly what's happening,
+              what to watch, and what to avoid. No charts to decode. Just clear signals with reasons.
+            </motion.p>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <Button
+                onClick={nextScreen}
+                size="lg"
+                className="bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white px-12 py-6 text-lg rounded-xl"
+              >
+                NEXT
+                <ChevronRight className="ml-2 w-5 h-5" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {currentScreen === 4 && (
+          <motion.div
+            key="screen4"
+            custom={1}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="min-h-screen flex flex-col items-center justify-center px-6"
+          >
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className="mb-12"
+            >
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                <TrendingUp className="w-12 h-12 text-white" />
+              </div>
+            </motion.div>
+
+            <motion.h2
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-3xl md:text-4xl font-bold mb-6 text-center"
+            >
+              Live Markets
+            </motion.h2>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-lg text-gray-300 mb-16 text-center max-w-lg leading-relaxed"
+            >
+              See every sector, stock and crypto in real time. TREK grades each one —
+              BUY, HOLD or SELL — with exact price levels and reasons. Never guess again.
+            </motion.p>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <Button
+                onClick={nextScreen}
+                size="lg"
+                className="bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white px-12 py-6 text-lg rounded-xl"
+              >
+                NEXT
+                <ChevronRight className="ml-2 w-5 h-5" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {currentScreen === 5 && (
+          <motion.div
+            key="screen5"
+            custom={1}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="min-h-screen flex flex-col items-center justify-center px-6"
+          >
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className="mb-12"
+            >
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                <Shield className="w-12 h-12 text-white" />
+              </div>
+            </motion.div>
+
+            <motion.h2
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-3xl md:text-4xl font-bold mb-6 text-center"
+            >
+              TREK Checks Every Trade
+            </motion.h2>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-lg text-gray-300 mb-16 text-center max-w-lg leading-relaxed"
+            >
+              Before you buy or sell anything, TREK gives you the full picture.
+              Entry price. Target. Stop loss. Confidence score. Exact reasons.
+              You always know WHY before you act.
+            </motion.p>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <Button
+                onClick={nextScreen}
+                size="lg"
+                className="bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white px-12 py-6 text-lg rounded-xl"
+              >
+                NEXT
+                <ChevronRight className="ml-2 w-5 h-5" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {currentScreen === 6 && (
+          <motion.div
+            key="screen6"
+            custom={1}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="min-h-screen flex flex-col items-center justify-center px-6 pb-24"
+          >
+            <motion.h2
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-3xl md:text-4xl font-bold mb-12 text-center"
+            >
+              How do you invest?
+            </motion.h2>
+
+            <div className="w-full max-w-md space-y-4">
+              <motion.div
+                initial={{ x: -50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card
+                  onClick={() => selectExperience('new')}
+                  className="bg-[#0F1419] border-2 border-gray-700 hover:border-[#F59E0B] cursor-pointer transition-all p-6 hover:shadow-lg hover:shadow-[#F59E0B]/20"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl">🌱</div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold mb-2 text-white">I'm new to investing</h3>
+                      <p className="text-gray-400 leading-relaxed">
+                        TREK will guide you from your very first trade
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ x: -50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.6 }}
+              >
+                <Card
+                  onClick={() => selectExperience('existing')}
+                  className="bg-[#0F1419] border-2 border-gray-700 hover:border-[#F59E0B] cursor-pointer transition-all p-6 hover:shadow-lg hover:shadow-[#F59E0B]/20"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl">📈</div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold mb-2 text-white">I already invest</h3>
+                      <p className="text-gray-400 leading-relaxed">
+                        TREK will upgrade your existing strategy
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+
+        {currentScreen === 7 && experienceLevel === 'existing' && (
+          <motion.div
+            key="screen7-platform"
+            custom={1}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="min-h-screen flex flex-col items-center justify-center px-6 pb-24"
+          >
+            <motion.h2
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-3xl md:text-4xl font-bold mb-4 text-center"
+            >
+              Which platform do you use?
+            </motion.h2>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-gray-400 mb-12 text-center max-w-md"
+            >
+              TREK works alongside your existing platform
+            </motion.p>
+
+            <div className="w-full max-w-md grid grid-cols-2 gap-3">
+              {PLATFORMS.map((platform, idx) => (
+                <motion.button
+                  key={platform.id}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.4 + idx * 0.1 }}
+                  onClick={() => selectPlatform(platform.id)}
+                  className="bg-[#0F1419] border-2 border-gray-700 hover:border-[#F59E0B] text-white py-4 px-6 rounded-xl transition-all hover:shadow-lg hover:shadow-[#F59E0B]/20 font-medium"
+                >
+                  {platform.name}
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {currentScreen === 8 && experienceLevel === 'existing' && selectedPlatform && (
+          <motion.div
+            key="screen8-existing-ready"
+            custom={1}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="min-h-screen flex flex-col items-center justify-center px-6"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="mb-8"
+            >
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                <Check className="w-12 h-12 text-white" />
+              </div>
+            </motion.div>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-gray-400 mb-6 text-center max-w-md"
+            >
+              TREK works alongside {PLATFORMS.find(p => p.id === selectedPlatform)?.name}.
+              Log your trades and get the analysis {PLATFORMS.find(p => p.id === selectedPlatform)?.name} never gives you.
+            </motion.p>
+
+            <motion.h2
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-3xl md:text-4xl font-bold mb-4 text-center"
+            >
+              TREK is ready.
+            </motion.h2>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="text-xl text-gray-300 mb-16 text-center"
+            >
+              Your AI edge starts now.
+            </motion.p>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 1 }}
+            >
+              <Button
+                onClick={completeOnboarding}
+                disabled={isCompleting}
+                size="lg"
+                className="bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white px-12 py-6 text-lg rounded-xl shadow-lg shadow-[#F59E0B]/20"
+              >
+                {isCompleting ? 'LOADING...' : 'GO TO MY FEED'}
+                <ChevronRight className="ml-2 w-5 h-5" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {currentScreen === 7 && experienceLevel === 'new' && (
+          <motion.div
+            key="screen7-new-ready"
+            custom={1}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="min-h-screen flex flex-col items-center justify-center px-6"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="mb-8"
+            >
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                <Check className="w-12 h-12 text-white" />
+              </div>
+            </motion.div>
+
+            <motion.h2
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-3xl md:text-4xl font-bold mb-4 text-center"
+            >
+              You're ready to learn.
+            </motion.h2>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-xl text-gray-300 mb-16 text-center max-w-md leading-relaxed"
+            >
+              Start with practice trading. Zero risk. Real intelligence.
+              TREK guides every step.
+            </motion.p>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <Button
+                onClick={completeOnboarding}
+                disabled={isCompleting}
+                size="lg"
+                className="bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white px-12 py-6 text-lg rounded-xl shadow-lg shadow-[#F59E0B]/20"
+              >
+                {isCompleting ? 'LOADING...' : 'GO TO MY FEED'}
+                <ChevronRight className="ml-2 w-5 h-5" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
