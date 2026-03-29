@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>TREDIO — AI Trading Intelligence</title>
+    <meta name="description" content="TREDIO gives you real-time AI-powered trading signals, market insights, and portfolio intelligence — all in one app." />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://tredio.app" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://tredio.app" />
+    <meta property="og:title" content="TREDIO — AI Trading Intelligence" />
+    <meta property="og:description" content="Real-time AI trading signals, market insights, and portfolio intelligence." />
+    <meta property="og:image" content="https://tredio.app/og-image.png" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://tredio.app" />
+    <meta name="twitter:title" content="TREDIO — AI Trading Intelligence" />
+    <meta name="twitter:description" content="Real-time AI trading signals, market insights, and portfolio intelligence." />
+    <meta name="twitter:image" content="https://tredio.app/og-image.png" />
+
+    <!-- PWA / Mobile -->
+    <meta name="theme-color" content="#F59E0B" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="TREDIO" />
+    <script type="module" crossorigin src="/assets/index-B2K3evWO.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-C32SLLU9.css">
+    <script type="module">
+if (window.self === window.top) {
+  let lastPath = "";
+  function getPageNameFromPath(path) {
+    const segments = path.split("/").filter(Boolean);
+    return segments[0] || null;
+  }
+  function trackPageView() {
+    const path = window.location.pathname;
+    if (path === lastPath) return;
+    lastPath = path;
+    const pageName = getPageNameFromPath(path) || "home";
+    const appId = "";
+    if (!appId) return;
+    fetch(`/app-logs/${appId}/log-user-in-app/${pageName}`, {
+      method: "POST",
+    }).catch(() => {});
+  }
+  const originalPushState = history.pushState.bind(history);
+  history.pushState = function (...args) {
+    originalPushState(...args);
+    trackPageView();
+  };
+  const originalReplaceState = history.replaceState.bind(history);
+  history.replaceState = function (...args) {
+    originalReplaceState(...args);
+    trackPageView();
+  };
+  window.addEventListener("popstate", trackPageView);
+  trackPageView();
+}
+</script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

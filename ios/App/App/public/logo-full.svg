@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 48" fill="none">
+  <!-- T stem -->
+  <rect x="10" y="10" width="7" height="28" rx="1.5" fill="#F59E0B"/>
+  <!-- T left arm -->
+  <rect x="4" y="10" width="20" height="7" rx="1.5" fill="#F59E0B"/>
+  <!-- Chart trending line (right arm) -->
+  <polyline points="24,13.5 30,13.5 38,5" stroke="#F59E0B" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- TREDIO text -->
+  <text x="54" y="34" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="22" letter-spacing="5" fill="#F59E0B">TREDIO</text>
+</svg>
