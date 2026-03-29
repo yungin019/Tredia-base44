@@ -1,15 +1,16 @@
+cat > codemagic.yaml << 'YAML'
 workflows:
   ios-workflow:
     name: TREDIO iOS
     max_build_duration: 120
+    integrations:
+      app_store_connect: Codemagic
     environment:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.tredio.app
       vars:
         BUNDLE_ID: com.tredio.app
-        XCODE_WORKSPACE: ios/App/App.xcworkspace
-        XCODE_SCHEME: App
     scripts:
       - name: Install dependencies
         script: npm install
@@ -17,17 +18,22 @@ workflows:
         script: npm run build
       - name: Sync Capacitor
         script: npx cap sync ios
+      - name: Set up code signing
+        script: xcode-project use-profiles
       - name: Build iOS
         script: |
           xcodebuild -workspace ios/App/App.xcworkspace \
             -scheme App \
+            -configuration Release \
             -archivePath build/App.xcarchive \
-            archive
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="TREDIO App Store" \
+            DEVELOPMENT_TEAM=78GKEP7L2H
     artifacts:
       - build/App.xcarchive
     publishing:
       app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
+YAML
+
