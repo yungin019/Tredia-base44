@@ -3,61 +3,6 @@ import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import CommunityPostCard from './CommunityPostCard';
 
-const DEMO_POSTS = [
-  {
-    id: 'demo1',
-    username: 'TraderPro_',
-    ticker: 'NVDA',
-    action: 'BUY',
-    analysis: 'Blackwell cycle just beginning. Data center demand accelerating faster than consensus. $1,000 target by EOY.',
-    trek_grade: 'A',
-    trek_agrees: true,
-    likes_count: 47,
-    comments_count: 12,
-    is_trek_post: false,
-    created_date: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
-  },
-  {
-    id: 'demo2',
-    username: 'TREK AI',
-    ticker: 'SPY',
-    action: 'HOLD',
-    analysis: 'Fed uncertainty persists. Market pricing 2 cuts in 2025 — TREK sees 1. Stay defensive until CPI confirms trajectory.',
-    trek_grade: 'B',
-    trek_agrees: true,
-    likes_count: 89,
-    comments_count: 24,
-    is_trek_post: true,
-    created_date: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-  },
-  {
-    id: 'demo3',
-    username: 'AlphaSeeker',
-    ticker: 'BTC',
-    action: 'BUY',
-    analysis: 'ETF inflows re-accelerating. On-chain supply shock incoming post-halving. Accumulation zone.',
-    trek_grade: 'B',
-    trek_agrees: true,
-    likes_count: 31,
-    comments_count: 8,
-    is_trek_post: false,
-    created_date: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-  },
-  {
-    id: 'demo4',
-    username: 'TechBull_',
-    ticker: 'TSLA',
-    action: 'SELL',
-    analysis: 'Margin compression continuing. China competition intensifying. Deliveries miss likely next quarter.',
-    trek_grade: 'C',
-    trek_agrees: false,
-    likes_count: 15,
-    comments_count: 31,
-    is_trek_post: false,
-    created_date: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-  },
-];
-
 export default function CommunityFeed({ user, tier }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,10 +15,9 @@ export default function CommunityFeed({ user, tier }) {
   const loadPosts = async () => {
     try {
       const realPosts = await base44.entities.CommunityPost.list('-created_date', 20);
-      const combined = [...(realPosts || []), ...DEMO_POSTS];
-      setPosts(combined.slice(0, 20));
+      setPosts(realPosts || []);
     } catch {
-      setPosts(DEMO_POSTS);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -118,6 +62,16 @@ export default function CommunityFeed({ user, tier }) {
         {[1,2,3].map(i => (
           <div key={i} className="h-40 rounded-2xl bg-white/[0.02] border border-white/[0.04] animate-pulse" />
         ))}
+      </div>
+    );
+  }
+
+  if (posts.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="text-4xl mb-4">📡</div>
+        <p className="text-white/50 font-semibold mb-1">No posts yet</p>
+        <p className="text-white/25 text-sm">TREK AI will post signals here. Be the first to share a trade.</p>
       </div>
     );
   }
