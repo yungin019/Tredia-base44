@@ -1,0 +1,43 @@
+{
+  "name": "UserStat",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "win_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "total_trades": {
+      "type": "number",
+      "default": 0
+    },
+    "avg_trek_grade": {
+      "type": "string"
+    },
+    "weekly_return": {
+      "type": "number",
+      "default": 0
+    },
+    "discord_username": {
+      "type": "string"
+    },
+    "discord_id": {
+      "type": "string"
+    },
+    "discord_avatar": {
+      "type": "string"
+    },
+    "discord_connected": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

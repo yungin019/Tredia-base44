@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search, ChevronLeft } from 'lucide-react';
+import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search, ChevronLeft, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import TredioAssistant from '@/components/ai/TredioAssistant';
@@ -13,6 +13,7 @@ const NAV_CONFIG = [
   { path: '/Home',       icon: Home,       translationKey: 'nav.feed',      isTrek: false },
   { path: '/Markets',    icon: TrendingUp,  translationKey: 'nav.markets',   isTrek: false },
   { path: '/AIInsights', icon: Zap,         translationKey: 'nav.trek',      isTrek: true  },
+  { path: '/Community',  icon: Users,       translationKey: 'nav.community', isTrek: false },
   { path: '/Portfolio',  icon: Briefcase,   translationKey: 'nav.portfolio', isTrek: false },
   { path: '/Settings',   icon: Settings,    translationKey: 'nav.settings',  isTrek: false },
 ];

@@ -29,6 +29,8 @@ import TradingSetup from './pages/TradingSetup';
 import Admin from './pages/Admin.jsx';
 import AlpacaConnect from './pages/AlpacaConnect';
 import AlpacaCallback from './pages/AlpacaCallback';
+import Community from './pages/Community';
+import DiscordCallback from './pages/DiscordCallback';
 import TrekPortfolioWelcome from './pages/TrekPortfolioWelcome';
 import OnboardingQuick from './pages/OnboardingQuick';
 
@@ -92,6 +94,7 @@ const AppRoutes = ({ user, userProfile, onLogout }) => {
         <Route path="/Admin" element={<PageTransition><Admin /></PageTransition>} />
         <Route path="/alpaca-connect" element={<PageTransition><AlpacaConnect /></PageTransition>} />
         <Route path="/alpaca-callback" element={<AlpacaCallback />} />
+        <Route path="/auth/discord/callback" element={<DiscordCallback />} />
         <Route path="/trek-portfolio-welcome" element={<PageTransition><TrekPortfolioWelcome /></PageTransition>} />
         <Route element={<AppShell onLogout={onLogout} />}>
           <Route path="/Home" element={<PageTransition><Home /></PageTransition>} />
@@ -99,6 +102,7 @@ const AppRoutes = ({ user, userProfile, onLogout }) => {
           <Route path="/Markets" element={<PageTransition><Markets /></PageTransition>} />
           <Route path="/AIInsights" element={<PageTransition><AIInsights /></PageTransition>} />
           <Route path="/Traders" element={<PageTransition><Traders /></PageTransition>} />
+          <Route path="/Community" element={<PageTransition><Community /></PageTransition>} />
           <Route path="/Portfolio" element={<PageTransition><Portfolio /></PageTransition>} />
           <Route path="/Trade" element={<PageTransition><Trade /></PageTransition>} />
           <Route path="/Settings" element={<PageTransition><Settings onLogout={onLogout} /></PageTransition>} />

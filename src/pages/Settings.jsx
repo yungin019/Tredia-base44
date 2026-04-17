@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, AlertCircle, CheckCircle2, Clock, Copy, Share2 } from 'lucide-react';
+import { User, AlertCircle, CheckCircle2, Clock, Copy, Share2, Link } from 'lucide-react';
 import DeleteAccountModal from '@/components/settings/DeleteAccountModal';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import LegalLinksSection from '@/components/settings/LegalLinksSection';
+import DiscordConnectSection from '@/components/settings/DiscordConnectSection';
 
 function SectionHeader({ title }) {
   return (
@@ -326,6 +327,13 @@ export default function Settings({ onLogout }) {
             </div>
           </div>
         )}
+      </motion.div>
+
+      {/* CONNECTED ACCOUNTS — Discord */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
+        <SectionHeader title="CONNECTED ACCOUNTS" />
+        <DiscordConnectSection user={user} />
       </motion.div>
 
       {/* CONNECTED BROKERS */}
