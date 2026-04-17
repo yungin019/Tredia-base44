@@ -5,11 +5,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export function OG100Card({ onClaim }) {
   const [remaining, setRemaining] = useState(100);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadCounter = async () => {
@@ -130,9 +132,9 @@ export function OG100Card({ onClaim }) {
           </div>
 
           <button
-            onClick={handleClaim}
+            onClick={() => navigate('/Upgrade')}
             disabled={claiming || loading}
-            className="w-full font-bold h-12 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            className="w-full font-bold h-12 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 tap-feedback"
             style={{
               background: 'linear-gradient(135deg, rgba(14,200,220,0.9), rgba(8,160,185,0.9))',
               color: '#040d1e',

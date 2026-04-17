@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, TrendingUp, TrendingDown, MessageSquare } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, MessageSquare, ExternalLink } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
 
 const WINNERS_LOSERS = {
   bullish: {
@@ -29,8 +30,16 @@ const WINNERS_LOSERS = {
 export default function NewsArticleModal({ article, onClose }) {
   const [analysis, setAnalysis] = useState('');
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const wl = WINNERS_LOSERS[article.sentiment] || WINNERS_LOSERS.neutral;
+
+  const handleAskTrek = () => {
+    onClose();
+    // Navigate to TREK/AIInsights with a pre-filled question stored in sessionStorage
+    sessionStorage.setItem('trek_prefill', `Analyze this news and its market impact: "${article.headline}". What should I do?`);
+    navigate('/AIInsights');
+  };
 
   useEffect(() => {
     const generate = async () => {
@@ -141,10 +150,24 @@ Focus on: immediate market effect and what traders should do. Be direct and spec
         </div>
 
         {/* Bottom */}
-        <div className="fixed bottom-0 left-0 right-0 bg-[#0A0A0F]/95 backdrop-blur border-t border-white/[0.07] p-4">
-          <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#0A0A0F]/95 backdrop-blur border-t border-white/[0.07] p-4 space-y-2">
+          {article.source_url && (
+            <a
+              href={article.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.1] hover:bg-white/[0.07] transition-colors"
+            >
+              <ExternalLink className="h-4 w-4 text-white/50" />
+              <span className="text-[12px] font-bold text-white/60">Read Full Article →</span>
+            </a>
+          )}
+          <button
+            onClick={handleAskTrek}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors tap-feedback"
+          >
             <MessageSquare className="h-4 w-4 text-primary" />
-            <span className="text-[12px] font-bold text-primary">Ask TREK About This</span>
+            <span className="text-[12px] font-bold text-primary">Ask TREK About This →</span>
           </button>
         </div>
       </motion.div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const HERO_ARTICLES = [
   {
@@ -60,6 +61,7 @@ const tickerColors = {
 export default function HeroNewsCarousel() {
   const [current, setCurrent] = useState(0);
   const [imgLoaded, setImgLoaded] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrent(c => (c + 1) % HERO_ARTICLES.length), 5000);
@@ -128,7 +130,11 @@ export default function HeroNewsCarousel() {
               <span className="text-white/20">·</span>
               <span className="text-[9px] text-white/35">{article.time}</span>
               {article.tickers.map(t => (
-                <span key={t} className={`text-[8px] font-mono font-black px-1.5 py-0.5 rounded border ${tickerColors[article.verdictType]}`}>{t}</span>
+                <button
+                  key={t}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/Asset/${t}`); }}
+                  className={`text-[8px] font-mono font-black px-1.5 py-0.5 rounded border cursor-pointer hover:opacity-80 transition-opacity ${tickerColors[article.verdictType]}`}
+                >{t}</button>
               ))}
             </div>
           </motion.div>

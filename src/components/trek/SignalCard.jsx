@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, Clock, Zap, ShieldAlert, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // ── SIGNAL CONFIG ─────────────────────────────────────────────────────────
 const SIGNAL_CFG = {
@@ -49,6 +50,7 @@ function BreakdownBar({ label, value }) {
 
 export default function SignalCard({ signal }) {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
   const cfg = SIGNAL_CFG[signal.signal] || SIGNAL_CFG.HOLD;
   const color = cfg.color;
   const bg = cfg.bg;
@@ -77,7 +79,11 @@ export default function SignalCard({ signal }) {
         <div className="flex items-start justify-between gap-3 mb-2">
           {/* SYMBOL — SIGNAL */}
           <h3 style={{ fontSize: 16, fontWeight: 900, color: 'rgba(255,255,255,0.97)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-            <span className="font-mono">{signal.symbol}</span>
+            <span
+              className="font-mono cursor-pointer hover:underline"
+              style={{ color }}
+              onClick={(e) => { e.stopPropagation(); navigate(`/Asset/${signal.symbol}`); }}
+            >{signal.symbol}</span>
             {' — '}
             <span style={{ color }}>
               {cfg.label}

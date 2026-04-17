@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Eye, ChevronRight, Clock, Zap } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
 import SignalExplanationModal from './SignalExplanationModal';
 
 const CATEGORY_COLORS = {
@@ -14,6 +15,7 @@ const CATEGORY_COLORS = {
 };
 
 function CatalystCard({ catalyst, index, onSeeWhy }) {
+  const navigate = useNavigate();
   const colors = CATEGORY_COLORS[catalyst.category] || CATEGORY_COLORS.macro;
   const timeAgo = catalyst.type === 'structure' ? 'Live' : getTimeAgo(catalyst.published_at);
   const isStructure = catalyst.type === 'structure';
@@ -134,21 +136,22 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
 
         {/* Related Assets (if any) */}
         {catalyst.related_assets && catalyst.related_assets.length > 0 && (
-          <div className="flex flex-wrap gap-1 pt-1">
-            {catalyst.related_assets.map((symbol, i) => (
-              <span
-                key={i}
-                className="text-[9px] px-2 py-1 rounded-lg font-mono font-bold"
-                style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  color: 'rgba(180,210,240,0.6)'
-                }}
-              >
-                {symbol}
-              </span>
-            ))}
-          </div>
+        <div className="flex flex-wrap gap-1 pt-1">
+          {catalyst.related_assets.map((symbol, i) => (
+            <button
+              key={i}
+              onClick={() => navigate(`/Asset/${symbol}`)}
+              className="text-[9px] px-2 py-1 rounded-lg font-mono font-bold cursor-pointer hover:opacity-80 transition-opacity tap-feedback"
+              style={{
+                background: 'rgba(14,200,220,0.08)',
+                border: '1px solid rgba(14,200,220,0.2)',
+                color: '#0ec8dc'
+              }}
+            >
+              {symbol} →
+            </button>
+          ))}
+        </div>
         )}
 
         {/* Footer: Buttons */}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, AlertCircle, TrendingUp, TrendingDown, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const CATEGORY_LABELS = {
   macro: 'Macro Event',
@@ -12,6 +13,7 @@ const CATEGORY_LABELS = {
 };
 
 export default function SignalExplanationModal({ signal, isOpen, onClose }) {
+  const navigate = useNavigate();
   if (!isOpen || !signal) return null;
 
   const isStructure = signal.type === 'structure';
@@ -131,17 +133,18 @@ export default function SignalExplanationModal({ signal, isOpen, onClose }) {
                 <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider">Affected Assets</h3>
                 <div className="flex flex-wrap gap-2">
                   {signal.related_assets.map((symbol, i) => (
-                    <span
+                    <button
                       key={i}
-                      className="text-xs px-3 py-1.5 rounded-lg font-mono font-semibold"
+                      onClick={() => { onClose(); navigate(`/Asset/${symbol}`); }}
+                      className="text-xs px-3 py-1.5 rounded-lg font-mono font-semibold cursor-pointer hover:opacity-80 transition-opacity tap-feedback"
                       style={{
                         background: 'rgba(14,200,220,0.1)',
                         border: '1px solid rgba(14,200,220,0.2)',
                         color: '#0ec8dc'
                       }}
                     >
-                      {symbol}
-                    </span>
+                      {symbol} →
+                    </button>
                   ))}
                 </div>
               </div>
