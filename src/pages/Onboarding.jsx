@@ -57,10 +57,11 @@ export default function Onboarding() {
         experience_level: experienceLevel,
         existing_platform: selectedPlatform,
       });
-      navigate('/Home');
+      // Full reload so App.jsx re-fetches the updated user profile
+      window.location.href = '/Home';
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      navigate('/Home');
+      window.location.href = '/Home';
     } finally {
       setIsCompleting(false);
     }
