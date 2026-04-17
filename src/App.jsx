@@ -75,7 +75,8 @@ const AppRoutes = ({ user, userProfile, onLogout }) => {
   }
 
   // Redirect to onboarding if not completed
-  const needsOnboarding = userProfile && !userProfile.onboarding_completed;
+  // userProfile.onboarding_completed is undefined for brand-new users → treat as needing onboarding
+  const needsOnboarding = userProfile && userProfile.onboarding_completed !== true;
   if (needsOnboarding && location.pathname !== '/Onboarding') {
     return <Navigate to="/Onboarding" replace />;
   }

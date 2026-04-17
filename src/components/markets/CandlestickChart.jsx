@@ -45,7 +45,17 @@ export default function CandlestickChart({ symbol, timeframe = '1D', initialData
 
   useEffect(() => {
     if (!canvasRef.current || data.length === 0) return;
-    drawChart(canvasRef.current, data, chartType);
+    const canvas = canvasRef.current;
+    drawChart(canvas, data, chartType);
+
+    // Redraw on resize (handles cases where canvas has 0 width on first render)
+    const observer = new ResizeObserver(() => {
+      if (canvas.parentElement?.offsetWidth > 0) {
+        drawChart(canvas, data, chartType);
+      }
+    });
+    observer.observe(canvas.parentElement || canvas);
+    return () => observer.disconnect();
   }, [data, chartType]);
 
   return (
