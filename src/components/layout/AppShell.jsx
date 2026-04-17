@@ -10,12 +10,12 @@ import GlobalAssetSearch from '@/components/ui/GlobalAssetSearch';
 import { useNavigation } from '@/lib/NavigationManager';
 
 const NAV_CONFIG = [
-  { path: '/Home',       icon: Home,       translationKey: 'nav.feed',      isTrek: false },
-  { path: '/Markets',    icon: TrendingUp,  translationKey: 'nav.markets',   isTrek: false },
-  { path: '/AIInsights', icon: Zap,         translationKey: 'nav.trek',      isTrek: true  },
-  { path: '/Community',  icon: Users,       translationKey: 'nav.community', isTrek: false },
-  { path: '/Portfolio',  icon: Briefcase,   translationKey: 'nav.portfolio', isTrek: false },
-  { path: '/Settings',   icon: Settings,    translationKey: 'nav.settings',  isTrek: false },
+  { path: '/Home',       icon: Home,       label: 'Feed',      translationKey: 'nav.feed',      isTrek: false },
+  { path: '/Markets',    icon: TrendingUp,  label: 'Markets',   translationKey: 'nav.markets',   isTrek: false },
+  { path: '/AIInsights', icon: Zap,         label: 'TREK',      translationKey: 'nav.trek',      isTrek: true  },
+  { path: '/Community',  icon: Users,       label: 'Community', translationKey: 'nav.community', isTrek: false },
+  { path: '/Portfolio',  icon: Briefcase,   label: 'Portfolio', translationKey: 'nav.portfolio', isTrek: false },
+  { path: '/Settings',   icon: Settings,    label: 'Settings',  translationKey: 'nav.settings',  isTrek: false },
 ];
 
 const TAB_ROOTS = NAV_CONFIG.map(n => n.path);
@@ -63,7 +63,10 @@ export default function AppShell({ onLogout }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [searchOpen]);
 
-  const NAV_ITEMS = NAV_CONFIG.map(nav => ({ ...nav, label: t(nav.translationKey) }));
+  const NAV_ITEMS = NAV_CONFIG.map(nav => {
+    const translated = t(nav.translationKey);
+    return { ...nav, label: (translated === nav.translationKey ? nav.label : translated) || nav.label };
+  });
   const isTabRoot = TAB_ROOTS.includes(location.pathname);
   const showBack = !isTabRoot && canGoBack();
 
