@@ -126,9 +126,22 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        const isAuthed = await base44.auth.isAuthenticated();
+        if (!isAuthed) {
+          setUser(null);
+          setUserProfile(null);
+          setLoading(false);
+          return;
+        }
         const currentUser = await base44.auth.me();
-        setUser(currentUser || null);
-        setUserProfile(currentUser || null);
+        // Only accept users with a real email (not anonymous)
+        if (currentUser?.email) {
+          setUser(currentUser);
+          setUserProfile(currentUser);
+        } else {
+          setUser(null);
+          setUserProfile(null);
+        }
       } catch (error) {
         setUser(null);
         setUserProfile(null);
