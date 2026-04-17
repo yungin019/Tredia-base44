@@ -4,8 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Zap, Newspaper, TrendingUp, Shield, Check, Sprout, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { supabase } from '@/lib/supabaseClient';
-import { useAuth } from '@/lib/AuthContext';
+import { base44 } from '@/api/base44Client';
 
 const PLATFORMS = [
   { id: 'etoro', name: 'eToro' },
@@ -17,7 +16,6 @@ const PLATFORMS = [
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [currentScreen, setCurrentScreen] = useState(1);
   const [experienceLevel, setExperienceLevel] = useState(null);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
@@ -54,21 +52,15 @@ export default function Onboarding() {
 
     setIsCompleting(true);
     try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({
-          onboarding_completed: true,
-          experience_level: experienceLevel,
-          existing_platform: selectedPlatform,
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      navigate('/home');
+      await base44.auth.updateMe({
+        onboarding_completed: true,
+        experience_level: experienceLevel,
+        existing_platform: selectedPlatform,
+      });
+      navigate('/Home');
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      navigate('/home');
+      navigate('/Home');
     } finally {
       setIsCompleting(false);
     }
