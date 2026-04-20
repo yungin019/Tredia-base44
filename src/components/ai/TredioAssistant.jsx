@@ -331,96 +331,158 @@ Always end with a suggested next action or follow-up question.`;
       {/* Chat Panel - opens when FAB tapped */}
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.95 }}
-            transition={{ type: 'spring', bounce: 0.18, duration: 0.4 }}
-            className="fixed bottom-4 right-4 z-50 flex flex-col rounded-2xl overflow-hidden shadow-2xl"
-            style={{
-              width: 'min(380px, calc(100vw - 32px))',
-              height: 'min(560px, calc(100vh - 96px))',
-              background: '#0f0f1a',
-              border: '1px solid rgba(245,158,11,0.2)',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(245,158,11,0.06)',
-            }}
-          >
-            {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.06]"
-              style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.08), transparent)' }}>
-              <div className="h-8 w-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[13px] font-black text-white/90">TREDIO AI</p>
-                <div className="flex items-center gap-1.5">
-                       <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
-                       <span className="text-[10px] text-white/35">{t('ai.mentor')}</span>
-                     </div>
-              </div>
-              <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-all">
-                <Minimize2 className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((msg, i) => <Message key={i} msg={msg} />)}
-              {loading && (
-                <div className="flex gap-2 justify-start">
-                  <div className="h-6 w-6 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Sparkles className="h-3 w-3 text-primary" />
-                  </div>
-                  <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl">
-                    <TypingDots />
-                  </div>
-                </div>
-              )}
-              <div ref={bottomRef} />
-            </div>
-
-            {/* Quick suggestions */}
-            {messages.length <= 1 && (
-              <div className="px-4 pb-2 flex flex-wrap gap-1.5">
-                {ctx.suggestions.map((s, i) => (
-                  <button
-                    key={i}
-                    onClick={() => sendMessage(s)}
-                    className="text-[10px] font-semibold px-2.5 py-1.5 rounded-full transition-all"
-                    style={{
-                      background: 'rgba(245,158,11,0.08)',
-                      border: '1px solid rgba(245,158,11,0.2)',
-                      color: 'rgba(245,158,11,0.8)',
-                    }}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Input */}
-            <div className="px-3 py-3 border-t border-white/[0.06] flex gap-2">
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder={t('ai.askPlaceholder')}
-                className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-[12px] text-white/80 placeholder:text-white/25 outline-none focus:border-primary/40 transition-colors"
-              />
-              <button
-                onClick={() => sendMessage()}
-                disabled={!input.trim() || loading}
-                className="h-10 w-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0 disabled:opacity-30"
-                style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
-              >
-                <Send className="h-4 w-4 text-black" />
-              </button>
-            </div>
-          </motion.div>
+          <ChatPanel
+            t={t}
+            messages={messages}
+            loading={loading}
+            input={input}
+            setInput={setInput}
+            inputRef={inputRef}
+            bottomRef={bottomRef}
+            suggestions={ctx.suggestions}
+            onClose={() => setOpen(false)}
+            onSend={sendMessage}
+          />
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+function ChatPanel({ t, messages, loading, input, setInput, inputRef, bottomRef, suggestions, onClose, onSend }) {
+  const inputBarRef = useRef(null);
+
+  // Fix keyboard covering input on mobile (visualViewport API)
+  useEffect(() => {
+    const handler = () => {
+      const viewport = window.visualViewport;
+      if (!viewport || !inputBarRef.current) return;
+      const offset = window.innerHeight - viewport.height - viewport.offsetTop;
+      inputBarRef.current.style.transform = `translateY(-${Math.max(0, offset)}px)`;
+    };
+    window.visualViewport?.addEventListener('resize', handler);
+    window.visualViewport?.addEventListener('scroll', handler);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handler);
+      window.visualViewport?.removeEventListener('scroll', handler);
+    };
+  }, []);
+
+  // Scroll to bottom when keyboard opens
+  useEffect(() => {
+    const handler = () => {
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    };
+    window.visualViewport?.addEventListener('resize', handler);
+    return () => window.visualViewport?.removeEventListener('resize', handler);
+  }, [bottomRef]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 40, scale: 0.95 }}
+      transition={{ type: 'spring', bounce: 0.18, duration: 0.4 }}
+      className="fixed bottom-4 right-4 z-50 flex flex-col rounded-2xl shadow-2xl"
+      style={{
+        width: 'min(380px, calc(100vw - 32px))',
+        height: 'min(560px, calc(100dvh - 96px))',
+        background: '#0f0f1a',
+        border: '1px solid rgba(245,158,11,0.2)',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(245,158,11,0.06)',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.06] flex-shrink-0"
+        style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.08), transparent)' }}>
+        <div className="h-8 w-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
+          <Sparkles className="h-4 w-4 text-primary" />
+        </div>
+        <div className="flex-1">
+          <p className="text-[13px] font-black text-white/90">TREDIO AI</p>
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
+            <span className="text-[10px] text-white/35">{t('ai.mentor')}</span>
+          </div>
+        </div>
+        <button onClick={onClose} className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-all">
+          <Minimize2 className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Messages — flex-1 with padding-bottom so content never hides behind input */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ paddingBottom: '80px' }}>
+        {messages.map((msg, i) => <Message key={i} msg={msg} />)}
+        {loading && (
+          <div className="flex gap-2 justify-start">
+            <div className="h-6 w-6 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Sparkles className="h-3 w-3 text-primary" />
+            </div>
+            <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl">
+              <TypingDots />
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Quick suggestions — horizontally scrollable row */}
+      {messages.length <= 1 && (
+        <div
+          className="flex-shrink-0 px-3 pb-2 flex gap-2 overflow-x-auto"
+          style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+        >
+          {suggestions.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => onSend(s)}
+              style={{
+                flexShrink: 0,
+                background: '#1a1a2e',
+                border: '1px solid rgba(245,158,11,0.3)',
+                borderRadius: '9999px',
+                color: '#ffffff',
+                fontSize: '13px',
+                fontWeight: 500,
+                padding: '6px 14px',
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+                lineHeight: '1.4',
+              }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Input bar — uses transform to lift above keyboard */}
+      <div
+        ref={inputBarRef}
+        className="trek-chat-input-bar flex-shrink-0 px-3 py-3 border-t border-white/[0.06] flex gap-2"
+        style={{ background: '#0f0f1a', transition: 'transform 0.1s ease-out' }}
+      >
+        <input
+          ref={inputRef}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && onSend()}
+          placeholder={t('ai.askPlaceholder')}
+          className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-[12px] text-white/80 placeholder:text-white/25 outline-none focus:border-primary/40 transition-colors"
+          style={{ fontSize: '16px' /* prevents iOS auto-zoom */ }}
+        />
+        <button
+          onClick={() => onSend()}
+          disabled={!input.trim() || loading}
+          className="h-10 w-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0 disabled:opacity-30"
+          style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+        >
+          <Send className="h-4 w-4 text-black" />
+        </button>
+      </div>
+    </motion.div>
   );
 }
