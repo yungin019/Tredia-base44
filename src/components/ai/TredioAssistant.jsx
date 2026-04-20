@@ -316,7 +316,7 @@ Always end with a suggested next action or follow-up question.`;
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={openWithGreeting}
-            className="fixed bottom-20 right-4 z-40 rounded-full flex items-center justify-center shadow-2xl"
+            className="fixed bottom-24 right-4 z-40 rounded-full flex items-center justify-center shadow-2xl"
             style={{
               width: 52, height: 52,
               background: 'linear-gradient(135deg, #F59E0B, #D97706)',
@@ -385,10 +385,10 @@ function ChatPanel({ t, messages, loading, input, setInput, inputRef, bottomRef,
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 40, scale: 0.95 }}
       transition={{ type: 'spring', bounce: 0.18, duration: 0.4 }}
-      className="fixed bottom-4 right-4 z-50 flex flex-col rounded-2xl shadow-2xl"
+      className="fixed bottom-20 right-4 z-50 flex flex-col rounded-2xl shadow-2xl"
       style={{
         width: 'min(380px, calc(100vw - 32px))',
-        height: 'min(560px, calc(100dvh - 96px))',
+        height: 'min(520px, calc(100dvh - 160px))',
         background: '#0f0f1a',
         border: '1px solid rgba(245,158,11,0.2)',
         boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(245,158,11,0.06)',
@@ -441,6 +441,8 @@ function ChatPanel({ t, messages, loading, input, setInput, inputRef, bottomRef,
               onClick={() => onSend(s)}
               style={{
                 flexShrink: 0,
+                display: 'inline-flex',
+                alignItems: 'center',
                 background: '#1a1a2e',
                 border: '1px solid rgba(245,158,11,0.3)',
                 borderRadius: '9999px',
@@ -451,6 +453,7 @@ function ChatPanel({ t, messages, loading, input, setInput, inputRef, bottomRef,
                 whiteSpace: 'nowrap',
                 cursor: 'pointer',
                 lineHeight: '1.4',
+                minHeight: '32px',
               }}
             >
               {s}
