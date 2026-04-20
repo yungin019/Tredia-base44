@@ -167,7 +167,8 @@ export default function Portfolio() {
             <Button
               onClick={() => setShowAdd(true)}
               size="sm"
-              className="h-8 text-[10px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
+              className="h-8 text-[10px] font-bold whitespace-nowrap"
+              style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
             >
               <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('common.add')}
             </Button>
@@ -300,8 +301,8 @@ export default function Portfolio() {
                   <Button onClick={() => navigate('/alpaca-connect')} size="sm" className="h-9 px-5 text-[11px] font-bold bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white">
                     CONNECT ALPACA
                   </Button>
-                  <Button onClick={() => setShowAdd(true)} size="sm" className="h-9 px-5 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.addFirstPosition')}
+                  <Button onClick={() => setShowAdd(true)} size="sm" className="h-9 px-5 text-[11px] font-bold" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
+                     <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.addFirstPosition')}
                   </Button>
                   <Button onClick={() => navigate('/PaperTrading')} size="sm" variant="outline" className="h-9 px-5 text-[11px] font-bold border-white/[0.1] bg-white/[0.03] text-white/60 hover:bg-white/[0.06]">
                     <Play className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.startPaperTrading')}

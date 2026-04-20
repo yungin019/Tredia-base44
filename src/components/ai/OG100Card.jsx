@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useCurrency } from '@/hooks/useCurrency';
 
 export function OG100Card({ onClaim }) {
   const [remaining, setRemaining] = useState(100);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const navigate = useNavigate();
+  const { format } = useCurrency();
 
   useEffect(() => {
     const loadCounter = async () => {
@@ -118,7 +120,7 @@ export function OG100Card({ onClaim }) {
               </li>
               <li className="flex items-start gap-2">
                 <span style={{ color: '#0ec8dc' }}>•</span>
-                <span>Then Elite for 89 SEK forever <span style={{ color: 'rgba(180,210,240,0.4)' }}>(normally 179 SEK/month)</span></span>
+                <span>Then Elite for {format(8.99)}/month forever <span style={{ color: 'rgba(180,210,240,0.4)' }}>(normally {format(17.99)}/month)</span></span>
               </li>
               <li className="flex items-start gap-2">
                 <span style={{ color: '#0ec8dc' }}>•</span>

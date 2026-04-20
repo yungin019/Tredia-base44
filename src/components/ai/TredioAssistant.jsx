@@ -131,13 +131,49 @@ export default function TredioAssistant() {
       ? (langTranslations[contextKeys.introKey] || '').replace('{{symbol}}', contextKeys.symbol)
       : langTranslations[contextKeys.introKey] || '';
     
-    // Get suggestions from translations
-    const suggestionKeys = PAGE_CONTEXT_KEYS[path]?.suggestionKeys || ['suggest1', 'suggest2', 'suggest3', 'suggest4'];
-    const suggestions = suggestionKeys.map((key, idx) => {
-      const fullKey = contextKeys.greetingKey.split('Greeting')[0] + key.charAt(0).toUpperCase() + key.slice(1);
-      const text = langTranslations[fullKey] || '';
-      return contextKeys.symbol ? text.replace('{{symbol}}', contextKeys.symbol) : text;
-    });
+    // Fixed suggestions — always use hardcoded fallbacks since translation file has no suggestion keys
+    const pagePath = path.startsWith('/Asset/') ? '/AIInsights' : path;
+    const SUGGESTIONS = {
+      '/Home': [
+        'What should I watch today?',
+        'Analyze my portfolio',
+        'Explain the strongest signal',
+        'Is now a good time to buy?',
+      ],
+      '/Markets': [
+        'Which sector is strongest?',
+        'Show me top movers',
+        'What is the market trend?',
+        'Find me a breakout stock',
+      ],
+      '/PaperTrading': [
+        'How do I place a trade?',
+        'What is a stop loss?',
+        'Help me pick a position size',
+        'Review my last trade',
+      ],
+      '/Portfolio': [
+        'Analyze my portfolio',
+        'Am I over-concentrated?',
+        'What is my risk score?',
+        'Which holding should I cut?',
+      ],
+      '/AIInsights': [
+        'Explain the strongest signal',
+        'What is the confidence score?',
+        'Show me high confidence trades',
+        'What does BUY signal mean?',
+      ],
+      '/Trade': [
+        'How do I place a trade?',
+        'What is a limit order?',
+        'Help me set a stop loss',
+        'What is the best entry point?',
+      ],
+    };
+    const suggestions = (SUGGESTIONS[pagePath] || SUGGESTIONS['/Home']).map(s =>
+      contextKeys.symbol ? s.replace('{{symbol}}', contextKeys.symbol) : s
+    );
     
     return { greeting, intro, suggestions };
   };
