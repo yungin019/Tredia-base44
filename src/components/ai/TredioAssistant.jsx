@@ -236,7 +236,7 @@ export default function TredioAssistant() {
     setLoading(true);
 
     try {
-      const systemPrompt = `You are TREDIO AI, a friendly and knowledgeable trading mentor inside the TREDIO app. 
+      const systemPrompt = `You are TREK AI, a friendly and knowledgeable trading mentor inside the TREDIO app. 
 The user is currently on the "${pageLabel}" page.
 Page context: ${ctx.intro}
 
@@ -252,10 +252,10 @@ Your role:
 
 Always end with a suggested next action or follow-up question.`;
 
-      const history = newMessages.map(m => `${m.role === 'user' ? 'User' : 'TREDIO AI'}: ${m.content}`).join('\n');
+      const history = newMessages.map(m => `${m.role === 'user' ? 'User' : 'TREK AI'}: ${m.content}`).join('\n');
 
       const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `${systemPrompt}\n\nConversation:\n${history}\n\nTREDIO AI:`,
+        prompt: `${systemPrompt}\n\nConversation:\n${history}\n\nTREK AI:`,
       });
 
       const reply = typeof res === 'string' ? res : res?.text || res?.content || "I'm here to help! What would you like to know?";
@@ -292,7 +292,7 @@ Always end with a suggested next action or follow-up question.`;
           >
             <div className="flex items-center gap-2 mb-1.5">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span className="text-[10px] font-black text-primary uppercase tracking-wide">TREDIO AI</span>
+              <span className="text-[10px] font-black text-primary uppercase tracking-wide">TREK AI</span>
               <button
                 onClick={(e) => { e.stopPropagation(); setShowProactiveBubble(false); }}
                 className="ml-auto text-white/30 hover:text-white/60"
@@ -402,7 +402,7 @@ function ChatPanel({ t, messages, loading, input, setInput, inputRef, bottomRef,
           <Sparkles className="h-4 w-4 text-primary" />
         </div>
         <div className="flex-1">
-          <p className="text-[13px] font-black text-white/90">TREDIO AI</p>
+          <p className="text-[13px] font-black text-white/90">TREK AI</p>
           <div className="flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
             <span className="text-[10px] text-white/35">{t('ai.mentor')}</span>
