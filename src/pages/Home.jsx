@@ -26,6 +26,7 @@ import HeroSignalCard from '@/components/feed/HeroSignalCard';
 import { base44 } from '@/api/base44Client';
 import GlobalMarketStateBanner from '@/components/ai/GlobalMarketStateBanner';
 import TrekWelcomeTip from '@/components/ai/TrekWelcomeTip';
+import TrekDailyInsight from '@/components/ai/TrekDailyInsight';
 
 // Detect region from timezone
 function detectDefaultRegion() {
@@ -117,7 +118,8 @@ export default function Home() {
                 {({ Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm' })[activeRegion] || activeRegion}
               </span>
             </div>
-            <IntelligenceFeed activeRegion={activeRegion} onRegionChange={handleRegionChange} />
+            <TrekDailyInsight />
+          <IntelligenceFeed activeRegion={activeRegion} onRegionChange={handleRegionChange} />
           </div>
 
           {/* ╔════════════════════════════════════════════════════════════════ */}

@@ -1,0 +1,50 @@
+{
+  "name": "AppNotification",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User email or ID"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "price_alert",
+        "trek_signal",
+        "community_like",
+        "community_copy",
+        "new_follower",
+        "market_update"
+      ],
+      "description": "Notification type"
+    },
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Related asset symbol"
+    },
+    "route": {
+      "type": "string",
+      "description": "Navigation route when tapped"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false
+    },
+    "alert_id": {
+      "type": "string",
+      "description": "Related PriceAlert ID if type=price_alert"
+    }
+  },
+  "required": [
+    "user_id",
+    "type",
+    "title",
+    "message"
+  ]
+}

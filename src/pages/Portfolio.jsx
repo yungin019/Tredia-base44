@@ -252,6 +252,9 @@ export default function Portfolio() {
         </div>
       )}
 
+      {/* Performance Chart — always visible at top */}
+      <PortfolioPerformanceChart />
+
       {/* Tabs: Holdings / Trade History */}
       <div className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden">
         {/* Tab Bar */}
@@ -259,7 +262,6 @@ export default function Portfolio() {
           {[
             { id: 'holdings', label: `${t('portfolio.holdings')} (${holdings.length})` },
             { id: 'history', label: t('portfolio.tradeHistory') },
-            { id: 'performance', label: t('portfolio.performance') },
           ].map(tab => (
             <button
               key={tab.id}
@@ -389,13 +391,6 @@ export default function Portfolio() {
 
         {/* Trade History Tab */}
         {activeTab === 'history' && <TradeHistory />}
-
-        {/* Performance Tab */}
-        {activeTab === 'performance' && (
-          <div className="p-5">
-            <PortfolioPerformanceChart />
-          </div>
-        )}
       </div>
 
       <AddHoldingDialog open={showAdd} onOpenChange={setShowAdd} />

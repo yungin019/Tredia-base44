@@ -8,6 +8,7 @@ import NotificationsPanel from '@/components/ui/NotificationsPanel';
 import SearchModal from '@/components/ui/SearchModal';
 import GlobalAssetSearch from '@/components/ui/GlobalAssetSearch';
 import { useNavigation } from '@/lib/NavigationManager';
+import { base44 } from '@/api/base44Client';
 
 const NAV_CONFIG = [
   { path: '/Home',       icon: Home,       label: 'Feed',      translationKey: 'nav.feed',      isTrek: false },
@@ -26,6 +27,21 @@ export default function AppShell({ onLogout }) {
   const { switchTab, goBack, canGoBack, getTabForPath, syncExternalNavigation } = useNavigation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const loadUnread = async () => {
+      try {
+        const user = await base44.auth.me();
+        if (!user) return;
+        const notifs = await base44.entities.AppNotification.filter({ user_id: user.email || user.id, read: false }, '-created_date', 50);
+        setUnreadCount((notifs || []).length);
+      } catch { /* silent */ }
+    };
+    loadUnread();
+    const interval = setInterval(loadUnread, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Track previous path for slide direction
   const prevPath = React.useRef(location.pathname);
@@ -160,12 +176,19 @@ export default function AppShell({ onLogout }) {
 
           {/* Notifications */}
           <div className="relative">
-            <button onClick={() => setNotificationsOpen(!notificationsOpen)}
+            <button onClick={() => { setNotificationsOpen(!notificationsOpen); }}
               className="relative p-2 rounded-lg hover:bg-white/[0.04] transition-colors">
               <Bell className="h-4 w-4 text-muted-foreground" />
-              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+              {unreadCount > 0 ? (
+                <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-0.5 rounded-full text-[9px] font-black flex items-center justify-center"
+                  style={{ background: '#F59E0B', color: '#000' }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              ) : (
+                <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+              )}
             </button>
-            <NotificationsPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+            <NotificationsPanel isOpen={notificationsOpen} onClose={() => { setNotificationsOpen(false); setUnreadCount(0); }} />
           </div>
         </div>
       </header>
