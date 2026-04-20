@@ -57,11 +57,11 @@ export default function Onboarding() {
         experience_level: experienceLevel,
         existing_platform: selectedPlatform,
       });
-      // Full reload so App.jsx re-fetches the updated user profile
-      window.location.href = '/Home';
+      // Route to Alpaca onboarding for partnership demo, then Home
+      window.location.href = '/alpaca-onboarding';
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      window.location.href = '/Home';
+      window.location.href = '/alpaca-onboarding';
     } finally {
       setIsCompleting(false);
     }

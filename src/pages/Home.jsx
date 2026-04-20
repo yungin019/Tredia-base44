@@ -25,6 +25,7 @@ import IntelligenceFeed from '@/components/feed/IntelligenceFeed.jsx';
 import HeroSignalCard from '@/components/feed/HeroSignalCard';
 import { base44 } from '@/api/base44Client';
 import GlobalMarketStateBanner from '@/components/ai/GlobalMarketStateBanner';
+import TrekWelcomeTip from '@/components/ai/TrekWelcomeTip';
 
 // Detect region from timezone
 function detectDefaultRegion() {
@@ -173,6 +174,7 @@ export default function Home() {
         </div>
 
         <LogTradeButton />
+        <TrekWelcomeTip />
       </div>
     </PullToRefresh>
   );

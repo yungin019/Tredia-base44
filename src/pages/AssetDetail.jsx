@@ -13,6 +13,7 @@ import { SkeletonPrice, SkeletonSignal, LoadingMessage } from '@/components/ui/S
 import { formatPrice, formatPercent, validatePrice, validatePercent, safeRender } from '@/lib/dataValidation';
 import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
 import { fetchSingleAsset } from '@/api/marketDataClient';
+import PriceAlertModal from '@/components/ui/PriceAlertModal';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
@@ -226,6 +227,7 @@ export default function AssetDetail() {
   const [trekLoading, setTrekLoading] = useState(false);
   const [timeframe, setTimeframe] = useState('1D');
   const [showConfidenceBreakdown, setShowConfidenceBreakdown] = useState(false);
+  const [showPriceAlert, setShowPriceAlert] = useState(false);
   const prevPriceRef = useRef(null);
 
   // Auto-trigger TREK analysis on mount
@@ -345,16 +347,24 @@ export default function AssetDetail() {
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors text-sm font-medium">
           <ArrowLeft className="h-4 w-4" /> {t('common.back')}
         </button>
-        <button onClick={handleAddToWatchlist}
-          className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full transition-all"
-          style={{
-            background: watchlistEntry ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.05)',
-            color: watchlistEntry ? '#F59E0B' : 'rgba(255,255,255,0.4)',
-            border: `1px solid ${watchlistEntry ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.1)'}`,
-          }}>
-          {watchlistEntry ? <BellRing className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />}
-          {watchlistEntry ? 'Watching' : 'Watch'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowPriceAlert(true)}
+            className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full transition-all"
+            style={{ background: 'rgba(14,200,220,0.08)', color: 'rgba(14,200,220,0.8)', border: '1px solid rgba(14,200,220,0.2)' }}>
+            <Bell className="h-3.5 w-3.5" />
+            Set Alert
+          </button>
+          <button onClick={handleAddToWatchlist}
+            className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full transition-all"
+            style={{
+              background: watchlistEntry ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.05)',
+              color: watchlistEntry ? '#F59E0B' : 'rgba(255,255,255,0.4)',
+              border: `1px solid ${watchlistEntry ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.1)'}`,
+            }}>
+            {watchlistEntry ? <BellRing className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />}
+            {watchlistEntry ? 'Watching' : 'Watch'}
+          </button>
+        </div>
       </div>
 
       {/* TREK Instant Read */}
@@ -654,6 +664,17 @@ export default function AssetDetail() {
       <AnimatePresence>
         {tradeAction && (
           <TradeModal asset={asset} action={tradeAction} onClose={() => setTradeAction(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* Price Alert Modal */}
+      <AnimatePresence>
+        {showPriceAlert && (
+          <PriceAlertModal
+            symbol={symbol}
+            currentPrice={asset.price}
+            onClose={() => setShowPriceAlert(false)}
+          />
         )}
       </AnimatePresence>
     </div>

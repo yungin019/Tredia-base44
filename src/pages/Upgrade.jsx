@@ -17,7 +17,7 @@ const ELITE_FEATURES = [
 
 const FOUNDING_FEATURES = [
   'Elite FREE for 30 days',
-  'Then 89 SEK/month for life (normally 179 SEK)',
+  'Then $8.99/month for life (normally $17.99)',
   'OG Founding Member badge',
   'Personal referral link',
   'Early access to new features',
@@ -240,7 +240,7 @@ export default function Upgrade() {
           <span className="text-[10px] font-black tracking-[0.18em] uppercase text-[#F59E0B]">{t('upgrade.elite')}</span>
         </div>
         <p className="text-2xl font-black text-white/90 mb-1">
-          {billingCycle === 'monthly' ? '179 SEK' : '1790 SEK'}
+          {billingCycle === 'monthly' ? '$17.99' : '$179.99'}
           <span className="text-sm font-medium text-white/35">
             {billingCycle === 'monthly' ? '/mo' : '/yr'}
           </span>
@@ -274,7 +274,7 @@ export default function Upgrade() {
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-6">
         <span className="text-[10px] font-black tracking-[0.18em] uppercase text-white/40">{t('upgrade.pro')}</span>
         <p className="text-2xl font-black text-white/90 mb-1 mt-1">
-          {billingCycle === 'monthly' ? '89 SEK' : '890 SEK'}
+          {billingCycle === 'monthly' ? '$8.99' : '$89.99'}
           <span className="text-sm font-medium text-white/35">
             {billingCycle === 'monthly' ? '/mo' : '/yr'}
           </span>

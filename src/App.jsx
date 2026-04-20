@@ -29,6 +29,7 @@ import TradingSetup from './pages/TradingSetup';
 import Admin from './pages/Admin.jsx';
 import AlpacaConnect from './pages/AlpacaConnect';
 import AlpacaCallback from './pages/AlpacaCallback';
+import AlpacaOnboarding from './pages/AlpacaOnboarding';
 import Community from './pages/Community';
 import DiscordCallback from './pages/DiscordCallback';
 import TrekPortfolioWelcome from './pages/TrekPortfolioWelcome';
@@ -93,6 +94,7 @@ const AppRoutes = ({ user, userProfile, onLogout }) => {
         <Route path="/OnboardingQuick" element={<PageTransition><OnboardingQuick /></PageTransition>} />
         <Route path="/Admin" element={<PageTransition><Admin /></PageTransition>} />
         <Route path="/alpaca-connect" element={<PageTransition><AlpacaConnect /></PageTransition>} />
+        <Route path="/alpaca-onboarding" element={<PageTransition><AlpacaOnboarding /></PageTransition>} />
         <Route path="/alpaca-callback" element={<AlpacaCallback />} />
         <Route path="/auth/discord/callback" element={<DiscordCallback />} />
         <Route path="/trek-portfolio-welcome" element={<PageTransition><TrekPortfolioWelcome /></PageTransition>} />
