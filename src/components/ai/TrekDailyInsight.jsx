@@ -97,20 +97,19 @@ Return JSON with:
       style={{ background: 'rgba(8,16,36,0.75)', border: `1px solid ${color}25`, borderLeft: `3px solid ${color}` }}>
       {/* Header */}
       <div className="px-4 pt-4 pb-3">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Zap className="h-3.5 w-3.5" style={{ color }} />
-            <span className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color }}>TREK Daily Insight</span>
-            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-              style={{ background: `${color}15`, color, border: `1px solid ${color}25` }}>
-              Updated today
-            </span>
+            <Zap className="h-4 w-4 flex-shrink-0" style={{ color }} />
+            <div>
+              <span className="text-[11px] font-black uppercase tracking-[0.12em] block" style={{ color }}>TREK Daily Insight</span>
+              <span className="text-[9px] font-semibold" style={{ color: `${color}99` }}>Updated today</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => loadInsight(true)} className="text-white/20 hover:text-white/40 transition-colors">
-              <RefreshCw className="h-3 w-3" />
+          <div className="flex items-center gap-1.5 flex-shrink-0 ml-3">
+            <button onClick={() => loadInsight(true)} className="p-1.5 rounded-lg text-white/25 hover:text-white/50 hover:bg-white/[0.05] transition-all">
+              <RefreshCw className="h-3.5 w-3.5" />
             </button>
-            <button onClick={() => setExpanded(v => !v)} className="text-white/30 hover:text-white/60 transition-colors">
+            <button onClick={() => setExpanded(v => !v)} className="p-1.5 rounded-lg text-white/35 hover:text-white/60 hover:bg-white/[0.05] transition-all">
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
           </div>
