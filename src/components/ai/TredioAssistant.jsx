@@ -91,8 +91,29 @@ export default function TredioAssistant() {
   const [loading, setLoading] = useState(false);
   const [proactiveShown, setProactiveShown] = useState(false);
   const [showProactiveBubble, setShowProactiveBubble] = useState(false);
+  const [fabVisible, setFabVisible] = useState(true);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const scrollTimerRef = useRef(null);
+
+  // Hide FAB while scrolling, show again after scroll stops
+  useEffect(() => {
+    const root = document.getElementById('root');
+    if (!root) return;
+    const handleScroll = () => {
+      if (!open) {
+        setFabVisible(false);
+        setShowProactiveBubble(false);
+        clearTimeout(scrollTimerRef.current);
+        scrollTimerRef.current = setTimeout(() => setFabVisible(true), 1200);
+      }
+    };
+    root.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      root.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimerRef.current);
+    };
+  }, [open]);
 
   // Get context for current page
   const getContext = () => {
@@ -313,7 +334,7 @@ Always end with a suggested next action or follow-up question.`;
         {!open && (
           <motion.button
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            animate={{ scale: fabVisible ? 1 : 0, opacity: fabVisible ? 1 : 0 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={openWithGreeting}
             className="fixed bottom-24 right-4 z-40 rounded-full flex items-center justify-center shadow-2xl"
