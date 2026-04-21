@@ -1,63 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Zap, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { askTrek } from '@/api/trek';
-import { buildMarketContext } from '@/api/marketContext';
-import { base44 } from '@/api/base44Client';
-import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 
-export default function TrekInstantRead({ symbol }) {
+// TrekInstantRead now accepts a shared `trekSignal` object from the parent (AssetDetail)
+// so it always shows the same data as the TREK Analysis card below.
+export default function TrekInstantRead({ symbol, trekSignal, loading }) {
   const navigate = useNavigate();
-  const { tier } = useSubscriptionStatus();
-  const [loading, setLoading] = useState(true);
-  const [analysis, setAnalysis] = useState(null);
 
-  useEffect(() => {
-    async function fetchInstantRead() {
-      setLoading(true);
-      try {
-        const [marketContext, user] = await Promise.all([
-          buildMarketContext(),
-          base44.auth.me(),
-        ]);
-
-        const prompt = tier === 'free'
-          ? `Give me a one-sentence general market direction for ${symbol}. No specific prices.`
-          : `Give me a one-sentence TREK instant read for ${symbol} with exact price level.`;
-
-        const messages = [{ role: 'user', content: prompt }];
-        const reply = await askTrek(messages, marketContext, user, tier);
-
-        const sentiment = reply.toLowerCase().includes('buy') || reply.toLowerCase().includes('bullish')
-          ? 'BULLISH'
-          : reply.toLowerCase().includes('sell') || reply.toLowerCase().includes('bearish')
-          ? 'BEARISH'
-          : 'NEUTRAL';
-
-        setAnalysis({ text: reply, sentiment });
-      } catch (e) {
-        console.error('TrekInstantRead error:', e);
-        setAnalysis({
-          text: `${symbol} analysis unavailable. Check AIInsights for full details.`,
-          sentiment: 'NEUTRAL'
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchInstantRead();
-  }, [symbol, tier]);
-
+  const sentiment = trekSignal?.sentiment || 'NEUTRAL';
   const getColors = () => {
-    if (analysis?.sentiment === 'BULLISH') return { bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)', text: '#22c55e' };
-    if (analysis?.sentiment === 'BEARISH') return { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', text: '#ef4444' };
+    if (sentiment === 'BULLISH') return { bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)', text: '#22c55e' };
+    if (sentiment === 'BEARISH') return { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', text: '#ef4444' };
     return { bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)', text: '#F59E0B' };
   };
 
   const colors = getColors();
-  const icon = analysis?.sentiment === 'BULLISH' ? '🟢' : analysis?.sentiment === 'BEARISH' ? '🔴' : '🟡';
+  const icon = sentiment === 'BULLISH' ? '🟢' : sentiment === 'BEARISH' ? '🔴' : '🟡';
 
   return (
     <motion.div
@@ -92,7 +51,9 @@ export default function TrekInstantRead({ symbol }) {
           <div className="flex items-start gap-2 mb-4">
             <span className="text-lg flex-shrink-0">{icon}</span>
             <p className="text-sm text-white/85 leading-relaxed flex-1">
-              <span className="font-bold" style={{ color: colors.text }}>{analysis?.sentiment}</span> — {analysis?.text}
+              <span className="font-bold" style={{ color: colors.text }}>{sentiment}</span>
+              {trekSignal?.confidence ? <span className="text-white/40 text-xs ml-1">· {trekSignal.confidence}% confidence</span> : null}
+              {' — '}{trekSignal?.text}
             </p>
           </div>
 

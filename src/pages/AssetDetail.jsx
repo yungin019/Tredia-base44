@@ -223,23 +223,45 @@ export default function AssetDetail() {
   const [loadingData, setLoadingData] = useState(true);
   const [toast, setToast] = useState(null);
   const [watchlistEntry, setWatchlistEntry] = useState(null);
-  const [trekAnalysis, setTrekAnalysis] = useState(null);
+  // Single source of truth: { text, sentiment, confidence }
+  const [trekSignal, setTrekSignal] = useState(null);
   const [trekLoading, setTrekLoading] = useState(false);
   const [timeframe, setTimeframe] = useState('1D');
   const [showConfidenceBreakdown, setShowConfidenceBreakdown] = useState(false);
   const [showPriceAlert, setShowPriceAlert] = useState(false);
   const prevPriceRef = useRef(null);
 
-  // Auto-trigger TREK analysis on mount
+  // Single TREK analysis — both cards read from this same object
   useEffect(() => {
     setTrekLoading(true);
     base44.functions.invoke('trekChat', {
-      message: `Give me a concise TREK analysis for ${symbol}. Include signal (BUY/SELL/HOLD), confidence %, key driver, and a brief trade plan.`,
+      message: `Analyze ${symbol}. Reply in this exact JSON format (no markdown): {"signal":"BUY|SELL|HOLD","sentiment":"BULLISH|BEARISH|NEUTRAL","confidence":85,"text":"one sentence instant read","reasoning":"2-3 sentence full analysis"}`,
       symbol,
     }).then(res => {
-      const text = res?.data?.reply || res?.data?.message || res?.data?.response || null;
-      if (text) setTrekAnalysis(text);
-    }).catch(() => {}).finally(() => setTrekLoading(false));
+      const raw = res?.data?.reply || res?.data?.message || res?.data?.response || '';
+      try {
+        // Extract JSON from response
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (match) {
+          const parsed = JSON.parse(match[0]);
+          setTrekSignal({
+            text: parsed.text || raw,
+            sentiment: parsed.sentiment || 'NEUTRAL',
+            confidence: parsed.confidence || staticAsset.confidence,
+            reasoning: parsed.reasoning || raw,
+            signal: parsed.signal || staticAsset.signal,
+          });
+          return;
+        }
+      } catch {}
+      // Fallback: parse sentiment from free text
+      const lower = raw.toLowerCase();
+      const sentiment = lower.includes('bullish') || lower.includes('buy') ? 'BULLISH'
+        : lower.includes('bearish') || lower.includes('sell') ? 'BEARISH' : 'NEUTRAL';
+      setTrekSignal({ text: raw, sentiment, confidence: staticAsset.confidence, reasoning: raw, signal: staticAsset.signal });
+    }).catch(() => {
+      setTrekSignal({ text: 'Analysis unavailable.', sentiment: 'NEUTRAL', confidence: staticAsset.confidence, reasoning: staticAsset.whyNow, signal: staticAsset.signal });
+    }).finally(() => setTrekLoading(false));
   }, [symbol]);
 
   const showToast = (msg, type = 'info') => {
@@ -367,8 +389,8 @@ export default function AssetDetail() {
         </div>
       </div>
 
-      {/* TREK Instant Read */}
-      <TrekInstantRead symbol={symbol} />
+      {/* TREK Instant Read — uses shared trekSignal */}
+      <TrekInstantRead symbol={symbol} trekSignal={trekSignal} loading={trekLoading} />
 
       {/* Header - Premium Loading */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
@@ -447,14 +469,14 @@ export default function AssetDetail() {
           <Zap className="h-3.5 w-3.5 text-primary" />
           <span className="text-[10px] font-black text-primary uppercase tracking-[0.12em]">{t('ai.analysis')}</span>
           <span className="ml-auto text-[10px] font-black" style={{ color: cvColor }}>
-            {asset.confidence}% confidence · {asset.conviction}
+            {trekSignal?.confidence || asset.confidence}% confidence · {asset.conviction}
           </span>
         </div>
         <div className="text-[12px] text-white/70 leading-relaxed mb-3">
           {trekLoading ? (
             <LoadingMessage message="Fetching live TREK analysis…" />
           ) : (
-            <p>{safeRender(trekAnalysis || asset.whyNow, 'No analysis available.')}</p>
+            <p>{safeRender(trekSignal?.reasoning || asset.whyNow, 'No analysis available.')}</p>
           )}
         </div>
 
@@ -496,7 +518,7 @@ export default function AssetDetail() {
                         <button
                           onClick={(e) => { e.stopPropagation(); navigate('/Upgrade'); }}
                           className="text-[9px] font-bold text-primary hover:text-primary/80 transition-colors">
-                          Unlock with PRO
+                          Unlock with TREK Elite
                         </button>
                       </div>
                     </div>
@@ -561,18 +583,44 @@ export default function AssetDetail() {
         </AnimatePresence>
       </motion.div>
 
-      {/* BUY / SELL buttons */}
+      {/* BUY / SELL buttons — dimmed when TREK signal conflicts */}
+      {trekSignal?.sentiment === 'BEARISH' && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-2 px-1">
+          <p className="text-[11px] text-[#ef4444] font-bold flex items-center gap-1.5">
+            ⚠️ TREK says BEARISH — buying against the signal
+          </p>
+        </motion.div>
+      )}
+      {trekSignal?.sentiment === 'BULLISH' && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-2 px-1">
+          <p className="text-[11px] text-[#F59E0B] font-bold flex items-center gap-1.5">
+            ⚠️ TREK says BULLISH — selling against the signal
+          </p>
+        </motion.div>
+      )}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         className="grid grid-cols-2 gap-3 mb-4">
         <button onClick={() => setTradeAction('BUY')}
-          className="py-4 rounded-2xl font-black text-sm tracking-wider transition-all hover:scale-[1.02] tap-feedback"
-          style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#0A0A0F', boxShadow: '0 4px 20px rgba(34,197,94,0.2)' }}>
-          🟢 {t('asset.buy')}
+          className="py-4 rounded-2xl font-black text-sm tracking-wider transition-all hover:scale-[1.02] tap-feedback flex flex-col items-center gap-0.5"
+          style={{
+            background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+            color: '#0A0A0F',
+            boxShadow: '0 4px 20px rgba(34,197,94,0.2)',
+            opacity: trekSignal?.sentiment === 'BEARISH' ? 0.55 : 1,
+          }}>
+          <span>🟢 {t('asset.buy')}</span>
+          {trekSignal?.sentiment === 'BEARISH' && <span className="text-[9px] font-bold opacity-80">TREK says BEARISH — sure?</span>}
         </button>
         <button onClick={() => setTradeAction('SELL')}
-          className="py-4 rounded-2xl font-black text-sm tracking-wider transition-all hover:scale-[1.02] tap-feedback"
-          style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', boxShadow: '0 4px 20px rgba(239,68,68,0.2)' }}>
-          🔴 {t('asset.sell')}
+          className="py-4 rounded-2xl font-black text-sm tracking-wider transition-all hover:scale-[1.02] tap-feedback flex flex-col items-center gap-0.5"
+          style={{
+            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+            color: '#fff',
+            boxShadow: '0 4px 20px rgba(239,68,68,0.2)',
+            opacity: trekSignal?.sentiment === 'BULLISH' ? 0.55 : 1,
+          }}>
+          <span>🔴 {t('asset.sell')}</span>
+          {trekSignal?.sentiment === 'BULLISH' && <span className="text-[9px] font-bold opacity-80">TREK says BULLISH — sure?</span>}
         </button>
       </motion.div>
 
