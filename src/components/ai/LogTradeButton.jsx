@@ -53,14 +53,15 @@ export function LogTradeButton() {
     <>
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-36 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg flex items-center justify-center z-40"
+        className="fixed bottom-24 left-4 w-12 h-12 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg flex items-center justify-center z-40"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         style={{
-          boxShadow: '0 4px 20px rgba(245, 158, 11, 0.4)'
+          boxShadow: '0 4px 20px rgba(245, 158, 11, 0.4)',
+          marginBottom: 'env(safe-area-inset-bottom)'
         }}
       >
-        <Plus className="w-6 h-6 text-white" />
+        <Plus className="w-5 h-5 text-white" />
       </motion.button>
 
       <AnimatePresence>
@@ -79,8 +80,11 @@ export function LogTradeButton() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 bg-[#0D1117] rounded-t-3xl z-50 overflow-y-auto"
-              style={{ maxHeight: 'calc(85dvh - env(safe-area-inset-bottom) - 60px)' }}
+              className="fixed left-0 right-0 bg-[#0D1117] rounded-t-3xl z-50 overflow-y-auto"
+              style={{ 
+                bottom: 'calc(60px + env(safe-area-inset-bottom))',
+                maxHeight: 'calc(85dvh - 60px - env(safe-area-inset-bottom))'
+              }}
             >
               <div className="p-6 space-y-6" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}>
                 <div className="flex items-center justify-between">
