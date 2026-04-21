@@ -80,13 +80,10 @@ export function LogTradeButton() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed left-0 right-0 bg-[#0D1117] rounded-t-3xl z-50 overflow-y-auto"
-              style={{ 
-                bottom: 'calc(60px + env(safe-area-inset-bottom))',
-                maxHeight: 'calc(85dvh - 60px - env(safe-area-inset-bottom))'
-              }}
+              className="fixed bottom-0 left-0 right-0 bg-[#0D1117] rounded-t-3xl z-50 overflow-y-auto"
+              style={{ maxHeight: '75dvh' }}
             >
-              <div className="p-6 space-y-6" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}>
+              <div className="p-6 space-y-6" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-black text-white">TELL TREK WHAT YOU DID</h2>
                   <Button
