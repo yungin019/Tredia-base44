@@ -234,42 +234,47 @@ export default function AssetDetail() {
   // Single TREK analysis — both cards read from this same object
   useEffect(() => {
     setTrekLoading(true);
+    const prompt = `Analyze ${symbol} right now. Give a concise, real market analysis. Reply ONLY with valid JSON (no markdown, no explanation outside JSON):
+{"signal":"BUY","sentiment":"BULLISH","confidence":82,"text":"One sentence instant read for the trader.","reasoning":"2-3 sentences explaining the key drivers, price levels, and what to watch."}
+Signal must be one of: BUY, SELL, HOLD, WATCH. Sentiment: BULLISH, BEARISH, or NEUTRAL.`;
+
     base44.functions.invoke('trekChat', {
-      message: `Analyze ${symbol}. Reply in this exact JSON format (no markdown): {"signal":"BUY|SELL|HOLD","sentiment":"BULLISH|BEARISH|NEUTRAL","confidence":85,"text":"one sentence instant read","reasoning":"2-3 sentence full analysis"}`,
-      symbol,
+      messages: [{ role: 'user', content: prompt }],
     }).then(res => {
-      const raw = res?.data?.reply || res?.data?.message || res?.data?.response || '';
+      const raw = res?.data?.reply || '';
       try {
-        // Extract JSON from response
-        const match = raw.match(/\{[\s\S]*\}/);
+        const match = raw.match(/\{[\s\S]*?\}/);
         if (match) {
           const parsed = JSON.parse(match[0]);
-          const fallbackText = staticAsset.whyNow || `${symbol} analysis based on current market conditions.`;
-          setTrekSignal({
-            text: parsed.text || fallbackText,
-            sentiment: parsed.sentiment || (staticAsset.signal === 'BUY' ? 'BULLISH' : staticAsset.signal === 'SELL' ? 'BEARISH' : 'NEUTRAL'),
-            confidence: parsed.confidence || staticAsset.confidence,
-            reasoning: parsed.reasoning || parsed.text || fallbackText,
-            signal: parsed.signal || staticAsset.signal,
-          });
-          return;
+          if (parsed.text && parsed.sentiment) {
+            setTrekSignal({
+              text: parsed.text,
+              sentiment: parsed.sentiment,
+              confidence: parsed.confidence || staticAsset.confidence,
+              reasoning: parsed.reasoning || parsed.text,
+              signal: parsed.signal || staticAsset.signal,
+            });
+            return;
+          }
         }
       } catch {}
-      // Fallback: parse sentiment from free text, always use static whyNow if raw is empty
-      const lower = raw.toLowerCase();
-      const sentiment = lower.includes('bullish') || lower.includes('buy') ? 'BULLISH'
-        : lower.includes('bearish') || lower.includes('sell') ? 'BEARISH' : 'NEUTRAL';
-      const displayText = raw || staticAsset.whyNow || `${symbol} is currently showing ${sentiment.toLowerCase()} signals.`;
-      setTrekSignal({ text: displayText, sentiment, confidence: staticAsset.confidence, reasoning: displayText, signal: staticAsset.signal });
+      // API returned non-JSON — use the raw text as reasoning
+      if (raw && raw.length > 20) {
+        const lower = raw.toLowerCase();
+        const sentiment = lower.includes('bullish') || lower.includes('buy') ? 'BULLISH'
+          : lower.includes('bearish') || lower.includes('sell') ? 'BEARISH' : 'NEUTRAL';
+        setTrekSignal({ text: raw.slice(0, 120), sentiment, confidence: staticAsset.confidence, reasoning: raw, signal: staticAsset.signal });
+      } else {
+        throw new Error('empty');
+      }
     }).catch(() => {
-      // Always fall back to static data — never show "unavailable"
-      const fallbackSentiment = staticAsset.signal === 'BUY' ? 'BULLISH' : staticAsset.signal === 'SELL' ? 'BEARISH' : 'NEUTRAL';
-      const fallbackText = staticAsset.whyNow || `${symbol} is showing ${fallbackSentiment.toLowerCase()} momentum based on current market conditions.`;
+      // Hard fallback to static data — still real curated analysis, never "unavailable"
+      const sentiment = staticAsset.signal === 'BUY' ? 'BULLISH' : staticAsset.signal === 'SELL' ? 'BEARISH' : 'NEUTRAL';
       setTrekSignal({
-        text: fallbackText,
-        sentiment: fallbackSentiment,
+        text: staticAsset.whyNow,
+        sentiment,
         confidence: staticAsset.confidence,
-        reasoning: fallbackText,
+        reasoning: staticAsset.whyNow,
         signal: staticAsset.signal,
       });
     }).finally(() => setTrekLoading(false));
