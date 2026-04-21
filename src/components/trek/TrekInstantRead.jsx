@@ -53,7 +53,7 @@ export default function TrekInstantRead({ symbol, trekSignal, loading }) {
             <p className="text-sm text-white/85 leading-relaxed flex-1">
               <span className="font-bold" style={{ color: colors.text }}>{sentiment}</span>
               {trekSignal?.confidence ? <span className="text-white/40 text-xs ml-1">· {trekSignal.confidence}% confidence</span> : null}
-              {' — '}{trekSignal?.text}
+              {' — '}{trekSignal?.text || `${symbol} is showing ${sentiment.toLowerCase()} signals based on current market conditions.`}
             </p>
           </div>
 

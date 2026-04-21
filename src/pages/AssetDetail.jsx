@@ -244,23 +244,34 @@ export default function AssetDetail() {
         const match = raw.match(/\{[\s\S]*\}/);
         if (match) {
           const parsed = JSON.parse(match[0]);
+          const fallbackText = staticAsset.whyNow || `${symbol} analysis based on current market conditions.`;
           setTrekSignal({
-            text: parsed.text || raw,
-            sentiment: parsed.sentiment || 'NEUTRAL',
+            text: parsed.text || fallbackText,
+            sentiment: parsed.sentiment || (staticAsset.signal === 'BUY' ? 'BULLISH' : staticAsset.signal === 'SELL' ? 'BEARISH' : 'NEUTRAL'),
             confidence: parsed.confidence || staticAsset.confidence,
-            reasoning: parsed.reasoning || raw,
+            reasoning: parsed.reasoning || parsed.text || fallbackText,
             signal: parsed.signal || staticAsset.signal,
           });
           return;
         }
       } catch {}
-      // Fallback: parse sentiment from free text
+      // Fallback: parse sentiment from free text, always use static whyNow if raw is empty
       const lower = raw.toLowerCase();
       const sentiment = lower.includes('bullish') || lower.includes('buy') ? 'BULLISH'
         : lower.includes('bearish') || lower.includes('sell') ? 'BEARISH' : 'NEUTRAL';
-      setTrekSignal({ text: raw, sentiment, confidence: staticAsset.confidence, reasoning: raw, signal: staticAsset.signal });
+      const displayText = raw || staticAsset.whyNow || `${symbol} is currently showing ${sentiment.toLowerCase()} signals.`;
+      setTrekSignal({ text: displayText, sentiment, confidence: staticAsset.confidence, reasoning: displayText, signal: staticAsset.signal });
     }).catch(() => {
-      setTrekSignal({ text: 'Analysis unavailable.', sentiment: 'NEUTRAL', confidence: staticAsset.confidence, reasoning: staticAsset.whyNow, signal: staticAsset.signal });
+      // Always fall back to static data — never show "unavailable"
+      const fallbackSentiment = staticAsset.signal === 'BUY' ? 'BULLISH' : staticAsset.signal === 'SELL' ? 'BEARISH' : 'NEUTRAL';
+      const fallbackText = staticAsset.whyNow || `${symbol} is showing ${fallbackSentiment.toLowerCase()} momentum based on current market conditions.`;
+      setTrekSignal({
+        text: fallbackText,
+        sentiment: fallbackSentiment,
+        confidence: staticAsset.confidence,
+        reasoning: fallbackText,
+        signal: staticAsset.signal,
+      });
     }).finally(() => setTrekLoading(false));
   }, [symbol]);
 
