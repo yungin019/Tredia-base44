@@ -53,7 +53,7 @@ export function LogTradeButton() {
     <>
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg flex items-center justify-center z-40"
+        className="fixed bottom-36 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-lg flex items-center justify-center z-40"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         style={{
