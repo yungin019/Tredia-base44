@@ -179,13 +179,11 @@ export default function AppShell({ onLogout }) {
             <button onClick={() => { setNotificationsOpen(!notificationsOpen); }}
               className="relative p-2 rounded-lg hover:bg-white/[0.04] transition-colors">
               <Bell className="h-4 w-4 text-muted-foreground" />
-              {unreadCount > 0 ? (
+              {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-0.5 rounded-full text-[9px] font-black flex items-center justify-center"
                   style={{ background: '#F59E0B', color: '#000' }}>
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
-              ) : (
-                <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
               )}
             </button>
             <NotificationsPanel isOpen={notificationsOpen} onClose={() => { setNotificationsOpen(false); setUnreadCount(0); }} />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Bell, TrendingUp, AlertTriangle, Users, Heart, Copy, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Bell, TrendingUp, AlertTriangle, Users, Heart, Copy, RefreshCw, Settings2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const TYPE_CONFIG = {
@@ -65,6 +65,35 @@ export default function Notifications() {
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
+  const [showPrefs, setShowPrefs] = useState(false);
+  const [prefs, setPrefs] = useState({
+    price_alert: true,
+    trek_signal: true,
+    community_like: true,
+    community_copy: true,
+    new_follower: true,
+    market_update: false,
+  });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('notif_prefs');
+    if (saved) setPrefs(JSON.parse(saved));
+  }, []);
+
+  const togglePref = (key) => {
+    const updated = { ...prefs, [key]: !prefs[key] };
+    setPrefs(updated);
+    localStorage.setItem('notif_prefs', JSON.stringify(updated));
+  };
+
+  const PREF_LABELS = {
+    price_alert:    { label: 'Price Alerts', desc: 'When your price alert triggers', color: '#F59E0B' },
+    trek_signal:    { label: 'TREK Signals', desc: 'High-confidence AI trade signals', color: '#22c55e' },
+    community_like: { label: 'Post Likes', desc: 'When someone likes your post', color: '#8b5cf6' },
+    community_copy: { label: 'Copied Trades', desc: 'When someone copies your trade', color: '#0ec8dc' },
+    new_follower:   { label: 'New Followers', desc: 'When someone follows you', color: '#3b82f6' },
+    market_update:  { label: 'Market Updates', desc: 'General market news & updates', color: '#0ec8dc' },
+  };
 
   return (
     <div className="min-h-screen" style={{ background: '#040810' }}>
@@ -99,9 +128,42 @@ export default function Notifications() {
             <button onClick={loadNotifications} className="h-9 w-9 flex items-center justify-center rounded-lg border border-white/[0.08]">
               <RefreshCw className="h-4 w-4 text-white/40" />
             </button>
+            <button onClick={() => setShowPrefs(v => !v)}
+              className="h-9 w-9 flex items-center justify-center rounded-lg border transition-colors"
+              style={{ borderColor: showPrefs ? 'rgba(14,200,220,0.4)' : 'rgba(255,255,255,0.08)', background: showPrefs ? 'rgba(14,200,220,0.08)' : 'transparent' }}>
+              <Settings2 className="h-4 w-4" style={{ color: showPrefs ? '#0ec8dc' : 'rgba(255,255,255,0.4)' }} />
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Preferences Panel */}
+      {showPrefs && (
+        <div className="max-w-2xl mx-auto px-4 pt-4">
+          <div className="rounded-xl border border-white/[0.08] overflow-hidden" style={{ background: 'rgba(17,17,24,0.9)' }}>
+            <div className="px-4 py-3 border-b border-white/[0.06]">
+              <p className="text-sm font-bold text-white/80">Notification Preferences</p>
+              <p className="text-[10px] text-white/30 mt-0.5">Choose which notifications you want to receive</p>
+            </div>
+            {Object.entries(PREF_LABELS).map(([key, cfg]) => (
+              <div key={key} className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04] last:border-0">
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: cfg.color }} />
+                  <div>
+                    <p className="text-[13px] font-semibold text-white/80">{cfg.label}</p>
+                    <p className="text-[10px] text-white/35">{cfg.desc}</p>
+                  </div>
+                </div>
+                <button onClick={() => togglePref(key)} className="transition-colors">
+                  {prefs[key]
+                    ? <ToggleRight className="h-6 w-6" style={{ color: '#0ec8dc' }} />
+                    : <ToggleLeft className="h-6 w-6 text-white/20" />}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="max-w-2xl mx-auto p-4 space-y-2 pb-24">
         {loading ? (
