@@ -334,17 +334,18 @@ Always end with a suggested next action or follow-up question.`;
         {!open && (
           <motion.button
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: fabVisible ? 1 : 0, opacity: fabVisible ? 1 : 0 }}
+            animate={{ scale: fabVisible ? 1 : 0, opacity: fabVisible ? 0.55 : 0 }}
+            whileHover={{ opacity: 1, scale: 1.1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={openWithGreeting}
-            className="fixed bottom-24 right-4 z-40 rounded-full flex items-center justify-center shadow-2xl"
+            className="fixed bottom-24 right-3 z-40 rounded-full flex items-center justify-center"
             style={{
-              width: 52, height: 52,
-              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-              boxShadow: '0 4px 24px rgba(245,158,11,0.4), 0 0 40px rgba(245,158,11,0.15)',
+              width: 36, height: 36,
+              background: 'rgba(245,158,11,0.85)',
+              boxShadow: '0 2px 12px rgba(245,158,11,0.25)',
             }}
           >
-            <Sparkles className="h-5 w-5 text-black" />
+            <Sparkles className="h-3.5 w-3.5 text-black" />
           </motion.button>
         )}
       </AnimatePresence>
