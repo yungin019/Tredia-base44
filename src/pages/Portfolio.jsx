@@ -17,6 +17,7 @@ import TradeHistory from '../components/portfolio/TradeHistory';
 import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import BrokerDisclosureBanner from '@/components/broker/BrokerDisclosureBanner';
+import { TellTrekBanner, LogTradeModal } from '@/components/ai/LogTradeButton';
 
 const COLORS = ['#F59E0B', '#3B82F6', '#22C55E', '#A855F7', '#EF4444', '#06B6D4'];
 
@@ -25,6 +26,7 @@ export default function Portfolio() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
+  const [showLogTrade, setShowLogTrade] = useState(false);
   const [activeTab, setActiveTab] = useState('holdings');
   const [user, setUser] = useState(null);
   const [alpacaPositions, setAlpacaPositions] = useState([]);
@@ -183,6 +185,10 @@ export default function Portfolio() {
           <p className="text-[11px] text-white/50 flex-1">This is a simulated portfolio with virtual funds. <button onClick={() => navigate('/alpaca-connect')} className="text-[#F59E0B] font-semibold hover:underline">Connect your broker</button> to trade with real money via Alpaca.</p>
         </div>
       )}
+
+      {/* Tell TREK Banner */}
+      <TellTrekBanner onOpen={() => setShowLogTrade(true)} />
+      <LogTradeModal isOpen={showLogTrade} onClose={() => setShowLogTrade(false)} />
 
       {/* TREK AI Analysis Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
