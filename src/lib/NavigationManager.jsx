@@ -75,8 +75,12 @@ export function NavigationProvider({ children }) {
   const currentTab = getTabForPath(location.pathname);
   activeTab.current = currentTab;
 
+  const openAIChat = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('tredio:open-ai-chat'));
+  }, []);
+
   return (
-    <NavigationContext.Provider value={{ push, goBack, switchTab, canGoBack, getTabForPath, activeTab, syncExternalNavigation }}>
+    <NavigationContext.Provider value={{ push, goBack, switchTab, canGoBack, getTabForPath, activeTab, syncExternalNavigation, openAIChat }}>
       {children}
     </NavigationContext.Provider>
   );

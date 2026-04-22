@@ -144,6 +144,13 @@ export default function TredioAssistant() {
 
   const ctx = getContext();
 
+  // Listen for global open event (triggered by TREK nav button)
+  useEffect(() => {
+    const handler = () => openWithGreeting();
+    window.addEventListener('tredio:open-ai-chat', handler);
+    return () => window.removeEventListener('tredio:open-ai-chat', handler);
+  }, []);
+
   // Show proactive bubble after 3 seconds on key pages
   useEffect(() => {
     const keyPages = ['/PaperTrading', '/Portfolio', '/AIInsights', '/Markets', '/Home'];
