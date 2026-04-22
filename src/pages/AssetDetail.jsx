@@ -6,6 +6,7 @@ import { ArrowLeft, TrendingUp, TrendingDown, ShieldAlert, Target, CheckCircle2,
 import { base44 } from '@/api/base44Client';
 import { sendPushNotification } from '@/api/notifications';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
+import QueryLimitModal from '@/components/ai/QueryLimitModal';
 import CandlestickChart from '@/components/markets/CandlestickChart';
 import TrekInstantRead from '@/components/trek/TrekInstantRead';
 import AssetNewsSection from '@/components/news/AssetNewsSection';
@@ -218,6 +219,7 @@ export default function AssetDetail() {
 
   const [tradeAction, setTradeAction] = useState(null);
   const [showPlan, setShowPlan] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const [livePrice, setLivePrice] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
   const [toast, setToast] = useState(null);
@@ -228,8 +230,31 @@ export default function AssetDetail() {
   const [aiConfidence, setAiConfidence] = useState(null);
   const prevPriceRef = useRef(null);
 
-  // Auto-trigger TREK analysis on mount — uses multi-model synthesis via trekChat
+  // Auto-trigger TREK analysis on mount — gated: free users use localStorage counter
+  const FREE_TREK_LIMIT = 5;
+  const getTrekUsedToday = () => {
+    const today = new Date().toDateString();
+    if (localStorage.getItem('trek_asset_date') !== today) {
+      localStorage.setItem('trek_asset_date', today);
+      localStorage.setItem('trek_asset_count', '0');
+      return 0;
+    }
+    return parseInt(localStorage.getItem('trek_asset_count') || '0', 10);
+  };
+
   useEffect(() => {
+    if (tier === 'free') {
+      const used = getTrekUsedToday();
+      if (used >= FREE_TREK_LIMIT) {
+        setShowLimitModal(true);
+        return;
+      }
+      // count this asset view
+      const today = new Date().toDateString();
+      localStorage.setItem('trek_asset_date', today);
+      localStorage.setItem('trek_asset_count', String(used + 1));
+    }
+
     setTrekLoading(true);
     const currentPrice = livePrice || staticAsset.price;
     base44.functions.invoke('trekChat', {
@@ -332,6 +357,7 @@ export default function AssetDetail() {
 
   return (
     <div className="p-4 lg:p-6 max-w-[700px] mx-auto pb-24">
+      <QueryLimitModal isOpen={showLimitModal} onClose={() => setShowLimitModal(false)} />
       {/* Toast */}
       <AnimatePresence>
         {toast && (

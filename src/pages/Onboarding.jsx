@@ -155,12 +155,19 @@ export default function Onboarding() {
             </motion.div>
           )}
 
-          {/* STEP 2: AI Systems Intro */}
+          {/* STEP 2: What is TREK */}
           {step === 2 && (
             <motion.div key="ai" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8 text-center">
-                <h1 className="text-2xl font-black text-white/90 mb-2">4 AI systems watching</h1>
-                <p className="text-sm text-white/40 mb-8">every market, 24/7</p>
+                <div className="inline-flex items-center gap-2 bg-[#F59E0B]/10 border border-[#F59E0B]/25 rounded-full px-3 py-1 mb-3">
+                  <Zap className="h-3 w-3 text-[#F59E0B]" />
+                  <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">Meet TREK</span>
+                </div>
+                <h1 className="text-2xl font-black text-white/90 mb-2">Your AI trading brain</h1>
+                <p className="text-sm text-white/45 mb-2 leading-relaxed">
+                  TREK watches every market 24/7 and tells you exactly what to do — <span className="text-white/70 font-semibold">BUY, SELL, or HOLD</span> — with a confidence score and trade plan.
+                </p>
+                <p className="text-xs text-white/30 mb-6">No jargon. No guessing. Just clear signals.</p>
 
                 <div className="grid grid-cols-2 gap-4 mb-8">
                   {[
@@ -253,21 +260,22 @@ export default function Onboarding() {
             </motion.div>
           )}
 
-          {/* STEP 4: Create Account CTA */}
+          {/* STEP 4: Launch CTA */}
           {step === 4 && (
             <motion.div key="account" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8 text-center">
                 <div className="h-16 w-16 rounded-2xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 flex items-center justify-center mx-auto mb-4">
                   <Zap className="h-8 w-8 text-[#F59E0B]" />
                 </div>
-                <h1 className="text-2xl font-black text-white/90 mb-2">You're all set!</h1>
-                <p className="text-sm text-white/40 mb-8">One last step — create your account</p>
+                <h1 className="text-2xl font-black text-white/90 mb-2">TREK is ready</h1>
+                <p className="text-sm text-white/40 mb-2">Your AI trading brain is calibrated.</p>
+                <p className="text-xs text-white/25 mb-8">5 free TREK signals daily — upgrade anytime for unlimited</p>
 
                 <button
-                  onClick={() => navigate('/SignIn')}
+                  onClick={() => navigate('/Home')}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                  GET STARTED <ArrowRight className="h-4 w-4" />
+                  ENTER TREDIO <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </motion.div>
