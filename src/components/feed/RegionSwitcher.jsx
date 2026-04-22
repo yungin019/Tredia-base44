@@ -17,7 +17,7 @@ export const REGION_LABELS = {
 export default function RegionSwitcher({ activeRegion, onChange }) {
   return (
     <div
-      className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-2 px-1"
+      className="flex items-center overflow-x-auto scrollbar-hide"
       style={{
         background: 'rgba(6,14,32,0.6)',
         backdropFilter: 'blur(20px)',
@@ -25,6 +25,8 @@ export default function RegionSwitcher({ activeRegion, onChange }) {
         border: '1px solid rgba(100,220,255,0.08)',
         borderRadius: '999px',
         boxShadow: 'inset 0 1px 0 rgba(100,220,255,0.05), 0 4px 16px rgba(0,0,0,0.3)',
+        padding: '4px',
+        gap: '2px',
       }}
     >
       {REGIONS.map((r) => {
@@ -33,27 +35,37 @@ export default function RegionSwitcher({ activeRegion, onChange }) {
           <button
             key={r.id}
             onClick={() => onChange(r.id)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all"
-            style={isActive ? {
-              background: 'rgba(14,200,220,0.15)',
-              border: '1px solid rgba(14,200,220,0.35)',
-              color: 'rgb(120,230,245)',
-              boxShadow: '0 0 12px rgba(14,200,220,0.2)',
-            } : {
-              background: 'transparent',
-              border: '1px solid transparent',
-              color: 'rgba(255,255,255,0.35)',
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '5px 12px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              border: 'none',
+              outline: 'none',
+              cursor: 'pointer',
+              flexShrink: 0,
+              transition: 'all 0.2s ease',
+              background: isActive ? 'rgba(14,200,220,0.18)' : 'transparent',
+              boxShadow: isActive ? '0 0 0 1px rgba(14,200,220,0.4), 0 0 12px rgba(14,200,220,0.15)' : 'none',
+              color: isActive ? 'rgb(120,230,245)' : 'rgba(255,255,255,0.4)',
             }}
           >
             <span
-              className="h-2 w-2 rounded-full flex-shrink-0"
               style={{
-                background: isActive ? 'rgb(14,200,220)' : 'rgba(255,255,255,0.2)',
-                boxShadow: isActive ? '0 0 6px rgba(14,200,220,0.8)' : 'none',
+                display: 'inline-block',
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                flexShrink: 0,
+                background: isActive ? 'rgb(14,200,220)' : 'rgba(255,255,255,0.25)',
+                boxShadow: isActive ? '0 0 6px rgba(14,200,220,0.9)' : 'none',
               }}
             />
             {r.label}
-
           </button>
         );
       })}
