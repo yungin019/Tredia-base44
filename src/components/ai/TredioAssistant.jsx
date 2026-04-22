@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Sparkles, ChevronRight, Minimize2 } from 'lucide-react';
+import { X, Send, Sparkles, ChevronRight, Minimize2, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
 import { base44 } from '@/api/base44Client';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import aiTranslations from '@/locales/ai-translations';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
+
+const FREE_DAILY_LIMIT = 5;
 
 // Context-aware page keys (mapped to langTranslations)
 const PAGE_CONTEXT_KEYS = {
@@ -56,7 +59,7 @@ function TypingDots() {
   );
 }
 
-function Message({ msg }) {
+function Message({ msg, onUpgrade }) {
   const isUser = msg.role === 'user';
   return (
     <motion.div
@@ -69,14 +72,28 @@ function Message({ msg }) {
           <Sparkles className="h-3 w-3 text-primary" />
         </div>
       )}
-      <div
-        className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed ${
-          isUser
-            ? 'bg-primary text-primary-foreground font-medium'
-            : 'bg-white/[0.06] border border-white/[0.08] text-white/80'
-        }`}
-      >
-        {msg.content}
+      <div className="max-w-[82%]">
+        <div
+          className={`rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed ${
+            isUser
+              ? 'bg-primary text-primary-foreground font-medium'
+              : msg.isLimitMsg
+              ? 'text-white/80'
+              : 'bg-white/[0.06] border border-white/[0.08] text-white/80'
+          }`}
+          style={msg.isLimitMsg ? { background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)' } : {}}
+        >
+          {msg.content}
+        </div>
+        {msg.isLimitMsg && onUpgrade && (
+          <button
+            onClick={onUpgrade}
+            className="mt-2 w-full py-2 rounded-xl font-black text-[11px] tracking-wide"
+            style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
+          >
+            ⚡ Upgrade to Elite — Unlimited
+          </button>
+        )}
       </div>
     </motion.div>
   );
@@ -85,6 +102,8 @@ function Message({ msg }) {
 export default function TredioAssistant() {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isFree } = useSubscriptionStatus();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -92,9 +111,31 @@ export default function TredioAssistant() {
   const [proactiveShown, setProactiveShown] = useState(false);
   const [showProactiveBubble, setShowProactiveBubble] = useState(false);
   const [fabVisible, setFabVisible] = useState(true);
+  const [dailyCount, setDailyCount] = useState(0);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const scrollTimerRef = useRef(null);
+
+  // Load today's usage count from localStorage
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const stored = JSON.parse(localStorage.getItem('trek_daily_usage') || '{}');
+    if (stored.date === today) {
+      setDailyCount(stored.count || 0);
+    } else {
+      localStorage.setItem('trek_daily_usage', JSON.stringify({ date: today, count: 0 }));
+      setDailyCount(0);
+    }
+  }, []);
+
+  const incrementUsage = () => {
+    const today = new Date().toDateString();
+    const newCount = dailyCount + 1;
+    localStorage.setItem('trek_daily_usage', JSON.stringify({ date: today, count: newCount }));
+    setDailyCount(newCount);
+  };
+
+  const isLimitReached = isFree && dailyCount >= FREE_DAILY_LIMIT;
 
   // Hide FAB while scrolling, show again after scroll stops
   useEffect(() => {
@@ -249,6 +290,17 @@ export default function TredioAssistant() {
   const sendMessage = async (text) => {
     const userText = text || input.trim();
     if (!userText || loading) return;
+
+    // Free tier limit check
+    if (isLimitReached) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `You've used all ${FREE_DAILY_LIMIT} free TREK AI messages for today. Upgrade to Elite for unlimited access — deeper signals, real-time analysis, no limits.`,
+        isLimitMsg: true,
+      }]);
+      return;
+    }
+
     setInput('');
 
     const pageLabel = location.pathname.replace('/', '') || 'Home';
@@ -281,6 +333,7 @@ Always end with a suggested next action or follow-up question.`;
 
       const reply = typeof res === 'string' ? res : res?.text || res?.content || "I'm here to help! What would you like to know?";
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      incrementUsage();
     } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -364,6 +417,10 @@ Always end with a suggested next action or follow-up question.`;
             suggestions={ctx.suggestions}
             onClose={() => setOpen(false)}
             onSend={sendMessage}
+            isFree={isFree}
+            dailyCount={dailyCount}
+            isLimitReached={isLimitReached}
+            onUpgrade={() => { setOpen(false); navigate('/Upgrade'); }}
           />
         )}
       </AnimatePresence>
@@ -371,7 +428,7 @@ Always end with a suggested next action or follow-up question.`;
   );
 }
 
-function ChatPanel({ t, messages, loading, input, setInput, inputRef, bottomRef, suggestions, onClose, onSend }) {
+function ChatPanel({ t, messages, loading, input, setInput, inputRef, bottomRef, suggestions, onClose, onSend, isFree, dailyCount, isLimitReached, onUpgrade }) {
   const inputBarRef = useRef(null);
 
   // Fix keyboard covering input on mobile (visualViewport API)
@@ -418,26 +475,54 @@ function ChatPanel({ t, messages, loading, input, setInput, inputRef, bottomRef,
       }}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.06] flex-shrink-0"
+      <div className="flex-shrink-0 border-b border-white/[0.06]"
         style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.08), transparent)' }}>
-        <div className="h-8 w-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
-          <Sparkles className="h-4 w-4 text-primary" />
-        </div>
-        <div className="flex-1">
-          <p className="text-[13px] font-black text-white/90">TREK AI</p>
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
-            <span className="text-[10px] text-white/35">{t('ai.mentor')}</span>
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className="h-8 w-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
+            <Sparkles className="h-4 w-4 text-primary" />
           </div>
+          <div className="flex-1">
+            <p className="text-[13px] font-black text-white/90">TREK AI</p>
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
+              <span className="text-[10px] text-white/35">{t('ai.mentor')}</span>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-all">
+            <Minimize2 className="h-4 w-4" />
+          </button>
         </div>
-        <button onClick={onClose} className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-all">
-          <Minimize2 className="h-4 w-4" />
-        </button>
+        {/* Free tier usage bar */}
+        {isFree && (
+          <div className="px-4 pb-2.5">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] text-white/30 font-bold uppercase tracking-wider">
+                Free messages today: {Math.min(dailyCount, FREE_DAILY_LIMIT)}/{FREE_DAILY_LIMIT}
+              </span>
+              {isLimitReached ? (
+                <button onClick={onUpgrade} className="text-[9px] font-black text-[#F59E0B] hover:opacity-80 flex items-center gap-0.5">
+                  <Lock className="h-2.5 w-2.5" /> Upgrade →
+                </button>
+              ) : (
+                <span className="text-[9px] text-white/20">{FREE_DAILY_LIMIT - dailyCount} left</span>
+              )}
+            </div>
+            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.min((dailyCount / FREE_DAILY_LIMIT) * 100, 100)}%`,
+                  background: isLimitReached ? '#ef4444' : 'linear-gradient(90deg, #F59E0B, #FCD34D)',
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Messages — flex-1 with padding-bottom so content never hides behind input */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ paddingBottom: '80px' }}>
-        {messages.map((msg, i) => <Message key={i} msg={msg} />)}
+        {messages.map((msg, i) => <Message key={i} msg={msg} onUpgrade={onUpgrade} />)}
         {loading && (
           <div className="flex gap-2 justify-start">
             <div className="h-6 w-6 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -495,18 +580,29 @@ function ChatPanel({ t, messages, loading, input, setInput, inputRef, bottomRef,
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && onSend()}
-          placeholder={t('ai.askPlaceholder')}
-          className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-[12px] text-white/80 placeholder:text-white/25 outline-none focus:border-primary/40 transition-colors"
+          placeholder={isLimitReached ? 'Daily limit reached — upgrade for more' : t('ai.askPlaceholder')}
+          disabled={isLimitReached}
+          className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-[12px] text-white/80 placeholder:text-white/25 outline-none focus:border-primary/40 transition-colors disabled:opacity-40"
           style={{ fontSize: '16px' /* prevents iOS auto-zoom */ }}
         />
-        <button
-          onClick={() => onSend()}
-          disabled={!input.trim() || loading}
-          className="h-10 w-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0 disabled:opacity-30"
-          style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
-        >
-          <Send className="h-4 w-4 text-black" />
-        </button>
+        {isLimitReached ? (
+          <button
+            onClick={onUpgrade}
+            className="h-10 px-3 rounded-xl flex items-center justify-center transition-all flex-shrink-0 text-[10px] font-black"
+            style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', whiteSpace: 'nowrap' }}
+          >
+            Upgrade
+          </button>
+        ) : (
+          <button
+            onClick={() => onSend()}
+            disabled={!input.trim() || loading}
+            className="h-10 w-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0 disabled:opacity-30"
+            style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+          >
+            <Send className="h-4 w-4 text-black" />
+          </button>
+        )}
       </div>
     </motion.div>
   );

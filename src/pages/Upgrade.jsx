@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useCurrency } from '@/hooks/useCurrency';
-import { Zap, Check, Crown, Users, AlertCircle } from 'lucide-react';
+import { Zap, Check, Crown, Users } from 'lucide-react';
 import { getFoundingStats, claimFoundingMemberSlot, getFoundingMemberInfo } from '@/api/foundingMembers';
 import { base44 } from '@/api/base44Client';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
@@ -214,6 +214,31 @@ export default function Upgrade() {
         </div>
       </motion.div>
 
+      {/* FREE vs PAID comparison — helps new users understand value instantly */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}
+        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/40 mb-4">YOUR CURRENT PLAN (FREE)</p>
+        <div className="space-y-2">
+          {[
+            { label: 'TREK AI messages', free: '5/day', paid: 'Unlimited' },
+            { label: 'Market signals', free: 'Basic', paid: 'Advanced + real-time' },
+            { label: 'Watchlist size', free: '3 assets', paid: 'Unlimited' },
+            { label: 'Price data', free: '15min delay', paid: 'Real-time' },
+            { label: 'Portfolio analytics', free: '—', paid: 'Full analysis' },
+          ].map(row => (
+            <div key={row.label} className="flex items-center justify-between gap-3">
+              <span className="text-[11px] text-white/50 flex-1">{row.label}</span>
+              <span className="text-[11px] font-bold text-white/30 w-20 text-right">{row.free}</span>
+              <span className="text-[11px] font-bold text-[#F59E0B] w-28 text-right">{row.paid}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end gap-2 mt-3 pt-2 border-t border-white/[0.04]">
+          <span className="text-[9px] text-white/20">FREE</span>
+          <span className="text-[9px] text-[#F59E0B] font-bold">ELITE ⚡</span>
+        </div>
+      </motion.div>
+
       {/* Billing Cycle Toggle */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
         className="flex items-center justify-center gap-4 rounded-xl border border-white/[0.06] bg-white/[0.01] p-3">
@@ -259,13 +284,6 @@ export default function Upgrade() {
             </li>
           ))}
         </ul>
-        {lastPurchaseError && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 mb-4">
-            <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
-            <p className="text-xs text-destructive">{lastPurchaseError}</p>
-          </motion.div>
-        )}
         <button
           onClick={() => handlePurchase('elite')}
           disabled={purchaseInProgress || !isInitialized}
@@ -275,8 +293,23 @@ export default function Upgrade() {
           </button>
       </motion.div>
 
+      {/* Restore Purchases */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+        className="text-center">
+        <button
+          onClick={handleRestore}
+          disabled={purchaseInProgress}
+          className="text-[11px] text-white/30 hover:text-white/55 transition-colors underline underline-offset-2"
+        >
+          {purchaseInProgress ? 'Restoring...' : 'Already subscribed? Restore purchases'}
+        </button>
+        {lastPurchaseError && lastPurchaseError.includes('App Store') && (
+          <p className="text-[10px] text-white/20 mt-1 px-4">{lastPurchaseError}</p>
+        )}
+      </motion.div>
+
       {/* Pro Plan */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-6">
         <span className="text-[10px] font-black tracking-[0.18em] uppercase text-white/40">{t('upgrade.pro')}</span>
         <p className="text-2xl font-black text-white/90 mb-1 mt-1">
@@ -285,7 +318,7 @@ export default function Upgrade() {
             {billingCycle === 'monthly' ? '/mo' : '/yr'}
           </span>
         </p>
-        <p className="text-xs text-white/30 mb-5">{t('home.title')}</p>
+        <p className="text-xs text-white/30 mb-5">Essential signals &amp; portfolio analytics</p>
         <ul className="space-y-2.5 mb-6">
           {[t('upgrade.proFeature1'), t('upgrade.proFeature2'), t('upgrade.proFeature3')].map(f => (
             <li key={f} className="flex items-center gap-2.5 text-sm text-white/55">
@@ -300,6 +333,21 @@ export default function Upgrade() {
         >
           {purchaseInProgress ? t('common.loading') : `${t('upgrade.upgrade')} ${t('upgrade.pro')}`}
         </button>
+      </motion.div>
+      {/* Legal footer — required for App Store subscription screens */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
+        className="text-center pb-4 space-y-2">
+        <p className="text-[10px] text-white/20 leading-relaxed px-2">
+          Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period.
+          Manage or cancel in your App Store account settings.
+        </p>
+        <div className="flex items-center justify-center gap-4">
+          <a href="https://tredio.app/terms" target="_blank" rel="noopener noreferrer"
+            className="text-[10px] text-white/30 hover:text-white/50 underline">Terms of Service</a>
+          <span className="text-white/15">·</span>
+          <a href="https://tredio.app/privacy" target="_blank" rel="noopener noreferrer"
+            className="text-[10px] text-white/30 hover:text-white/50 underline">Privacy Policy</a>
+        </div>
       </motion.div>
     </div>
   );

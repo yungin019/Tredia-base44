@@ -30,16 +30,13 @@ export default function Onboarding() {
   };
 
   const skipToExperience = () => {
-    setCurrentScreen(6);
+    setExperienceLevel('new'); // default when skipping
+    setCurrentScreen(7);
   };
 
   const selectExperience = (level) => {
     setExperienceLevel(level);
-    if (level === 'new') {
-      setCurrentScreen(7);
-    } else {
-      setCurrentScreen(7);
-    }
+    setCurrentScreen(7);
   };
 
   const selectPlatform = (platformId) => {
@@ -54,14 +51,13 @@ export default function Onboarding() {
     try {
       await base44.auth.updateMe({
         onboarding_completed: true,
-        experience_level: experienceLevel,
+        experience_level: experienceLevel || 'new',
         existing_platform: selectedPlatform,
       });
-      // Route to Alpaca onboarding for partnership demo, then Home
-      window.location.href = '/alpaca-onboarding';
+      window.location.href = '/Home';
     } catch (error) {
-      console.error('Error completing onboarding:', error);
-      window.location.href = '/alpaca-onboarding';
+      // Non-fatal — still navigate to Home
+      window.location.href = '/Home';
     } finally {
       setIsCompleting(false);
     }
