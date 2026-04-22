@@ -303,36 +303,45 @@ Always end with a suggested next action or follow-up question.`;
               left: 0,
               right: 0,
               bottom: 0,
-              zIndex: 50,
+              zIndex: 9999,
               display: 'flex',
               flexDirection: 'column',
               background: '#0f0f1a',
-              border: '1px solid rgba(245,158,11,0.2)',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
-              height: '100%',
-              maxHeight: '100dvh',
+              overflow: 'hidden',
             }}
           >
-            {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.06]"
-              style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.08), transparent)' }}>
-              <div className="h-8 w-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
+            {/* Header — fixed height, never shrinks */}
+            <div
+              className="flex items-center gap-3 px-4 border-b border-white/[0.06] flex-shrink-0"
+              style={{
+                paddingTop: 'calc(14px + env(safe-area-inset-top))',
+                paddingBottom: '14px',
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.08), transparent)',
+              }}
+            >
+              <div className="h-8 w-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
                 <Sparkles className="h-4 w-4 text-primary" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-black text-white/90">TREDIO AI</p>
                 <div className="flex items-center gap-1.5">
-                       <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
-                       <span className="text-[10px] text-white/35">{t('ai.mentor')}</span>
-                     </div>
+                  <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse flex-shrink-0" />
+                  <span className="text-[10px] text-white/35 truncate">{t('ai.mentor')}</span>
+                </div>
               </div>
-              <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-all">
-                <Minimize2 className="h-4 w-4" />
+              <button
+                onClick={() => setOpen(false)}
+                className="p-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-all flex-shrink-0"
+              >
+                <Minimize2 className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ minHeight: 0 }}>
+            {/* Messages — takes all remaining space, scrollable */}
+            <div
+              className="p-4 space-y-3 overflow-y-auto"
+              style={{ flex: '1 1 0', minHeight: 0, WebkitOverflowScrolling: 'touch' }}
+            >
               {messages.map((msg, i) => <Message key={i} msg={msg} />)}
               {loading && (
                 <div className="flex gap-2 justify-start">
@@ -347,10 +356,10 @@ Always end with a suggested next action or follow-up question.`;
               <div ref={bottomRef} />
             </div>
 
-            {/* Quick suggestions */}
-            {messages.length <= 1 && (
+            {/* Quick suggestions — only when few messages */}
+            {messages.length <= 1 && ctx.suggestions.filter(Boolean).length > 0 && (
               <div className="px-4 pb-2 flex flex-wrap gap-1.5 flex-shrink-0">
-                {ctx.suggestions.map((s, i) => (
+                {ctx.suggestions.filter(Boolean).map((s, i) => (
                   <button
                     key={i}
                     onClick={() => sendMessage(s)}
@@ -367,8 +376,15 @@ Always end with a suggested next action or follow-up question.`;
               </div>
             )}
 
-            {/* Input */}
-            <div className="px-3 py-3 border-t border-white/[0.06] flex gap-2 flex-shrink-0" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
+            {/* Input bar — always at bottom, above home indicator */}
+            <div
+              className="flex-shrink-0 flex items-center gap-2 px-3 border-t border-white/[0.06]"
+              style={{
+                paddingTop: '10px',
+                paddingBottom: 'calc(10px + env(safe-area-inset-bottom))',
+                background: '#0f0f1a',
+              }}
+            >
               <input
                 ref={inputRef}
                 value={input}
@@ -378,13 +394,34 @@ Always end with a suggested next action or follow-up question.`;
                 inputMode="text"
                 enterKeyHint="send"
                 autoComplete="off"
-                className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-[12px] text-white/80 placeholder:text-white/25 outline-none focus:border-primary/40 transition-colors"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  fontSize: '14px',
+                  color: 'rgba(255,255,255,0.85)',
+                  outline: 'none',
+                }}
               />
               <button
                 onClick={() => sendMessage()}
                 disabled={!input.trim() || loading}
-                className="h-10 w-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0 disabled:opacity-30"
-                style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                style={{
+                  flexShrink: 0,
+                  height: '42px',
+                  width: '42px',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                  opacity: (!input.trim() || loading) ? 0.35 : 1,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
               >
                 <Send className="h-4 w-4 text-black" />
               </button>
