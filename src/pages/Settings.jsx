@@ -490,6 +490,32 @@ export default function Settings({ onLogout }) {
        </div>
       </motion.div>
 
+      {/* SUPPORT */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }}
+        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
+        <SectionHeader title="SUPPORT" />
+        <a href="mailto:trediosupport@gmail.com"
+          className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-colors group">
+          <div className="flex items-center gap-3">
+            <span className="text-lg">📧</span>
+            <div>
+              <p className="text-sm text-white/65 group-hover:text-white/85 transition-colors">Email Support</p>
+              <p className="text-[11px] text-white/30">trediosupport@gmail.com</p>
+            </div>
+          </div>
+        </a>
+        <a href="https://discord.gg/tredio" target="_blank" rel="noopener noreferrer"
+          className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-colors group">
+          <div className="flex items-center gap-3">
+            <span className="text-lg">💬</span>
+            <div>
+              <p className="text-sm text-white/65 group-hover:text-white/85 transition-colors">Discord Community</p>
+              <p className="text-[11px] text-white/30">Chat with the team &amp; other traders</p>
+            </div>
+          </div>
+        </a>
+      </motion.div>
+
       {/* LEGAL */}
       <LegalLinksSection />
 
