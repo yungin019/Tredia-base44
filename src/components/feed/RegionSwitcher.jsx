@@ -49,13 +49,7 @@ export default function RegionSwitcher({ activeRegion, onChange }) {
           >
             <span className="text-sm leading-none">{r.flag}</span>
             <span>{r.label}</span>
-            {isActive && (
-              <motion.span
-                layoutId="region-active-dot"
-                className="h-1.5 w-1.5 rounded-full flex-shrink-0"
-                style={{ background: 'rgb(14,200,220)', boxShadow: '0 0 6px rgba(14,200,220,0.8)' }}
-              />
-            )}
+
           </button>
         );
       })}
