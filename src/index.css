@@ -4,7 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── iOS Safe Area ────────────────────────────────────────── */
+/* ââ iOS Safe Area ââââââââââââââââââââââââââââââââââââââââââ */
 :root {
   --safe-area-top: env(safe-area-inset-top);
   --safe-area-bottom: env(safe-area-inset-bottom);
@@ -102,7 +102,7 @@ html, body {
 ::-webkit-scrollbar-thumb { background: rgba(14,200,220,0.12); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(14,200,220,0.25); }
 
-/* Glow effects — cyan/turquoise */
+/* Glow effects â cyan/turquoise */
 .glow-primary {
   box-shadow: 0 0 32px rgba(14,200,220,0.15), 0 0 80px rgba(14,200,220,0.05);
 }
@@ -136,7 +136,7 @@ html, body {
   box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.4);
 }
 
-/* Glass morphism — 3-layer depth system */
+/* Glass morphism â 3-layer depth system */
 
 /* Layer 2: Standard glass card */
 .glass {
@@ -168,7 +168,7 @@ html, body {
   border: 1px solid rgba(100, 220, 255, 0.18);
   box-shadow: 0 0 40px rgba(14,200,220,0.08), 0 0 0 1px rgba(100,220,255,0.06) inset, 0 12px 40px rgba(0,0,0,0.5);
 }
-/* App-wide background — premium deep navy with blue/cyan depth */
+/* App-wide background â premium deep navy with blue/cyan depth */
 .app-bg {
   background:
     radial-gradient(ellipse 120% 60% at 50% -5%, rgba(6, 30, 80, 0.55) 0%, transparent 65%),
@@ -318,15 +318,20 @@ html, body {
   transform: scale(0.96);
 }
 
-button, a, [role="button"] {
+button, a, [role="button"], nav, label, .tab-bar {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button, a, [role="button"] {
   min-height: 44px;
   min-width: 44px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Premium button styles — cyan theme */
+/* Premium button styles â cyan theme */
 .btn-primary {
   background: linear-gradient(135deg, rgba(14,200,220,0.9), rgba(8,160,185,0.9));
   box-shadow: 0 4px 20px rgba(14,200,220,0.25), 0 1px 0 rgba(255,255,255,0.08) inset;

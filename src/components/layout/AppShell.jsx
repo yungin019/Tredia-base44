@@ -75,11 +75,12 @@ export default function AppShell({ onLogout }) {
   return (
     <div className="min-h-screen bg-[#0A0A0F] flex flex-col grid-bg">
 
-      {/* ── Top Header ─────────────────────────────────────────────── */}
-      <header className="glass-dark border-b border-white/[0.06] px-4 lg:px-6 py-0 h-14 flex items-center justify-between sticky top-0 z-50">
+      {/* ââ Top Header âââââââââââââââââââââââââââââââââââââââââââââââ */}
+      <header className="glass-dark border-b border-white/[0.06] px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50"
+        style={{ paddingTop: 'env(safe-area-inset-top)', minHeight: 'calc(56px + env(safe-area-inset-top))' }}>
         <div className="flex items-center gap-3">
 
-          {/* Back button — visible when inside a sub-page */}
+          {/* Back button â visible when inside a sub-page */}
           {showBack ? (
             <button
               onClick={goBack}
@@ -94,7 +95,7 @@ export default function AppShell({ onLogout }) {
                 <img src="/logo-full.svg" alt="TREDIO" className="hidden sm:block" style={{ height: '22px' }} />
                 <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded tracking-wider"
                   style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(252,211,77,0.1))', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.35)', boxShadow: '0 0 12px rgba(245,158,11,0.1)' }}>
-                  ⚡ ELITE
+                  â¡ ELITE
                 </span>
               </div>
             </Link>
@@ -134,7 +135,7 @@ export default function AppShell({ onLogout }) {
             className="hidden sm:flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-muted-foreground cursor-pointer transition-colors tap-feedback min-h-[44px]">
             <Search className="h-3 w-3" />
             <span>{t('common.search')}...</span>
-            <kbd className="text-[9px] bg-white/[0.06] px-1.5 py-0.5 rounded font-mono ml-2">⌘K</kbd>
+            <kbd className="text-[9px] bg-white/[0.06] px-1.5 py-0.5 rounded font-mono ml-2">âK</kbd>
           </button>
           <button onClick={() => setSearchOpen(true)}
             className="sm:hidden flex items-center justify-center h-10 w-10 rounded-lg bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.06] transition-colors tap-feedback">
@@ -166,7 +167,7 @@ export default function AppShell({ onLogout }) {
         </div>
       </header>
 
-      {/* ── Main Content ───────────────────────────────────────────── */}
+      {/* ââ Main Content âââââââââââââââââââââââââââââââââââââââââââââ */}
       <main className="flex-1 overflow-y-auto pb-24 lg:pb-8 w-full">
         <AnimatePresence mode="wait" custom={slideDir}>
           <motion.div
@@ -184,11 +185,11 @@ export default function AppShell({ onLogout }) {
         </AnimatePresence>
       </main>
 
-      {/* ── Global AI Assistant (NON-INTRUSIVE) ──────────────────── */}
+      {/* ââ Global AI Assistant (NON-INTRUSIVE) ââââââââââââââââââââ */}
       {/* Positioned at bottom-right, no overlap with feed content */}
       <TredioAssistant />
 
-      {/* ── Bottom Tab Nav (Mobile) ──────────────────────────────── */}
+      {/* ââ Bottom Tab Nav (Mobile) ââââââââââââââââââââââââââââââââ */}
       <nav className="fixed bottom-0 left-0 right-0 glass-dark border-t border-white/[0.06] lg:hidden z-50"
         style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}>
         <div className="flex items-center justify-around py-1">
