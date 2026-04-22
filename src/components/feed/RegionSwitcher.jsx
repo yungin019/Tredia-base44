@@ -19,7 +19,7 @@ export const REGION_LABELS = {
 export default function RegionSwitcher({ activeRegion, onChange }) {
   return (
     <div
-      className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1 px-1"
+      className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-2 px-1"
       style={{
         background: 'rgba(6,14,32,0.6)',
         backdropFilter: 'blur(20px)',
@@ -35,7 +35,7 @@ export default function RegionSwitcher({ activeRegion, onChange }) {
           <button
             key={r.id}
             onClick={() => onChange(r.id)}
-            className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all min-h-0 min-w-0"
+            className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all min-h-0 min-w-0 overflow-visible"
             style={isActive ? {
               background: 'rgba(14,200,220,0.15)',
               border: '1px solid rgba(14,200,220,0.35)',
@@ -52,7 +52,7 @@ export default function RegionSwitcher({ activeRegion, onChange }) {
             {isActive && (
               <motion.span
                 layoutId="region-active-dot"
-                className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full"
+                className="h-1.5 w-1.5 rounded-full flex-shrink-0"
                 style={{ background: 'rgb(14,200,220)', boxShadow: '0 0 6px rgba(14,200,220,0.8)' }}
               />
             )}
