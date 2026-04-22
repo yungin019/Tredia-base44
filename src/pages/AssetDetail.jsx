@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, TrendingUp, TrendingDown, ShieldAlert, Target, Zap, CheckCircle2, X, Bell, BellRing, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, ShieldAlert, Target, CheckCircle2, X, Bell, BellRing, ChevronDown, ChevronUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { sendPushNotification } from '@/api/notifications';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import CandlestickChart from '@/components/markets/CandlestickChart';
 import TrekInstantRead from '@/components/trek/TrekInstantRead';
 import AssetNewsSection from '@/components/news/AssetNewsSection';
-import { SkeletonPrice, SkeletonSignal, LoadingMessage } from '@/components/ui/SkeletonLoader';
+import { SkeletonPrice } from '@/components/ui/SkeletonLoader';
 import { formatPrice, formatPercent, validatePrice, validatePercent, safeRender } from '@/lib/dataValidation';
 import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
 import { fetchSingleAsset } from '@/api/marketDataClient';
@@ -225,7 +225,6 @@ export default function AssetDetail() {
   const [trekAnalysis, setTrekAnalysis] = useState(null);
   const [trekLoading, setTrekLoading] = useState(false);
   const [timeframe, setTimeframe] = useState('1D');
-  const [showConfidenceBreakdown, setShowConfidenceBreakdown] = useState(false);
   const [aiConfidence, setAiConfidence] = useState(null);
   const prevPriceRef = useRef(null);
 
@@ -369,8 +368,15 @@ export default function AssetDetail() {
         </button>
       </div>
 
-      {/* TREK Instant Read */}
-      <TrekInstantRead symbol={symbol} signal={asset.signal} trekText={trekAnalysis} trekLoading={trekLoading} />
+      {/* TREK Instant Read — contains full analysis inline */}
+      <TrekInstantRead
+        symbol={symbol}
+        signal={asset.signal}
+        trekText={trekAnalysis}
+        trekLoading={trekLoading}
+        aiConfidence={aiConfidence}
+        conviction={asset.conviction}
+      />
 
       {/* Header - Premium Loading */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
@@ -441,127 +447,46 @@ export default function AssetDetail() {
         <CandlestickChart symbol={symbol} timeframe={timeframe} />
       </motion.div>
 
-      {/* TREK Signal */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="rounded-xl p-4 mb-4"
-        style={{ background: `${asset.color}08`, border: `1px solid ${asset.color}25`, borderLeft: `4px solid ${asset.color}` }}>
-        <div className="flex items-center gap-2 mb-2">
-          <Zap className="h-3.5 w-3.5 text-primary" />
-          <span className="text-[10px] font-black text-primary uppercase tracking-[0.12em]">{t('ai.analysis')}</span>
-          <span className="ml-auto text-[10px] font-black" style={{ color: cvColor }}>
-            {displayConfidence}% confidence · {asset.conviction}
-          </span>
-        </div>
-        <div className="text-[12px] text-white/70 leading-relaxed mb-3">
-          {trekLoading ? (
-            <LoadingMessage message="Fetching live TREK analysis…" />
-          ) : (
-            <p>{safeRender(trekAnalysis || asset.whyNow, 'No analysis available.')}</p>
-          )}
-        </div>
-
-        {/* Confidence Breakdown - Collapsible */}
-        <button
-          onClick={() => setShowConfidenceBreakdown(v => !v)}
-          className="text-[10px] font-bold flex items-center gap-1 transition-colors mb-2"
-          style={{ color: asset.color, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-          {showConfidenceBreakdown ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          Why {displayConfidence}%?
-        </button>
-
-        <AnimatePresence>
-          {showConfidenceBreakdown && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{ overflow: 'hidden' }}
-              className="mb-3">
-              <div className="space-y-2 pt-2 border-t border-white/[0.06]">
-                {/* FREE tier: show first 2 clearly, blur 3-5 */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-white/60">RSI Score</span>
-                  <span className="text-[10px] font-bold text-white/85">{safeRender('85/100', '—')}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-white/60">Volume</span>
-                  <span className="text-[10px] font-bold text-white/85">{safeRender('2.4× avg', '—')}</span>
-                </div>
-
-                {/* Blur factors 3-5 for FREE tier */}
-                <div className={tier === 'free' ? 'relative' : ''}>
-                  {tier === 'free' && (
-                    <div className="absolute inset-0 backdrop-blur-sm bg-black/20 rounded-lg flex items-center justify-center z-10">
-                      <div className="text-center">
-                        <Lock className="h-4 w-4 text-primary mx-auto mb-1" />
-                        <button
-                          onClick={(e) => { e.stopPropagation(); navigate('/Upgrade'); }}
-                          className="text-[9px] font-bold text-primary hover:text-primary/80 transition-colors">
-                          Unlock with PRO
-                        </button>
+      {/* Trade Plan — collapsible */}
+      {asset.entry && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="rounded-xl mb-4 overflow-hidden"
+          style={{ background: `${asset.color}08`, border: `1px solid ${asset.color}25` }}>
+          <button onClick={() => setShowPlan(v => !v)}
+            className="w-full flex items-center gap-2 px-4 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors"
+            style={{ color: asset.color }}>
+            <Target className="h-3.5 w-3.5" />
+            {t('asset.tradeplan')}
+            {showPlan ? <ChevronUp className="h-3.5 w-3.5 ml-auto" /> : <ChevronDown className="h-3.5 w-3.5 ml-auto" />}
+          </button>
+          <AnimatePresence>
+            {showPlan && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
+                <div className="px-4 pb-4">
+                  <div className="grid grid-cols-4 gap-3 mb-3">
+                    {[
+                      { label: t('asset.entry'), value: `$${asset.entry}`, color: 'rgba(255,255,255,0.8)' },
+                      { label: t('asset.target'), value: `$${asset.target}`, color: '#22c55e' },
+                      { label: t('asset.stop'), value: `$${asset.stop}`, color: '#ef4444' },
+                      { label: t('asset.riskReward'), value: asset.reward, color: asset.color },
+                    ].map(item => (
+                      <div key={item.label} className="text-center rounded-lg py-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                        <p className="text-[8px] text-white/25 uppercase tracking-wider mb-1">{item.label}</p>
+                        <p className="text-[13px] font-mono font-black" style={{ color: item.color }}>{item.value}</p>
                       </div>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-white/60">Trend</span>
-                      <span className="text-[10px] font-bold text-white/85">Above 50MA</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-white/60">Sentiment</span>
-                      <span className="text-[10px] font-bold text-white/85">Bullish</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-white/60">Institutional Flow</span>
-                      <span className="text-[10px] font-bold text-white/85">Accumulating</span>
-                    </div>
-                    {/* ELITE: show smart money row */}
-                    {tier === 'elite' && (
-                      <div className="flex items-center justify-between pt-2 border-t border-primary/20">
-                        <span className="text-[10px] text-primary font-bold">Smart Money</span>
-                        <span className="text-[10px] font-bold text-primary">Heavy Buy</span>
-                      </div>
-                    )}
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="h-3 w-3 text-destructive flex-shrink-0" />
+                    <span className="text-[10px] text-white/35">{t('asset.maxDownside')} <span className="text-destructive font-bold">{asset.risk}</span> {t('asset.ifStopHit')}</span>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <button onClick={() => setShowPlan(v => !v)}
-          className="text-[10px] font-bold flex items-center gap-1 transition-colors"
-          style={{ color: asset.color, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-          <Target className="h-3 w-3" />
-          {showPlan ? t('asset.tradeplan') : t('asset.tradeplan')}
-        </button>
-
-        <AnimatePresence>
-          {showPlan && asset.entry && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
-              <div className="grid grid-cols-4 gap-3 mt-3 pt-3 border-t border-white/[0.06]">
-                {[
-                  { label: t('asset.entry'), value: `$${asset.entry}`, color: 'rgba(255,255,255,0.8)' },
-                  { label: t('asset.target'), value: `$${asset.target}`, color: '#22c55e' },
-                  { label: t('asset.stop'), value: `$${asset.stop}`, color: '#ef4444' },
-                  { label: t('asset.riskReward'), value: asset.reward, color: asset.color },
-                ].map(item => (
-                  <div key={item.label} className="text-center rounded-lg py-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                    <p className="text-[8px] text-white/25 uppercase tracking-wider mb-1">{item.label}</p>
-                    <p className="text-[13px] font-mono font-black" style={{ color: item.color }}>{item.value}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-2 mt-3">
-                <ShieldAlert className="h-3 w-3 text-destructive flex-shrink-0" />
-                <span className="text-[10px] text-white/35">{t('asset.maxDownside')} <span className="text-destructive font-bold">{asset.risk}</span> {t('asset.ifStopHit')}</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
 
       {/* BUY / SELL buttons */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}

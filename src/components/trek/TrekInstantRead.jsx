@@ -1,19 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Zap, ArrowRight, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-
-
-// Extract the key TREK signal line from the full AI response
-function extractSummaryLine(text) {
-  if (!text) return null;
-  // Try to get the "TREK SAYS:" line first
-  const trekSays = text.match(/TREK SAYS[:\s]+(.+)/i);
-  if (trekSays) return trekSays[1].trim();
-  // Try to extract the first sentence of real content (skip header lines)
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('⚡') && !l.startsWith('━') && !l.startsWith('—'));
-  return lines[0] || text.slice(0, 120);
-}
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Zap, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Parse signal from AI text (BUY/SELL/HOLD/WATCH) to override static
 function parseSignalFromText(text) {
@@ -25,75 +12,108 @@ function parseSignalFromText(text) {
   return null;
 }
 
-export default function TrekInstantRead({ symbol, signal, trekText, trekLoading }) {
-  const navigate = useNavigate();
+// Extract just the first meaningful sentence for the header summary
+function extractSummaryLine(text) {
+  if (!text) return null;
+  const trekSays = text.match(/TREK SAYS[:\s]+(.+)/i);
+  if (trekSays) return trekSays[1].trim();
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('⚡') && !l.startsWith('━') && !l.startsWith('—'));
+  return lines[0] || text.slice(0, 120);
+}
 
-  // Use AI-parsed signal if available, otherwise fall back to static
+export default function TrekInstantRead({ symbol, signal, trekText, trekLoading, aiConfidence, conviction }) {
+  const [expanded, setExpanded] = useState(false);
+
   const aiSignal = parseSignalFromText(trekText);
   const activeSignal = aiSignal || signal;
 
-  // Derive sentiment from the active signal (consistent with main analysis)
   const sentiment = (activeSignal === 'BUY' || activeSignal === 'STRONG BUY') ? 'BULLISH'
     : (activeSignal === 'SELL' || activeSignal === 'STRONG SELL' || activeSignal === 'AVOID') ? 'BEARISH'
     : 'NEUTRAL';
 
   const summaryLine = extractSummaryLine(trekText);
-  const analysis = summaryLine ? { text: summaryLine, sentiment } : null;
   const loading = trekLoading ?? false;
 
   const getColors = () => {
-    if (analysis?.sentiment === 'BULLISH') return { bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)', text: '#22c55e' };
-    if (analysis?.sentiment === 'BEARISH') return { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', text: '#ef4444' };
-    return { bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)', text: '#F59E0B' };
+    if (sentiment === 'BULLISH') return { bg: 'rgba(34,197,94,0.08)', border: 'rgba(34,197,94,0.25)', text: '#22c55e', left: '#22c55e' };
+    if (sentiment === 'BEARISH') return { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.25)', text: '#ef4444', left: '#ef4444' };
+    return { bg: 'rgba(251,191,36,0.07)', border: 'rgba(251,191,36,0.2)', text: '#F59E0B', left: '#F59E0B' };
   };
-
   const colors = getColors();
-  const icon = analysis?.sentiment === 'BULLISH' ? '🟢' : analysis?.sentiment === 'BEARISH' ? '🔴' : '🟡';
+  const icon = sentiment === 'BULLISH' ? '🟢' : sentiment === 'BEARISH' ? '🔴' : '🟡';
+  const cvColor = conviction === 'HIGH' ? '#22c55e' : conviction === 'MEDIUM' ? '#F59E0B' : '#6b7280';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl p-5 mb-4"
-      style={{
-        background: colors.bg,
-        border: `1px solid ${colors.border}`,
-        borderLeft: `4px solid ${colors.text}`
-      }}
+      className="rounded-2xl mb-4 overflow-hidden"
+      style={{ background: colors.bg, border: `1px solid ${colors.border}`, borderLeft: `4px solid ${colors.left}` }}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <Zap className="h-4 w-4" style={{ color: colors.text }} />
-        <span className="text-xs font-black uppercase tracking-wider" style={{ color: colors.text }}>
-          ⚡ TREK INSTANT READ
+      {/* Header row */}
+      <div className="flex items-center gap-2 px-4 pt-4 pb-3">
+        <Zap className="h-3.5 w-3.5 flex-shrink-0" style={{ color: colors.text }} />
+        <span className="text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: colors.text }}>
+          ⚡ Trek Analysis
         </span>
+        {(aiConfidence || conviction) && !loading && (
+          <span className="ml-auto text-[10px] font-black" style={{ color: cvColor }}>
+            {aiConfidence ? `${aiConfidence}% confidence` : ''}{conviction ? ` · ${conviction}` : ''}
+          </span>
+        )}
         {loading && <Loader2 className="h-3 w-3 animate-spin ml-auto" style={{ color: colors.text }} />}
       </div>
 
-      {loading ? (
-        <div className="flex items-center gap-2 text-sm text-white/40">
-          <div className="flex gap-1">
-            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity }}>●</motion.span>
-            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}>●</motion.span>
-            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}>●</motion.span>
+      {/* Summary line — always visible */}
+      <div className="px-4 pb-3">
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-white/40">
+            <div className="flex gap-1">
+              {[0, 0.2, 0.4].map((delay, i) => (
+                <motion.span key={i} animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay }}>●</motion.span>
+              ))}
+            </div>
+            <span className="text-[12px]">Analyzing {symbol}…</span>
           </div>
-          <span>Analyzing {symbol}...</span>
-        </div>
-      ) : (
-        <>
-          <div className="flex items-start gap-2 mb-4">
-            <span className="text-lg flex-shrink-0">{icon}</span>
-            <p className="text-sm text-white/85 leading-relaxed flex-1">
-              <span className="font-bold" style={{ color: colors.text }}>{analysis?.sentiment}</span> — {analysis?.text}
+        ) : (
+          <div className="flex items-start gap-2">
+            <span className="text-base flex-shrink-0">{icon}</span>
+            <p className="text-[12px] text-white/85 leading-relaxed flex-1">
+              <span className="font-bold" style={{ color: colors.text }}>{sentiment}</span>
+              {summaryLine ? ` — ${summaryLine}` : ''}
             </p>
           </div>
+        )}
+      </div>
 
+      {/* Expand toggle — only when full text is available */}
+      {trekText && !loading && (
+        <>
           <button
-            onClick={() => navigate('/AIInsights')}
-            className="flex items-center gap-2 text-xs font-bold transition-colors hover:opacity-80"
-            style={{ color: colors.text }}
+            onClick={() => setExpanded(v => !v)}
+            className="w-full flex items-center gap-1.5 px-4 py-2 text-[10px] font-bold border-t transition-colors"
+            style={{ color: colors.text, borderColor: `${colors.border}`, background: 'rgba(0,0,0,0.15)' }}
           >
-            Full Analysis <ArrowRight className="h-3 w-3" />
+            {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            {expanded ? 'Show less' : 'See full analysis'}
           </button>
+
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22 }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div className="px-4 py-3 text-[12px] text-white/70 leading-relaxed whitespace-pre-line border-t"
+                  style={{ borderColor: colors.border }}>
+                  {trekText}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
     </motion.div>
