@@ -226,17 +226,27 @@ export default function AssetDetail() {
   const [trekLoading, setTrekLoading] = useState(false);
   const [timeframe, setTimeframe] = useState('1D');
   const [showConfidenceBreakdown, setShowConfidenceBreakdown] = useState(false);
+  const [aiConfidence, setAiConfidence] = useState(null);
   const prevPriceRef = useRef(null);
 
-  // Auto-trigger TREK analysis on mount
+  // Auto-trigger TREK analysis on mount — uses multi-model synthesis via trekChat
   useEffect(() => {
     setTrekLoading(true);
+    const currentPrice = livePrice || staticAsset.price;
     base44.functions.invoke('trekChat', {
-      message: `Give me a concise TREK analysis for ${symbol}. Include signal (BUY/SELL/HOLD), confidence %, key driver, and a brief trade plan.`,
-      symbol,
+      messages: [{
+        role: 'user',
+        content: `Analyze ${symbol} (${staticAsset.name}). Current price: $${currentPrice}. Sector: ${staticAsset.sector}. Give me a full TREK verdict: signal (BUY/SELL/HOLD/WATCH), confidence %, entry zone, target, stop loss, and the key reason. Be specific with price levels.`,
+      }],
+      marketContext: null,
     }).then(res => {
-      const text = res?.data?.reply || res?.data?.message || res?.data?.response || null;
-      if (text) setTrekAnalysis(text);
+      const text = res?.data?.reply || null;
+      if (text) {
+        setTrekAnalysis(text);
+        // Parse confidence % from AI response e.g. "TREK confidence: 82%"
+        const confMatch = text.match(/confidence[:\s]+(\d{1,3})%/i);
+        if (confMatch) setAiConfidence(parseInt(confMatch[1], 10));
+      }
     }).catch(() => {}).finally(() => setTrekLoading(false));
   }, [symbol]);
 
@@ -311,6 +321,8 @@ export default function AssetDetail() {
   };
   const isUp = asset.change >= 0;
   const cvColor = asset.conviction === 'HIGH' ? '#22c55e' : asset.conviction === 'MEDIUM' ? '#F59E0B' : '#6b7280';
+  // Use AI-parsed confidence if available, otherwise fall back to static
+  const displayConfidence = aiConfidence ?? asset.confidence;
 
   const handleAddToWatchlist = async () => {
     if (watchlistEntry) return;
@@ -437,7 +449,7 @@ export default function AssetDetail() {
           <Zap className="h-3.5 w-3.5 text-primary" />
           <span className="text-[10px] font-black text-primary uppercase tracking-[0.12em]">{t('ai.analysis')}</span>
           <span className="ml-auto text-[10px] font-black" style={{ color: cvColor }}>
-            {asset.confidence}% confidence · {asset.conviction}
+            {displayConfidence}% confidence · {asset.conviction}
           </span>
         </div>
         <div className="text-[12px] text-white/70 leading-relaxed mb-3">
@@ -454,7 +466,7 @@ export default function AssetDetail() {
           className="text-[10px] font-bold flex items-center gap-1 transition-colors mb-2"
           style={{ color: asset.color, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           {showConfidenceBreakdown ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          Why {asset.confidence}%?
+          Why {displayConfidence}%?
         </button>
 
         <AnimatePresence>
@@ -573,7 +585,7 @@ export default function AssetDetail() {
         className="grid grid-cols-3 gap-3 mb-4">
         {[
           { label: t('trek.signal'), value: asset.signal, color: asset.color },
-          { label: t('trek.confidence'), value: `${asset.confidence}%`, color: 'rgba(255,255,255,0.7)' },
+          { label: t('trek.confidence'), value: `${displayConfidence}%`, color: 'rgba(255,255,255,0.7)' },
           { label: t('trek.conviction'), value: asset.conviction, color: cvColor },
         ].map((s, i) => (
           <div key={i} className="rounded-xl p-3 text-center" style={{ background: 'rgba(8,16,36,0.55)', border: '1px solid rgba(100,220,255,0.09)' }}>

@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const CLAUDE_TECHNICAL_PROMPT = `You are the technical analysis engine of TREK. Analyze the asset using: price action, moving averages (20, 50, 200 MA), RSI, MACD, volume, support/resistance levels, chart patterns. Give a clear BULLISH/BEARISH/NEUTRAL verdict with specific price levels. Be concise — max 100 words. End with: Verdict: BULLISH or BEARISH or NEUTRAL`;
 
@@ -70,15 +70,36 @@ function extractVerdict(text) {
   return match ? match[1].toUpperCase() : 'NEUTRAL';
 }
 
-function buildMasterVerdict(verdicts) {
+function buildMasterVerdict(verdicts, rawTexts) {
   const bullish = verdicts.filter(v => v === 'BULLISH').length;
   const bearish = verdicts.filter(v => v === 'BEARISH').length;
 
-  if (bullish === 3) return { action: 'STRONG BUY', confidence: 95, consensus: '3/3 models bullish' };
-  if (bullish === 2) return { action: 'BUY', confidence: 75, consensus: '2/3 models bullish' };
-  if (bearish === 3) return { action: 'STRONG SELL', confidence: 95, consensus: '3/3 models bearish' };
-  if (bearish === 2) return { action: 'SELL', confidence: 75, consensus: '2/3 models bearish' };
-  return { action: 'HOLD', confidence: 50, consensus: '1/3 split — mixed signals' };
+  // Parse any explicit confidence % from model outputs to calibrate master confidence
+  let totalParsed = 0, parsedCount = 0;
+  rawTexts.forEach(t => {
+    const m = t.match(/confidence[:\s]+(\d{1,3})%/i);
+    if (m) { totalParsed += parseInt(m[1], 10); parsedCount++; }
+  });
+  const avgParsed = parsedCount > 0 ? Math.round(totalParsed / parsedCount) : null;
+
+  if (bullish === 3) {
+    const conf = avgParsed ? Math.min(97, Math.max(85, avgParsed)) : 92;
+    return { action: 'STRONG BUY', confidence: conf, consensus: '3/3 models bullish — full consensus' };
+  }
+  if (bullish === 2) {
+    const conf = avgParsed ? Math.min(82, Math.max(62, avgParsed)) : 72;
+    return { action: 'BUY', confidence: conf, consensus: '2/3 models bullish — majority consensus' };
+  }
+  if (bearish === 3) {
+    const conf = avgParsed ? Math.min(97, Math.max(85, avgParsed)) : 91;
+    return { action: 'STRONG SELL', confidence: conf, consensus: '3/3 models bearish — full consensus' };
+  }
+  if (bearish === 2) {
+    const conf = avgParsed ? Math.min(82, Math.max(62, avgParsed)) : 70;
+    return { action: 'SELL', confidence: conf, consensus: '2/3 models bearish — majority consensus' };
+  }
+  const conf = avgParsed ? Math.min(60, Math.max(40, avgParsed)) : 48;
+  return { action: 'HOLD', confidence: conf, consensus: '1/3 split — models diverge, wait for clarity' };
 }
 
 Deno.serve(async (req) => {
@@ -86,6 +107,13 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Tier gate: Super AI requires pro or elite
+    const allowedTiers = ['pro', 'elite', 'yearly', 'lifetime'];
+    const userTier = user.subscription_tier || 'free';
+    if (!allowedTiers.includes(userTier)) {
+      return Response.json({ error: 'Super AI requires a Pro or Elite subscription.', upgrade: true }, { status: 403 });
+    }
 
     const { question, marketContext } = await req.json();
     if (!question) return Response.json({ error: 'question is required' }, { status: 400 });
@@ -101,7 +129,7 @@ Deno.serve(async (req) => {
     const gptVerdict = extractVerdict(gptRaw);
     const geminiVerdict = extractVerdict(geminiRaw);
 
-    const master = buildMasterVerdict([claudeVerdict, gptVerdict, geminiVerdict]);
+    const master = buildMasterVerdict([claudeVerdict, gptVerdict, geminiVerdict], [claudeRaw, gptRaw, geminiRaw]);
 
     return Response.json({
       claude: { analysis: claudeRaw, verdict: claudeVerdict },

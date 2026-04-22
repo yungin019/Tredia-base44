@@ -1,19 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Zap, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 
+// Extract the key TREK signal line from the full AI response
+function extractSummaryLine(text) {
+  if (!text) return null;
+  // Try to get the "TREK SAYS:" line first
+  const trekSays = text.match(/TREK SAYS[:\s]+(.+)/i);
+  if (trekSays) return trekSays[1].trim();
+  // Try to extract the first sentence of real content (skip header lines)
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('⚡') && !l.startsWith('━') && !l.startsWith('—'));
+  return lines[0] || text.slice(0, 120);
+}
+
+// Parse signal from AI text (BUY/SELL/HOLD/WATCH) to override static
+function parseSignalFromText(text) {
+  if (!text) return null;
+  const m = text.match(/TREK SAYS:\s*(BUY|SELL|HOLD|WATCH|STRONG BUY|STRONG SELL)/i);
+  if (m) return m[1].toUpperCase();
+  const verdict = text.match(/VERDICT[:\s]+(STRONG BUY|STRONG SELL|BUY|SELL|HOLD|WATCH)/i);
+  if (verdict) return verdict[1].toUpperCase();
+  return null;
+}
+
 export default function TrekInstantRead({ symbol, signal, trekText, trekLoading }) {
   const navigate = useNavigate();
 
-  // Derive sentiment from the signal passed in (consistent with main analysis)
-  const sentiment = signal === 'BUY' ? 'BULLISH'
-    : signal === 'SELL' ? 'BEARISH'
-    : signal === 'AVOID' ? 'BEARISH'
+  // Use AI-parsed signal if available, otherwise fall back to static
+  const aiSignal = parseSignalFromText(trekText);
+  const activeSignal = aiSignal || signal;
+
+  // Derive sentiment from the active signal (consistent with main analysis)
+  const sentiment = (activeSignal === 'BUY' || activeSignal === 'STRONG BUY') ? 'BULLISH'
+    : (activeSignal === 'SELL' || activeSignal === 'STRONG SELL' || activeSignal === 'AVOID') ? 'BEARISH'
     : 'NEUTRAL';
 
-  const analysis = trekText ? { text: trekText, sentiment } : null;
+  const summaryLine = extractSummaryLine(trekText);
+  const analysis = summaryLine ? { text: summaryLine, sentiment } : null;
   const loading = trekLoading ?? false;
 
   const getColors = () => {

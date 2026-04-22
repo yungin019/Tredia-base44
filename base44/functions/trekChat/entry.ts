@@ -1,4 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+// Multi-model synthesis: Claude + OpenAI run in parallel as independent analysts,
+// then Claude synthesizes the best combined verdict with calibrated confidence %.
 
 const TREK_SYSTEM_PROMPT = `You are TREK — the most advanced AI trading intelligence ever built for regular people. You have the analytical depth of a senior Goldman Sachs portfolio manager, the pattern recognition of a quant trader with 20 years experience, and the ability to explain complex market dynamics so clearly that a complete beginner understands instantly.
 

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Share2, X } from 'lucide-react';
+import { Zap, Share2, X, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { buildMarketContext } from '@/api/marketContext';
+import { useNavigate } from 'react-router-dom';
 
 const VERDICT_COLORS = {
   'STRONG BUY': '#22c55e',
@@ -48,6 +49,7 @@ function ModelCard({ emoji, name, role, analysis, verdict, delay }) {
 }
 
 export default function SuperAIPanel({ question, onClose, isElite }) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [result, setResult] = useState(null);
@@ -70,6 +72,10 @@ export default function SuperAIPanel({ question, onClose, isElite }) {
     try {
       const marketContext = await buildMarketContext().catch(() => null);
       const res = await base44.functions.invoke('superAI', { question, marketContext });
+      if (res.data?.upgrade) {
+        setError('upgrade_required');
+        return;
+      }
       if (res.data?.error) throw new Error(res.data.error);
       setResult(res.data);
     } catch (e) {
@@ -192,7 +198,22 @@ export default function SuperAIPanel({ question, onClose, isElite }) {
           </div>
         )}
 
-        {error && (
+        {error && error === 'upgrade_required' && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl p-5 text-center"
+            style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.25)' }}>
+            <Lock className="h-8 w-8 text-primary mx-auto mb-3" />
+            <p className="text-[13px] font-black text-white/90 mb-1">Super AI is Pro/Elite only</p>
+            <p className="text-[11px] text-white/45 mb-4 leading-relaxed">3-model parallel analysis requires a Pro or Elite subscription.</p>
+            <button
+              onClick={() => navigate('/Upgrade')}
+              className="w-full py-3 rounded-xl font-black text-sm"
+              style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
+              Upgrade to Pro →
+            </button>
+          </motion.div>
+        )}
+        {error && error !== 'upgrade_required' && (
           <div className="text-[11px] text-red-400/70 text-center py-3">{error}</div>
         )}
       </div>
