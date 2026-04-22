@@ -96,7 +96,8 @@ export default function AppShell({ onLogout }) {
     <div className="min-h-screen bg-[#0A0A0F] flex flex-col grid-bg">
 
       {/* ── Top Header ─────────────────────────────────────────────── */}
-      <header className="glass-dark border-b border-white/[0.06] px-4 lg:px-6 py-0 h-14 flex items-center justify-between sticky top-0 z-50">
+      <header className="glass-dark border-b border-white/[0.06] px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50"
+        style={{ paddingTop: 'env(safe-area-inset-top)', minHeight: 'calc(56px + env(safe-area-inset-top))' }}>
         <div className="flex items-center gap-3">
 
           {/* Back button — visible when inside a sub-page */}
