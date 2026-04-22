@@ -2,53 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { askTrek } from '@/api/trek';
-import { buildMarketContext } from '@/api/marketContext';
-import { base44 } from '@/api/base44Client';
-import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 
-export default function TrekInstantRead({ symbol }) {
+
+export default function TrekInstantRead({ symbol, signal, trekText, trekLoading }) {
   const navigate = useNavigate();
-  const { tier } = useSubscriptionStatus();
-  const [loading, setLoading] = useState(true);
-  const [analysis, setAnalysis] = useState(null);
 
-  useEffect(() => {
-    async function fetchInstantRead() {
-      setLoading(true);
-      try {
-        const [marketContext, user] = await Promise.all([
-          buildMarketContext(),
-          base44.auth.me(),
-        ]);
+  // Derive sentiment from the signal passed in (consistent with main analysis)
+  const sentiment = signal === 'BUY' ? 'BULLISH'
+    : signal === 'SELL' ? 'BEARISH'
+    : signal === 'AVOID' ? 'BEARISH'
+    : 'NEUTRAL';
 
-        const prompt = tier === 'free'
-          ? `Give me a one-sentence general market direction for ${symbol}. No specific prices.`
-          : `Give me a one-sentence TREK instant read for ${symbol} with exact price level.`;
-
-        const messages = [{ role: 'user', content: prompt }];
-        const reply = await askTrek(messages, marketContext, user, tier);
-
-        const sentiment = reply.toLowerCase().includes('buy') || reply.toLowerCase().includes('bullish')
-          ? 'BULLISH'
-          : reply.toLowerCase().includes('sell') || reply.toLowerCase().includes('bearish')
-          ? 'BEARISH'
-          : 'NEUTRAL';
-
-        setAnalysis({ text: reply, sentiment });
-      } catch (e) {
-        console.error('TrekInstantRead error:', e);
-        setAnalysis({
-          text: `${symbol} analysis unavailable. Check AIInsights for full details.`,
-          sentiment: 'NEUTRAL'
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchInstantRead();
-  }, [symbol, tier]);
+  const analysis = trekText ? { text: trekText, sentiment } : null;
+  const loading = trekLoading ?? false;
 
   const getColors = () => {
     if (analysis?.sentiment === 'BULLISH') return { bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)', text: '#22c55e' };

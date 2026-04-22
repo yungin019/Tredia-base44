@@ -358,7 +358,7 @@ export default function AssetDetail() {
       </div>
 
       {/* TREK Instant Read */}
-      <TrekInstantRead symbol={symbol} />
+      <TrekInstantRead symbol={symbol} signal={asset.signal} trekText={trekAnalysis} trekLoading={trekLoading} />
 
       {/* Header - Premium Loading */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
