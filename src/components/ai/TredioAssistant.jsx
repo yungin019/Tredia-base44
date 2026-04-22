@@ -306,10 +306,11 @@ Always end with a suggested next action or follow-up question.`;
               zIndex: 50,
               display: 'flex',
               flexDirection: 'column',
-              overflow: 'hidden',
               background: '#0f0f1a',
               border: '1px solid rgba(245,158,11,0.2)',
               boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
+              height: '100%',
+              maxHeight: '100dvh',
             }}
           >
             {/* Header */}
@@ -331,7 +332,7 @@ Always end with a suggested next action or follow-up question.`;
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ minHeight: 0 }}>
               {messages.map((msg, i) => <Message key={i} msg={msg} />)}
               {loading && (
                 <div className="flex gap-2 justify-start">
@@ -348,7 +349,7 @@ Always end with a suggested next action or follow-up question.`;
 
             {/* Quick suggestions */}
             {messages.length <= 1 && (
-              <div className="px-4 pb-2 flex flex-wrap gap-1.5">
+              <div className="px-4 pb-2 flex flex-wrap gap-1.5 flex-shrink-0">
                 {ctx.suggestions.map((s, i) => (
                   <button
                     key={i}
@@ -367,7 +368,7 @@ Always end with a suggested next action or follow-up question.`;
             )}
 
             {/* Input */}
-            <div className="px-3 py-3 border-t border-white/[0.06] flex gap-2">
+            <div className="px-3 py-3 border-t border-white/[0.06] flex gap-2 flex-shrink-0" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
               <input
                 ref={inputRef}
                 value={input}
