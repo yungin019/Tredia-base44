@@ -10,7 +10,6 @@ import PullToRefresh from '@/components/ui/PullToRefresh';
 import { NextJumpDetector } from '@/components/ai/NextJumpDetector';
 import { IntelligenceTicker } from '@/components/ai/IntelligenceTicker';
 import { OG100Card } from '@/components/ai/OG100Card';
-import { LogTradeButton } from '@/components/ai/LogTradeButton';
 import DailyBrief from '@/components/ai/DailyBrief';
 import YourMovesToday from '@/components/feed/YourMovesToday';
 import WatchOut from '@/components/feed/WatchOut';
@@ -172,7 +171,6 @@ export default function Home() {
           </div>
         </div>
 
-        <LogTradeButton />
       </div>
     </PullToRefresh>
   );

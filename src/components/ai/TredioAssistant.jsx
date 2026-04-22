@@ -272,41 +272,29 @@ Always end with a suggested next action or follow-up question.`;
         )}
       </AnimatePresence>
 
-      {/* Floating button */}
-      <AnimatePresence>
-        {!open && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            onClick={openWithGreeting}
-            className="fixed bottom-20 right-4 z-40 rounded-full flex items-center justify-center shadow-2xl"
-            style={{
-              width: 52, height: 52,
-              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-              boxShadow: '0 4px 24px rgba(245,158,11,0.4), 0 0 40px rgba(245,158,11,0.15)',
-            }}
-          >
-            <Sparkles className="h-5 w-5 text-black" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* Floating button — hidden, chat triggered from nav */}
 
-      {/* Chat Panel - opens when FAB tapped */}
+      {/* Chat Panel */}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.95 }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
             transition={{ type: 'spring', bounce: 0.18, duration: 0.4 }}
-            className="fixed bottom-4 right-4 z-50 flex flex-col rounded-2xl overflow-hidden shadow-2xl"
             style={{
-              width: 'min(380px, calc(100vw - 32px))',
-              height: 'min(560px, calc(100vh - 96px))',
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 50,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
               background: '#0f0f1a',
               border: '1px solid rgba(245,158,11,0.2)',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(245,158,11,0.06)',
+              boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
             }}
           >
             {/* Header */}
@@ -371,6 +359,9 @@ Always end with a suggested next action or follow-up question.`;
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                 placeholder={t('ai.askPlaceholder')}
+                inputMode="text"
+                enterKeyHint="send"
+                autoComplete="off"
                 className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-[12px] text-white/80 placeholder:text-white/25 outline-none focus:border-primary/40 transition-colors"
               />
               <button
