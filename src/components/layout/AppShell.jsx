@@ -22,7 +22,7 @@ const TAB_ROOTS = NAV_CONFIG.map(n => n.path);
 export default function AppShell({ onLogout }) {
   const location = useLocation();
   const { t } = useTranslation();
-  const { switchTab, goBack, canGoBack, getTabForPath, syncExternalNavigation, openAIChat } = useNavigation();
+  const { switchTab, goBack, canGoBack, getTabForPath, syncExternalNavigation } = useNavigation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -197,7 +197,7 @@ export default function AppShell({ onLogout }) {
             const activeColor = item.isTrek ? '#F59E0B' : 'hsl(var(--primary))';
             return (
               <button key={item.path}
-                onClick={() => item.isTrek ? openAIChat() : switchTab(item.path)}
+                onClick={() => switchTab(item.path)}
                 className="flex flex-col items-center py-2 px-3 relative tap-feedback"
                 style={{ userSelect: 'none', WebkitUserSelect: 'none', touchAction: 'manipulation', background: 'none', border: 'none', cursor: 'pointer' }}>
                 {isActive && (

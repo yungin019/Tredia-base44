@@ -144,13 +144,6 @@ export default function TredioAssistant() {
 
   const ctx = getContext();
 
-  // Listen for global open event (triggered by TREK nav button)
-  useEffect(() => {
-    const handler = () => openWithGreeting();
-    window.addEventListener('tredio:open-ai-chat', handler);
-    return () => window.removeEventListener('tredio:open-ai-chat', handler);
-  }, []);
-
   // Show proactive bubble after 3 seconds on key pages
   useEffect(() => {
     const keyPages = ['/PaperTrading', '/Portfolio', '/AIInsights', '/Markets', '/Home'];
@@ -279,7 +272,22 @@ Always end with a suggested next action or follow-up question.`;
         )}
       </AnimatePresence>
 
-      {/* Floating button — hidden, chat triggered from nav */}
+      {/* Floating button — only shown on AIInsights page */}
+      {location.pathname === '/AIInsights' && !open && (
+        <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          whileTap={{ scale: 0.92 }}
+          onClick={openWithGreeting}
+          className="fixed bottom-28 right-4 z-40 h-14 w-14 rounded-2xl flex items-center justify-center shadow-2xl"
+          style={{
+            background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+            boxShadow: '0 8px 32px rgba(245,158,11,0.35)',
+          }}
+        >
+          <Sparkles className="h-6 w-6 text-black" />
+        </motion.button>
+      )}
 
       {/* Chat Panel */}
       <AnimatePresence>
