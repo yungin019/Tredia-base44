@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Globe } from 'lucide-react';
 
 const REGIONS = [
@@ -18,12 +19,8 @@ export const REGION_LABELS = {
 export default function RegionSwitcher({ activeRegion, onChange }) {
   return (
     <div
-      className="scrollbar-hide"
+      className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1 px-1"
       style={{
-        overflowX: 'auto',
-        overflowY: 'visible',
-        paddingTop: '6px',
-        paddingBottom: '6px',
         background: 'rgba(6,14,32,0.6)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
@@ -32,7 +29,6 @@ export default function RegionSwitcher({ activeRegion, onChange }) {
         boxShadow: 'inset 0 1px 0 rgba(100,220,255,0.05), 0 4px 16px rgba(0,0,0,0.3)',
       }}
     >
-    <div className="flex items-center gap-1.5 px-1" style={{ minWidth: 'max-content' }}>
       {REGIONS.map((r) => {
         const isActive = activeRegion === r.id;
         return (
@@ -53,11 +49,16 @@ export default function RegionSwitcher({ activeRegion, onChange }) {
           >
             <span className="text-sm leading-none">{r.flag}</span>
             <span>{r.label}</span>
-
+            {isActive && (
+              <motion.span
+                layoutId="region-active-dot"
+                className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full"
+                style={{ background: 'rgb(14,200,220)', boxShadow: '0 0 6px rgba(14,200,220,0.8)' }}
+              />
+            )}
           </button>
         );
       })}
-    </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, AlertCircle, CheckCircle2, Clock, Copy, Share2, Link } from 'lucide-react';
+import { User, AlertCircle, CheckCircle2, Clock, Copy, Share2 } from 'lucide-react';
 import DeleteAccountModal from '@/components/settings/DeleteAccountModal';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +10,6 @@ import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import LegalLinksSection from '@/components/settings/LegalLinksSection';
-import DiscordConnectSection from '@/components/settings/DiscordConnectSection';
 
 function SectionHeader({ title }) {
   return (
@@ -329,25 +328,37 @@ export default function Settings({ onLogout }) {
         )}
       </motion.div>
 
-      {/* CONNECTED ACCOUNTS — Discord */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
-        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
-        <SectionHeader title="CONNECTED ACCOUNTS" />
-        <DiscordConnectSection user={user} />
-      </motion.div>
-
-      {/* PRACTICE TRADING STATUS */}
+      {/* CONNECTED BROKERS */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5">
-        <SectionHeader title="PRACTICE TRADING" />
-        <div className="flex items-center gap-2 p-3 rounded-xl mb-3" style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.18)' }}>
+        <SectionHeader title={t('settings.brokers')} />
+        <p className="text-[11px] text-white/30 mb-4">Connect your broker to track real positions. Coming soon.</p>
+        <div className="space-y-2 mb-4">
+          {[
+            { name: 'eToro', desc: 'Social trading & investing', logo: '🟢', status: 'coming_soon' },
+            { name: 'Binance', desc: 'Crypto & spot trading', logo: '🟡', status: 'coming_soon' },
+            { name: 'Interactive Brokers', desc: 'Professional trading platform', logo: '🔵', status: 'coming_soon' },
+          ].map(broker => (
+            <div key={broker.name} className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+              <span className="text-xl flex-shrink-0">{broker.logo}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-bold text-white/80">{broker.name}</p>
+                <p className="text-[10px] text-white/30">{broker.desc}</p>
+              </div>
+              <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-1 rounded-full flex-shrink-0"
+                style={{ color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                <Clock className="h-2.5 w-2.5" /> {t('common.new')}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 p-3 rounded-xl" style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.18)' }}>
           <CheckCircle2 className="h-4 w-4 text-chart-3 flex-shrink-0" />
           <div>
             <p className="text-[11px] font-bold text-chart-3">{t('settings.paperTradingActive')}</p>
             <p className="text-[10px] text-white/40">{t('settings.virtualBalance')}</p>
           </div>
         </div>
-        <p className="text-[10px] text-white/30">More broker integrations coming soon — eToro, Binance, Interactive Brokers.</p>
       </motion.div>
 
       {/* NOTIFICATIONS */}
@@ -488,32 +499,6 @@ export default function Settings({ onLogout }) {
            {t('settings.languageNote')}
          </p>
        </div>
-      </motion.div>
-
-      {/* SUPPORT */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }}
-        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
-        <SectionHeader title="SUPPORT" />
-        <a href="mailto:trediosupport@gmail.com"
-          className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-colors group">
-          <div className="flex items-center gap-3">
-            <span className="text-lg">📧</span>
-            <div>
-              <p className="text-sm text-white/65 group-hover:text-white/85 transition-colors">Email Support</p>
-              <p className="text-[11px] text-white/30">trediosupport@gmail.com</p>
-            </div>
-          </div>
-        </a>
-        <a href="https://discord.gg/tredio" target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-colors group">
-          <div className="flex items-center gap-3">
-            <span className="text-lg">💬</span>
-            <div>
-              <p className="text-sm text-white/65 group-hover:text-white/85 transition-colors">Discord Community</p>
-              <p className="text-[11px] text-white/30">Chat with the team &amp; other traders</p>
-            </div>
-          </div>
-        </a>
       </motion.div>
 
       {/* LEGAL */}

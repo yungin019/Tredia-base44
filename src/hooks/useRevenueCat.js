@@ -92,17 +92,13 @@ export function useRevenueCat() {
       // updateFromCustomerInfo(result.customerInfo);
       // return true;
 
-      // RevenueCat native SDK only available inside the iOS/Android app.
-      // On web/preview, surface a clear message instead of a raw error.
-      if (typeof window !== 'undefined' && !window.Capacitor) {
-        setPurchaseError('Purchases are available in the iOS app. Download TREDIO from the App Store to subscribe.');
-      } else {
-        setPurchaseError('Purchase unavailable. Please try again or contact support.');
-      }
+      // For now, SDK not available
+      setPurchaseError('RevenueCat SDK not configured. Please check your API key.');
       return false;
     } catch (error) {
       const msg = error?.message || 'Purchase failed. Please try again.';
       setPurchaseError(msg);
+      console.error('Purchase error:', error);
       return false;
     } finally {
       setPurchaseInProgress(false);
@@ -127,16 +123,13 @@ export function useRevenueCat() {
       // updateFromCustomerInfo(result);
       // return true;
 
-      // RevenueCat native SDK only available inside the iOS/Android app.
-      if (typeof window !== 'undefined' && !window.Capacitor) {
-        setPurchaseError('Restore is available in the iOS app. Download TREDIO from the App Store.');
-      } else {
-        setPurchaseError('Restore failed. Please try again or contact support.');
-      }
+      // For now, SDK not available
+      setPurchaseError('RevenueCat SDK not configured. Please check your API key.');
       return false;
     } catch (error) {
       const msg = error?.message || 'Restore failed. Please try again.';
       setPurchaseError(msg);
+      console.error('Restore error:', error);
       return false;
     } finally {
       setPurchaseInProgress(false);

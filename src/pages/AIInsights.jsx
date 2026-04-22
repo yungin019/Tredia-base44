@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Brain, TrendingUp, Shield, AlertTriangle, BarChart3, Zap, RefreshCw } from 'lucide-react';
 import { runTREKEngine } from '@/api/trekEngine';
@@ -84,7 +83,6 @@ function toEngineSignalCardProps(s) {
 export default function AIInsights() {
   const { t } = useTranslation();
   const { isElite } = useSubscriptionStatus();
-  const navigate = useNavigate();
   const [engineSignals, setEngineSignals] = useState([]);
   const [engineLoading, setEngineLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -261,12 +259,8 @@ export default function AIInsights() {
               </div>
             )}
             {!isElite && (
-              <div
-                onClick={() => navigate('/Upgrade')}
-                className="lg:col-span-2 p-4 rounded-lg bg-white/[0.03] border border-primary/20 text-center cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all tap-feedback"
-              >
+              <div className="lg:col-span-2 p-4 rounded-lg bg-white/[0.03] border border-primary/20 text-center">
                 <p className="text-xs text-white/40 mb-2">{t('ai.unlockSignals')}</p>
-                <p className="text-[10px] font-bold text-primary">Tap to Upgrade →</p>
               </div>
             )}
           </div>

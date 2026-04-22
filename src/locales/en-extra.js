@@ -29,7 +29,6 @@ const enExtra = {
   'trek.bestSetup': 'Best setup',
   'trek.showingRiskSignals': 'showing risk signals',
   'trek.grade': 'Grade',
-  'nav.community': 'Community',
 };
 
 export default enExtra;

@@ -5,15 +5,11 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
-import { useCurrency } from '@/hooks/useCurrency';
 
 export function OG100Card({ onClaim }) {
   const [remaining, setRemaining] = useState(100);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
-  const navigate = useNavigate();
-  const { format } = useCurrency();
 
   useEffect(() => {
     const loadCounter = async () => {
@@ -120,7 +116,7 @@ export function OG100Card({ onClaim }) {
               </li>
               <li className="flex items-start gap-2">
                 <span style={{ color: '#0ec8dc' }}>•</span>
-                <span>Then Elite for {format(8.99)}/month forever <span style={{ color: 'rgba(180,210,240,0.4)' }}>(normally {format(17.99)}/month)</span></span>
+                <span>Then Elite for 89 SEK forever <span style={{ color: 'rgba(180,210,240,0.4)' }}>(normally 179 SEK/month)</span></span>
               </li>
               <li className="flex items-start gap-2">
                 <span style={{ color: '#0ec8dc' }}>•</span>
@@ -134,9 +130,9 @@ export function OG100Card({ onClaim }) {
           </div>
 
           <button
-            onClick={() => navigate('/Upgrade')}
+            onClick={handleClaim}
             disabled={claiming || loading}
-            className="w-full font-bold h-12 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 tap-feedback"
+            className="w-full font-bold h-12 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             style={{
               background: 'linear-gradient(135deg, rgba(14,200,220,0.9), rgba(8,160,185,0.9))',
               color: '#040d1e',

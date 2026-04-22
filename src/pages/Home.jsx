@@ -10,6 +10,7 @@ import PullToRefresh from '@/components/ui/PullToRefresh';
 import { NextJumpDetector } from '@/components/ai/NextJumpDetector';
 import { IntelligenceTicker } from '@/components/ai/IntelligenceTicker';
 import { OG100Card } from '@/components/ai/OG100Card';
+import { LogTradeButton } from '@/components/ai/LogTradeButton';
 import DailyBrief from '@/components/ai/DailyBrief';
 import YourMovesToday from '@/components/feed/YourMovesToday';
 import WatchOut from '@/components/feed/WatchOut';
@@ -24,8 +25,6 @@ import IntelligenceFeed from '@/components/feed/IntelligenceFeed.jsx';
 import HeroSignalCard from '@/components/feed/HeroSignalCard';
 import { base44 } from '@/api/base44Client';
 import GlobalMarketStateBanner from '@/components/ai/GlobalMarketStateBanner';
-import TrekWelcomeTip from '@/components/ai/TrekWelcomeTip';
-import TrekDailyInsight from '@/components/ai/TrekDailyInsight';
 
 // Detect region from timezone
 function detectDefaultRegion() {
@@ -117,8 +116,7 @@ export default function Home() {
                 {({ Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm' })[activeRegion] || activeRegion}
               </span>
             </div>
-            <TrekDailyInsight />
-          <IntelligenceFeed activeRegion={activeRegion} onRegionChange={handleRegionChange} />
+            <IntelligenceFeed activeRegion={activeRegion} onRegionChange={handleRegionChange} />
           </div>
 
           {/* ╔════════════════════════════════════════════════════════════════ */}
@@ -174,7 +172,7 @@ export default function Home() {
           </div>
         </div>
 
-        <TrekWelcomeTip />
+        <LogTradeButton />
       </div>
     </PullToRefresh>
   );

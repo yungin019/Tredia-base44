@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const TAB_ROOTS = ['/Home', '/Markets', '/AIInsights', '/Community', '/Portfolio', '/Settings'];
+const TAB_ROOTS = ['/Home', '/Markets', '/AIInsights', '/Portfolio', '/Settings'];
 
 const NavigationContext = createContext(null);
 
@@ -11,7 +11,6 @@ export function NavigationProvider({ children }) {
     '/Home':       ['/Home'],
     '/Markets':    ['/Markets'],
     '/AIInsights': ['/AIInsights'],
-    '/Community':  ['/Community'],
     '/Portfolio':  ['/Portfolio'],
     '/Settings':   ['/Settings'],
   });

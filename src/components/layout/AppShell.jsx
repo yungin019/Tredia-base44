@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search, ChevronLeft, Users } from 'lucide-react';
+import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import TredioAssistant from '@/components/ai/TredioAssistant';
@@ -8,15 +8,13 @@ import NotificationsPanel from '@/components/ui/NotificationsPanel';
 import SearchModal from '@/components/ui/SearchModal';
 import GlobalAssetSearch from '@/components/ui/GlobalAssetSearch';
 import { useNavigation } from '@/lib/NavigationManager';
-import { base44 } from '@/api/base44Client';
 
 const NAV_CONFIG = [
-  { path: '/Home',       icon: Home,       label: 'Feed',      translationKey: 'nav.feed',      isTrek: false },
-  { path: '/Markets',    icon: TrendingUp,  label: 'Markets',   translationKey: 'nav.markets',   isTrek: false },
-  { path: '/AIInsights', icon: Zap,         label: 'TREK',      translationKey: 'nav.trek',      isTrek: true  },
-  { path: '/Community',  icon: Users,       label: 'Community', translationKey: 'nav.community', isTrek: false },
-  { path: '/Portfolio',  icon: Briefcase,   label: 'Portfolio', translationKey: 'nav.portfolio', isTrek: false },
-  { path: '/Settings',   icon: Settings,    label: 'Settings',  translationKey: 'nav.settings',  isTrek: false },
+  { path: '/Home',       icon: Home,       translationKey: 'nav.feed',      isTrek: false },
+  { path: '/Markets',    icon: TrendingUp,  translationKey: 'nav.markets',   isTrek: false },
+  { path: '/AIInsights', icon: Zap,         translationKey: 'nav.trek',      isTrek: true  },
+  { path: '/Portfolio',  icon: Briefcase,   translationKey: 'nav.portfolio', isTrek: false },
+  { path: '/Settings',   icon: Settings,    translationKey: 'nav.settings',  isTrek: false },
 ];
 
 const TAB_ROOTS = NAV_CONFIG.map(n => n.path);
@@ -27,21 +25,6 @@ export default function AppShell({ onLogout }) {
   const { switchTab, goBack, canGoBack, getTabForPath, syncExternalNavigation } = useNavigation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    const loadUnread = async () => {
-      try {
-        const user = await base44.auth.me();
-        if (!user) return;
-        const notifs = await base44.entities.AppNotification.filter({ user_id: user.email || user.id, read: false }, '-created_date', 50);
-        setUnreadCount((notifs || []).length);
-      } catch { /* silent */ }
-    };
-    loadUnread();
-    const interval = setInterval(loadUnread, 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Track previous path for slide direction
   const prevPath = React.useRef(location.pathname);
@@ -79,10 +62,7 @@ export default function AppShell({ onLogout }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [searchOpen]);
 
-  const NAV_ITEMS = NAV_CONFIG.map(nav => {
-    const translated = t(nav.translationKey);
-    return { ...nav, label: (translated === nav.translationKey ? nav.label : translated) || nav.label };
-  });
+  const NAV_ITEMS = NAV_CONFIG.map(nav => ({ ...nav, label: t(nav.translationKey) }));
   const isTabRoot = TAB_ROOTS.includes(location.pathname);
   const showBack = !isTabRoot && canGoBack();
 
@@ -96,8 +76,7 @@ export default function AppShell({ onLogout }) {
     <div className="min-h-screen bg-[#0A0A0F] flex flex-col grid-bg">
 
       {/* ── Top Header ─────────────────────────────────────────────── */}
-      <header className="glass-dark border-b border-white/[0.06] px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50"
-        style={{ paddingTop: 'env(safe-area-inset-top)', minHeight: 'calc(56px + env(safe-area-inset-top))' }}>
+      <header className="glass-dark border-b border-white/[0.06] px-4 lg:px-6 py-0 h-14 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
 
           {/* Back button — visible when inside a sub-page */}
@@ -177,17 +156,12 @@ export default function AppShell({ onLogout }) {
 
           {/* Notifications */}
           <div className="relative">
-            <button onClick={() => { setNotificationsOpen(!notificationsOpen); }}
+            <button onClick={() => setNotificationsOpen(!notificationsOpen)}
               className="relative p-2 rounded-lg hover:bg-white/[0.04] transition-colors">
               <Bell className="h-4 w-4 text-muted-foreground" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-0.5 rounded-full text-[9px] font-black flex items-center justify-center"
-                  style={{ background: '#F59E0B', color: '#000' }}>
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
+              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
             </button>
-            <NotificationsPanel isOpen={notificationsOpen} onClose={() => { setNotificationsOpen(false); setUnreadCount(0); }} />
+            <NotificationsPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
           </div>
         </div>
       </header>
@@ -254,8 +228,9 @@ export default function AppShell({ onLogout }) {
         </div>
       </nav>
 
-      {/* GlobalAssetSearch — controlled via isOpen/onClose props */}
-      <GlobalAssetSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      {/* Use new GlobalAssetSearch instead of old SearchModal */}
+      {searchOpen && <GlobalAssetSearch />}
+      {searchOpen && <div className="fixed inset-0 z-30" onClick={() => setSearchOpen(false)} />}
     </div>
   );
 }

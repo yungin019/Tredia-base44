@@ -17,7 +17,6 @@ import TradeHistory from '../components/portfolio/TradeHistory';
 import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import BrokerDisclosureBanner from '@/components/broker/BrokerDisclosureBanner';
-import { TellTrekBanner, LogTradeModal } from '@/components/ai/LogTradeButton';
 
 const COLORS = ['#F59E0B', '#3B82F6', '#22C55E', '#A855F7', '#EF4444', '#06B6D4'];
 
@@ -26,7 +25,6 @@ export default function Portfolio() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
-  const [showLogTrade, setShowLogTrade] = useState(false);
   const [activeTab, setActiveTab] = useState('holdings');
   const [user, setUser] = useState(null);
   const [alpacaPositions, setAlpacaPositions] = useState([]);
@@ -169,8 +167,7 @@ export default function Portfolio() {
             <Button
               onClick={() => setShowAdd(true)}
               size="sm"
-              className="h-8 text-[10px] font-bold whitespace-nowrap"
-              style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
+              className="h-8 text-[10px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
             >
               <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('common.add')}
             </Button>
@@ -185,10 +182,6 @@ export default function Portfolio() {
           <p className="text-[11px] text-white/50 flex-1">This is a simulated portfolio with virtual funds. <button onClick={() => navigate('/alpaca-connect')} className="text-[#F59E0B] font-semibold hover:underline">Connect your broker</button> to trade with real money via Alpaca.</p>
         </div>
       )}
-
-      {/* Tell TREK Banner */}
-      <TellTrekBanner onOpen={() => setShowLogTrade(true)} />
-      <LogTradeModal isOpen={showLogTrade} onClose={() => setShowLogTrade(false)} />
 
       {/* TREK AI Analysis Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -259,9 +252,6 @@ export default function Portfolio() {
         </div>
       )}
 
-      {/* Performance Chart — always visible at top */}
-      <PortfolioPerformanceChart />
-
       {/* Tabs: Holdings / Trade History */}
       <div className="rounded-xl border border-white/[0.07] bg-[#111118] overflow-hidden">
         {/* Tab Bar */}
@@ -269,6 +259,7 @@ export default function Portfolio() {
           {[
             { id: 'holdings', label: `${t('portfolio.holdings')} (${holdings.length})` },
             { id: 'history', label: t('portfolio.tradeHistory') },
+            { id: 'performance', label: t('portfolio.performance') },
           ].map(tab => (
             <button
               key={tab.id}
@@ -307,8 +298,8 @@ export default function Portfolio() {
                   <Button onClick={() => navigate('/alpaca-connect')} size="sm" className="h-9 px-5 text-[11px] font-bold bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white">
                     CONNECT ALPACA
                   </Button>
-                  <Button onClick={() => setShowAdd(true)} size="sm" className="h-9 px-5 text-[11px] font-bold" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                     <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.addFirstPosition')}
+                  <Button onClick={() => setShowAdd(true)} size="sm" className="h-9 px-5 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
+                    <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.addFirstPosition')}
                   </Button>
                   <Button onClick={() => navigate('/PaperTrading')} size="sm" variant="outline" className="h-9 px-5 text-[11px] font-bold border-white/[0.1] bg-white/[0.03] text-white/60 hover:bg-white/[0.06]">
                     <Play className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.startPaperTrading')}
@@ -398,6 +389,13 @@ export default function Portfolio() {
 
         {/* Trade History Tab */}
         {activeTab === 'history' && <TradeHistory />}
+
+        {/* Performance Tab */}
+        {activeTab === 'performance' && (
+          <div className="p-5">
+            <PortfolioPerformanceChart />
+          </div>
+        )}
       </div>
 
       <AddHoldingDialog open={showAdd} onOpenChange={setShowAdd} />

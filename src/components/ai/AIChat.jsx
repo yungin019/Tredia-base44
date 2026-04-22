@@ -106,12 +106,6 @@ export default function AIChat() {
   useEffect(() => {
     setQuestionsToday(getQuestionsToday());
     setSuperAIToday(getSuperAIToday());
-    // Auto-send prefilled question from news modal
-    const prefill = sessionStorage.getItem('trek_prefill');
-    if (prefill) {
-      sessionStorage.removeItem('trek_prefill');
-      setTimeout(() => send(prefill), 500);
-    }
   }, []);
 
   useEffect(() => {

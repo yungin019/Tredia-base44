@@ -4,12 +4,6 @@ import { base44 } from '@/api/base44Client';
 
 const FREE_SYSTEM_PROMPT = `You are TREK Basic. You help beginners understand trading. Give general market direction and education. Never give specific entry/exit prices — those are Pro only. Always end with: upgrade to TREK Pro for exact entry, target and stop loss levels. Be encouraging and explain WHY before WHAT.
 
-CRITICAL - YOU HAVE REAL-TIME MARKET DATA:
-- When users ask about current prices, ALWAYS provide the specific price from the live data provided
-- NEVER say "I cannot provide the current price" or "Check the Markets page"
-- NEVER refuse to answer price questions
-- Format: "Gold is currently at $2,318/oz. Here's what that means for you..."
-
 FORMAT:
 ⚡ TREK SAYS: [General direction]
 ━━━━━━━━━━━━━━━━━━━
@@ -20,13 +14,6 @@ FORMAT:
 ⬆️ Upgrade to TREK Pro for exact entry, target and stop loss levels.`;
 
 const PRO_SYSTEM_PROMPT = `You are TREK Pro — a senior trading analyst. You give specific actionable analysis with exact numbers. You use live market data. You never say "it depends" — you take a clear position every time. You want the user to make money.
-
-CRITICAL - YOU HAVE REAL-TIME MARKET DATA:
-- When users ask about current prices, ALWAYS provide the specific price from the live data provided
-- NEVER say "I cannot provide the current price" or "Check the Markets page"
-- NEVER refuse to answer price questions
-- ALWAYS give specific prices, levels, and signals with numbers
-- Format: "Gold is currently trading at $2,318/oz, up 0.8% today. Here's what TREK sees..."
 
 TREK RULES:
 - Never start with "Great question"
@@ -56,13 +43,6 @@ WHY:
 — TREK Pro. Not financial advice.`;
 
 const ELITE_SYSTEM_PROMPT = `You are TREK Elite — Super AI mode. You have the combined intelligence of three AI models. Your analysis is the highest quality available to any retail trader anywhere in the world. Be even more specific, more confident, and more detailed than TREK Pro.
-
-CRITICAL - YOU HAVE REAL-TIME MARKET DATA:
-- When users ask about current prices, ALWAYS provide the specific price from the live data provided
-- NEVER say "I cannot provide the current price" or "Check the Markets page"
-- NEVER refuse to answer price questions
-- ALWAYS give specific prices, levels, and signals with numbers
-- Format: "Gold is currently trading at $2,318/oz, up 0.8% today. Here's what TREK sees..."
 
 DEPTH REQUIREMENTS:
 - Every claim needs a number
@@ -199,45 +179,8 @@ function buildSystemPrompt(marketContext, user, tier = 'free') {
   let prompt = tier === 'elite' ? ELITE_SYSTEM_PROMPT : tier === 'pro' ? PRO_SYSTEM_PROMPT : FREE_SYSTEM_PROMPT;
 
   if (marketContext) {
-    const {
-      fng_value, fng_label,
-      btc_price, btc_change_24h,
-      eth_price, eth_change_24h,
-      spy_price, spy_change,
-      aapl_price, aapl_change,
-      nvda_price, nvda_change,
-      tsla_price, tsla_change,
-      all_stocks, all_crypto,
-      portfolio
-    } = marketContext;
-
-    prompt += `\n\n[LIVE MARKET DATA - CURRENT PRICES]\nFear & Greed: ${fng_value ?? '—'} (${fng_label ?? '—'})\n\nCRYPTO:\n`;
-    if (btc_price) prompt += `BTC: $${btc_price.toLocaleString()} (${btc_change_24h > 0 ? '+' : ''}${btc_change_24h?.toFixed(2)}% 24h)\n`;
-    if (eth_price) prompt += `ETH: $${eth_price.toLocaleString()} (${eth_change_24h > 0 ? '+' : ''}${eth_change_24h?.toFixed(2)}% 24h)\n`;
-
-    if (all_crypto && Object.keys(all_crypto).length > 2) {
-      Object.entries(all_crypto).forEach(([symbol, data]) => {
-        if (symbol !== 'BTC' && symbol !== 'ETH' && data.price) {
-          prompt += `${symbol}: $${data.price.toLocaleString()} (${data.change > 0 ? '+' : ''}${data.change?.toFixed(2)}% 24h)\n`;
-        }
-      });
-    }
-
-    prompt += `\nSTOCKS:\n`;
-    if (spy_price) prompt += `SPY: $${spy_price.toFixed(2)} (${spy_change > 0 ? '+' : ''}${spy_change?.toFixed(2)}%)\n`;
-    if (aapl_price) prompt += `AAPL: $${aapl_price.toFixed(2)} (${aapl_change > 0 ? '+' : ''}${aapl_change?.toFixed(2)}%)\n`;
-    if (nvda_price) prompt += `NVDA: $${nvda_price.toFixed(2)} (${nvda_change > 0 ? '+' : ''}${nvda_change?.toFixed(2)}%)\n`;
-    if (tsla_price) prompt += `TSLA: $${tsla_price.toFixed(2)} (${tsla_change > 0 ? '+' : ''}${tsla_change?.toFixed(2)}%)\n`;
-
-    if (all_stocks && Object.keys(all_stocks).length > 0) {
-      Object.entries(all_stocks).forEach(([symbol, data]) => {
-        if (!['SPY', 'AAPL', 'NVDA', 'TSLA'].includes(symbol) && data.price) {
-          prompt += `${symbol}: $${data.price.toFixed(2)} (${data.change > 0 ? '+' : ''}${data.change?.toFixed(2)}%)\n`;
-        }
-      });
-    }
-
-    prompt += `\nUser portfolio: ${portfolio ?? 'not provided'}`;
+    const { fng_value, fng_label, btc_price, btc_change_24h, eth_price, eth_change_24h, portfolio } = marketContext;
+    prompt += `\n\n[LIVE MARKET DATA]\nFear & Greed: ${fng_value ?? '—'} (${fng_label ?? '—'})\nBTC: $${btc_price ?? '—'} (${btc_change_24h ?? '—'}% 24h)\nETH: $${eth_price ?? '—'} (${eth_change_24h ?? '—'}% 24h)\nUser portfolio: ${portfolio ?? 'not provided'}`;
   }
 
   const userCtx = buildUserContext(user);
@@ -253,14 +196,8 @@ export async function askTrek(messages, marketContext, user = null, tier = 'free
 
   const enrichedContext = marketContext ? {
     fearGreed: `${marketContext.fng_value ?? '—'} (${marketContext.fng_label ?? '—'})`,
-    btcPrice: marketContext.btc_price ? `$${marketContext.btc_price.toLocaleString()} (${marketContext.btc_change_24h > 0 ? '+' : ''}${marketContext.btc_change_24h?.toFixed(2)}% 24h)` : '—',
-    ethPrice: marketContext.eth_price ? `$${marketContext.eth_price.toLocaleString()} (${marketContext.eth_change_24h > 0 ? '+' : ''}${marketContext.eth_change_24h?.toFixed(2)}% 24h)` : '—',
-    spyPrice: marketContext.spy_price ? `$${marketContext.spy_price.toFixed(2)} (${marketContext.spy_change > 0 ? '+' : ''}${marketContext.spy_change?.toFixed(2)}%)` : '—',
-    aaplPrice: marketContext.aapl_price ? `$${marketContext.aapl_price.toFixed(2)} (${marketContext.aapl_change > 0 ? '+' : ''}${marketContext.aapl_change?.toFixed(2)}%)` : '—',
-    nvdaPrice: marketContext.nvda_price ? `$${marketContext.nvda_price.toFixed(2)} (${marketContext.nvda_change > 0 ? '+' : ''}${marketContext.nvda_change?.toFixed(2)}%)` : '—',
-    tslaPrice: marketContext.tsla_price ? `$${marketContext.tsla_price.toFixed(2)} (${marketContext.tsla_change > 0 ? '+' : ''}${marketContext.tsla_change?.toFixed(2)}%)` : '—',
-    allStocks: marketContext.all_stocks || {},
-    allCrypto: marketContext.all_crypto || {},
+    btcPrice: `$${marketContext.btc_price ?? '—'} (${marketContext.btc_change_24h ?? '—'}% 24h)`,
+    spxPrice: marketContext.spx_price ? `$${marketContext.spx_price}` : '—',
     topGainers: marketContext.top_gainers || '—',
     topLosers: marketContext.top_losers || '—',
     userPortfolio: marketContext.portfolio || 'not provided',

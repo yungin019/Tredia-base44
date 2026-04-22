@@ -113,7 +113,7 @@ export default function PaperTrading() {
         </div>
         <div className="text-right">
           <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-1">{t('paperTrading.balance')}</div>
-          <div className="text-3xl font-black font-mono" style={{ color: '#F59E0B' }}>$200,000.00</div>
+          <div className="text-3xl font-black font-mono" style={{ color: '#F59E0B' }}>$100,000.00</div>
         </div>
       </motion.div>
 

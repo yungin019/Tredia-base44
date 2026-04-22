@@ -29,9 +29,6 @@ import TradingSetup from './pages/TradingSetup';
 import Admin from './pages/Admin.jsx';
 import AlpacaConnect from './pages/AlpacaConnect';
 import AlpacaCallback from './pages/AlpacaCallback';
-import AlpacaOnboarding from './pages/AlpacaOnboarding';
-import Community from './pages/Community';
-import DiscordCallback from './pages/DiscordCallback';
 import TrekPortfolioWelcome from './pages/TrekPortfolioWelcome';
 import OnboardingQuick from './pages/OnboardingQuick';
 
@@ -62,7 +59,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const AppRoutes = ({ user, userProfile, onLogout }) => {
+const AppRoutes = ({ user, onLogout }) => {
   const location = useLocation();
 
   if (!user) {
@@ -77,13 +74,6 @@ const AppRoutes = ({ user, userProfile, onLogout }) => {
     );
   }
 
-  // Redirect to onboarding if not completed
-  // userProfile.onboarding_completed is undefined for brand-new users → treat as needing onboarding
-  const needsOnboarding = userProfile && userProfile.onboarding_completed !== true;
-  if (needsOnboarding && location.pathname !== '/Onboarding') {
-    return <Navigate to="/Onboarding" replace />;
-  }
-
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
@@ -94,9 +84,7 @@ const AppRoutes = ({ user, userProfile, onLogout }) => {
         <Route path="/OnboardingQuick" element={<PageTransition><OnboardingQuick /></PageTransition>} />
         <Route path="/Admin" element={<PageTransition><Admin /></PageTransition>} />
         <Route path="/alpaca-connect" element={<PageTransition><AlpacaConnect /></PageTransition>} />
-        <Route path="/alpaca-onboarding" element={<PageTransition><AlpacaOnboarding /></PageTransition>} />
         <Route path="/alpaca-callback" element={<AlpacaCallback />} />
-        <Route path="/auth/discord/callback" element={<DiscordCallback />} />
         <Route path="/trek-portfolio-welcome" element={<PageTransition><TrekPortfolioWelcome /></PageTransition>} />
         <Route element={<AppShell onLogout={onLogout} />}>
           <Route path="/Home" element={<PageTransition><Home /></PageTransition>} />
@@ -104,7 +92,6 @@ const AppRoutes = ({ user, userProfile, onLogout }) => {
           <Route path="/Markets" element={<PageTransition><Markets /></PageTransition>} />
           <Route path="/AIInsights" element={<PageTransition><AIInsights /></PageTransition>} />
           <Route path="/Traders" element={<PageTransition><Traders /></PageTransition>} />
-          <Route path="/Community" element={<PageTransition><Community /></PageTransition>} />
           <Route path="/Portfolio" element={<PageTransition><Portfolio /></PageTransition>} />
           <Route path="/Trade" element={<PageTransition><Trade /></PageTransition>} />
           <Route path="/Settings" element={<PageTransition><Settings onLogout={onLogout} /></PageTransition>} />
@@ -122,31 +109,15 @@ const AppRoutes = ({ user, userProfile, onLogout }) => {
 
 function App() {
   const [user, setUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const isAuthed = await base44.auth.isAuthenticated();
-        if (!isAuthed) {
-          setUser(null);
-          setUserProfile(null);
-          setLoading(false);
-          return;
-        }
         const currentUser = await base44.auth.me();
-        // Only accept users with a real email (not anonymous)
-        if (currentUser?.email) {
-          setUser(currentUser);
-          setUserProfile(currentUser);
-        } else {
-          setUser(null);
-          setUserProfile(null);
-        }
+        setUser(currentUser || null);
       } catch (error) {
         setUser(null);
-        setUserProfile(null);
       } finally {
         setLoading(false);
       }
@@ -156,7 +127,6 @@ function App() {
 
   const handleLogout = async () => {
     setUser(null);
-    setUserProfile(null);
     try {
       localStorage.removeItem('base44_access_token');
       localStorage.removeItem('token');
@@ -173,7 +143,7 @@ function App() {
       ) : (
         <Router>
           <NavigationProvider>
-            <AppRoutes user={user} userProfile={userProfile} onLogout={handleLogout} />
+            <AppRoutes user={user} onLogout={handleLogout} />
             <Toaster />
           </NavigationProvider>
         </Router>

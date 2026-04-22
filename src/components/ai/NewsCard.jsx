@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import NewsArticleModal from './NewsArticleModal';
 
 const SENTIMENT_STYLES = {
@@ -12,7 +11,6 @@ const SENTIMENT_STYLES = {
 
 export default function NewsCard({ article, index }) {
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
   const style = SENTIMENT_STYLES[article.sentiment] || SENTIMENT_STYLES.neutral;
 
   return (
@@ -53,17 +51,16 @@ export default function NewsCard({ article, index }) {
         {article.tickers && article.tickers.length > 0 && (
           <div className="px-3 pb-2.5 flex items-center gap-1.5 flex-wrap">
             {article.tickers.map((t, i) => (
-              <button
+              <span
                 key={i}
-                onClick={(e) => { e.stopPropagation(); navigate(`/Asset/${t.symbol}`); }}
-                className={`text-[7px] font-mono font-black px-1.5 py-0.5 rounded border cursor-pointer hover:opacity-80 transition-opacity ${
+                className={`text-[7px] font-mono font-black px-1.5 py-0.5 rounded border ${
                   t.direction === 'up' ? 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20' :
                   t.direction === 'down' ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20' :
                   'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20'
                 }`}
               >
                 {t.symbol} {t.direction === 'up' ? '↑' : t.direction === 'down' ? '↓' : '~'}
-              </button>
+              </span>
             ))}
           </div>
         )}

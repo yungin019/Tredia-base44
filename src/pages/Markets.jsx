@@ -18,7 +18,6 @@ import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import DiscoverySection, { POPULAR_STOCKS, POPULAR_CRYPTO, MAJOR_ETFS, COMMODITIES_SNAPSHOT } from '@/components/markets/DiscoverySection.jsx';
 import SPYSection from '@/components/markets/SPYSection.jsx';
-import ForexSection from '@/components/markets/ForexSection.jsx';
 
 export default function Markets() {
   const { t } = useTranslation();
@@ -131,8 +130,9 @@ export default function Markets() {
 
       {/* Forex Tab */}
       {activeTab === 'forex' && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <ForexSection />
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl p-8 text-center" style={{ background: 'rgba(8,16,36,0.55)', border: '1px solid rgba(100,220,255,0.09)' }}>
+          <p className="text-white/30 text-sm">{t('markets.forexComingSoon')}</p>
+          <p className="text-white/15 text-xs mt-2">{t('markets.forexAPIs')}</p>
         </motion.div>
       )}
 

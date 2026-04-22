@@ -9,7 +9,7 @@
  */
 
 export const REVENUECAT_CONFIG = {
-  apiKey: import.meta.env.VITE_REVENUECAT_API_KEY,
+  apiKey: process.env.VITE_REVENUECAT_API_KEY,
   entitlements: {
     elite: 'elite_monthly',
     pro: '$rc_monthly',

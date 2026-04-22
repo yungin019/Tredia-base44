@@ -11,11 +11,9 @@ const QUICK_ASSETS = {
   FOREX: ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD', 'XAGUSD'],
 };
 
-export default function GlobalAssetSearch({ isOpen: isOpenProp, onClose }) {
+export default function GlobalAssetSearch() {
   const navigate = useNavigate();
-  const [isOpenInternal, setIsOpenInternal] = useState(false);
-  const isOpen = isOpenProp !== undefined ? isOpenProp : isOpenInternal;
-  const closeModal = () => { setIsOpenInternal(false); if (onClose) onClose(); };
+  const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
@@ -54,13 +52,6 @@ export default function GlobalAssetSearch({ isOpen: isOpenProp, onClose }) {
     return () => clearTimeout(timer);
   }, [query, activeTab]);
 
-  // ESC to close
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape' && isOpen) closeModal(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [isOpen]);
-
   const tabs = [
     { id: 'all', label: 'All', icon: '🔍' },
     { id: 'stock', label: 'Stocks', icon: '📈' },
@@ -86,17 +77,15 @@ export default function GlobalAssetSearch({ isOpen: isOpenProp, onClose }) {
 
   return (
     <>
-      {/* Search Button — only shown when used standalone (no isOpenProp) */}
-      {isOpenProp === undefined && (
-        <button
-          onClick={() => setIsOpenInternal(true)}
-          className="w-full h-12 rounded-xl bg-white/[0.02] border border-white/10 px-4 flex items-center gap-3 text-muted-foreground hover:border-primary/25 transition-all group"
-        >
-          <Search className="w-4 h-4" />
-          <span className="text-sm">Search stocks, crypto, forex...</span>
-          <kbd className="ml-auto text-xs font-mono text-white/25">⌘K</kbd>
-        </button>
-      )}
+      {/* Search Button */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="w-full h-12 rounded-xl bg-white/[0.02] border border-white/10 px-4 flex items-center gap-3 text-muted-foreground hover:border-primary/25 transition-all group"
+      >
+        <Search className="w-4 h-4" />
+        <span className="text-sm">Search stocks, crypto, forex...</span>
+        <kbd className="ml-auto text-xs font-mono text-white/25">⌘K</kbd>
+      </button>
 
       {/* Modal */}
       <AnimatePresence>
@@ -106,7 +95,7 @@ export default function GlobalAssetSearch({ isOpen: isOpenProp, onClose }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={closeModal}
+              onClick={() => setIsOpen(false)}
               className="fixed inset-0 bg-black/60 z-40"
             />
             <motion.div
@@ -174,7 +163,7 @@ export default function GlobalAssetSearch({ isOpen: isOpenProp, onClose }) {
                           animate={{ opacity: 1, x: 0 }}
                           onClick={() => {
                             navigate(`/Asset/${r.symbol}`);
-                            closeModal();
+                            setIsOpen(false);
                           }}
                           className="w-full text-left p-3 rounded-lg hover:bg-white/5 transition-colors"
                         >
@@ -207,7 +196,7 @@ export default function GlobalAssetSearch({ isOpen: isOpenProp, onClose }) {
                               key={symbol}
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
-                              onClick={() => { navigate(`/Asset/${symbol}`); closeModal(); }}
+                              onClick={() => navigate(`/Asset/${symbol}`)}
                               onContextMenu={(e) => {
                                 e.preventDefault();
                                 setQuery(symbol);
@@ -240,6 +229,21 @@ export default function GlobalAssetSearch({ isOpen: isOpenProp, onClose }) {
         )}
       </AnimatePresence>
 
+      {/* Keyboard Shortcut */}
+      <div className="hidden">
+        {typeof window !== 'undefined' &&
+          (() => {
+            const handleKeyPress = (e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsOpen((prev) => !prev);
+              }
+              if (isOpen && e.key === 'Escape') setIsOpen(false);
+            };
+            window.addEventListener('keydown', handleKeyPress);
+            return () => window.removeEventListener('keydown', handleKeyPress);
+          })()}
+      </div>
     </>
   );
 }
