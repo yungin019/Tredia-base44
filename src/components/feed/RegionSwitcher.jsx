@@ -33,7 +33,7 @@ export default function RegionSwitcher({ activeRegion, onChange }) {
           <button
             key={r.id}
             onClick={() => onChange(r.id)}
-            className="flex items-center px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all"
             style={isActive ? {
               background: 'rgba(14,200,220,0.15)',
               border: '1px solid rgba(14,200,220,0.35)',
@@ -45,6 +45,13 @@ export default function RegionSwitcher({ activeRegion, onChange }) {
               color: 'rgba(255,255,255,0.35)',
             }}
           >
+            <span
+              className="h-2 w-2 rounded-full flex-shrink-0"
+              style={{
+                background: isActive ? 'rgb(14,200,220)' : 'rgba(255,255,255,0.2)',
+                boxShadow: isActive ? '0 0 6px rgba(14,200,220,0.8)' : 'none',
+              }}
+            />
             {r.label}
 
           </button>
