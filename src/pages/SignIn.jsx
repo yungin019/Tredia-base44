@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 
 // Apple Sign-In requires explicit opt-in in Base44 Dashboard → Settings → Authentication → Apple.
 // Set this to true only after you have enabled it there.
-const APPLE_SIGNIN_ENABLED = false;
+const APPLE_SIGNIN_ENABLED = true;
 
 export default function SignIn() {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
