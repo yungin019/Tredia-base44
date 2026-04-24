@@ -19,6 +19,18 @@ Deno.serve(async (req) => {
     const clientSecret = Deno.env.get('ALPACA_CLIENT_SECRET');
     const redirectUri = Deno.env.get('ALPACA_REDIRECT_URI') || 'https://tredio.app/alpaca-callback';
 
+    // ── Get Auth URL (build OAuth redirect URL server-side) ────────
+    if (action === 'get_auth_url') {
+      if (!clientId) {
+        return Response.json({ error: 'ALPACA_CLIENT_ID not configured' }, { status: 503 });
+      }
+      const state = Math.random().toString(36).slice(2, 14);
+      const scope = encodeURIComponent('account:write trading');
+      const encodedRedirect = encodeURIComponent(redirectUri);
+      const auth_url = `https://app.alpaca.markets/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodedRedirect}&scope=${scope}&state=${state}`;
+      return Response.json({ auth_url });
+    }
+
     // ── Token Exchange ─────────────────────────────────────────────
     if (action === 'exchange_token') {
       const { code } = body;

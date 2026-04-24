@@ -1,9 +1,9 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, BarChart3, Bell, Shield, AlertTriangle } from 'lucide-react';
+import { Zap, BarChart3, Bell, Shield } from 'lucide-react';
 
-const CLIENT_ID = import.meta.env.VITE_ALPACA_CLIENT_ID;
-const REDIRECT_URI = import.meta.env.VITE_ALPACA_REDIRECT_URI || 'https://tredio.app/alpaca-callback';
+import { base44 } from '@/api/base44Client';
 
 const FEATURES = [
   { Icon: Zap, title: 'TREK analyzes your real positions', desc: 'AI-powered insights for what you actually hold', color: '#F59E0B' },
@@ -13,14 +13,19 @@ const FEATURES = [
 
 export default function AlpacaConnect() {
   const navigate = useNavigate();
-  const oauthConfigured = !!CLIENT_ID;
+  const [connecting, setConnecting] = React.useState(false);
 
-  const handleConnect = () => {
-    if (!oauthConfigured) return;
-    const scope = encodeURIComponent('account:write trading');
-    const redirectUri = encodeURIComponent(REDIRECT_URI);
-    const authUrl = `https://app.alpaca.markets/oauth/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${redirectUri}&scope=${scope}`;
-    window.location.href = authUrl;
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      // Get the OAuth URL from backend — keeps client_id server-side
+      const res = await base44.functions.invoke('alpacaOAuth', { action: 'get_auth_url' });
+      if (res?.data?.auth_url) {
+        window.location.href = res.data.auth_url;
+      }
+    } catch (e) {
+      setConnecting(false);
+    }
   };
 
   return (
@@ -68,32 +73,17 @@ export default function AlpacaConnect() {
           ))}
         </div>
 
-        {/* Blocked state if OAuth not configured */}
-        {!oauthConfigured && (
-          <div className="rounded-xl p-4" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}>
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-[11px] font-bold text-red-400 mb-0.5">OAuth Not Configured</p>
-                <p className="text-[10px] text-white/40 leading-relaxed">
-                  VITE_ALPACA_CLIENT_ID is not set. The admin must configure the Alpaca OAuth application and set this environment variable before users can connect.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* CTAs */}
         <div className="space-y-2">
           <motion.button
-            whileHover={oauthConfigured ? { scale: 1.02 } : {}}
-            whileTap={oauthConfigured ? { scale: 0.98 } : {}}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleConnect}
-            disabled={!oauthConfigured}
-            className="w-full py-4 rounded-xl font-black text-base tracking-wide transition-all text-white disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ background: oauthConfigured ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'rgba(255,255,255,0.08)' }}
+            disabled={connecting}
+            className="w-full py-4 rounded-xl font-black text-base tracking-wide transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
           >
-            {oauthConfigured ? 'CONNECT WITH ALPACA →' : 'OAUTH NOT CONFIGURED'}
+            {connecting ? 'Connecting...' : 'CONNECT WITH ALPACA →'}
           </motion.button>
 
           <a

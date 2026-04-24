@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Check, Brain, Zap, TrendingUp, Shield, Crown } from 'lucide-react';
+import { ArrowRight, Check, Brain, Zap, TrendingUp, Shield, Crown, Link2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { claimFoundingMemberSlot, getFoundingStats } from '@/api/foundingMembers';
@@ -86,7 +86,12 @@ export default function Onboarding() {
       console.error('Profile save error:', e);
     }
     setSaving(false);
-    setStep(4);
+    setStep(3.5); // go to Alpaca connect step
+  };
+
+  const handleAlpacaConnect = () => {
+    // Redirect to Alpaca connect page — callback will redirect to /Home
+    navigate('/alpaca-connect');
   };
 
   return (
@@ -256,6 +261,65 @@ export default function Onboarding() {
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: saving ? 0.7 : 1 }}>
                   {saving ? 'Loading...' : <><span>CONTINUE</span> <ArrowRight className="h-4 w-4" /></>}
                 </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 3.5: Activate Live Trading */}
+          {step === 3.5 && (
+            <motion.div key="broker" {...fadeUp} transition={{ duration: 0.4 }}>
+              <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8">
+                <div className="text-center mb-6">
+                  <div className="h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                    style={{ background: 'rgba(255,199,0,0.1)', border: '1px solid rgba(255,199,0,0.25)' }}>
+                    <Link2 className="h-7 w-7" style={{ color: '#FFC700' }} />
+                  </div>
+                  <h1 className="text-2xl font-black text-white/90 mb-2">Connect your brokerage account</h1>
+                  <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest">Activate live trading (optional)</p>
+                </div>
+
+                <p className="text-sm text-white/50 mb-5 leading-relaxed text-center">
+                  TREDIO's AI analyzes markets and generates trading signals. To act on those signals in real markets,
+                  connect your Alpaca account — it only takes 30 seconds.
+                  Alpaca is a regulated US broker. <span className="text-white/70 font-semibold">Your funds stay in your Alpaca account. TREDIO never holds your money.</span>
+                </p>
+
+                <ul className="space-y-3 mb-6">
+                  {[
+                    'Place trades directly from TREDIO signals',
+                    'Real-time portfolio sync',
+                    'Revoke access anytime from settings',
+                  ].map((f) => (
+                    <li key={f} className="flex items-center gap-3">
+                      <div className="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)' }}>
+                        <Check className="h-3 w-3 text-[#22c55e]" />
+                      </div>
+                      <span className="text-sm text-white/70">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="space-y-2">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleAlpacaConnect}
+                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-black text-sm tracking-wide"
+                    style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
+                    Connect Alpaca → <ArrowRight className="h-4 w-4" />
+                  </motion.button>
+
+                  <button
+                    onClick={() => setStep(4)}
+                    className="w-full py-3 rounded-xl font-bold text-sm border border-white/[0.08] hover:border-white/15 transition-colors text-white/40">
+                    Skip for now — I'll use paper trading
+                  </button>
+                </div>
+
+                <p className="text-[9px] text-white/20 text-center mt-4 leading-relaxed">
+                  TREDIO is not a registered broker-dealer. Trading is executed through Alpaca Securities LLC, a FINRA/SIPC member.
+                </p>
               </div>
             </motion.div>
           )}

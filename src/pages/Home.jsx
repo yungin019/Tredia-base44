@@ -24,6 +24,7 @@ import IntelligenceFeed from '@/components/feed/IntelligenceFeed.jsx';
 import HeroSignalCard from '@/components/feed/HeroSignalCard';
 import { base44 } from '@/api/base44Client';
 import GlobalMarketStateBanner from '@/components/ai/GlobalMarketStateBanner';
+import AlpacaConnectBanner from '@/components/broker/AlpacaConnectBanner';
 
 // Detect region from timezone
 function detectDefaultRegion() {
@@ -84,6 +85,8 @@ export default function Home() {
     : t('common.neutral');
 
   return (
+    <>
+    <AlpacaConnectBanner />
     <PullToRefresh onRefresh={async () => {
       const assets = await fetchCoreAssets().catch(() => []);
       const live = assets.filter(a => a.status === 'live');
@@ -173,5 +176,6 @@ export default function Home() {
 
       </div>
     </PullToRefresh>
+    </>
   );
 }

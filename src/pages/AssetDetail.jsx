@@ -217,6 +217,7 @@ export default function AssetDetail() {
   const staticAsset = { ...(ASSET_DATA[symbol] || DEFAULT_ASSET), ...(ASSET_MAP[symbol] || {}), symbol };
   const { tier } = useSubscriptionStatus();
 
+  const [user, setUser] = useState(null);
   const [tradeAction, setTradeAction] = useState(null);
   const [showPlan, setShowPlan] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
@@ -229,6 +230,10 @@ export default function AssetDetail() {
   const [timeframe, setTimeframe] = useState('1D');
   const [aiConfidence, setAiConfidence] = useState(null);
   const prevPriceRef = useRef(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   // Auto-trigger TREK analysis on mount — gated: free users use localStorage counter
   const FREE_TREK_LIMIT = 5;
@@ -516,17 +521,42 @@ export default function AssetDetail() {
 
       {/* BUY / SELL buttons */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-        className="grid grid-cols-2 gap-3 mb-4">
-        <button onClick={() => setTradeAction('BUY')}
-          className="py-4 rounded-2xl font-black text-sm tracking-wider transition-all hover:scale-[1.02] tap-feedback"
-          style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#0A0A0F', boxShadow: '0 4px 20px rgba(34,197,94,0.2)' }}>
-          🟢 {t('asset.buy')}
-        </button>
-        <button onClick={() => setTradeAction('SELL')}
-          className="py-4 rounded-2xl font-black text-sm tracking-wider transition-all hover:scale-[1.02] tap-feedback"
-          style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', boxShadow: '0 4px 20px rgba(239,68,68,0.2)' }}>
-          🔴 {t('asset.sell')}
-        </button>
+        className="mb-4">
+        {user?.alpaca_connected ? (
+          <>
+            <div className="grid grid-cols-2 gap-3 mb-2">
+              <button onClick={() => setTradeAction('BUY')}
+                className="py-4 rounded-2xl font-black text-sm tracking-wider transition-all hover:scale-[1.02] tap-feedback"
+                style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#0A0A0F', boxShadow: '0 4px 20px rgba(34,197,94,0.2)' }}>
+                🟢 {t('asset.buy')}
+              </button>
+              <button onClick={() => setTradeAction('SELL')}
+                className="py-4 rounded-2xl font-black text-sm tracking-wider transition-all hover:scale-[1.02] tap-feedback"
+                style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', boxShadow: '0 4px 20px rgba(239,68,68,0.2)' }}>
+                🔴 {t('asset.sell')}
+              </button>
+            </div>
+            <p className="text-[10px] text-white/30 text-center">via Alpaca Securities · Live orders</p>
+          </>
+        ) : (
+          <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-sm font-bold text-white/60 mb-1">Connect your Alpaca account to place live trades</p>
+            <p className="text-[11px] text-white/30 mb-3">Your Alpaca account executes orders. TREDIO never holds funds.</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate('/alpaca-connect')}
+                className="flex-1 py-2.5 rounded-xl font-bold text-sm transition-all"
+                style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
+                Connect Alpaca →
+              </button>
+              <button
+                onClick={() => setTradeAction('BUY')}
+                className="flex-1 py-2.5 rounded-xl font-bold text-sm border border-white/[0.1] text-white/50 hover:border-white/20 transition-colors">
+                Try paper trading →
+              </button>
+            </div>
+          </div>
+        )}
       </motion.div>
 
       <p className="text-[10px] text-white/20 text-center mb-6">{t('paperTrading.noRealMoney')}</p>
