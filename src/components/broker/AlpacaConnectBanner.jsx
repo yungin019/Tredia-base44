@@ -46,17 +46,17 @@ export default function AlpacaConnectBanner() {
         >
           <Zap className="h-3.5 w-3.5 text-[#F59E0B] flex-shrink-0" />
           <p className="flex-1 text-xs text-white/70" dir={isRTL ? 'rtl' : 'ltr'}>
-            {t('banner.paperMode')}
+            {t('banner.paperMode', "You're on paper trading mode. Connect Alpaca to go live.")}
           </p>
           <button
             onClick={() => navigate('/alpaca-connect')}
             className="text-[11px] font-black text-[#F59E0B] hover:text-[#F59E0B]/80 transition-colors whitespace-nowrap tap-feedback"
           >
-            {t('banner.connect')}
+            {t('banner.connect', 'Connect')}
           </button>
           <button
             onClick={dismiss}
-            aria-label={t('common.dismiss')}
+            aria-label={t('common.dismiss', 'Dismiss')}
             className="p-1 rounded hover:bg-white/[0.06] transition-colors tap-feedback flex-shrink-0"
           >
             <X className="h-3.5 w-3.5 text-white/25" />
