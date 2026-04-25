@@ -45,6 +45,12 @@ if (!i18n.isInitialized) {
       },
     })
     .catch(() => {});
+} else {
+  // Already initialized (HMR / re-render) — patch in any new keys so they
+  // are not shown as raw key strings at runtime.
+  Object.keys(resources).forEach(lang => {
+    i18n.addResourceBundle(lang, 'translation', resources[lang].translation, true, true);
+  });
 }
 
 export default function Layout({ children, currentPageName }) {
