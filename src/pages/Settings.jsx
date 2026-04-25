@@ -104,27 +104,27 @@ export default function Settings({ onLogout }) {
       {/* TRADING STATUS */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
         className="rounded-xl border border-[#F59E0B]/20 bg-[#111118] p-5 space-y-4">
-        <SectionHeader title="TRADING" />
+        <SectionHeader title={t('settings.trading', 'TRADING')} />
 
         {user?.alpaca_connected ? (
           <div className="space-y-4">
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 rounded-full bg-[#22c55e] mt-2" />
               <div className="flex-1">
-                <p className="text-sm font-bold text-white mb-1">Alpaca Connected</p>
-                <p className="text-xs text-white/60 mb-3">TREK is watching your portfolio</p>
+                <p className="text-sm font-bold text-white mb-1">{t('settings.alpacaConnected', 'Alpaca Connected')}</p>
+                <p className="text-xs text-white/60 mb-3">{t('settings.trekWatching', 'TREK is watching your portfolio')}</p>
 
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.08]">
-                    <p className="text-[10px] text-white/40 mb-1">Buying Power</p>
+                    <p className="text-[10px] text-white/40 mb-1">{t('settings.buyingPower', 'Buying Power')}</p>
                     <p className="text-sm font-bold text-white">${(user.alpaca_buying_power || 0).toLocaleString()}</p>
                   </div>
                   <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.08]">
-                    <p className="text-[10px] text-white/40 mb-1">Positions</p>
+                    <p className="text-[10px] text-white/40 mb-1">{t('settings.positions', 'Positions')}</p>
                     <p className="text-sm font-bold text-white">{user.alpaca_position_count || 0}</p>
                   </div>
                   <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.08]">
-                    <p className="text-[10px] text-white/40 mb-1">Today P&L</p>
+                    <p className="text-[10px] text-white/40 mb-1">{t('settings.todayPnl', "Today P&L")}</p>
                     <p className={`text-sm font-bold ${(user.alpaca_daily_pnl || 0) >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
                       {(user.alpaca_daily_pnl || 0) >= 0 ? '+' : ''}${(user.alpaca_daily_pnl || 0).toLocaleString()}
                     </p>
@@ -136,7 +136,7 @@ export default function Settings({ onLogout }) {
                     onClick={() => navigate('/Portfolio')}
                     className="flex-1 px-4 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white"
                   >
-                    VIEW PORTFOLIO →
+                    {t('settings.viewPortfolio', 'VIEW PORTFOLIO →')}
                   </button>
                   <button
                     onClick={async () => {
@@ -155,7 +155,7 @@ export default function Settings({ onLogout }) {
                     }}
                     className="px-4 py-3 rounded-lg font-bold text-sm border border-white/[0.1] hover:border-white/20 transition-colors text-white/55"
                   >
-                    DISCONNECT
+                    {t('settings.disconnect', 'DISCONNECT')}
                   </button>
                 </div>
               </div>
@@ -166,25 +166,25 @@ export default function Settings({ onLogout }) {
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 rounded-full bg-[#F59E0B] mt-2" />
               <div className="flex-1">
-                <p className="text-sm font-bold text-white mb-2">Unlock Real Trading</p>
-                <p className="text-xs text-white/60 mb-3">Connect Alpaca and TREK starts monitoring YOUR real portfolio immediately. Commission-free.</p>
+                <p className="text-sm font-bold text-white mb-2">{t('settings.unlockRealTrading', 'Unlock Real Trading')}</p>
+                <p className="text-xs text-white/60 mb-3">{t('settings.alpacaDesc', 'Connect Alpaca and TREK starts monitoring YOUR real portfolio immediately. Commission-free.')}</p>
 
                 <div className="space-y-1.5 mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">Zero hidden fees</p>
+                    <p className="text-xs text-white/70">{t('settings.feat1', 'Zero hidden fees')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">TREK analyzes your positions</p>
+                    <p className="text-xs text-white/70">{t('settings.feat2', 'TREK analyzes your positions')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">Real-time alerts on YOUR actual holdings</p>
+                    <p className="text-xs text-white/70">{t('settings.feat3', 'Real-time alerts on YOUR actual holdings')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">Takes 30 seconds</p>
+                    <p className="text-xs text-white/70">{t('settings.feat4', 'Takes 30 seconds')}</p>
                   </div>
                 </div>
 
@@ -192,18 +192,18 @@ export default function Settings({ onLogout }) {
                   onClick={() => navigate('/alpaca-connect')}
                   className="w-full px-4 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white mb-3"
                 >
-                  CONNECT ALPACA - FREE →
+                  {t('settings.connectAlpaca', 'CONNECT ALPACA - FREE →')}
                 </button>
 
                 <div className="text-center">
-                  <p className="text-[11px] text-white/40 mb-1">New to Alpaca?</p>
+                  <p className="text-[11px] text-white/40 mb-1">{t('settings.newToAlpaca', 'New to Alpaca?')}</p>
                   <a
                     href="https://alpaca.markets"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[11px] text-[#F59E0B] hover:underline"
                   >
-                    Create free account → Commission-free · Takes 5 min
+                    {t('settings.createAlpacaAccount', 'Create free account → Commission-free · Takes 5 min')}
                   </a>
                 </div>
               </div>
@@ -223,18 +223,18 @@ export default function Settings({ onLogout }) {
       {foundingMember && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }}
           className="rounded-xl border border-[#F59E0B]/20 bg-[#111118] p-5 space-y-4">
-          <SectionHeader title="REFERRAL PROGRAM" />
-          <p className="text-xs text-white/40 mb-3">Share TREDIO with friends. You both win.</p>
+          <SectionHeader title={t('settings.referralProgram', 'REFERRAL PROGRAM')} />
+          <p className="text-xs text-white/40 mb-3">{t('settings.referralDesc', 'Share TREDIO with friends. You both win.')}</p>
 
           <div className="rounded-lg p-3 mb-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">Friends referred</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">{t('settings.friendsReferred', 'Friends referred')}</span>
               <span className="text-lg font-black text-[#F59E0B]">{foundingMember.referral_count || 0}</span>
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-white/30 block mb-2">Your referral link</label>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-white/30 block mb-2">{t('settings.yourReferralLink', 'Your referral link')}</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -354,10 +354,10 @@ export default function Settings({ onLogout }) {
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
         <SectionHeader title={t('settings.notifications', 'Notifications')} />
         {[
-          { key: 'priceAlerts', label: t('settings.priceAlerts', 'Price Alerts'), desc: 'Get notified when price targets are hit' },
-          { key: 'trekSignals', label: t('settings.trekSignals', 'TREK Signals'), desc: 'Receive live AI trading signal alerts' },
-          { key: 'newsAlerts', label: t('settings.newsAlerts', 'News Alerts'), desc: 'Breaking market news and earnings updates' },
-          { key: 'earningsCalendar', label: t('settings.earningsCalendar', 'Earnings Calendar'), desc: 'Reminders before key earnings releases' },
+          { key: 'priceAlerts', label: t('settings.priceAlerts', 'Price Alerts'), desc: t('settings.priceAlertsDesc', 'Get notified when price targets are hit') },
+          { key: 'trekSignals', label: t('settings.trekSignals', 'TREK Signals'), desc: t('settings.trekSignalsDesc', 'Receive live AI trading signal alerts') },
+          { key: 'newsAlerts', label: t('settings.newsAlerts', 'News Alerts'), desc: t('settings.newsAlertsDesc', 'Breaking market news and earnings updates') },
+          { key: 'earningsCalendar', label: t('settings.earningsCalendar', 'Earnings Calendar'), desc: t('settings.earningsCalendarDesc', 'Reminders before key earnings releases') },
         ].map(({ key, label, desc }) => (
           <div key={key} className="flex items-center justify-between gap-4 py-2 border-b border-white/[0.04] last:border-0">
             <div>
@@ -512,7 +512,7 @@ export default function Settings({ onLogout }) {
           className="w-full py-3.5 rounded-xl font-black text-sm tracking-wide transition-all hover:opacity-90"
           style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff' }}
         >
-          Sign Out
+          {t('settings.signOut', 'Sign Out')}
         </button>
       </motion.div>
 

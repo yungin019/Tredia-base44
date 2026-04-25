@@ -12,9 +12,9 @@ export default function AlpacaConnect() {
   const [connecting, setConnecting] = React.useState(false);
 
   const FEATURES = [
-    { Icon: Zap, title: t('alpaca.feature1Title'), desc: t('alpaca.feature1Desc'), color: '#F59E0B' },
-    { Icon: BarChart3, title: t('alpaca.feature2Title'), desc: t('alpaca.feature2Desc'), color: '#3b82f6' },
-    { Icon: Bell, title: t('alpaca.feature3Title'), desc: t('alpaca.feature3Desc'), color: '#22c55e' },
+    { Icon: Zap, title: t('alpaca.feature1Title', 'One-tap trade execution'), desc: t('alpaca.feature1Desc', 'Execute TREK signals instantly from the app'), color: '#F59E0B' },
+    { Icon: BarChart3, title: t('alpaca.feature2Title', 'Real portfolio sync'), desc: t('alpaca.feature2Desc', 'TREK monitors your actual positions 24/7'), color: '#3b82f6' },
+    { Icon: Bell, title: t('alpaca.feature3Title', 'Smart price alerts'), desc: t('alpaca.feature3Desc', 'Get notified the moment your targets are hit'), color: '#22c55e' },
   ];
 
   const handleConnect = async () => {
@@ -40,9 +40,9 @@ export default function AlpacaConnect() {
         {/* Header */}
         <div className="text-center">
           <div className="text-3xl font-black tracking-[0.3em] text-[#F59E0B] mb-2">TREDIO</div>
-          <h1 className="text-2xl font-black text-white mb-1">{t('alpaca.connectTitle')}</h1>
+          <h1 className="text-2xl font-black text-white mb-1">{t('alpaca.connectTitle', 'Connect Your Broker')}</h1>
           <p className="text-sm text-white/40">
-            {t('alpaca.providedBy')} <span className="text-white/60 font-semibold">Alpaca Markets</span>
+            {t('alpaca.providedBy', 'Brokerage provided by')} <span className="text-white/60 font-semibold">Alpaca Markets</span>
           </p>
         </div>
 
@@ -51,9 +51,9 @@ export default function AlpacaConnect() {
           <div className="flex items-start gap-2.5">
             <Shield className="h-4 w-4 text-[#F59E0B] mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-[11px] font-bold text-[#F59E0B] mb-1">{t('alpaca.disclosureTitle')}</p>
+              <p className="text-[11px] font-bold text-[#F59E0B] mb-1">{t('alpaca.disclosureTitle', 'Brokerage Disclosure')}</p>
               <p className="text-[11px] text-white/50 leading-relaxed">
-                {t('alpaca.disclosureBody')}
+                {t('alpaca.disclosureBody', 'Securities brokerage services are provided by Alpaca Securities LLC, member FINRA/SIPC. TREDIO is not a registered investment advisor.')}
               </p>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function AlpacaConnect() {
             className="w-full py-4 rounded-xl font-black text-base tracking-wide transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}
           >
-            {connecting ? t('alpaca.connecting') : t('alpaca.connectBtn')}
+            {connecting ? t('alpaca.connecting', 'Connecting...') : t('alpaca.connectBtn', 'Connect Alpaca — Free')}
           </motion.button>
 
           <a
@@ -93,19 +93,19 @@ export default function AlpacaConnect() {
             rel="noopener noreferrer"
             className="flex items-center justify-center w-full py-3 rounded-xl font-bold text-sm border border-white/[0.1] text-white/60 hover:border-white/20 transition-colors"
           >
-            {t('alpaca.openAccount')}
+            {t('alpaca.openAccount', 'Open free Alpaca account')}
           </a>
 
           <button
             onClick={() => navigate('/Home')}
             className="w-full py-2.5 text-sm text-white/30 hover:text-white/50 transition-colors"
           >
-            {t('alpaca.practiceMode')}
+            {t('alpaca.practiceMode', 'Continue in paper trading mode')}
           </button>
         </div>
 
         <p className="text-[10px] text-white/20 text-center leading-relaxed">
-          {t('alpaca.legalNote')}
+          {t('alpaca.legalNote', 'Alpaca Securities LLC, member FINRA/SIPC. Investing involves risk. Past performance does not guarantee future results.')}
         </p>
       </motion.div>
     </div>

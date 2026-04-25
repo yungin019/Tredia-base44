@@ -191,13 +191,13 @@ export default function AIInsights() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="xl:col-span-2 flex flex-col gap-5">
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl border border-white/[0.07] bg-[#111118] flex flex-col items-center justify-center p-4 col-span-1">
-              <SentimentGauge value={fngValue ?? 50} label="Fear & Greed" />
+              <SentimentGauge value={fngValue ?? 50} label={t('ai.fearGreed', 'Fear & Greed')} />
             </div>
             <div className="rounded-xl border border-white/[0.07] bg-[#111118] flex flex-col items-center justify-center p-4 col-span-1">
-              <SentimentGauge value={engineSignals.filter(s => s.signal === 'BUY').length > engineSignals.filter(s => s.signal === 'SELL').length ? Math.min(75, (fngValue ?? 50) + 10) : Math.max(25, (fngValue ?? 50) - 10)} label="Equity Bias" />
+              <SentimentGauge value={engineSignals.filter(s => s.signal === 'BUY').length > engineSignals.filter(s => s.signal === 'SELL').length ? Math.min(75, (fngValue ?? 50) + 10) : Math.max(25, (fngValue ?? 50) - 10)} label={t('ai.equityBias', 'Equity Bias')} />
             </div>
             <div className="rounded-xl border border-white/[0.07] bg-[#111118] flex flex-col items-center justify-center p-4 col-span-1">
-              <SentimentGauge value={fngValue != null ? Math.max(10, Math.min(90, 100 - fngValue)) : 50} label="Risk-Off Pressure" />
+              <SentimentGauge value={fngValue != null ? Math.max(10, Math.min(90, 100 - fngValue)) : 50} label={t('ai.riskOffPressure', 'Risk-Off Pressure')} />
             </div>
           </div>
           <MarketScanner />
@@ -253,15 +253,15 @@ export default function AIInsights() {
             ) : (
               <div className="lg:col-span-2">
                 <div className="p-8 rounded-lg bg-white/[0.02] border border-white/[0.08] text-center">
-                  <p className="text-sm font-semibold text-white/70 mb-2">No active signals right now</p>
-                  <p className="text-xs text-white/40">TREK is monitoring markets. Signals appear when conditions align. Check back soon or pull to refresh.</p>
+                  <p className="text-sm font-semibold text-white/70 mb-2">{t('ai.noSignals', 'No active signals right now')}</p>
+                  <p className="text-xs text-white/40">{t('ai.noSignalsDesc', 'TREK is monitoring markets. Signals appear when conditions align. Check back soon or pull to refresh.')}</p>
                 </div>
               </div>
             )}
             {isFree && (
               <div className="lg:col-span-2 p-4 rounded-lg bg-white/[0.03] border border-primary/20 text-center">
                 <p className="text-xs text-white/40 mb-2">{t('ai.unlockSignals', 'Upgrade to unlock more signals')}</p>
-                <p className="text-[10px] text-white/25">Free: 3 signals · Pro: 6 signals · Elite: unlimited</p>
+                <p className="text-[10px] text-white/25">{t('ai.signalTiers', 'Free: 3 signals · Pro: 6 signals · Elite: unlimited')}</p>
               </div>
             )}
           </div>
