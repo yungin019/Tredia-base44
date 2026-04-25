@@ -91,6 +91,7 @@ export default function WatchlistPanel() {
         <span className="text-base">⭐</span>
         <h2 className="text-sm font-bold text-white/80">{t('nav.watchlist', 'My Watchlist')}</h2>
         <span className="text-[10px] text-white/25 ml-1">{items.length} {t('watchlist.assets', 'assets')}</span>
+
       </div>
 
       <AddWatchlistForm onAdd={(data) => addMutation.mutate(data)} />
@@ -103,8 +104,8 @@ export default function WatchlistPanel() {
 
       {!isLoading && items.length === 0 && (
         <div className="text-center py-10">
-          <p className="text-white/30 text-sm">{t('empty.watchlist')}</p>
-          <p className="text-white/15 text-xs mt-1">{t('empty.watchlistCta')}</p>
+          <p className="text-white/30 text-sm">{t('empty.watchlist', 'No assets on your watchlist yet')}</p>
+          <p className="text-white/15 text-xs mt-1">{t('empty.watchlistCta', 'Search for a symbol to add')}</p>
         </div>
       )}
 

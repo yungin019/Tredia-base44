@@ -81,8 +81,8 @@ export default function Home() {
   };
 
   const sentimentLabel = fearGreed
-    ? fearGreed.value >= 70 ? t('trek.greed') : fearGreed.value >= 50 ? t('common.neutral') : fearGreed.value >= 30 ? t('trek.fear') : t('trek.extremeFear')
-    : t('common.neutral');
+    ? fearGreed.value >= 70 ? t('trek.greed', 'Greed') : fearGreed.value >= 50 ? t('common.neutral', 'Neutral') : fearGreed.value >= 30 ? t('trek.fear', 'Fear') : t('trek.extremeFear', 'Extreme Fear')
+    : t('common.neutral', 'Neutral');
 
   return (
     <>

@@ -44,7 +44,7 @@ export default function Markets() {
       {/* Header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div className="min-w-0">
-          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1 truncate">{t('markets.title')}</h1>
+          <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1 truncate">{t('markets.title', 'Markets')}</h1>
           <p className="text-[11px] text-white/30 font-medium tracking-wide">Core assets + search 200+ universe</p>
         </div>
       </motion.div>
@@ -131,8 +131,8 @@ export default function Markets() {
       {/* Forex Tab */}
       {activeTab === 'forex' && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl p-8 text-center" style={{ background: 'rgba(8,16,36,0.55)', border: '1px solid rgba(100,220,255,0.09)' }}>
-          <p className="text-white/30 text-sm">{t('markets.forexComingSoon')}</p>
-          <p className="text-white/15 text-xs mt-2">{t('markets.forexAPIs')}</p>
+          <p className="text-white/30 text-sm">{t('markets.forexComingSoon', 'Forex coming soon')}</p>
+          <p className="text-white/15 text-xs mt-2">{t('markets.forexAPIs', 'Connecting live Forex APIs')}</p>
         </motion.div>
       )}
 

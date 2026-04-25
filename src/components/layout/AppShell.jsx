@@ -60,7 +60,8 @@ export default function AppShell({ onLogout }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [searchOpen]);
 
-  const NAV_ITEMS = NAV_CONFIG.map(nav => ({ ...nav, label: t(nav.translationKey) }));
+  const FALLBACKS = { 'nav.feed': 'Feed', 'nav.markets': 'Markets', 'nav.trek': 'TREK', 'nav.portfolio': 'Portfolio', 'nav.settings': 'Settings' };
+  const NAV_ITEMS = NAV_CONFIG.map(nav => ({ ...nav, label: t(nav.translationKey, FALLBACKS[nav.translationKey] || nav.translationKey) }));
   const isTabRoot = TAB_ROOTS.includes(location.pathname);
   const showBack = !isTabRoot && canGoBack();
 
@@ -131,7 +132,7 @@ export default function AppShell({ onLogout }) {
           <button onClick={() => setSearchOpen(true)}
             className="hidden sm:flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-muted-foreground cursor-pointer transition-colors tap-feedback min-h-[44px]">
             <Search className="h-3 w-3" />
-            <span>{t('common.search')}...</span>
+            <span>{t('common.search', 'Search')}...</span>
             <kbd className="text-[9px] bg-white/[0.06] px-1.5 py-0.5 rounded font-mono ml-2">&#8984;K</kbd>
           </button>
           <button onClick={() => setSearchOpen(true)}
@@ -143,7 +144,7 @@ export default function AppShell({ onLogout }) {
           <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border"
             style={{ background: 'rgba(245,158,11,0.07)', borderColor: 'rgba(245,158,11,0.2)', boxShadow: '0 0 16px rgba(245,158,11,0.06)' }}>
             <span className="h-1.5 w-1.5 rounded-full live-pulse" style={{ background: '#F59E0B' }} />
-            <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: '#F59E0B' }}>{t('common.intelligence')} {t('common.active')}</span>
+            <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: '#F59E0B' }}>{t('common.intelligence', 'Intelligence')} {t('common.active', 'Active')}</span>
           </div>
 
           {/* Live indicator */}

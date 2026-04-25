@@ -183,7 +183,7 @@ export default function TredioAssistant() {
     if (messages.length === 0) {
       setMessages([{
         role: 'assistant',
-        content: `${ctx.intro}\n\n${t('ai.askOrPick')}`,
+        content: `${ctx.intro}\n\n${t('ai.askOrPick', 'Ask me anything or pick a suggestion:')}`,
       }]);
     }
     setTimeout(() => inputRef.current?.focus(), 300);
@@ -266,7 +266,7 @@ Always end with a suggested next action or follow-up question.`;
             </div>
             <p className="text-[11px] text-white/70 leading-snug">{ctx.greeting}</p>
             <div className="flex items-center gap-1 mt-2 text-[10px] text-primary/70 font-bold">
-              {t('common.live')} <ChevronRight className="h-3 w-3" />
+              {t('common.live', 'Live')} <ChevronRight className="h-3 w-3" />
             </div>
           </motion.div>
         )}
@@ -326,7 +326,7 @@ Always end with a suggested next action or follow-up question.`;
                 <p className="text-[13px] font-black text-white/90">TREDIO AI</p>
                 <div className="flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse flex-shrink-0" />
-                  <span className="text-[10px] text-white/35 truncate">{t('ai.mentor')}</span>
+                  <span className="text-[10px] text-white/35 truncate">{t('ai.mentor', 'Your AI trading mentor')}</span>
                 </div>
               </div>
               <button
@@ -390,7 +390,7 @@ Always end with a suggested next action or follow-up question.`;
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder={t('ai.askPlaceholder')}
+                placeholder={t('ai.askPlaceholder', 'Ask TREK anything...')}
                 inputMode="text"
                 enterKeyHint="send"
                 autoComplete="off"

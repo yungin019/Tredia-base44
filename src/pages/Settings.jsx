@@ -98,7 +98,7 @@ export default function Settings({ onLogout }) {
     <div className="min-h-screen bg-background p-4 lg:p-6 max-w-2xl mx-auto space-y-6">
       <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="text-2xl font-black text-white/95 tracking-tight">
-        {t('settings.title')}
+        {t('settings.title', 'Settings')}
       </motion.h1>
 
       {/* TRADING STATUS */}
@@ -274,20 +274,20 @@ export default function Settings({ onLogout }) {
       {/* PROFILE */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-4">
-        <SectionHeader title={t('settings.profile')} />
+        <SectionHeader title={t('settings.profile', 'Profile')} />
         <div className="flex items-center gap-4">
           <div className="h-20 w-20 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center flex-shrink-0">
             <User className="h-9 w-9 text-white/25" />
           </div>
           <div className="flex-1 space-y-2">
             <div>
-              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.name')}</label>
+              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.name', 'Name')}</label>
               <div className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85">
                 {user?.full_name || '—'}
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.email')}</label>
+              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.email', 'Email')}</label>
               <div className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85">
                 {user?.email || '—'}
               </div>
@@ -298,7 +298,7 @@ export default function Settings({ onLogout }) {
         {/* AI Profile Summary */}
         {(user?.budget_range || user?.experience_level) && (
           <div className="pt-3 border-t border-white/[0.05]">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/25 mb-2">{t('settings.aiPersonalization')}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/25 mb-2">{t('settings.aiPersonalization', 'AI Personalization')}</p>
             <div className="flex flex-wrap gap-2">
               {user.budget_range && (
                 <span className="text-[10px] px-2 py-1 rounded-lg font-semibold"
@@ -352,12 +352,12 @@ export default function Settings({ onLogout }) {
       {/* NOTIFICATIONS */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
-        <SectionHeader title={t('settings.notifications')} />
+        <SectionHeader title={t('settings.notifications', 'Notifications')} />
         {[
-          { key: 'priceAlerts', label: t('settings.priceAlerts'), desc: 'Get notified when price targets are hit' },
-          { key: 'trekSignals', label: t('settings.trekSignals'), desc: 'Receive live AI trading signal alerts' },
-          { key: 'newsAlerts', label: t('settings.newsAlerts'), desc: 'Breaking market news and earnings updates' },
-          { key: 'earningsCalendar', label: t('settings.earningsCalendar'), desc: 'Reminders before key earnings releases' },
+          { key: 'priceAlerts', label: t('settings.priceAlerts', 'Price Alerts'), desc: 'Get notified when price targets are hit' },
+          { key: 'trekSignals', label: t('settings.trekSignals', 'TREK Signals'), desc: 'Receive live AI trading signal alerts' },
+          { key: 'newsAlerts', label: t('settings.newsAlerts', 'News Alerts'), desc: 'Breaking market news and earnings updates' },
+          { key: 'earningsCalendar', label: t('settings.earningsCalendar', 'Earnings Calendar'), desc: 'Reminders before key earnings releases' },
         ].map(({ key, label, desc }) => (
           <div key={key} className="flex items-center justify-between gap-4 py-2 border-b border-white/[0.04] last:border-0">
             <div>
@@ -372,7 +372,7 @@ export default function Settings({ onLogout }) {
       {/* ACCOUNT TIER */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-4">
-        <SectionHeader title={t('settings.subscription')} />
+        <SectionHeader title={t('settings.subscription', 'Subscription')} />
         <div className="flex items-center gap-3 mb-2">
           <span className={`text-xs font-black px-3 py-1 rounded-full tracking-widest uppercase ${
             tier === 'elite' ? 'bg-[#F59E0B]/15 border border-[#F59E0B]/40 text-[#F59E0B]' :
@@ -380,12 +380,12 @@ export default function Settings({ onLogout }) {
             'bg-white/[0.06] border border-white/[0.1] text-white/40'
           }`}
           style={tier === 'elite' ? { animation: 'eliteGoldGlow 2s ease-in-out infinite' } : {}}>
-            {tier ? tier.toUpperCase() : t('upgrade.free')}
+            {tier ? tier.toUpperCase() : t('upgrade.free', 'FREE')}
           </span>
-          <span className="text-xs text-white/25">{t('settings.current')}</span>
+          <span className="text-xs text-white/25">{t('settings.current', 'Current plan')}</span>
         </div>
         <ul className="space-y-2 mb-4">
-          {[t('settings.unlimited'), t('settings.realtimeAlerts'), t('settings.advancedAnalytics'), t('settings.prioritySupport')].map(f => (
+          {[t('settings.unlimited', 'Unlimited TREK signals'), t('settings.realtimeAlerts', 'Real-time price alerts'), t('settings.advancedAnalytics', 'Advanced analytics'), t('settings.prioritySupport', 'Priority support')].map(f => (
             <li key={f} className="flex items-center gap-2 text-sm text-white/50">
               <span style={{ color: '#F59E0B' }}>⚡</span>{f}
             </li>
@@ -411,22 +411,22 @@ export default function Settings({ onLogout }) {
             onClick={() => navigate('/Upgrade')}
             className="py-3 rounded-xl font-black text-sm tracking-wide transition-opacity hover:opacity-90"
             style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#0A0A0F' }}>
-            ⚡ {t('upgrade.upgrade')}
+            ⚡ {t('upgrade.upgrade', 'Upgrade')}
           </button>
           <button
             onClick={async () => {
               setRestoreMessage(null);
               const success = await restorePurchases();
               if (success) {
-                setRestoreMessage({ type: 'success', text: t('settings.restorePurchases') });
+                setRestoreMessage({ type: 'success', text: t('settings.restorePurchases', 'Purchases restored') });
               } else {
-                setRestoreMessage({ type: 'error', text: purchaseError || t('common.error') });
+                setRestoreMessage({ type: 'error', text: purchaseError || t('common.error', 'Something went wrong') });
               }
             }}
             disabled={purchaseInProgress}
             className="py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55 disabled:opacity-50"
-            title={t('settings.restorePurchases')}>
-            {purchaseInProgress ? t('common.loading') : t('settings.restorePurchases')}
+            title={t('settings.restorePurchases', 'Restore Purchases')}>
+            {purchaseInProgress ? t('common.loading', 'Loading...') : t('settings.restorePurchases', 'Restore Purchases')}
           </button>
         </div>
       </motion.div>
@@ -434,7 +434,7 @@ export default function Settings({ onLogout }) {
       {/* LANGUAGE */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
-       <SectionHeader title={t('settings.language')} />
+       <SectionHeader title={t('settings.language', 'Language')} />
        <div className="space-y-3">
          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
            {[
@@ -484,7 +484,7 @@ export default function Settings({ onLogout }) {
            ))}
          </div>
          <p style={{ color: '#6b7280', fontSize: '11px', marginTop: '8px', lineHeight: '1.4' }}>
-           {t('settings.languageNote')}
+           {t('settings.languageNote', 'App language will update immediately.')}
          </p>
        </div>
       </motion.div>
@@ -518,14 +518,14 @@ export default function Settings({ onLogout }) {
 
       {/* VERSION */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="text-center pb-4">
-        <span className="text-xs text-white/25 font-mono">{t('settings.version')}</span>
+        <span className="text-xs text-white/25 font-mono">{t('settings.version', 'TREDIO v1.0')}</span>
       </motion.div>
 
       {/* DANGER ZONE — Account Deletion */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
         className="pb-8"
         style={{ borderTop: '1px solid rgba(239,68,68,0.15)', paddingTop: '24px' }}>
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'rgba(239,68,68,0.5)' }}>{t('settings.dangerZone')}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'rgba(239,68,68,0.5)' }}>{t('settings.dangerZone', 'Danger Zone')}</p>
           <button
             onClick={() => setDeleteModal(true)}
             style={{
@@ -541,9 +541,9 @@ export default function Settings({ onLogout }) {
               touchAction: 'manipulation',
             }}
           >
-            {t('settings.deleteAccount')}
+            {t('settings.deleteAccount', 'Delete Account')}
           </button>
-          <p className="text-[10px] text-white/20 text-center mt-2">{t('settings.deleteAccountWarning')}</p>
+          <p className="text-[10px] text-white/20 text-center mt-2">{t('settings.deleteAccountWarning', 'Permanently delete your account and all associated data')}</p>
       </motion.div>
 
       {deleteModal && (

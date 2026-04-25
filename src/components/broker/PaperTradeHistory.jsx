@@ -46,8 +46,8 @@ export default function PaperTradeHistory() {
       {(!Array.isArray(trades) || trades.length === 0) ? (
         <div className="p-12 text-center">
           <Clock className="h-10 w-10 text-white/8 mx-auto mb-3" />
-          <p className="text-[12px] text-white/20">{t('empty.orderHistory')}</p>
-          <p className="text-[10px] text-white/15 mt-1">{t('empty.orderHistoryCta')}</p>
+          <p className="text-[12px] text-white/20">{t('empty.orderHistory', 'No trades yet')}</p>
+          <p className="text-[10px] text-white/15 mt-1">{t('empty.orderHistoryCta', 'Make your first paper trade above')}</p>
         </div>
       ) : (
         <div className="overflow-x-auto">

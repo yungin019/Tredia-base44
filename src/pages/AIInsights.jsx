@@ -92,15 +92,15 @@ export default function AIInsights() {
 
   const generateTrekInsight = (fng, signals) => {
     if (!fng && (!signals || signals.length === 0)) return null;
-    const fngLabel = fng > 75 ? t('trek.extremeGreed') :
-                     fng > 55 ? t('trek.greed') :
-                     fng > 45 ? t('common.neutral') :
-                     fng > 25 ? t('trek.fear') : t('trek.extremeFear');
+    const fngLabel = fng > 75 ? t('trek.extremeGreed', 'Extreme Greed') :
+                     fng > 55 ? t('trek.greed', 'Greed') :
+                     fng > 45 ? t('common.neutral', 'Neutral') :
+                     fng > 25 ? t('trek.fear', 'Fear') : t('trek.extremeFear', 'Extreme Fear');
     const topBuy = signals?.find(s => s.signal === 'BUY');
     const topSell = signals?.find(s => s.signal === 'SELL');
-    return `${t('trek.marketsAt')} ${fngLabel} (${fng}/100). ` +
-      (topBuy ? `${t('trek.bestSetup')}: ${topBuy.symbol} — ${topBuy.oneLiner} ` : '') +
-      (topSell ? `${t('trek.watch')}: ${topSell.symbol} ${t('trek.showingRiskSignals')}.` : '');
+    return `${t('trek.marketsAt', 'Markets at')} ${fngLabel} (${fng}/100). ` +
+      (topBuy ? `${t('trek.bestSetup', 'Best setup')}: ${topBuy.symbol} — ${topBuy.oneLiner} ` : '') +
+      (topSell ? `${t('trek.watch', 'Watch')}: ${topSell.symbol} ${t('trek.showingRiskSignals', 'showing risk signals')}.` : '');
   };
 
   const fetchSignals = async () => {
@@ -140,15 +140,15 @@ export default function AIInsights() {
       {/* AI Context Banner */}
       <ContextBanner
         storageKey="ai_insights_v1"
-        title={t('ai.contextTitle')}
-        body={t('ai.contextBody')}
+        title={t('ai.contextTitle', 'TREK Intelligence')}
+        body={t('ai.contextBody', 'TREK monitors global markets 24/7 and surfaces actionable signals.')}
         steps={[
-          t('ai.contextStep1'),
-          t('ai.contextStep2'),
-          t('ai.contextStep3'),
+          t('ai.contextStep1', 'Review live signals below'),
+          t('ai.contextStep2', 'Ask TREK anything in the chat'),
+          t('ai.contextStep3', 'Use Super AI for deep analysis'),
         ]}
-        actions={[{ label: t('ai.contextAction'), onClick: () => {} }]}
-        aiQuestion={t('ai.contextQuestion')}
+        actions={[{ label: t('ai.contextAction', 'Got it'), onClick: () => {} }]}
+        aiQuestion={t('ai.contextQuestion', 'What are the top signals right now?')}
       />
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
@@ -157,14 +157,14 @@ export default function AIInsights() {
             <Brain className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-white/95 tracking-tight leading-none">{t('ai.title')}</h1>
-            <p className="text-[11px] text-white/30 font-medium mt-0.5">{t('ai.subtitle')}</p>
+            <h1 className="text-2xl font-black text-white/95 tracking-tight leading-none">{t('ai.title', 'TREK Intelligence')}</h1>
+            <p className="text-[11px] text-white/30 font-medium mt-0.5">{t('ai.subtitle', 'AI-powered market signals')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-1.5">
           <span className="h-2 w-2 rounded-full bg-chart-3 animate-pulse flex-shrink-0" />
-          <span className="text-[9px] font-mono font-bold text-white/40 uppercase tracking-wider">{t('common.live')}</span>
-          <span className="text-[9px] text-white/20 hidden sm:block">· {t('ai.updatesEvery')}</span>
+          <span className="text-[9px] font-mono font-bold text-white/40 uppercase tracking-wider">{t('common.live', 'LIVE')}</span>
+          <span className="text-[9px] text-white/20 hidden sm:block">· {t('ai.updatesEvery', 'Updates every 5m')}</span>
           {lastUpdatedLabel && (
             <span className="text-[9px] text-white/20 hidden md:block">· {lastUpdatedLabel}</span>
           )}
@@ -219,7 +219,7 @@ export default function AIInsights() {
         >
           <div style={{ color: fngValue !== null && fngValue > 75 ? '#EF4444' : '#F59E0B', fontWeight: 800, fontSize: 11, marginBottom: 6, letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: fngValue !== null && fngValue > 75 ? '#EF4444' : '#F59E0B', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
-            ⚡ {t('trek.wow')} · {fngValue !== null ? `FNG ${fngValue}` : t('common.loading')} · {lastUpdated ? lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            ⚡ {t('trek.wow', 'TREK NOW')} · {fngValue !== null ? `FNG ${fngValue}` : t('common.loading', 'Loading...')} · {lastUpdated ? lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
           <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, lineHeight: 1.6, fontWeight: 500 }}>
             {trekInsight}
@@ -233,9 +233,9 @@ export default function AIInsights() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="xl:col-span-2">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[11px] font-bold text-white/50 uppercase tracking-[0.12em]">{t('ai.signal_feed')}</h2>
+            <h2 className="text-[11px] font-bold text-white/50 uppercase tracking-[0.12em]">{t('ai.signal_feed', 'Signal Feed')}</h2>
             <span className="text-[9px] font-mono text-white/20">
-              {engineLoading ? t('ai.fetchingLiveData') : `${engineSignals.length} ${t('ai.liveSignals')} · ${lastUpdatedLabel || t('common.now')}`}
+              {engineLoading ? t('ai.fetchingLiveData', 'Fetching live data...') : `${engineSignals.length} ${t('ai.liveSignals', 'live signals')} · ${lastUpdatedLabel || t('common.now', 'now')}`}
             </span>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -260,7 +260,7 @@ export default function AIInsights() {
             )}
             {isFree && (
               <div className="lg:col-span-2 p-4 rounded-lg bg-white/[0.03] border border-primary/20 text-center">
-                <p className="text-xs text-white/40 mb-2">{t('ai.unlockSignals')}</p>
+                <p className="text-xs text-white/40 mb-2">{t('ai.unlockSignals', 'Upgrade to unlock more signals')}</p>
                 <p className="text-[10px] text-white/25">Free: 3 signals · Pro: 6 signals · Elite: unlimited</p>
               </div>
             )}

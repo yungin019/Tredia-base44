@@ -182,7 +182,7 @@ export default function AIChat() {
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05]">
         <TrekAvatar size={6} />
-        <span className="text-[11px] font-bold text-white/80">{t('trek.askTrek')}</span>
+        <span className="text-[11px] font-bold text-white/80">{t('trek.askTrek', 'Ask TREK')}</span>
         {tier === 'free' && (
           <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ml-1 tracking-wider"
             style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}>
@@ -203,7 +203,7 @@ export default function AIChat() {
         )}
         {messages.length > 0 && (
           <button onClick={handleClear} className="ml-auto flex items-center gap-1 text-[9px] text-white/25 hover:text-white/50 transition-colors">
-            <RotateCcw className="h-3 w-3" /> {t('common.clear')}
+          <RotateCcw className="h-3 w-3" /> {t('common.clear', 'Clear')}
           </button>
         )}
       </div>
@@ -214,7 +214,7 @@ export default function AIChat() {
           <div className="flex flex-col items-center justify-center h-28 gap-2">
             <Sparkles className="h-6 w-6 text-primary/30" />
             <>
-              <p className="text-[11px] text-white/20 text-center">{t('trek.askAbout')}</p>
+              <p className="text-[11px] text-white/20 text-center">{t('trek.askAbout', 'Ask about any market, stock or signal')}</p>
                <div className="flex flex-wrap gap-1.5 justify-center mt-2">
                  {SUGGESTED_KEYS.map(key => (
                    <button
@@ -265,7 +265,7 @@ export default function AIChat() {
                 <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }} style={{ color: '#F59E0B' }}>●</motion.span>
                 <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }} style={{ color: '#F59E0B' }}>●</motion.span>
               </div>
-              <span className="text-[10px] text-white/30">{t('trek.analyzing')}</span>
+              <span className="text-[10px] text-white/30">{t('trek.analyzing', 'Analyzing...')}</span>
             </div>
           </motion.div>
         )}
@@ -281,17 +281,17 @@ export default function AIChat() {
       <div className="sticky bottom-0 px-4 py-3 border-t border-white/[0.05] bg-[#0e0e16] safe-bottom">
         {tier === 'free' && (
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: 8, background: 'rgba(245,158,11,0.1)', borderRadius: 6, padding: '6px' }}>
-            {t('chat.questionsRemaining', { used: questionsToday, total: FREE_LIMIT })}
+            {t('chat.questionsRemaining', 'TREK Chat: {{used}}/{{total}} questions today', { used: questionsToday, total: FREE_LIMIT })}
           </div>
         )}
         {tier === 'pro' && (
           <div style={{ fontSize: 10, color: 'rgba(34,197,94,0.6)', textAlign: 'center', marginBottom: 8, background: 'rgba(34,197,94,0.08)', borderRadius: 6, padding: '6px' }}>
-            {t('chat.unlimited')}
+            {t('chat.unlimited', 'TREK Chat: Unlimited')}
           </div>
         )}
         <div className="flex gap-2">
           <Input
-            placeholder={t('trek.askAboutAnything')}
+            placeholder={t('trek.askAboutAnything', 'Ask TREK anything...')}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !loading && send()}
@@ -333,7 +333,7 @@ export default function AIChat() {
           </Button>
         </div>
         <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: 6 }}>
-          ⚡ TREK (Claude) · <span style={{ color: 'rgba(245,158,11,0.5)' }}>⚡ = Super AI (3 models)</span> · {t('trek.disclaimer')}
+          ⚡ TREK (Claude) · <span style={{ color: 'rgba(245,158,11,0.5)' }}>⚡ = Super AI (3 models)</span> · {t('trek.disclaimer', 'Not financial advice')}
         </p>
       </div>
     </div>
