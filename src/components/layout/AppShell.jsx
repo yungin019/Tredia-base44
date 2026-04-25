@@ -4,6 +4,7 @@ import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search, ChevronLeft }
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import TredioAssistant from '@/components/ai/TredioAssistant';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import NotificationsPanel from '@/components/ui/NotificationsPanel';
 import SearchModal from '@/components/ui/SearchModal';
 import GlobalAssetSearch from '@/components/ui/GlobalAssetSearch';
@@ -22,6 +23,7 @@ const TAB_ROOTS = NAV_CONFIG.map(n => n.path);
 export default function AppShell({ onLogout }) {
   const location = useLocation();
   const { t } = useTranslation();
+  const { isElite } = useSubscriptionStatus();
   const { switchTab, goBack, canGoBack, getTabForPath, syncExternalNavigation } = useNavigation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -140,12 +142,14 @@ export default function AppShell({ onLogout }) {
             <Search className="h-4 w-4 text-white/50" />
           </button>
 
-          {/* Elite badge */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border"
-            style={{ background: 'rgba(245,158,11,0.07)', borderColor: 'rgba(245,158,11,0.2)', boxShadow: '0 0 16px rgba(245,158,11,0.06)' }}>
-            <span className="h-1.5 w-1.5 rounded-full live-pulse" style={{ background: '#F59E0B' }} />
-            <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: '#F59E0B' }}>{t('common.intelligence', 'Intelligence')} {t('common.active', 'Active')}</span>
-          </div>
+          {/* Elite badge — only for elite subscribers */}
+          {isElite && (
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border"
+              style={{ background: 'rgba(245,158,11,0.07)', borderColor: 'rgba(245,158,11,0.2)', boxShadow: '0 0 16px rgba(245,158,11,0.06)' }}>
+              <span className="h-1.5 w-1.5 rounded-full live-pulse" style={{ background: '#F59E0B' }} />
+              <span className="text-[10px] font-mono font-bold tracking-wider" style={{ color: '#F59E0B' }}>ELITE</span>
+            </div>
+          )}
 
           {/* Live indicator */}
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-chart-3/8 border border-chart-3/15">

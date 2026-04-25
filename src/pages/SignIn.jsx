@@ -38,8 +38,8 @@ export default function SignIn() {
         setStep('verify');
       } else {
         await base44.auth.loginViaEmailPassword(email, password);
-        await initProfile();
-        window.location.href = '/Home';
+        const needsOnboarding = await initProfile();
+        window.location.href = needsOnboarding ? '/Onboarding' : '/Home';
       }
     } catch (err) {
       setError(err?.message || t('error.serverError'));
@@ -49,16 +49,21 @@ export default function SignIn() {
   };
 
   // After login, initialize profile fields if first time
+  // Returns true if this is a brand new user who needs onboarding
   const initProfile = async () => {
     try {
       const u = await base44.auth.me();
-      if (!u) return;
+      if (!u) return false;
       const updates = {};
       if (!u.broker_status) updates.broker_status = 'not_connected';
       if (!u.trading_mode) updates.trading_mode = 'practice';
       if (!u.referral_code) updates.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      // Always default new users to free — never elite/pro
+      if (!u.subscription_tier) updates.subscription_tier = 'free';
       if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates);
+      return !u.onboarding_completed;
     } catch { /* non-fatal */ }
+    return false;
   };
 
   const handleVerify = async (e) => {
@@ -75,13 +80,15 @@ export default function SignIn() {
           full_name: name || undefined,
           broker_status: 'not_connected',
           trading_mode: 'practice',
+          subscription_tier: 'free',
           referral_code: 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase(),
         };
         // Remove undefined keys
         Object.keys(updates).forEach(k => updates[k] === undefined && delete updates[k]);
         await base44.auth.updateMe(updates);
       } catch { /* non-fatal */ }
-      window.location.href = '/Home';
+      // New registrations always go to onboarding
+      window.location.href = '/Onboarding';
     } catch (err) {
       setError(err?.message || t('signin.error.invalidCode'));
     } finally {

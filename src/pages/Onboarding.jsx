@@ -360,7 +360,11 @@ export default function Onboarding() {
                 <p className="text-xs text-white/25 mb-8">{t('onboarding.ready.note')}</p>
 
                 <button
-                  onClick={() => navigate('/Home')}
+                  onClick={async () => {
+                    // Ensure onboarding_completed is set before navigating
+                    try { await base44.auth.updateMe({ onboarding_completed: true }); } catch {}
+                    window.location.href = '/Home';
+                  }}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
                   {t('onboarding.ready.enterBtn')} <ArrowRight className="h-4 w-4" />
@@ -392,7 +396,10 @@ export default function Onboarding() {
                 </div>
 
                 <button
-                  onClick={() => navigate('/Home')}
+                  onClick={async () => {
+                    try { await base44.auth.updateMe({ onboarding_completed: true }); } catch {}
+                    window.location.href = '/Home';
+                  }}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
                   {t('onboarding.ready.enterBtn')} <ArrowRight className="h-4 w-4" />
