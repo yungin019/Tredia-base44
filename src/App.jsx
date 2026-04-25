@@ -74,16 +74,12 @@ const AppRoutes = ({ user, onLogout }) => {
     );
   }
 
-  // Gate: if user hasn't completed onboarding, force them there
   const needsOnboarding = !user.onboarding_completed;
-  const onboardingPaths = ['/Onboarding', '/OnboardingQuick', '/alpaca-callback', '/SplashScreen'];
-  const isOnboardingPath = onboardingPaths.some(p => location.pathname.startsWith(p));
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* If onboarding not done, redirect everything to Onboarding */}
-        <Route path="/" element={needsOnboarding ? <Navigate to="/Onboarding" replace /> : <Navigate to="/Home" replace />} />
+        <Route path="/" element={<Navigate to={needsOnboarding ? "/Onboarding" : "/Home"} replace />} />
         <Route path="/SignIn" element={<Navigate to={needsOnboarding ? "/Onboarding" : "/Home"} replace />} />
         <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
         <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
@@ -92,7 +88,7 @@ const AppRoutes = ({ user, onLogout }) => {
         <Route path="/alpaca-connect" element={<PageTransition><AlpacaConnect /></PageTransition>} />
         <Route path="/alpaca-callback" element={<AlpacaCallback />} />
         <Route path="/trek-portfolio-welcome" element={<PageTransition><TrekPortfolioWelcome /></PageTransition>} />
-        {/* If onboarding not done, all main app routes redirect to Onboarding */}
+        {/* All main app routes — redirect to onboarding if not completed */}
         <Route element={needsOnboarding ? <Navigate to="/Onboarding" replace /> : <AppShell onLogout={onLogout} />}>
           <Route path="/Home" element={<PageTransition><Home /></PageTransition>} />
           <Route path="/Dashboard" element={<Navigate to="/Home" replace />} />
