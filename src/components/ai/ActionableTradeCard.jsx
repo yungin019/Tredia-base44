@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, Info, AlertCircle, TrendingUp } from 'lucide-react';
+import { ChevronRight, Info, AlertCircle, TrendingUp, Share2, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 import ExplanationModal from '@/components/ui/ExplanationModal';
 
 export default function ActionableTradeCard({
@@ -14,14 +16,41 @@ export default function ActionableTradeCard({
   keyRisk = 'Earnings miss could trigger 8–12% pullback',
   whatToWatchFor = 'Watch NVIDIA earnings guidance and AI demand signals',
   bestTimeframe = 'Swing trade: 2–4 weeks',
+  bullishReasoning = '',
+  bearishReasoning = '',
+  assetType = 'STOCK',
 }) {
   const navigate = useNavigate();
   const [showExplanation, setShowExplanation] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   const isGreen = action === 'BUY';
   const color = isGreen ? 'text-success' : 'text-destructive';
   const bg = isGreen ? 'bg-success/10' : 'bg-destructive/10';
   const borderColor = isGreen ? 'border-success/25' : 'border-destructive/25';
+
+  const handleShareToDiscord = async (e) => {
+    e.stopPropagation();
+    setSharing(true);
+    try {
+      await base44.functions.invoke('discordWebhook', {
+        symbol,
+        action,
+        confidence,
+        reason,
+        bullishReasoning: bullishReasoning || reason,
+        bearishReasoning: bearishReasoning || keyRisk,
+        assetType,
+        isAutoTrek: false,
+      });
+      toast.success(`Signal shared to Discord!`);
+    } catch (error) {
+      console.error('Share error:', error);
+      toast.error('Failed to share signal');
+    } finally {
+      setSharing(false);
+    }
+  };
 
   const explanationData = {
     whatItMeans: `TREK recommends ${action}ing ${symbol} because ${reason.toLowerCase()}. This is a high-conviction signal based on AI analysis of market data, sentiment, and technicals.`,
@@ -125,10 +154,24 @@ export default function ActionableTradeCard({
           {bestTimeframe}
         </div>
 
-        {/* CTA */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-foreground">View Full Plan</span>
-          <ChevronRight className="w-4 h-4 text-foreground/40 group-hover:translate-x-0.5 transition-transform" />
+        {/* CTA and Share */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-foreground">View Full Plan</span>
+            <ChevronRight className="w-4 h-4 text-foreground/40 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+          <button
+            onClick={handleShareToDiscord}
+            disabled={sharing}
+            className="p-1.5 rounded-lg hover:bg-white/5 transition-colors disabled:opacity-50"
+            title="Share to Discord"
+          >
+            {sharing ? (
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            ) : (
+              <Share2 className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
+            )}
+          </button>
         </div>
       </motion.button>
     </>

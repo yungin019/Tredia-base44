@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Lock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Zap, Lock, ChevronDown, ChevronUp, Share2, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 const SIGNAL_COLORS = {
   BUY:   { color: '#22c55e', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.25)' },
@@ -136,8 +138,32 @@ function LockedCard() {
   );
 }
 
-export function SuperAICard({ result, isElite = false }) {
+export function SuperAICard({ result, isElite = false, assetType = 'STOCK' }) {
   const [expanded, setExpanded] = useState(false);
+  const [sharing, setSharing] = useState(false);
+
+  const handleShareToDiscord = async (e) => {
+    e.stopPropagation();
+    setSharing(true);
+    try {
+      await base44.functions.invoke('discordWebhook', {
+        symbol: result?.symbol || 'UNKNOWN',
+        action: result?.finalSignal || 'HOLD',
+        confidence: result?.confidence || 0,
+        reason: result?.oneLiner || result?.synthesis || 'Multi-model consensus signal',
+        bullishReasoning: result?.synthesis?.split('bullish')[1]?.split('bearish')[0]?.trim() || result?.oneLiner || '',
+        bearishReasoning: result?.synthesis?.split('bearish')[1]?.trim() || '',
+        assetType,
+        isAutoTrek: false,
+      });
+      toast.success(`Signal shared to Discord!`);
+    } catch (error) {
+      console.error('Share error:', error);
+      toast.error('Failed to share signal');
+    } finally {
+      setSharing(false);
+    }
+  };
 
   if (!isElite) return <LockedCard />;
 
@@ -151,14 +177,28 @@ export function SuperAICard({ result, isElite = false }) {
     <div style={{ background: '#111118', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 16, padding: 16, position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, #F59E0B, transparent)', opacity: 0.7 }} />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Zap style={{ width: 14, height: 14, color: '#F59E0B' }} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Zap style={{ width: 14, height: 14, color: '#F59E0B' }} />
+          </div>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 900, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Super AI</p>
+            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Multi-Model Consensus</p>
+          </div>
         </div>
-        <div>
-          <p style={{ fontSize: 11, fontWeight: 900, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Super AI</p>
-          <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Multi-Model Consensus</p>
-        </div>
+        <button
+          onClick={handleShareToDiscord}
+          disabled={sharing}
+          style={{ background: 'none', border: 'none', cursor: sharing ? 'not-allowed' : 'pointer', padding: '6px 8px', opacity: sharing ? 0.5 : 1 }}
+          title="Share to Discord"
+        >
+          {sharing ? (
+            <Loader2 style={{ width: 14, height: 14, color: '#F59E0B', animation: 'spin 1s linear infinite' }} />
+          ) : (
+            <Share2 style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.4)', transition: 'color 0.2s' }} />
+          )}
+        </button>
       </div>
 
       <div style={{ marginBottom: 14 }}>
