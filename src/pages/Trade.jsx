@@ -123,6 +123,7 @@ function TrekPreTradeModal({ orderData, analysis, loading, onExecute, onCancel }
 
 export default function Trade() {
   const [isLive, setIsLive] = useState(false);
+  const [alpacaConnected, setAlpacaConnected] = useState(false);
   const [account, setAccount] = useState(null);
   const [positions, setPositions] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -134,13 +135,23 @@ export default function Trade() {
   const [trekAnalysis, setTrekAnalysis] = useState(null);
   const [trekLoading, setTrekLoading] = useState(false);
 
+  // Check if user has Alpaca connected
+  useEffect(() => {
+    base44.auth.me().then(u => {
+      const connected = u?.alpaca_connected === true && !!u?.alpaca_access_token;
+      setAlpacaConnected(connected);
+      // Auto-switch to live if connected
+      if (connected) setIsLive(true);
+    }).catch(() => {});
+  }, []);
+
   const fetchAccount = useCallback(async () => {
     if (!isLive) return;
     setLoadingAccount(true);
     try {
-      const res = await base44.functions.invoke('alpacaAccount', { endpoint: 'account' });
+      const res = await base44.functions.invoke('alpacaAccount', { endpoint: 'account', is_live: true });
       if (res.data?.error) throw new Error(res.data.error);
-      setAccount(res.data);
+      setAccount(res.data?.data || res.data);
     } catch (e) {
       toast.error('Failed to load account: ' + e.message);
     }
@@ -151,9 +162,10 @@ export default function Trade() {
     if (!isLive) return;
     setLoadingPositions(true);
     try {
-      const res = await base44.functions.invoke('alpacaAccount', { endpoint: 'positions' });
+      const res = await base44.functions.invoke('alpacaAccount', { endpoint: 'positions', is_live: true });
       if (res.data?.error) throw new Error(res.data.error);
-      setPositions(Array.isArray(res.data) ? res.data : []);
+      const d = res.data?.data ?? res.data;
+      setPositions(Array.isArray(d) ? d : []);
     } catch (e) {
       toast.error('Failed to load positions: ' + e.message);
     }
@@ -164,9 +176,10 @@ export default function Trade() {
     if (!isLive) return;
     setLoadingOrders(true);
     try {
-      const res = await base44.functions.invoke('alpacaAccount', { endpoint: 'orders', status: 'all', limit: 50 });
+      const res = await base44.functions.invoke('alpacaAccount', { endpoint: 'orders', is_live: true });
       if (res.data?.error) throw new Error(res.data.error);
-      setOrders(Array.isArray(res.data) ? res.data : []);
+      const d = res.data?.data ?? res.data;
+      setOrders(Array.isArray(d) ? d : []);
     } catch (e) {
       toast.error('Failed to load orders: ' + e.message);
     }
@@ -240,24 +253,46 @@ export default function Trade() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-black text-white/90 tracking-tight">Trade</h1>
-            <p className="text-[11px] text-white/30 mt-0.5">
-              {isLive ? 'Live brokerage via Alpaca' : 'Paper trading — simulated'}
-            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              {isLive ? (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
+                  <p className="text-[11px] text-chart-3 font-semibold">Live Trading via Alpaca</p>
+                </>
+              ) : (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-white/25" />
+                  <p className="text-[11px] text-white/30">Paper Trading — simulated, no real money</p>
+                </>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.07] rounded-xl p-1">
-            {['Paper', 'Live'].map((mode) => {
-              const active = (mode === 'Live') === isLive;
-              return (
-                <button
-                  key={mode}
-                  onClick={() => setIsLive(mode === 'Live')}
-                  className={'px-4 py-1.5 rounded-lg text-[11px] font-black tracking-wide transition-all ' + (active ? (mode === 'Live' ? 'bg-chart-3 text-black' : 'bg-primary text-black') : 'text-white/30 hover:text-white/60')}
-                >
-                  {mode === 'Live' && active && <span className="inline-block h-1.5 w-1.5 rounded-full bg-black mr-1.5 live-pulse" />}
-                  {mode}
-                </button>
-              );
-            })}
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.07] rounded-xl p-1">
+              {['Paper', 'Live'].map((mode) => {
+                const active = (mode === 'Live') === isLive;
+                const disabled = mode === 'Live' && !alpacaConnected;
+                return (
+                  <button
+                    key={mode}
+                    onClick={() => {
+                      if (disabled) {
+                        toast.error('Connect your Alpaca account in Settings → Broker to enable live trading');
+                        return;
+                      }
+                      setIsLive(mode === 'Live');
+                    }}
+                    className={'px-4 py-1.5 rounded-lg text-[11px] font-black tracking-wide transition-all ' + (active ? (mode === 'Live' ? 'bg-chart-3 text-black' : 'bg-primary text-black') : disabled ? 'text-white/15 cursor-not-allowed' : 'text-white/30 hover:text-white/60')}
+                  >
+                    {mode === 'Live' && active && <span className="inline-block h-1.5 w-1.5 rounded-full bg-black mr-1.5 live-pulse" />}
+                    {mode}
+                  </button>
+                );
+              })}
+            </div>
+            {!alpacaConnected && (
+              <span className="text-[9px] text-white/20">Connect Alpaca in Settings to go live</span>
+            )}
           </div>
         </div>
 

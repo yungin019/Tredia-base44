@@ -61,9 +61,11 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
           time_in_force: preview.tif,
           limit_price: preview.limitPrice ? parseFloat(preview.limitPrice) : undefined,
           stop_price: preview.stopPrice ? parseFloat(preview.stopPrice) : undefined,
+          is_live: true,  // ← use user's OAuth token → api.alpaca.markets
         });
         if (res.data?.error) throw new Error(res.data.error);
-        toast.success(`🚀 ${action.toUpperCase()} ${preview.qty} ${preview.symbol} — ${preview.orderType.toUpperCase()} order submitted`);
+        const order = res.data?.order;
+        toast.success(`🚀 ${action.toUpperCase()} ${preview.qty} ${preview.symbol} — ${(order?.type || preview.orderType).toUpperCase()} order submitted to Alpaca`);
       } else {
         const price = preview.limitPrice ? parseFloat(preview.limitPrice) : (preview.marketPrice || +(Math.random() * 200 + 50).toFixed(2));
         const newTrade = {

@@ -20,7 +20,7 @@ const cancellable = ['new', 'pending_new', 'accepted', 'open', 'partially_filled
 export default function OrdersHistory({ orders, onRefresh, loading }) {
   const handleCancel = async (orderId) => {
     try {
-      const res = await base44.functions.invoke('alpacaAccount', { endpoint: 'cancel_order', order_id: orderId });
+      const res = await base44.functions.invoke('alpacaAccount', { endpoint: 'cancel_order', order_id: orderId, is_live: true });
       if (res.data?.success) {
         toast.success('Order cancelled');
         onRefresh?.();
