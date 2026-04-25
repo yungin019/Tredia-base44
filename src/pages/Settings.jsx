@@ -553,18 +553,20 @@ export default function Settings({ onLogout }) {
           onConfirm={async () => {
             setDeleteLoading(true);
             try {
-              // Purge all user data from backend before logging out
-              await base44.functions.invoke('deleteUserData', {});
-            } catch {
-              // Best-effort — proceed with logout even if purge fails
-            }
-            try {
+              // Fully delete account including auth record (Apple App Store requirement)
+              const result = await base44.functions.invoke('deleteUserData', {});
+              if (result?.data?.error) {
+                throw new Error(result.data.error);
+              }
+              // Clear all local state and storage
               localStorage.clear();
-              await base44.auth.logout('/SignIn');
-            } catch {
-              window.location.href = '/SignIn';
+              sessionStorage.clear();
+              // Redirect to sign-in with deletion confirmation
+              window.location.href = '/SignIn?deleted=1';
+            } catch (err) {
+              setDeleteLoading(false);
+              alert('Failed to delete account: ' + (err?.message || 'Unknown error. Please try again.'));
             }
-            setDeleteLoading(false);
           }}
         />
       )}

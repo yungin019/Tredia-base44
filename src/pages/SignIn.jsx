@@ -10,6 +10,7 @@ const APPLE_SIGNIN_ENABLED = true;
 export default function SignIn() {
   const { t } = useTranslation();
   const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const accountDeleted = new URLSearchParams(window.location.search).get('deleted') === '1';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -135,6 +136,17 @@ export default function SignIn() {
             {t('signin.subtitle', 'Your AI Trading Studio')}
           </div>
         </div>
+
+        {/* Account deleted banner */}
+        {accountDeleted && (
+          <div style={{
+            background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)',
+            borderRadius: '12px', padding: '12px 16px', marginBottom: '16px',
+            fontSize: '13px', color: '#22c55e', textAlign: 'center',
+          }}>
+            ✓ {t('signin.accountDeleted', 'Your account has been permanently deleted. You can now register again.')}
+          </div>
+        )}
 
         {/* Card */}
         <div style={{
