@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Globe, TrendingUp, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { useTranslation } from 'react-i18next';
 
 const QUICK_ASSETS = {
   US: ['AAPL', 'NVDA', 'MSFT', 'TSLA', 'GOOGL', 'META', 'AMZN'],
@@ -13,6 +14,7 @@ const QUICK_ASSETS = {
 
 export default function GlobalAssetSearch() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -83,7 +85,7 @@ export default function GlobalAssetSearch() {
         className="w-full h-12 rounded-xl bg-white/[0.02] border border-white/10 px-4 flex items-center gap-3 text-muted-foreground hover:border-primary/25 transition-all group"
       >
         <Search className="w-4 h-4" />
-        <span className="text-sm">Search stocks, crypto, forex...</span>
+        <span className="text-sm">{t('search.placeholder', 'Search stocks, crypto, forex...')}</span>
         <kbd className="ml-auto text-xs font-mono text-white/25">⌘K</kbd>
       </button>
 
@@ -111,7 +113,7 @@ export default function GlobalAssetSearch() {
                   <input
                     autoFocus
                     type="text"
-                    placeholder="Search stocks, ETFs, crypto, forex..."
+                    placeholder={t('search.placeholder', 'Search stocks, ETFs, crypto, forex...')}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="w-full bg-transparent pl-10 pr-4 py-3 text-foreground placeholder-muted-foreground outline-none"
@@ -180,8 +182,8 @@ export default function GlobalAssetSearch() {
                       ))
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
-                        <p className="text-sm">No results found</p>
-                        <p className="text-xs mt-2">Try entering a ticker symbol or company name</p>
+                        <p className="text-sm">{t('empty.searchResults')} &ldquo;{query}&rdquo;</p>
+                        <p className="text-xs mt-2">{t('search.tryTicker', 'Try entering a ticker symbol or company name')}</p>
                       </div>
                     )}
                   </div>
@@ -216,8 +218,8 @@ export default function GlobalAssetSearch() {
               {/* Footer */}
               <div className="border-t border-white/5 p-3 flex items-center justify-between text-xs text-muted-foreground">
                 <div className="flex gap-3">
-                  <span>↵ to select</span>
-                  <span>ESC to close</span>
+                  <span>{t('search.enterToSelect', '↵ to select')}</span>
+                  <span>{t('search.escToClose', 'ESC to close')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Globe className="w-3 h-3" />

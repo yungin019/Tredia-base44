@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { X, Bell, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const MOCK_NOTIFICATIONS = [
   { id: 1, title: 'NVDA Buy Signal', message: 'Momentum breakout confirmed. Entry $871.', time: '5m ago', type: 'signal', route: '/Asset/NVDA' },
@@ -11,6 +12,7 @@ const MOCK_NOTIFICATIONS = [
 
 export default function NotificationsPanel({ isOpen, onClose }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -32,7 +34,7 @@ export default function NotificationsPanel({ isOpen, onClose }) {
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
               <div className="flex items-center gap-2">
                 <Bell className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-bold text-white/90">Notifications</h3>
+                <h3 className="text-sm font-bold text-white/90">{t('nav.notifications', 'Notifications')}</h3>
               </div>
               <button onClick={onClose} className="text-white/40 hover:text-white/60 transition-colors">
                 <X className="h-4 w-4" />
@@ -93,7 +95,7 @@ export default function NotificationsPanel({ isOpen, onClose }) {
                   navigate('/Notifications');
                 }}
                 className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
-                View All Notifications
+                {t('notifications.viewAll', 'View All Notifications')}
               </button>
             </div>
           </motion.div>

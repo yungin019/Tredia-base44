@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { useTranslation } from 'react-i18next';
 
 // Apple Sign-In requires explicit opt-in in Base44 Dashboard → Settings → Authentication → Apple.
 // Set this to true only after you have enabled it there.
 const APPLE_SIGNIN_ENABLED = true;
 
 export default function SignIn() {
+  const { t } = useTranslation();
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,9 +24,9 @@ export default function SignIn() {
     setError('');
 
     if (mode === 'register') {
-      if (!name.trim()) { setError('Please enter your full name.'); return; }
-      if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
-      if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
+      if (!name.trim()) { setError(t('signin.error.nameRequired')); return; }
+      if (password.length < 8) { setError(t('signin.error.weakPassword')); return; }
+      if (password !== confirmPassword) { setError(t('signin.error.passwordMismatch')); return; }
     }
 
     setLoading(true);
@@ -40,7 +42,7 @@ export default function SignIn() {
         window.location.href = '/Home';
       }
     } catch (err) {
-      setError(err?.message || 'Something went wrong. Please try again.');
+      setError(err?.message || t('error.serverError'));
     } finally {
       setLoading(false);
     }
@@ -81,7 +83,7 @@ export default function SignIn() {
       } catch { /* non-fatal */ }
       window.location.href = '/Home';
     } catch (err) {
-      setError(err?.message || 'Invalid code. Please try again.');
+      setError(err?.message || t('signin.error.invalidCode'));
     } finally {
       setLoading(false);
     }
@@ -92,7 +94,7 @@ export default function SignIn() {
     try {
       await base44.auth.resendOtp(email);
     } catch (err) {
-      setError('Could not resend code. Please try again.');
+      setError(t('signin.error.resendFailed'));
     }
   };
 
@@ -123,7 +125,7 @@ export default function SignIn() {
           <img src="/logo-icon.svg" alt="TREDIO" style={{ height: '52px', width: '52px', margin: '0 auto 12px' }} />
           <img src="/logo-full.svg" alt="TREDIO" style={{ height: '32px', margin: '0 auto 6px' }} />
           <div style={{ fontSize: '11px', color: 'rgba(100,220,255,0.35)', letterSpacing: '2px', textTransform: 'uppercase' }}>
-            AI Trading Intelligence
+            {t('signin.subtitle')}
           </div>
         </div>
 
@@ -145,10 +147,10 @@ export default function SignIn() {
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>📧</div>
                   <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>
-                    Check your email
+                    {t('signin.verifyTitle')}
                   </p>
                   <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>
-                    We sent a verification code to<br />
+                    {t('signin.verifySubtitle')}<br />
                     <span style={{ color: '#F59E0B', fontWeight: '600' }}>{email}</span>
                   </p>
                 </div>
