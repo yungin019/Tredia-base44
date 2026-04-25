@@ -87,7 +87,7 @@ export default function AlpacaConnect() {
           </motion.button>
 
           <a
-            href="https://alpaca.markets/signup"
+            href="https://app.alpaca.markets/signup"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center w-full py-3 rounded-xl font-bold text-sm border border-white/[0.1] text-white/60 hover:border-white/20 transition-colors"
