@@ -174,9 +174,14 @@ const enExtra = {
   // Notifications
   'notifications.viewAll': 'View All Notifications',
 
+  // Banner
+  'banner.paperMode': "You're on paper trading mode. Connect Alpaca to go live.",
+  'banner.connect': 'Connect →',
+
   // Common
   'common.status': 'Status',
   'common.add': 'Add',
+  'common.dismiss': 'Dismiss',
 
   // Chat counter
   'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} questions today',

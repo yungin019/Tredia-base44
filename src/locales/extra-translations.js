@@ -2,6 +2,9 @@
 // Merged in Layout.jsx alongside alpaca-translations.
 const extraTranslations = {
   en: {
+    'banner.paperMode': "You're on paper trading mode. Connect Alpaca to go live.",
+    'banner.connect': 'Connect →',
+    'common.dismiss': 'Dismiss',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} questions today',
     'chat.unlimited': 'TREK Chat: Unlimited',
     'chat.suggestion1': 'How is my portfolio doing?',
@@ -27,6 +30,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Risk Monitor',
   },
   fr: {
+    'banner.paperMode': 'Vous êtes en mode trading fictif. Connectez Alpaca pour trader en réel.',
+    'banner.connect': 'Connecter →',
+    'common.dismiss': 'Fermer',
     'chat.questionsRemaining': 'TREK Chat : {{used}}/{{total}} questions aujourd\'hui',
     'chat.unlimited': 'TREK Chat : Illimité',
     'chat.suggestion1': 'Comment se porte mon portefeuille ?',
@@ -52,6 +58,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Moniteur de risque',
   },
   sv: {
+    'banner.paperMode': 'Du är i pappershandelsläge. Anslut Alpaca för att handla live.',
+    'banner.connect': 'Anslut →',
+    'common.dismiss': 'Stäng',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} frågor idag',
     'chat.unlimited': 'TREK Chat: Obegränsat',
     'chat.suggestion1': 'Hur mår min portfölj?',
@@ -77,6 +86,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Riskmonitor',
   },
   es: {
+    'banner.paperMode': 'Estás en modo trading de práctica. Conecta Alpaca para operar en real.',
+    'banner.connect': 'Conectar →',
+    'common.dismiss': 'Cerrar',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} preguntas hoy',
     'chat.unlimited': 'TREK Chat: Ilimitado',
     'chat.suggestion1': '¿Cómo está mi cartera?',
@@ -102,6 +114,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Monitor de riesgo',
   },
   de: {
+    'banner.paperMode': 'Du bist im Papierhandels-Modus. Verbinde Alpaca für Live-Trading.',
+    'banner.connect': 'Verbinden →',
+    'common.dismiss': 'Schließen',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} Fragen heute',
     'chat.unlimited': 'TREK Chat: Unbegrenzt',
     'chat.suggestion1': 'Wie läuft mein Portfolio?',
@@ -127,6 +142,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Risikomonitor',
   },
   it: {
+    'banner.paperMode': 'Sei in modalità trading virtuale. Connetti Alpaca per andare live.',
+    'banner.connect': 'Connetti →',
+    'common.dismiss': 'Chiudi',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} domande oggi',
     'chat.unlimited': 'TREK Chat: Illimitato',
     'chat.suggestion1': 'Come sta andando il mio portafoglio?',
@@ -152,6 +170,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Monitor rischio',
   },
   pt: {
+    'banner.paperMode': 'Você está no modo de trading simulado. Conecte o Alpaca para operar ao vivo.',
+    'banner.connect': 'Conectar →',
+    'common.dismiss': 'Fechar',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} perguntas hoje',
     'chat.unlimited': 'TREK Chat: Ilimitado',
     'chat.suggestion1': 'Como está meu portfólio?',
@@ -177,6 +198,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Monitor de risco',
   },
   ar: {
+    'banner.paperMode': 'أنت في وضع التداول الورقي. اربط Alpaca للتداول الحقيقي.',
+    'banner.connect': '← اتصال',
+    'common.dismiss': 'إغلاق',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} أسئلة اليوم',
     'chat.unlimited': 'TREK Chat: غير محدود',
     'chat.suggestion1': 'كيف يسير محفظتي؟',
@@ -202,6 +226,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'مراقب المخاطر',
   },
   ja: {
+    'banner.paperMode': 'ペーパートレードモードです。Alpacaを接続してライブ取引を開始しましょう。',
+    'banner.connect': '接続する →',
+    'common.dismiss': '閉じる',
     'chat.questionsRemaining': 'TREKチャット: 本日{{used}}/{{total}}質問',
     'chat.unlimited': 'TREKチャット: 無制限',
     'chat.suggestion1': 'ポートフォリオの状況は?',
@@ -227,6 +254,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'リスクモニター',
   },
   zh: {
+    'banner.paperMode': '您处于模拟交易模式。连接 Alpaca 以进行实盘交易。',
+    'banner.connect': '连接 →',
+    'common.dismiss': '关闭',
     'chat.questionsRemaining': 'TREK Chat: 今日{{used}}/{{total}}个问题',
     'chat.unlimited': 'TREK Chat: 无限制',
     'chat.suggestion1': '我的投资组合表现如何?',
@@ -252,6 +282,9 @@ const extraTranslations = {
     'onboarding.trek.system4': '风险监控',
   },
   ko: {
+    'banner.paperMode': '페이퍼 트레이딩 모드입니다. Alpaca를 연결하여 실거래를 시작하세요.',
+    'banner.connect': '연결하기 →',
+    'common.dismiss': '닫기',
     'chat.questionsRemaining': 'TREK Chat: 오늘 {{used}}/{{total}} 질문',
     'chat.unlimited': 'TREK Chat: 무제한',
     'chat.suggestion1': '내 포트폴리오는 어떤가요?',
@@ -277,6 +310,9 @@ const extraTranslations = {
     'onboarding.trek.system4': '리스크 모니터',
   },
   ru: {
+    'banner.paperMode': 'Вы в режиме бумажной торговли. Подключите Alpaca для реальной торговли.',
+    'banner.connect': 'Подключить →',
+    'common.dismiss': 'Закрыть',
     'chat.questionsRemaining': 'TREK Чат: {{used}}/{{total}} вопросов сегодня',
     'chat.unlimited': 'TREK Чат: Безлимитно',
     'chat.suggestion1': 'Как дела у моего портфеля?',
@@ -302,6 +338,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Монитор рисков',
   },
   tr: {
+    'banner.paperMode': 'Kağıt ticaret modundasınız. Canlı işlem için Alpaca\'yı bağlayın.',
+    'banner.connect': 'Bağlan →',
+    'common.dismiss': 'Kapat',
     'chat.questionsRemaining': 'TREK Chat: Bugün {{used}}/{{total}} soru',
     'chat.unlimited': 'TREK Chat: Sınırsız',
     'chat.suggestion1': 'Portföyüm nasıl gidiyor?',
@@ -327,6 +366,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Risk Monitörü',
   },
   nl: {
+    'banner.paperMode': 'Je bent in papierhandelmodus. Verbind Alpaca om live te handelen.',
+    'banner.connect': 'Verbinden →',
+    'common.dismiss': 'Sluiten',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} vragen vandaag',
     'chat.unlimited': 'TREK Chat: Onbeperkt',
     'chat.suggestion1': 'Hoe doet mijn portefeuille het?',
@@ -352,6 +394,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Risicomonitor',
   },
   pl: {
+    'banner.paperMode': 'Jesteś w trybie papierowego handlu. Połącz Alpaca, aby handlować na żywo.',
+    'banner.connect': 'Połącz →',
+    'common.dismiss': 'Zamknij',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} pytań dziś',
     'chat.unlimited': 'TREK Chat: Bez limitu',
     'chat.suggestion1': 'Jak radzi sobie mój portfel?',
@@ -377,6 +422,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Monitor ryzyka',
   },
   th: {
+    'banner.paperMode': 'คุณอยู่ในโหมดเทรดจำลอง เชื่อมต่อ Alpaca เพื่อเทรดจริง',
+    'banner.connect': 'เชื่อมต่อ →',
+    'common.dismiss': 'ปิด',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} คำถามวันนี้',
     'chat.unlimited': 'TREK Chat: ไม่จำกัด',
     'chat.suggestion1': 'พอร์ตโฟลิโอของฉันเป็นอย่างไร?',
@@ -402,6 +450,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'ตรวจสอบความเสี่ยง',
   },
   id: {
+    'banner.paperMode': 'Anda dalam mode trading kertas. Hubungkan Alpaca untuk trading langsung.',
+    'banner.connect': 'Hubungkan →',
+    'common.dismiss': 'Tutup',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} pertanyaan hari ini',
     'chat.unlimited': 'TREK Chat: Tidak terbatas',
     'chat.suggestion1': 'Bagaimana portofolio saya?',
@@ -427,6 +478,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Monitor Risiko',
   },
   ro: {
+    'banner.paperMode': 'Ești în modul trading pe hârtie. Conectează Alpaca pentru trading live.',
+    'banner.connect': 'Conectează →',
+    'common.dismiss': 'Închide',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} întrebări azi',
     'chat.unlimited': 'TREK Chat: Nelimitat',
     'chat.suggestion1': 'Cum se descurcă portofoliul meu?',
@@ -452,6 +506,9 @@ const extraTranslations = {
     'onboarding.trek.system4': 'Monitor risc',
   },
   el: {
+    'banner.paperMode': 'Είστε σε λειτουργία εικονικής διαπραγμάτευσης. Συνδέστε το Alpaca για live trading.',
+    'banner.connect': 'Σύνδεση →',
+    'common.dismiss': 'Κλείσιμο',
     'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} ερωτήσεις σήμερα',
     'chat.unlimited': 'TREK Chat: Απεριόριστο',
     'chat.suggestion1': 'Πώς πηγαίνει το χαρτοφυλάκιό μου;',
