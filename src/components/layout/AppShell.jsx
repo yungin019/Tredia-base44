@@ -92,7 +92,7 @@ export default function AppShell({ onLogout }) {
                 <img src="/logo-full.svg" alt="TREDIO" className="hidden sm:block" style={{ height: '22px' }} />
                 <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded tracking-wider"
                   style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(252,211,77,0.1))', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.35)', boxShadow: '0 0 12px rgba(245,158,11,0.1)' }}>
-                  {'ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¡ ELITE'}
+                  ELITE
                 </span>
               </div>
             </Link>
@@ -132,7 +132,7 @@ export default function AppShell({ onLogout }) {
             className="hidden sm:flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-muted-foreground cursor-pointer transition-colors tap-feedback min-h-[44px]">
             <Search className="h-3 w-3" />
             <span>{t('common.search')}...</span>
-            <kbd className="text-[9px] bg-white/[0.06] px-1.5 py-0.5 rounded font-mono ml-2">{'ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂK'}</kbd>
+            <kbd className="text-[9px] bg-white/[0.06] px-1.5 py-0.5 rounded font-mono ml-2">&#8984;K</kbd>
           </button>
           <button onClick={() => setSearchOpen(true)}
             className="sm:hidden flex items-center justify-center h-10 w-10 rounded-lg bg-white/[0.04] hover:bg-white/[0.06] border border-white/[0.06] transition-colors tap-feedback">
