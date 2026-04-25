@@ -12,11 +12,6 @@ const fadeUp = {
   exit: { opacity: 0, y: -10 },
 };
 
-const BUDGET_OPTIONS = ['Under 500 SEK', '500-5k SEK', '5k-50k SEK', '50k+ SEK'];
-const RISK_OPTIONS = ['Conservative', 'Moderate', 'Aggressive'];
-const HORIZON_OPTIONS = ['Days', 'Months', 'Years'];
-const INTERESTS_OPTIONS = ['Stocks', 'Crypto', 'Commodities', 'All'];
-
 function OptionButton({ label, selected, onClick, color = '#F59E0B' }) {
   return (
     <motion.button
@@ -50,6 +45,37 @@ export default function Onboarding() {
   const [risk, setRisk] = useState('');
   const [horizon, setHorizon] = useState('');
   const [interests, setInterests] = useState('');
+
+  // Translated option arrays — defined inside component so t() is accessible
+  const BUDGET_OPTIONS = [
+    t('onboarding.budget.under500'),
+    t('onboarding.budget.500to5k'),
+    t('onboarding.budget.5kto50k'),
+    t('onboarding.budget.50kplus'),
+  ];
+  const RISK_OPTIONS = [
+    t('onboarding.risk.conservative'),
+    t('onboarding.risk.moderate'),
+    t('onboarding.risk.aggressive'),
+  ];
+  const HORIZON_OPTIONS = [
+    t('onboarding.horizon.days'),
+    t('onboarding.horizon.months'),
+    t('onboarding.horizon.years'),
+  ];
+  const INTERESTS_OPTIONS = [
+    t('onboarding.interests.stocks'),
+    t('onboarding.interests.crypto'),
+    t('onboarding.interests.commodities'),
+    t('onboarding.interests.all'),
+  ];
+
+  const TREK_SYSTEMS = [
+    { icon: Brain, labelKey: 'onboarding.trek.system1', color: '#60A5FA' },
+    { icon: Zap, labelKey: 'onboarding.trek.system2', color: '#F59E0B' },
+    { icon: TrendingUp, labelKey: 'onboarding.trek.system3', color: '#22C55E' },
+    { icon: Shield, labelKey: 'onboarding.trek.system4', color: '#EF4444' },
+  ];
 
   useEffect(() => {
     getFoundingStats().then(stats => setOgStats(stats)).catch(() => {});
@@ -86,13 +112,25 @@ export default function Onboarding() {
       console.error('Profile save error:', e);
     }
     setSaving(false);
-    setStep(3.5); // go to Alpaca connect step
+    setStep(3.5);
   };
 
   const handleAlpacaConnect = () => {
-    // Redirect to Alpaca connect page — callback will redirect to /Home
     navigate('/alpaca-connect');
   };
+
+  const OG_FEATURES = [
+    t('onboarding.og.feature1'),
+    t('onboarding.og.feature2'),
+    t('onboarding.og.feature3'),
+    t('onboarding.og.feature4'),
+  ];
+
+  const BROKER_FEATURES = [
+    t('onboarding.broker.feature1'),
+    t('onboarding.broker.feature2'),
+    t('onboarding.broker.feature3'),
+  ];
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden" style={{ backgroundColor: '#0A0A0F' }}>
@@ -115,19 +153,16 @@ export default function Onboarding() {
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center gap-1.5 bg-[#F59E0B]/10 border border-[#F59E0B]/20 rounded-full px-3 py-1 mb-3">
                     <Crown className="h-3 w-3 text-[#F59E0B]" />
-                    <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">FOUNDING MEMBER OFFER</span>
+                    <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">{t('onboarding.og.badge')}</span>
                   </div>
-                  <h1 className="text-2xl font-black text-white/90 mb-2">Join the OG100</h1>
-                  <p className="text-sm text-white/50 mb-1">🔴 LIVE — {ogStats?.foundingSpotsRemaining || 100} of 100 spots left</p>
+                  <h1 className="text-2xl font-black text-white/90 mb-2">{t('onboarding.og.title')}</h1>
+                  <p className="text-sm text-white/50 mb-1">
+                    &#x1F534; LIVE &mdash; {ogStats?.foundingSpotsRemaining || 100} {t('onboarding.og.spotsLeft')}
+                  </p>
                 </div>
 
                 <ul className="space-y-3 mb-6">
-                  {[
-                    'Elite FREE for 30 days',
-                    'Then Elite for 89 SEK/month for life (normally 179 SEK)',
-                    'OG Founding Member badge',
-                    'Personal referral link'
-                  ].map((f, i) => (
+                  {OG_FEATURES.map((f, i) => (
                     <li key={i} className="flex items-center gap-3">
                       <div className="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}>
@@ -148,12 +183,12 @@ export default function Onboarding() {
                       color: ogStats?.isSoldOut ? 'rgba(255,255,255,0.3)' : '#0A0A0F',
                       opacity: ogStats?.isSoldOut ? 0.5 : 1
                     }}>
-                    {ogStats?.isSoldOut ? 'SOLD OUT' : 'CLAIM MY SPOT'}
+                    {ogStats?.isSoldOut ? t('onboarding.og.soldOut') : t('onboarding.og.claimBtn')}
                   </button>
                   <button
                     onClick={() => setStep(2)}
                     className="py-3 rounded-xl font-bold text-sm border border-white/[0.1] hover:border-white/20 transition-colors text-white/60">
-                    SKIP
+                    {t('onboarding.og.skipBtn')}
                   </button>
                 </div>
               </div>
@@ -166,21 +201,16 @@ export default function Onboarding() {
               <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8 text-center">
                 <div className="inline-flex items-center gap-2 bg-[#F59E0B]/10 border border-[#F59E0B]/25 rounded-full px-3 py-1 mb-3">
                   <Zap className="h-3 w-3 text-[#F59E0B]" />
-                  <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">Meet TREK</span>
+                  <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">{t('onboarding.trek.badge')}</span>
                 </div>
-                <h1 className="text-2xl font-black text-white/90 mb-2">Your AI trading brain</h1>
+                <h1 className="text-2xl font-black text-white/90 mb-2">{t('onboarding.trek.title')}</h1>
                 <p className="text-sm text-white/45 mb-2 leading-relaxed">
-                  TREK watches every market 24/7 and tells you exactly what to do — <span className="text-white/70 font-semibold">BUY, SELL, or HOLD</span> — with a confidence score and trade plan.
+                  {t('onboarding.trek.desc')}
                 </p>
-                <p className="text-xs text-white/30 mb-6">No jargon. No guessing. Just clear signals.</p>
+                <p className="text-xs text-white/30 mb-6">{t('onboarding.trek.noJargon')}</p>
 
                 <div className="grid grid-cols-2 gap-4 mb-8">
-                  {[
-                    { icon: Brain, label: 'Pattern Recognition', color: '#60A5FA' },
-                    { icon: Zap, label: 'Signal Engine', color: '#F59E0B' },
-                    { icon: TrendingUp, label: 'Trend Analysis', color: '#22C55E' },
-                    { icon: Shield, label: 'Risk Monitor', color: '#EF4444' },
-                  ].map((sys, i) => (
+                  {TREK_SYSTEMS.map((sys, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -192,7 +222,7 @@ export default function Onboarding() {
                         style={{ background: `${sys.color}15`, border: `1px solid ${sys.color}30` }}>
                         <sys.icon className="h-6 w-6" style={{ color: sys.color }} />
                       </div>
-                      <span className="text-xs font-semibold text-white/60">{sys.label}</span>
+                      <span className="text-xs font-semibold text-white/60">{t(sys.labelKey)}</span>
                     </motion.div>
                   ))}
                 </div>
@@ -201,7 +231,7 @@ export default function Onboarding() {
                   onClick={() => setStep(3)}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                  CONTINUE <ArrowRight className="h-4 w-4" />
+                  {t('onboarding.trek.continueBtn')} <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </motion.div>
@@ -212,13 +242,13 @@ export default function Onboarding() {
             <motion.div key="profile" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-6">
                 <div className="text-center mb-6">
-                  <h1 className="text-xl font-black text-white/90 mb-1">Personalize TREK</h1>
-                  <p className="text-sm text-white/35">AI adapts to your profile</p>
+                  <h1 className="text-xl font-black text-white/90 mb-1">{t('onboarding.profile.title')}</h1>
+                  <p className="text-sm text-white/35">{t('onboarding.profile.subtitle')}</p>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Budget</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.profile.budgetLabel')}</p>
                     <div className="grid grid-cols-2 gap-2">
                       {BUDGET_OPTIONS.map(opt => (
                         <OptionButton key={opt} label={opt} selected={budget === opt} onClick={() => setBudget(opt)} />
@@ -227,7 +257,7 @@ export default function Onboarding() {
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Risk</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.profile.riskLabel')}</p>
                     <div className="flex flex-col gap-2">
                       {RISK_OPTIONS.map(opt => (
                         <OptionButton key={opt} label={opt} selected={risk === opt} onClick={() => setRisk(opt)} />
@@ -236,7 +266,7 @@ export default function Onboarding() {
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Horizon</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.profile.horizonLabel')}</p>
                     <div className="flex flex-col gap-2">
                       {HORIZON_OPTIONS.map(opt => (
                         <OptionButton key={opt} label={opt} selected={horizon === opt} onClick={() => setHorizon(opt)} />
@@ -245,7 +275,7 @@ export default function Onboarding() {
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">Interests</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.profile.interestsLabel')}</p>
                     <div className="grid grid-cols-2 gap-2">
                       {INTERESTS_OPTIONS.map(opt => (
                         <OptionButton key={opt} label={opt} selected={interests === opt} onClick={() => setInterests(opt)} />
@@ -259,7 +289,7 @@ export default function Onboarding() {
                   disabled={saving}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mt-6"
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: saving ? 0.7 : 1 }}>
-                  {saving ? 'Loading...' : <><span>CONTINUE</span> <ArrowRight className="h-4 w-4" /></>}
+                  {saving ? t('common.loading') : <><span>{t('onboarding.profile.continueBtn')}</span> <ArrowRight className="h-4 w-4" /></>}
                 </button>
               </div>
             </motion.div>
@@ -274,22 +304,16 @@ export default function Onboarding() {
                     style={{ background: 'rgba(255,199,0,0.1)', border: '1px solid rgba(255,199,0,0.25)' }}>
                     <Link2 className="h-7 w-7" style={{ color: '#FFC700' }} />
                   </div>
-                  <h1 className="text-2xl font-black text-white/90 mb-2">Connect your brokerage account</h1>
-                  <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest">Activate live trading (optional)</p>
+                  <h1 className="text-2xl font-black text-white/90 mb-2">{t('onboarding.broker.title')}</h1>
+                  <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest">{t('onboarding.broker.subtitle')}</p>
                 </div>
 
                 <p className="text-sm text-white/50 mb-5 leading-relaxed text-center">
-                  TREDIO's AI analyzes markets and generates trading signals. To act on those signals in real markets,
-                  connect your Alpaca account — it only takes 30 seconds.
-                  Alpaca is a regulated US broker. <span className="text-white/70 font-semibold">Your funds stay in your Alpaca account. TREDIO never holds your money.</span>
+                  {t('onboarding.broker.desc')}
                 </p>
 
                 <ul className="space-y-3 mb-6">
-                  {[
-                    'Place trades directly from TREDIO signals',
-                    'Real-time portfolio sync',
-                    'Revoke access anytime from settings',
-                  ].map((f) => (
+                  {BROKER_FEATURES.map((f) => (
                     <li key={f} className="flex items-center gap-3">
                       <div className="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)' }}>
@@ -307,18 +331,18 @@ export default function Onboarding() {
                     onClick={handleAlpacaConnect}
                     className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-black text-sm tracking-wide"
                     style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                    Connect Alpaca → <ArrowRight className="h-4 w-4" />
+                    {t('onboarding.broker.connectBtn')} <ArrowRight className="h-4 w-4" />
                   </motion.button>
 
                   <button
                     onClick={() => setStep(4)}
                     className="w-full py-3 rounded-xl font-bold text-sm border border-white/[0.08] hover:border-white/15 transition-colors text-white/40">
-                    Skip for now — I'll use paper trading
+                    {t('onboarding.broker.skipBtn')}
                   </button>
                 </div>
 
                 <p className="text-[9px] text-white/20 text-center mt-4 leading-relaxed">
-                  TREDIO is not a registered broker-dealer. Trading is executed through Alpaca Securities LLC, a FINRA/SIPC member.
+                  {t('onboarding.broker.legal')}
                 </p>
               </div>
             </motion.div>
@@ -331,15 +355,15 @@ export default function Onboarding() {
                 <div className="h-16 w-16 rounded-2xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 flex items-center justify-center mx-auto mb-4">
                   <Zap className="h-8 w-8 text-[#F59E0B]" />
                 </div>
-                <h1 className="text-2xl font-black text-white/90 mb-2">TREK is ready</h1>
-                <p className="text-sm text-white/40 mb-2">Your AI trading brain is calibrated.</p>
-                <p className="text-xs text-white/25 mb-8">5 free TREK signals daily — upgrade anytime for unlimited</p>
+                <h1 className="text-2xl font-black text-white/90 mb-2">{t('onboarding.ready.title')}</h1>
+                <p className="text-sm text-white/40 mb-2">{t('onboarding.ready.subtitle')}</p>
+                <p className="text-xs text-white/25 mb-8">{t('onboarding.ready.note')}</p>
 
                 <button
                   onClick={() => navigate('/Home')}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                  ENTER TREDIO <ArrowRight className="h-4 w-4" />
+                  {t('onboarding.ready.enterBtn')} <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </motion.div>
@@ -353,8 +377,8 @@ export default function Onboarding() {
                   <Crown className="h-5 w-5 text-[#F59E0B]" />
                   <span className="text-sm font-black text-[#F59E0B]">OG #{ogNumber}</span>
                 </div>
-                <h1 className="text-2xl font-black text-white/90 mb-2">Welcome, Founding Member</h1>
-                <p className="text-sm text-white/50 mb-8">Your referral link is ready</p>
+                <h1 className="text-2xl font-black text-white/90 mb-2">{t('onboarding.welcome.title')}</h1>
+                <p className="text-sm text-white/50 mb-8">{t('onboarding.welcome.referral')}</p>
 
                 <div className="rounded-xl p-4 mb-6" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
                   <p className="text-xs font-mono text-white/60 mb-2">https://tredio.app/join?ref=OG{ogNumber}</p>
@@ -363,7 +387,7 @@ export default function Onboarding() {
                       navigator.clipboard.writeText(`https://tredio.app/join?ref=OG${ogNumber}`);
                     }}
                     className="text-xs font-bold text-[#F59E0B] hover:text-[#F59E0B]/80 transition-colors">
-                    Copy Link
+                    {t('onboarding.welcome.copyLink')}
                   </button>
                 </div>
 
@@ -371,7 +395,7 @@ export default function Onboarding() {
                   onClick={() => navigate('/Home')}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
                   style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                  ENTER TREDIO <ArrowRight className="h-4 w-4" />
+                  {t('onboarding.ready.enterBtn')} <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </motion.div>

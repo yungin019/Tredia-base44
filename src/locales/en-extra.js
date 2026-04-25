@@ -177,6 +177,33 @@ const enExtra = {
   // Common
   'common.status': 'Status',
   'common.add': 'Add',
+
+  // Chat counter
+  'chat.questionsRemaining': 'TREK Chat: {{used}}/{{total}} questions today',
+  'chat.unlimited': 'TREK Chat: Unlimited',
+  'chat.suggestion1': 'How is my portfolio doing?',
+  'chat.suggestion2': 'What should I trade today?',
+  'chat.suggestion3': 'Explain my biggest position',
+
+  // Onboarding option labels
+  'onboarding.budget.under500': 'Under 500 SEK',
+  'onboarding.budget.500to5k': '500–5k SEK',
+  'onboarding.budget.5kto50k': '5k–50k SEK',
+  'onboarding.budget.50kplus': '50k+ SEK',
+  'onboarding.risk.conservative': 'Conservative',
+  'onboarding.risk.moderate': 'Moderate',
+  'onboarding.risk.aggressive': 'Aggressive',
+  'onboarding.horizon.days': 'Days',
+  'onboarding.horizon.months': 'Months',
+  'onboarding.horizon.years': 'Years',
+  'onboarding.interests.stocks': 'Stocks',
+  'onboarding.interests.crypto': 'Crypto',
+  'onboarding.interests.commodities': 'Commodities',
+  'onboarding.interests.all': 'All',
+  'onboarding.trek.system1': 'Pattern Recognition',
+  'onboarding.trek.system2': 'Signal Engine',
+  'onboarding.trek.system3': 'Trend Analysis',
+  'onboarding.trek.system4': 'Risk Monitor',
 };
 
 export default enExtra;

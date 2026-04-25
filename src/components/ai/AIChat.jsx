@@ -14,12 +14,12 @@ import TrekResponseRenderer from './TrekResponseRenderer';
 import SuperAIPanel from './SuperAIPanel';
 
 const SUGGESTED_KEYS = [
+  'chat.suggestion1',
+  'chat.suggestion2',
+  'chat.suggestion3',
   'trek.suggest1',
   'trek.suggest2',
   'trek.suggest3',
-  'trek.suggest4',
-  'trek.suggest5',
-  'trek.suggest6',
 ];
 
 function TrekAvatar({ size = 5 }) {
@@ -281,12 +281,12 @@ export default function AIChat() {
       <div className="sticky bottom-0 px-4 py-3 border-t border-white/[0.05] bg-[#0e0e16] safe-bottom">
         {tier === 'free' && (
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: 8, background: 'rgba(245,158,11,0.1)', borderRadius: 6, padding: '6px' }}>
-            TREK Chat: {questionsToday}/{FREE_LIMIT} questions today
+            {t('chat.questionsRemaining', { used: questionsToday, total: FREE_LIMIT })}
           </div>
         )}
         {tier === 'pro' && (
           <div style={{ fontSize: 10, color: 'rgba(34,197,94,0.6)', textAlign: 'center', marginBottom: 8, background: 'rgba(34,197,94,0.08)', borderRadius: 6, padding: '6px' }}>
-            TREK Chat: Unlimited
+            {t('chat.unlimited')}
           </div>
         )}
         <div className="flex gap-2">

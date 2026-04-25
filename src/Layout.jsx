@@ -5,6 +5,7 @@ import { initReactI18next } from 'react-i18next';
 import translations from '../locales/translations';
 import enExtra from '../locales/en-extra';
 import alpacaTranslations from '../locales/alpaca-translations';
+import extraTranslations from '../locales/extra-translations';
 
 // RTL language codes
 const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];
@@ -15,8 +16,11 @@ const buildResources = () => {
   Object.keys(translations).forEach(lang => {
     const t = translations[lang].translation;
     const alpacaKeys = alpacaTranslations[lang] || {};
-    // Merge extra EN keys into English; merge alpaca keys for all languages
-    const merged = lang === 'en' ? { ...t, ...enExtra, ...alpacaKeys } : { ...t, ...alpacaKeys };
+    const extraKeys = extraTranslations[lang] || {};
+    // Merge all translation layers
+    const merged = lang === 'en'
+      ? { ...t, ...enExtra, ...alpacaKeys, ...extraKeys }
+      : { ...t, ...alpacaKeys, ...extraKeys };
     resources[lang] = { translation: merged };
   });
   return resources;
