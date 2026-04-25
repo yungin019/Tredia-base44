@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
 
 export default function AlpacaCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [status, setStatus] = useState('connecting');
   const [error, setError] = useState(null);
 
@@ -107,10 +109,10 @@ export default function AlpacaCallback() {
             />
             <div>
               <p className="text-lg font-bold text-white">
-                {status === 'connecting' ? 'Connecting securely...' : 'Loading your portfolio...'}
+                {status === 'connecting' ? t('alpaca.connectingSecurely') : t('alpaca.loadingPortfolio')}
               </p>
               <p className="text-sm text-white/40 mt-1">
-                {status === 'connecting' ? 'Exchanging credentials with Alpaca' : 'Fetching your positions and account data'}
+                {status === 'connecting' ? t('alpaca.exchangingCredentials') : t('alpaca.fetchingPositions')}
               </p>
             </div>
           </>
@@ -129,8 +131,8 @@ export default function AlpacaCallback() {
               </svg>
             </motion.div>
             <div>
-              <p className="text-lg font-bold text-white">Broker connected!</p>
-              <p className="text-sm text-white/50 mt-1">TREK can now analyze your real portfolio.</p>
+              <p className="text-lg font-bold text-white">{t('alpaca.connected')}</p>
+              <p className="text-sm text-white/50 mt-1">{t('alpaca.connectedDesc')}</p>
             </div>
           </>
         )}
@@ -147,9 +149,9 @@ export default function AlpacaCallback() {
               </svg>
             </motion.div>
             <div>
-              <p className="text-lg font-bold text-white">Connection failed</p>
-              <p className="text-sm text-white/50 mt-1">{error}</p>
-              <p className="text-xs text-white/25 mt-2">Redirecting to Settings...</p>
+              <p className="text-lg font-bold text-white">{t('alpaca.connectionFailed')}</p>
+              <p className="text-sm text-white/50 mt-1">{error || t('alpaca.connectionFailedDesc')}</p>
+              <p className="text-xs text-white/25 mt-2">{t('alpaca.redirectingSettings')}</p>
             </div>
           </>
         )}
