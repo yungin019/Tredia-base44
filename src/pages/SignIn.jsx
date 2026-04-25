@@ -209,7 +209,7 @@ export default function SignIn() {
                       color: mode === m ? 'rgb(120,230,245)' : 'rgba(255,255,255,0.35)',
                       boxShadow: mode === m ? '0 0 10px rgba(14,200,220,0.15)' : 'none',
                     }}>
-                    {m === 'login' ? t('signin.signIn') : t('signin.register')}
+                    {m === 'login' ? t('signin.signIn', 'Sign In') : t('signin.register', 'Register')}
                   </button>
                 ))}
               </div>
@@ -218,7 +218,7 @@ export default function SignIn() {
                 {mode === 'register' && (
                   <input
                     type="text"
-                    placeholder={t('signin.fullName')}
+                    placeholder={t('signin.fullName', 'Full Name')}
                     value={name}
                     onChange={e => setName(e.target.value)}
                     required
