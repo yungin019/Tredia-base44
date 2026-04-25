@@ -125,7 +125,7 @@ export default function SignIn() {
           <img src="/logo-icon.svg" alt="TREDIO" style={{ height: '52px', width: '52px', margin: '0 auto 12px' }} />
           <img src="/logo-full.svg" alt="TREDIO" style={{ height: '32px', margin: '0 auto 6px' }} />
           <div style={{ fontSize: '11px', color: 'rgba(100,220,255,0.35)', letterSpacing: '2px', textTransform: 'uppercase' }}>
-            {t('signin.subtitle')}
+            {t('signin.subtitle', 'Your AI Trading Studio')}
           </div>
         </div>
 
@@ -147,10 +147,10 @@ export default function SignIn() {
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>📧</div>
                   <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>
-                    {t('signin.verifyTitle')}
+                    {t('signin.verifyTitle', 'Check your email')}
                   </p>
                   <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>
-                    {t('signin.verifySubtitle')}<br />
+                    {t('signin.verifySubtitle', 'We sent a verification code to')}<br />
                     <span style={{ color: '#F59E0B', fontWeight: '600' }}>{email}</span>
                   </p>
                 </div>
@@ -158,7 +158,7 @@ export default function SignIn() {
                 <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <input
                     type="text"
-                    placeholder={t('signin.verifyCodePlaceholder')}
+                    placeholder={t('signin.verifyCodePlaceholder', 'Enter verification code')}
                     value={verifyCode}
                     onChange={e => setVerifyCode(e.target.value)}
                     required
@@ -175,7 +175,7 @@ export default function SignIn() {
                     opacity: (loading || !verifyCode) ? 0.6 : 1,
                     cursor: (loading || !verifyCode) ? 'not-allowed' : 'pointer',
                   }}>
-                    {loading ? t('common.loading') : t('signin.verifyBtn')}
+                    {loading ? t('common.loading', 'Loading...') : t('signin.verifyBtn', 'Verify & Sign In')}
                   </button>
                 </form>
 
@@ -184,13 +184,13 @@ export default function SignIn() {
                     onClick={() => { setStep('form'); setError(''); setVerifyCode(''); }}
                     style={{ flex: 1, padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer' }}
                   >
-                    ← {t('common.back')}
+                    ← {t('common.back', 'Back')}
                   </button>
                   <button
                     onClick={handleResendOtp}
                     style={{ flex: 1, padding: '10px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'rgba(255,255,255,0.4)', fontSize: '12px', cursor: 'pointer' }}
                   >
-                    {t('signin.resendCode')}
+                    {t('signin.resendCode', 'Resend code')}
                   </button>
                 </div>
               </motion.div>
@@ -227,7 +227,7 @@ export default function SignIn() {
                 )}
                 <input
                   type="email"
-                  placeholder={t('signin.enterEmail')}
+                  placeholder={t('signin.enterEmail', 'Email address')}
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
@@ -235,7 +235,7 @@ export default function SignIn() {
                 />
                 <input
                   type="password"
-                  placeholder={t('signin.password')}
+                  placeholder={t('signin.password', 'Password')}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
@@ -245,7 +245,7 @@ export default function SignIn() {
                 {mode === 'register' && (
                   <input
                     type="password"
-                    placeholder={t('signin.confirmPassword')}
+                    placeholder={t('signin.confirmPassword', 'Confirm password')}
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     required
@@ -261,7 +261,7 @@ export default function SignIn() {
                   cursor: loading ? 'not-allowed' : 'pointer',
                   marginTop: '4px',
                 }}>
-                  {loading ? t('common.loading') : mode === 'login' ? t('signin.signIn') : t('signin.createAccount')}
+                  {loading ? t('common.loading', 'Loading...') : mode === 'login' ? t('signin.signIn', 'Sign In') : t('signin.createAccount', 'Create Account')}
                 </button>
               </form>
 
@@ -280,7 +280,7 @@ export default function SignIn() {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                   </svg>
-                  {t('signin.google')}
+                  {t('signin.google', 'Continue with Google')}
                 </button>
 
                 {/* Apple: disabled until enabled in Dashboard → Settings → Authentication → Apple */}
@@ -292,7 +292,7 @@ export default function SignIn() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                     </svg>
-                    {t('signin.apple')}
+                    {t('signin.apple', 'Continue with Apple')}
                   </button>
                 ) : (
                   <div style={{
@@ -304,7 +304,7 @@ export default function SignIn() {
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.3 }}>
                       <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                     </svg>
-                    {t('signin.appleComingSoon')}
+                    {t('signin.appleComingSoon', 'Apple Sign-In — Coming Soon')}
                   </div>
                 )}
               </div>
@@ -315,7 +315,7 @@ export default function SignIn() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '20px' }}>
-          {t('signin.terms')}
+          {t('signin.terms', 'By continuing, you agree to our Terms of Service & Privacy Policy')}
         </p>
       </motion.div>
     </div>
