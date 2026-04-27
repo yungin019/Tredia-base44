@@ -8,6 +8,7 @@ import alpacaTranslations from '../locales/alpaca-translations';
 import extraTranslations from '../locales/extra-translations';
 import coreTranslations from '../locales/core-translations';
 import portfolioTranslations from '../locales/portfolio-translations';
+import deTranslations from '../locales/de-translations';
 
 // RTL language codes
 const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];
@@ -28,9 +29,10 @@ const buildResources = () => {
     const extraKeys = extraTranslations[lang] || {};
     const coreKeys = coreTranslations[lang] || {};
     const portfolioKeys = portfolioTranslations[lang] || {};
+    const deKeys = lang === 'de' ? deTranslations : {};
     const merged = lang === 'en'
       ? { ...base, ...enExtra, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys }
-      : { ...base, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys };
+      : { ...base, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys };
     resources[lang] = { translation: merged };
   });
   return resources;
@@ -67,7 +69,8 @@ if (!i18n.isInitialized) {
     if (resources[lang]) {
       // Also patch in portfolioTranslations on HMR
       const extra = portfolioTranslations[lang] || {};
-      i18n.addResourceBundle(lang, 'translation', { ...resources[lang].translation, ...extra }, true, true);
+      const deExtra = lang === 'de' ? deTranslations : {};
+      i18n.addResourceBundle(lang, 'translation', { ...resources[lang].translation, ...extra, ...deExtra }, true, true);
     }
   });
 }

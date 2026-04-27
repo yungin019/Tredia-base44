@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Clock, Eye, ChevronRight } from 'lucide-react';
 import { safeRender, validateSignal, validateConfidence } from '@/lib/dataValidation';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // ── SIGNAL badge config aligned with global theme ──────────────────────────
 const ACTION_CFG = {
@@ -14,6 +15,7 @@ const ACTION_CFG = {
 };
 
 function MoveCard({ move, index, onExplore }) {
+  const { t } = useTranslation();
   const action = (move.action || 'WATCH').toUpperCase();
   const cfg = ACTION_CFG[action] || ACTION_CFG.WATCH;
   const color = cfg.color;
@@ -99,19 +101,19 @@ function MoveCard({ move, index, onExplore }) {
           <div className="grid grid-cols-3 gap-3">
             {move.entry && move.entry !== 'N/A' && (
               <div className="flex flex-col gap-0.5">
-                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>Entry</span>
+                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>{t('asset.entry', 'Entry')}</span>
                 <span className="text-xs font-mono font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>{safeRender(move.entry)}</span>
               </div>
             )}
             {move.positionSize && (
               <div className="flex flex-col gap-0.5">
-                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>Size</span>
+                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>{t('moves.size', 'Size')}</span>
                 <span className="text-xs font-mono font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>{safeRender(move.positionSize)}</span>
               </div>
             )}
             {move.timeframe && (
               <div className="flex flex-col gap-0.5">
-                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>Hold</span>
+                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>{t('moves.hold', 'Hold')}</span>
                 <span className="text-xs font-mono font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>{safeRender(move.timeframe)}</span>
               </div>
             )}
@@ -134,7 +136,7 @@ function MoveCard({ move, index, onExplore }) {
         <div className="px-4 py-2.5 flex items-start gap-2" style={{ borderTop: '1px solid rgba(239,68,68,0.08)', background: 'rgba(239,68,68,0.04)' }}>
           <span className="text-[10px] flex-shrink-0 mt-0.5">⚠</span>
           <p className="text-xs leading-snug" style={{ color: 'rgba(252,165,165,0.7)' }}>
-            <span className="font-bold" style={{ color: 'rgba(248,113,113,0.85)' }}>Risk: </span>
+            <span className="font-bold" style={{ color: 'rgba(248,113,113,0.85)' }}>{t('moves.risk', 'Risk')}: </span>
             {safeRender(move.risk)}
           </p>
         </div>
@@ -144,15 +146,16 @@ function MoveCard({ move, index, onExplore }) {
 }
 
 export default function YourMovesToday({ moves = [], onExplore }) {
+  const { t } = useTranslation();
   if (!moves || moves.length === 0) {
     return (
       <div>
         <div className="mb-4">
-          <h2 className="text-base font-black text-white tracking-tight">Your Moves Today</h2>
-          <p className="text-[11px] mt-0.5" style={{ color: 'rgba(180,210,240,0.4)' }}>Live desk instructions — not advice</p>
+          <h2 className="text-base font-black text-white tracking-tight">{t('moves.title', 'Your Moves Today')}</h2>
+          <p className="text-[11px] mt-0.5" style={{ color: 'rgba(180,210,240,0.4)' }}>{t('moves.subtitle', 'Live desk instructions — not advice')}</p>
         </div>
         <div className="text-center py-8 text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
-          Loading live signals...
+          {t('common.loading', 'Loading...')}
         </div>
       </div>
     );
@@ -161,8 +164,8 @@ export default function YourMovesToday({ moves = [], onExplore }) {
   return (
     <div>
       <div className="mb-4">
-        <h2 className="text-base font-black text-white tracking-tight">Your Moves Today</h2>
-        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(180,210,240,0.4)' }}>Live desk instructions — not advice</p>
+        <h2 className="text-base font-black text-white tracking-tight">{t('moves.title', 'Your Moves Today')}</h2>
+        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(180,210,240,0.4)' }}>{t('moves.subtitle', 'Live desk instructions — not advice')}</p>
       </div>
       <div className="space-y-3">
         {moves.map((move, i) => (

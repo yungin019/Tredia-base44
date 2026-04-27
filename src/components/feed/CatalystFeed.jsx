@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Eye, ChevronRight, Clock, Zap } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import SignalExplanationModal from './SignalExplanationModal';
+import { useTranslation } from 'react-i18next';
 
 const CATEGORY_COLORS = {
   macro: { bg: 'rgba(14,200,220,0.08)', border: 'rgba(14,200,220,0.2)', text: '#0ec8dc' },
@@ -14,6 +15,7 @@ const CATEGORY_COLORS = {
 };
 
 function CatalystCard({ catalyst, index, onSeeWhy }) {
+  const { t } = useTranslation();
   const colors = CATEGORY_COLORS[catalyst.category] || CATEGORY_COLORS.macro;
   const timeAgo = catalyst.type === 'structure' ? 'Live' : getTimeAgo(catalyst.published_at);
   const isStructure = catalyst.type === 'structure';
@@ -83,7 +85,7 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
 
         {/* TREK Interpretation Header */}
         <div className="pt-2 border-t border-white/[0.05]">
-          <p className="text-[8px] font-black text-white/25 uppercase tracking-widest mb-2">TREK Interpretation</p>
+          <p className="text-[8px] font-black text-white/25 uppercase tracking-widest mb-2">{t('catalyst.trekInterpretation', 'TREK Interpretation')}</p>
           <p className="text-sm font-bold text-white/80 leading-tight">
             {catalyst.market_state}
           </p>
@@ -92,22 +94,22 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
         {/* Driver + Impact - CONCRETE */}
         <div className="space-y-2 text-[11px] pt-2 border-t border-white/[0.05]">
           <div className="flex items-start gap-2">
-            <span className="text-white/30 font-bold flex-shrink-0">Why:</span>
+            <span className="text-white/30 font-bold flex-shrink-0">{t('catalyst.why', 'Why')}:</span>
             <span className="text-white/65">{catalyst.driver}</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-white/30 font-bold flex-shrink-0">Effect:</span>
+            <span className="text-white/30 font-bold flex-shrink-0">{t('catalyst.effect', 'Effect')}:</span>
             <span className="text-white/65">{catalyst.impact}</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-white/30 font-bold flex-shrink-0">Risk:</span>
+            <span className="text-white/30 font-bold flex-shrink-0">{t('moves.risk', 'Risk')}:</span>
             <span className="text-white/65">{catalyst.risk}</span>
           </div>
         </div>
 
         {/* Action Bias */}
         <div className="flex items-center gap-3 pt-2">
-          <span className="text-[9px] font-bold text-white/25 uppercase">Signal</span>
+          <span className="text-[9px] font-bold text-white/25 uppercase">{t('trek.signal', 'Signal')}</span>
           <span
             className="text-xs font-black px-2.5 py-1 rounded-lg"
             style={{
@@ -115,10 +117,10 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
               color: catalyst.action_bias === 'bullish' ? '#0ec8dc' : '#ef4444'
             }}
           >
-            {catalyst.action_bias === 'bullish' ? '↗ Bullish' : '↘ Bearish'}
+            {catalyst.action_bias === 'bullish' ? `↗ ${t('catalyst.bullish', 'Bullish')}` : `↘ ${t('catalyst.bearish', 'Bearish')}`}
           </span>
           <div className="flex-1 flex items-center gap-2">
-            <span className="text-[9px] text-white/30">Confidence:</span>
+            <span className="text-[9px] text-white/30">{t('trek.confidence', 'Confidence')}:</span>
             <div className="flex-1 max-w-24 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
               <div
                 className="h-full rounded-full transition-all"
@@ -162,7 +164,7 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
               color: '#0ec8dc'
             }}
           >
-            See Why
+            {t('catalyst.seeWhy', 'See Why')}
           </button>
           {catalyst.source_url && (
             <button
@@ -175,7 +177,7 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
               }}
             >
               <ExternalLink className="h-3 w-3" />
-              View Source
+              {t('catalyst.viewSource', 'View Source')}
             </button>
           )}
         </div>
@@ -185,6 +187,7 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
 }
 
 export default function CatalystFeed({ activeRegion = 'Global' }) {
+  const { t } = useTranslation();
   const [signals, setSignals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSignal, setSelectedSignal] = useState(null);
@@ -277,9 +280,9 @@ export default function CatalystFeed({ activeRegion = 'Global' }) {
       }}>
         <div className="flex items-center gap-2 mb-4">
           <div className="h-2 w-2 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
-          <h2 className="text-sm font-black text-white uppercase tracking-widest">Market Signals</h2>
+          <h2 className="text-sm font-black text-white uppercase tracking-widest">{t('catalyst.marketSignals', 'Market Signals')}</h2>
           <span className="text-[9px] font-bold px-2 py-0.5 rounded-full ml-auto" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
-            News + Structure
+            {t('catalyst.newsStructure', 'News + Structure')}
           </span>
         </div>
         <AnimatePresence mode="wait">
