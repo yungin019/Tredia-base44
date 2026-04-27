@@ -9,6 +9,7 @@ import extraTranslations from '../locales/extra-translations';
 import coreTranslations from '../locales/core-translations';
 import portfolioTranslations from '../locales/portfolio-translations';
 import deTranslations from '../locales/de-translations';
+// Translation bundle version: 2.0
 
 // RTL language codes
 const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];

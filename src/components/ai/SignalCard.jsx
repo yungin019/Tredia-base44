@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import SignalDetailModal from './SignalDetailModal';
 import ConfidenceBreakdownModal from './ConfidenceBreakdownModal';
 
@@ -44,6 +45,7 @@ const TYPE_CONFIG = {
 };
 
 export default function SignalCard({ signal, index }) {
+  const { t } = useTranslation();
   const [showDetail, setShowDetail] = useState(false);
   const [showConfidence, setShowConfidence] = useState(false);
 
@@ -116,7 +118,7 @@ export default function SignalCard({ signal, index }) {
 
             {/* Confidence */}
             <div className="flex flex-col">
-              <span className="text-[9px] text-white/30 uppercase tracking-wider font-mono">Confidence</span>
+              <span className="text-[9px] text-white/30 uppercase tracking-wider font-mono">{t('trek.confidence', 'Confidence')}</span>
               <button
                 onClick={e => { e.stopPropagation(); setShowConfidence(true); }}
                 className={`text-[16px] font-black font-mono ${cfg.color} hover:opacity-70 transition-opacity leading-none text-left tap-feedback`}
@@ -127,7 +129,7 @@ export default function SignalCard({ signal, index }) {
           </div>
 
           <div className={`flex items-center gap-1 text-[10px] font-bold ${cfg.color}`}>
-            <span>Tap for details</span>
+            <span>{t('feed.tapForDetails', 'Tap for details')}</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </div>
         </div>

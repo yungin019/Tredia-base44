@@ -379,6 +379,20 @@ const deTranslations = {
   'discord.joinCommunity': 'Discord-Community beitreten',
   'discord.desc': 'Trade-Ideen, Signale und Live-Diskussionen mit anderen TREDIO-Mitgliedern.',
   'discord.joinButton': 'DISCORD BEITRETEN →',
+  'discord.shareToDiscord': 'Auf Discord teilen',
+  'feed.signalExplanation': 'TREK Signal-Erklärung',
+  'feed.newsHeadline': 'News-Schlagzeile',
+  'feed.viewOriginal': 'Original ansehen',
+  'feed.marketContext': 'Marktkontext',
+  'feed.whatsDriverThis': 'Was treibt das an',
+  'feed.expectedImpact': 'Erwartete Auswirkung',
+  'feed.whatMattersNow': 'Was jetzt wichtig ist',
+  'feed.affectedAssets': 'Betroffene Assets',
+  'feed.regionsAffected': 'Betroffene Regionen',
+  'feed.keyRisk': 'Hauptrisiko / Ungültig',
+  'feed.tapForDetails': 'Tippen für Details',
+  'feed.structureSignalNote': '⚡ Struktursignal aus Live-Marktpreisbewegung generiert.',
+  'feed.newsSignalNote': 'Nachrichtensignal von TREK-Intelligence-Engine interpretiert.',
 };
 
 export default deTranslations;

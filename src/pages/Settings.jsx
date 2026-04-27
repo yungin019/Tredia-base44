@@ -477,7 +477,7 @@ export default function Settings({ onLogout }) {
         <SectionHeader title={t('discord.joinCommunity', 'Join Discord Community')} />
         <p className="text-xs text-white/50 mb-4">{t('discord.desc', 'Trade ideas, signals, and live discussions with other TREDIO members.')}</p>
         <a
-          href={import.meta.env.VITE_DISCORD_INVITE_URL || 'https://discord.gg/tredio'}
+          href="https://discord.gg/tredio"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90"
