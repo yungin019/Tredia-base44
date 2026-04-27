@@ -199,11 +199,12 @@ export default function SignIn({ onLoginSuccess }) {
         stopLoading();
       } else if (isNative()) {
         // Fallback: loginWithProvider opens a webview — stop loading immediately
-        base44.auth.loginWithProvider(provider, '/Home');
+        base44.auth.loginWithProvider(provider, '/');
         stopLoading();
       } else {
-        // Web: standard redirect flow — page will navigate away, no need to stop loading
-        base44.auth.loginWithProvider(provider, '/Home');
+        // Web: standard redirect flow — Base44 will redirect to / after auth,
+        // which App.jsx resolves to /Home or /Onboarding based on onboarding_completed
+        base44.auth.loginWithProvider(provider, '/');
       }
     } catch (err) {
       // Cancelled sign-ins throw errors with codes like 'SIGN_IN_CANCELLED',

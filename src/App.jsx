@@ -30,6 +30,7 @@ import TradingSetup from './pages/TradingSetup';
 import Admin from './pages/Admin.jsx';
 import AlpacaConnect from './pages/AlpacaConnect';
 import AlpacaCallback from './pages/AlpacaCallback';
+import OAuthCallback from './pages/OAuthCallback';
 import TrekPortfolioWelcome from './pages/TrekPortfolioWelcome';
 import OnboardingQuick from './pages/OnboardingQuick';
 
@@ -69,6 +70,8 @@ const AppRoutes = ({ user, onLogout, onLoginSuccess }) => {
         <Routes location={location} key={location.pathname}>
           <Route path="/SignIn" element={<PageTransition><SignIn onLoginSuccess={onLoginSuccess} /></PageTransition>} />
           <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
+          <Route path="/auth/google/callback" element={<OAuthCallback />} />
+          <Route path="/auth/callback" element={<OAuthCallback />} />
           <Route path="*" element={<Navigate to="/SignIn" replace />} />
         </Routes>
       </AnimatePresence>
@@ -88,6 +91,8 @@ const AppRoutes = ({ user, onLogout, onLoginSuccess }) => {
         <Route path="/Admin" element={<PageTransition><Admin /></PageTransition>} />
         <Route path="/alpaca-connect" element={<PageTransition><AlpacaConnect /></PageTransition>} />
         <Route path="/alpaca-callback" element={<AlpacaCallback />} />
+        <Route path="/auth/google/callback" element={<OAuthCallback />} />
+        <Route path="/auth/callback" element={<OAuthCallback />} />
         <Route path="/trek-portfolio-welcome" element={<PageTransition><TrekPortfolioWelcome /></PageTransition>} />
         {/* All main app routes — redirect to onboarding if not completed */}
         <Route element={needsOnboarding ? <Navigate to="/Onboarding" replace /> : <AppShell onLogout={onLogout} />}>
