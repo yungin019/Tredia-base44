@@ -91,13 +91,6 @@ export default function AppShell({ onLogout }) {
           ) : (
             <Link to="/Home" className="flex items-center gap-2.5" onClick={() => switchTab('/Home')}>
               <img src="/logo-icon.svg" alt="TREDIO" style={{ height: '28px', width: '28px' }} />
-              <div className="flex items-baseline gap-1.5">
-                <img src="/logo-full.svg" alt="TREDIO" className="hidden sm:block" style={{ height: '22px' }} />
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded tracking-wider"
-                  style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(252,211,77,0.1))', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.35)', boxShadow: '0 0 12px rgba(245,158,11,0.1)' }}>
-                  ELITE
-                </span>
-              </div>
             </Link>
           )}
 
