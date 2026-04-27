@@ -445,13 +445,13 @@ export default function Settings({ onLogout }) {
                key={lang.code}
                onClick={async () => {
                  const RTL = ['ar','he','ur','fa','yi','ji','iw','ku'];
-                 document.documentElement.lang = lang.code;
-                 document.documentElement.dir = RTL.some(r => lang.code.startsWith(r)) ? 'rtl' : 'ltr';
-                 // changeLanguage triggers the 'languageChanged' event which sets currentLang state,
-                 // causing a full re-render of all t() calls in this component
-                 i18n.changeLanguage(lang.code).catch(() => {});
+                 // Save to localStorage before changing language
+                 localStorage.setItem('tredio_lang', lang.code);
                  // Persist to user profile
-                 base44.auth.updateMe({ language: lang.code }).catch(() => {});
+                 await base44.auth.updateMe({ language: lang.code }).catch(() => {});
+                 // Change language and reload
+                 await i18n.changeLanguage(lang.code).catch(() => {});
+                 window.location.reload();
                }}
                className={`p-3 rounded-lg border transition-all text-sm font-semibold flex items-center gap-2 justify-center ${
                  currentLang === lang.code

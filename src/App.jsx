@@ -125,8 +125,9 @@ function App() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser || null);
-        // Load language from user profile or fallback to device language
-        const lang = currentUser?.language || navigator.language?.split('-')[0] || 'en';
+        // Load language: localStorage first, then user profile, then device language
+        const savedLang = localStorage.getItem('tredio_lang');
+        const lang = savedLang || currentUser?.language || navigator.language?.split('-')[0] || 'en';
         if (i18n.isInitialized && i18n.language !== lang) {
           await i18n.changeLanguage(lang).catch(() => {});
           const RTL = ['ar','he','ur','fa','yi','ji','iw','ku'];
