@@ -18,7 +18,7 @@ const STEPS = [
   },
 ];
 
-export default function DeleteAccountModal({ onConfirm, onCancel, loading }) {
+export default function DeleteAccountModal({ onConfirm, onCancel, loading, error }) {
   const [step, setStep] = useState(0);
   const [typed, setTyped] = useState('');
 
@@ -90,6 +90,13 @@ export default function DeleteAccountModal({ onConfirm, onCancel, loading }) {
               </div>
             )}
           </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mx-5 mb-2 px-3 py-2 rounded-lg text-xs text-red-400 bg-red-500/10 border border-red-500/20">
+              {error}
+            </div>
+          )}
 
           {/* Actions */}
           <div className="px-5 pb-5 flex gap-2">

@@ -61,6 +61,7 @@ export default function Settings({ onLogout }) {
   const [copySuccess, setCopySuccess] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     base44.auth.me()
@@ -549,23 +550,22 @@ export default function Settings({ onLogout }) {
       {deleteModal && (
         <DeleteAccountModal
           loading={deleteLoading}
-          onCancel={() => setDeleteModal(false)}
+          error={deleteError}
+          onCancel={() => { setDeleteModal(false); setDeleteError(''); }}
           onConfirm={async () => {
             setDeleteLoading(true);
+            setDeleteError('');
             try {
-              // Fully delete account including auth record (Apple App Store requirement)
               const result = await base44.functions.invoke('deleteUserData', {});
-              if (result?.data?.error) {
-                throw new Error(result.data.error);
-              }
+              if (result?.data?.error) throw new Error(result.data.error);
               // Clear all local state and storage
               localStorage.clear();
               sessionStorage.clear();
-              // Redirect to sign-in with deletion confirmation
-              window.location.href = '/SignIn?deleted=1';
+              // Use navigate so it stays in-app (Apple requirement)
+              navigate('/SignIn?deleted=1', { replace: true });
             } catch (err) {
               setDeleteLoading(false);
-              alert('Failed to delete account: ' + (err?.message || 'Unknown error. Please try again.'));
+              setDeleteError(err?.message || 'Failed to delete account. Please try again.');
             }
           }}
         />

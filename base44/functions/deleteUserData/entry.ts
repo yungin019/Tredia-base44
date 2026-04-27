@@ -10,9 +10,7 @@ Deno.serve(async (req) => {
     const userEmail = user.email;
 
     // 1. Delete all user-owned entity data in parallel
-    const [portfolioItems, tradeLogs, watchlistItems, foundingMembers, notificationLogs,
-           priceAlerts, appNotifications, communityPosts, postLikes, postComments,
-           userFollowsAsFollower, userFollowsAsFollowing, copiedTrades, userStats] = await Promise.allSettled([
+    const settled = await Promise.allSettled([
       base44.entities.Portfolio.filter({}),
       base44.entities.TradeLog.filter({}),
       base44.entities.Watchlist.filter({}),
@@ -29,46 +27,35 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.UserStat.filter({ user_id: userEmail }),
     ]);
 
-    // Collect all records to delete
+    const entityNames = [
+      'Portfolio', 'TradeLog', 'Watchlist', 'FoundingMember',
+      'NotificationLog', 'PriceAlert', 'AppNotification', 'CommunityPost',
+      'PostLike', 'PostComment', 'UserFollow', 'UserFollow',
+      'CopiedTrade', 'UserStat',
+    ];
+    const useServiceRole = [
+      false, false, false, true, true, true, true, true,
+      true, true, true, true, true, true,
+    ];
+
     const toDelete = [];
-    const addRecords = (settled, entityName, useServiceRole = false) => {
-      if (settled.status === 'fulfilled') {
-        settled.value.forEach(r => {
-          const entity = useServiceRole
-            ? base44.asServiceRole.entities[entityName]
-            : base44.entities[entityName];
+    settled.forEach((result, i) => {
+      if (result.status === 'fulfilled') {
+        result.value.forEach(r => {
+          const entity = useServiceRole[i]
+            ? base44.asServiceRole.entities[entityNames[i]]
+            : base44.entities[entityNames[i]];
           toDelete.push(entity.delete(r.id));
         });
       }
-    };
+    });
 
-    addRecords(portfolioItems, 'Portfolio');
-    addRecords(tradeLogs, 'TradeLog');
-    addRecords(watchlistItems, 'Watchlist');
-    addRecords(foundingMembers, 'FoundingMember', true);
-    addRecords(notificationLogs, 'NotificationLog', true);
-    addRecords(priceAlerts, 'PriceAlert', true);
-    addRecords(appNotifications, 'AppNotification', true);
-    addRecords(communityPosts, 'CommunityPost', true);
-    addRecords(postLikes, 'PostLike', true);
-    addRecords(postComments, 'PostComment', true);
-    addRecords(userFollowsAsFollower, 'UserFollow', true);
-    addRecords(userFollowsAsFollowing, 'UserFollow', true);
-    addRecords(copiedTrades, 'CopiedTrade', true);
-    addRecords(userStats, 'UserStat', true);
-
-    // 2. Delete all entity data
+    // 2. Delete all entity records
     await Promise.allSettled(toDelete);
 
-    // 3. CRITICAL: Delete the auth user record itself (Apple App Store requirement)
-    // This allows re-registration with the same email after deletion
-    try {
-      await base44.asServiceRole.entities.User.delete(userId);
-    } catch (deleteErr) {
-      // If user deletion fails (e.g., app owner), still return success for data deletion
-      // Log the error but don't block the response
-      console.warn('User auth deletion failed:', deleteErr.message);
-    }
+    // 3. CRITICAL: Delete the auth user record (Apple App Store requirement)
+    // This allows the user to re-register with the same email immediately after deletion
+    await base44.asServiceRole.entities.User.delete(userId);
 
     return Response.json({ success: true, message: 'Account fully deleted' });
   } catch (error) {
