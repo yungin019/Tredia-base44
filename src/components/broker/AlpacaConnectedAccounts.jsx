@@ -16,7 +16,7 @@ export default function AlpacaConnectedAccounts({ user, onDisconnect }) {
     <div>
       {/* Header */}
       <h2 className="text-[11px] font-black uppercase tracking-[0.18em] mb-4" style={{ color: '#F59E0B' }}>
-        {t('alpaca.connectedAccounts', 'CONNECTED ACCOUNTS')}
+        {t('settings.connectedAccounts', 'CONNECTED ACCOUNTS')}
       </h2>
 
       <div
