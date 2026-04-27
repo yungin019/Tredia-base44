@@ -9,8 +9,10 @@ Deno.serve(async (req) => {
     const userId = user.id;
     const userEmail = user.email;
 
-    // 1. Delete all user-owned entity data in parallel
-    const settled = await Promise.allSettled([
+    console.log(`[deleteUserData] Starting deletion for user: ${userEmail} (${userId})`);
+
+    // 1. Fetch all user-owned entity data in parallel (best-effort)
+    const fetched = await Promise.allSettled([
       base44.entities.Portfolio.filter({}),
       base44.entities.TradeLog.filter({}),
       base44.entities.Watchlist.filter({}),
@@ -39,26 +41,43 @@ Deno.serve(async (req) => {
     ];
 
     const toDelete = [];
-    settled.forEach((result, i) => {
-      if (result.status === 'fulfilled') {
+    fetched.forEach((result, i) => {
+      if (result.status === 'fulfilled' && Array.isArray(result.value)) {
+        console.log(`[deleteUserData] ${entityNames[i]}: ${result.value.length} records to delete`);
         result.value.forEach(r => {
           const entity = useServiceRole[i]
             ? base44.asServiceRole.entities[entityNames[i]]
             : base44.entities[entityNames[i]];
           toDelete.push(entity.delete(r.id));
         });
+      } else if (result.status === 'rejected') {
+        console.warn(`[deleteUserData] ${entityNames[i]} fetch failed:`, result.reason?.message);
       }
     });
 
-    // 2. Delete all entity records
-    await Promise.allSettled(toDelete);
+    // 2. Delete all entity records (best-effort, don't fail on individual errors)
+    const deleteResults = await Promise.allSettled(toDelete);
+    const failed = deleteResults.filter(r => r.status === 'rejected').length;
+    console.log(`[deleteUserData] Deleted records: ${deleteResults.length - failed} ok, ${failed} failed`);
 
-    // 3. CRITICAL: Delete the auth user record (Apple App Store requirement)
-    // This allows the user to re-register with the same email immediately after deletion
-    await base44.asServiceRole.entities.User.delete(userId);
+    // 3. Delete the auth user account via service role (Apple App Store requirement)
+    console.log(`[deleteUserData] Deleting user account: ${userId}`);
+    try {
+      await base44.asServiceRole.entities.User.delete(userId);
+      console.log(`[deleteUserData] User account deleted successfully`);
+    } catch (authErr) {
+      // If the user is the app owner, we cannot delete the auth record but data is already cleaned.
+      // For regular users this should never fail.
+      console.warn(`[deleteUserData] Auth deletion failed (may be app owner):`, authErr.message);
+      if (authErr.message?.includes('owner')) {
+        return Response.json({ error: 'Cannot delete the app owner account.' }, { status: 403 });
+      }
+      throw authErr;
+    }
 
     return Response.json({ success: true, message: 'Account fully deleted' });
   } catch (error) {
+    console.error('[deleteUserData] Fatal error:', error.message, error.stack);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

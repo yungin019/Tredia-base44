@@ -43,6 +43,12 @@ if (!i18n.isInitialized) {
         order: ['localStorage', 'navigator', 'htmlTag'],
         caches: ['localStorage'],
       },
+      react: {
+        useSuspense: false,
+        bindI18n: 'languageChanged loaded',
+        bindI18nStore: 'added removed',
+        transEmptyNodeValue: '',
+      },
     })
     .catch(() => {});
 } else {

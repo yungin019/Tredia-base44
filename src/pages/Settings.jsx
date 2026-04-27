@@ -85,12 +85,16 @@ export default function Settings({ onLogout }) {
   }, []);
 
   useEffect(() => {
-    const handleLanguageChanged = () => {
-      setCurrentLang(i18n.language);
+    const handleLanguageChanged = (lng) => {
+      setCurrentLang(lng);
     };
     i18n.on('languageChanged', handleLanguageChanged);
     return () => i18n.off('languageChanged', handleLanguageChanged);
   }, [i18n]);
+
+  // Force re-render when language changes so all t() calls update
+  // eslint-disable-next-line no-unused-vars
+  const _lang = currentLang;
 
   const toggle = (key) => {
     const updated = { ...notifications, [key]: !notifications[key] };
@@ -467,9 +471,10 @@ export default function Settings({ onLogout }) {
                  const RTL = ['ar','he','ur','fa','yi','ji','iw','ku'];
                  document.documentElement.lang = lang.code;
                  document.documentElement.dir = RTL.some(r => lang.code.startsWith(r)) ? 'rtl' : 'ltr';
-                 await i18n.changeLanguage(lang.code).catch(() => {});
-                 setCurrentLang(lang.code);
-                 // Persist to user profile so language loads correctly on next app open
+                 // changeLanguage triggers the 'languageChanged' event which sets currentLang state,
+                 // causing a full re-render of all t() calls in this component
+                 i18n.changeLanguage(lang.code).catch(() => {});
+                 // Persist to user profile
                  base44.auth.updateMe({ language: lang.code }).catch(() => {});
                }}
                className={`p-3 rounded-lg border transition-all text-sm font-semibold flex items-center gap-2 justify-center ${
