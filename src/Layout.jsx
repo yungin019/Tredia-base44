@@ -20,28 +20,43 @@ const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];
 const ALL_LANGS = ['en', 'sv', 'fr', 'de', 'it', 'es', 'pt', 'ar'];
 
 // Build resources from centralized translations object
-// Merged LAST: alpacaConnector, traders, pt, de, core, portfolio win over partial keys
+// Merged LAST: alpacaConnector, traders, pt, de, core, portfolio, extra, alpaca win over base
 const buildResources = () => {
   const resources = {};
   ALL_LANGS.forEach(lang => {
     const base = translations[lang]?.translation || {};
-    const alpacaKeys = alpacaTranslations[lang] || {};
-    const extraKeys = extraTranslations[lang] || {};
     const coreKeys = coreTranslations[lang] || {};
     const portfolioKeys = portfolioTranslations[lang] || {};
     const deKeys = deTranslations[lang] || {};
     const ptKeys = ptTranslations[lang] || {};
     const tradersKeys = tradersTranslations[lang] || {};
     const alpacaConnectorKeys = alpacaConnectorTranslations[lang] || {};
+    const alpacaKeys = alpacaTranslations[lang] || {};
+    const extraKeys = extraTranslations[lang] || {};
+    
+    // Merge order: base → core → portfolio → de → pt → traders → alpacaConnector → alpaca → extra
+    // (extra wins over alpaca, so settings.* keys from extra take priority)
     const merged = lang === 'en'
-      ? { ...base, ...enExtra, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys, ...tradersKeys, ...alpacaConnectorKeys }
-      : { ...base, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys, ...tradersKeys, ...alpacaConnectorKeys };
+      ? { ...base, ...enExtra, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys, ...tradersKeys, ...alpacaConnectorKeys, ...alpacaKeys, ...extraKeys }
+      : { ...base, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys, ...tradersKeys, ...alpacaConnectorKeys, ...alpacaKeys, ...extraKeys };
+    
     resources[lang] = { translation: merged };
   });
   return resources;
 };
 
 const resources = buildResources();
+
+// Verify resources loaded (for debugging)
+if (typeof window !== 'undefined' && import.meta.env.MODE === 'development') {
+  const sampleKeys = ['alpaca.unlockRealTrading', 'settings.priceAlertsDesc', 'discord.joinCommunity'];
+  sampleKeys.forEach(key => {
+    const enVal = resources?.en?.translation?.[key];
+    const svVal = resources?.sv?.translation?.[key];
+    if (!enVal) console.warn(`⚠️ Missing translation key in EN: ${key}`);
+    if (!svVal) console.warn(`⚠️ Missing translation key in SV: ${key}`);
+  });
+}
 
 // Initialize i18n only once globally
 if (!i18n.isInitialized) {
