@@ -135,7 +135,7 @@ export default function PaperTrading() {
           <div className="flex items-center gap-4">
             <div style={{ width: 52, height: 52, borderRadius: 14, background: `${traderLevel.color}15`, border: `2px solid ${traderLevel.color}40`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <Star style={{ width: 18, height: 18, color: traderLevel.color }} />
-              <span style={{ fontSize: 9, fontWeight: 900, color: traderLevel.color, letterSpacing: '0.06em' }}>LVL {traderLevel.level}</span>
+              <span style={{ fontSize: 9, fontWeight: 900, color: traderLevel.color, letterSpacing: '0.06em' }}>{t('paperTrading.lvl', 'LVL')} {traderLevel.level}</span>
             </div>
             <div>
               <div style={{ fontSize: 17, fontWeight: 900, color: 'rgba(255,255,255,0.92)', marginBottom: 2 }}>{traderLevel.name}</div>
@@ -281,7 +281,7 @@ export default function PaperTrading() {
                   <div className="text-5xl font-black font-mono" style={{ color: ['A'].includes(tradeGrade.grade) ? '#22c55e' : tradeGrade.grade.startsWith('B') ? '#F59E0B' : '#ef4444' }}>{tradeGrade.grade}</div>
                   <div>
                     <p className="text-xs text-white/55 leading-relaxed">{tradeGrade.explanation}</p>
-                    <p className="text-[10px] text-primary/60 mt-1 font-semibold">+XP added to your Trader Level</p>
+                    <p className="text-[10px] text-primary/60 mt-1 font-semibold">{t('paperTrading.xpAdded', '+XP added to your Trader Level')}</p>
                   </div>
                 </div>
               </motion.div>

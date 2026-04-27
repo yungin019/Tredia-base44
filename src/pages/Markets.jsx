@@ -45,7 +45,7 @@ export default function Markets() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between gap-4 flex-wrap">
         <div className="min-w-0">
           <h1 className="text-2xl font-black text-white/95 tracking-tight mb-1 truncate">{t('markets.title', 'Markets')}</h1>
-          <p className="text-[11px] text-white/30 font-medium tracking-wide">Core assets + search 200+ universe</p>
+          <p className="text-[11px] text-white/30 font-medium tracking-wide">{t('markets.subtitle', 'Core assets + search 200+ universe')}</p>
         </div>
       </motion.div>
 
@@ -82,11 +82,11 @@ export default function Markets() {
           >
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
-              <h2 className="text-sm font-bold text-white/85">Core Assets</h2>
+              <h2 className="text-sm font-bold text-white/85">{t('markets.coreAssets', 'Core Assets')}</h2>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full ml-1" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
                 LIVE
               </span>
-              <span className="text-[10px] text-white/25 ml-auto">Refreshes every 60s</span>
+              <span className="text-[10px] text-white/25 ml-auto">{t('markets.refreshes60s', 'Refreshes every 60s')}</span>
             </div>
             <CoreAssetDisplay />
           </motion.div>
@@ -100,18 +100,18 @@ export default function Markets() {
             {/* Explore header */}
             <div className="flex items-center gap-2 mb-5 pb-3 border-b border-white/[0.05]">
               <div className="h-1.5 w-1.5 rounded-full bg-white/20" />
-              <h2 className="text-sm font-bold text-white/50">Explore More Assets</h2>
+              <h2 className="text-sm font-bold text-white/50">{t('markets.exploreMore', 'Explore More Assets')}</h2>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/[0.05] text-white/30 border border-white/[0.08] ml-1">
                 DISCOVER
               </span>
-              <span className="text-[10px] text-white/20 ml-auto">Tap any card for live quote</span>
+              <span className="text-[10px] text-white/20 ml-auto">{t('markets.tapForQuote', 'Tap any card for live quote')}</span>
             </div>
 
             <div className="space-y-6">
-              <DiscoverySection title="Popular Stocks" items={POPULAR_STOCKS} />
-              <DiscoverySection title="Popular Crypto" items={POPULAR_CRYPTO} />
-              <DiscoverySection title="Major ETFs" items={MAJOR_ETFS} />
-              <DiscoverySection title="Commodities Snapshot" items={COMMODITIES_SNAPSHOT} />
+              <DiscoverySection title={t('markets.popularStocks', 'Popular Stocks')} items={POPULAR_STOCKS} />
+              <DiscoverySection title={t('markets.popularCrypto', 'Popular Crypto')} items={POPULAR_CRYPTO} />
+              <DiscoverySection title={t('markets.majorETFs', 'Major ETFs')} items={MAJOR_ETFS} />
+              <DiscoverySection title={t('markets.commoditiesSnapshot', 'Commodities Snapshot')} items={COMMODITIES_SNAPSHOT} />
             </div>
           </motion.div>
 

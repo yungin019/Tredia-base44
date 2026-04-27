@@ -7,6 +7,7 @@ import enExtra from '../locales/en-extra';
 import alpacaTranslations from '../locales/alpaca-translations';
 import extraTranslations from '../locales/extra-translations';
 import coreTranslations from '../locales/core-translations';
+import portfolioTranslations from '../locales/portfolio-translations';
 
 // RTL language codes
 const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];
@@ -26,9 +27,10 @@ const buildResources = () => {
     const alpacaKeys = alpacaTranslations[lang] || {};
     const extraKeys = extraTranslations[lang] || {};
     const coreKeys = coreTranslations[lang] || {};
+    const portfolioKeys = portfolioTranslations[lang] || {};
     const merged = lang === 'en'
-      ? { ...base, ...enExtra, ...alpacaKeys, ...extraKeys, ...coreKeys }
-      : { ...base, ...alpacaKeys, ...extraKeys, ...coreKeys };
+      ? { ...base, ...enExtra, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys }
+      : { ...base, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys };
     resources[lang] = { translation: merged };
   });
   return resources;
@@ -63,7 +65,9 @@ if (!i18n.isInitialized) {
   // Already initialized (HMR / re-render) — patch in any new keys.
   ALL_LANGS.forEach(lang => {
     if (resources[lang]) {
-      i18n.addResourceBundle(lang, 'translation', resources[lang].translation, true, true);
+      // Also patch in portfolioTranslations on HMR
+      const extra = portfolioTranslations[lang] || {};
+      i18n.addResourceBundle(lang, 'translation', { ...resources[lang].translation, ...extra }, true, true);
     }
   });
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const DATA = [
@@ -17,10 +18,11 @@ const DATA = [
 ];
 
 export default function PortfolioPerformanceChart() {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-white/[0.07] bg-[#111118] p-5">
       <div className="text-[10px] font-black uppercase tracking-[0.18em] text-white/30 mb-4">
-        Portfolio vs S&P 500 (12 Months)
+        {t('portfolio.vsSnP', 'Portfolio vs S&P 500 (12 Months)')}
       </div>
       <div className="h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -34,7 +36,7 @@ export default function PortfolioPerformanceChart() {
               itemStyle={{ color: 'rgba(255,255,255,0.8)' }}
             />
             <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }} />
-            <Line type="monotone" dataKey="portfolio" name="Your Portfolio" stroke="#F59E0B" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="portfolio" name={t('paperTrading.yourPortfolio', 'Your Portfolio')} stroke="#F59E0B" strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="sp500" name="S&P 500" stroke="rgba(255,255,255,0.25)" strokeWidth={2} dot={false} strokeDasharray="4 3" />
           </LineChart>
         </ResponsiveContainer>

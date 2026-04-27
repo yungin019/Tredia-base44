@@ -113,7 +113,7 @@ export default function Home() {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
-              <h2 className="text-sm font-bold text-white/80">Live Signals</h2>
+              <h2 className="text-sm font-bold text-white/80">{t('home.liveSignals', 'Live Signals')}</h2>
               <span className="text-[9px] font-bold px-2 py-0.5 rounded-full ml-1 uppercase tracking-wide" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
                 {({ Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm' })[activeRegion] || activeRegion}
               </span>
@@ -169,8 +169,8 @@ export default function Home() {
 
           {/* Live data indicator */}
           <div className="text-center text-xs pt-4 border-t border-white/5">
-            {dataStatus === 'live' && <span className="text-primary/50">✓ Real-time data active</span>}
-            {dataStatus === 'stale' && <span className="text-warning/50">⚠ Using cached data</span>}
+            {dataStatus === 'live' && <span className="text-primary/50">✓ {t('home.realtimeActive', 'Real-time data active')}</span>}
+            {dataStatus === 'stale' && <span className="text-warning/50">⚠ {t('home.usingCached', 'Using cached data')}</span>}
           </div>
         </div>
 

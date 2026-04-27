@@ -117,7 +117,7 @@ export default function Portfolio() {
       {/* AI Context Banner */}
       <ContextBanner
         storageKey="portfolio_v1"
-        title={t('portfolio.contextTitle', 'Your Portfolio')}
+        title={t('portfolio.contextTitle', t('portfolio.title', 'Portfolio'))}
         body={t('portfolio.contextBody', 'TREK analyzes your holdings and surfaces risk signals.')}
         actions={[
           { label: t('portfolio.contextAnalyze', 'Analyze'), onClick: () => {} },
@@ -143,7 +143,7 @@ export default function Portfolio() {
             )}
           </div>
           <p className="text-[11px] text-white/30 font-medium tracking-wide">
-            {isAlpacaMode ? 'TREK is monitoring your real positions' : t('portfolio.subtitle', 'Track and analyze your investments')}
+            {isAlpacaMode ? t('portfolio.trekMonitoring', 'TREK is monitoring your real positions') : t('portfolio.subtitle', 'Track and analyze your investments')}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -153,7 +153,7 @@ export default function Portfolio() {
               size="sm"
               className="h-8 text-[10px] font-bold bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white whitespace-nowrap"
             >
-              CONNECT ALPACA
+              {t('settings.connectAlpaca', 'CONNECT ALPACA')}
             </Button>
           )}
           <Button
@@ -179,7 +179,7 @@ export default function Portfolio() {
       {!isAlpacaMode && (
         <div className="flex items-center gap-3 rounded-xl p-4" style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)' }}>
           <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30 flex-shrink-0">PRACTICE</span>
-          <p className="text-[11px] text-white/50 flex-1">This is a simulated portfolio with virtual funds. <button onClick={() => navigate('/alpaca-connect')} className="text-[#F59E0B] font-semibold hover:underline">Connect your broker</button> to trade with real money via Alpaca.</p>
+          <p className="text-[11px] text-white/50 flex-1">{t('portfolio.practiceNotice', 'This is a simulated portfolio with virtual funds.')} <button onClick={() => navigate('/alpaca-connect')} className="text-[#F59E0B] font-semibold hover:underline">{t('portfolio.connectBroker', 'Connect your broker')}</button> {t('portfolio.toTradeReal', 'to trade with real money via Alpaca.')}</p>
         </div>
       )}
 
@@ -290,13 +290,13 @@ export default function Portfolio() {
                 <p className="text-[11px] text-white/25 max-w-xs">
                   {!user?.alpaca_connected
                     ? t('portfolio.noPositionsDesc', 'Add your first position or connect Alpaca to import real holdings')
-                    : 'No positions found in your Alpaca account'}
+                    : t('portfolio.noAlpacaPositions', 'No positions found in your Alpaca account')}
                 </p>
               </div>
               {!user?.alpaca_connected && (
                 <div className="flex gap-3 flex-wrap justify-center mt-1">
                   <Button onClick={() => navigate('/alpaca-connect')} size="sm" className="h-9 px-5 text-[11px] font-bold bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white">
-                    CONNECT ALPACA
+                    {t('settings.connectAlpaca', 'CONNECT ALPACA')}
                   </Button>
                   <Button onClick={() => setShowAdd(true)} size="sm" className="h-9 px-5 text-[11px] font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
                     <Plus className="h-3.5 w-3.5 mr-1.5" /> {t('portfolio.addFirstPosition', 'Add Position')}
@@ -312,7 +312,7 @@ export default function Portfolio() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/[0.05]">
-                    {[t('portfolio.symbol', 'Symbol'), t('portfolio.shares', 'Shares'), t('portfolio.avgCost', 'Avg Cost'), t('portfolio.currentPrice', 'Current Price'), t('portfolio.marketValue', 'Market Value'), t('portfolio.pnl', 'P&L'), isAlpacaMode ? 'TREK' : ''].map((h, i) => (
+                    {[t('markets.symbol', 'Symbol'), t('portfolio.shares', 'Shares'), t('portfolio.avgCost', 'Avg Cost'), t('portfolio.currentPrice', 'Current Price'), t('portfolio.marketValue', 'Market Value'), t('portfolio.pnl', 'P&L'), isAlpacaMode ? 'TREK' : ''].map((h, i) => (
                       <th key={i} className={`${i === 0 ? 'text-left px-5' : i === 6 ? 'w-10' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>{h}</th>
                     ))}
                   </tr>
@@ -331,7 +331,7 @@ export default function Portfolio() {
                       <tr key={p.asset_id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0" style={{ borderLeft: pnl >= 0 ? '3px solid #22c55e' : '3px solid #ef4444' }}>
                         <td className="px-5 py-3">
                           <div className="font-mono font-black text-[13px] text-white/85">{p.symbol}</div>
-                          <div className="text-[10px] text-white/30">{parseFloat(qty).toFixed(2)} shares</div>
+                          <div className="text-[10px] text-white/30">{parseFloat(qty).toFixed(2)} {t('portfolio.shares', 'shares')}</div>
                         </td>
                         <td className="px-4 py-3 text-right font-mono text-[12px] text-white/60">{parseFloat(qty).toFixed(2)}</td>
                         <td className="px-4 py-3 text-right font-mono text-[12px] text-white/60">${avgPrice.toFixed(2)}</td>

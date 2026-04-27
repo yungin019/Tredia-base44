@@ -7,25 +7,27 @@ import { base44 } from '@/api/base44Client';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import { getProductId } from '@/lib/revenuecat-config';
 
-const ELITE_FEATURES = [
-  'Unlimited TREK AI signals',
-  'Super AI — 4-model consensus',
-  'Real-time price alerts',
-  'Advanced analytics & charts',
-  'Priority support 24/7',
-];
-
-const FOUNDING_FEATURES = [
-  'Elite FREE for 30 days',
-  'Then 89 SEK/month for life (normally 179 SEK)',
-  'OG Founding Member badge',
-  'Personal referral link',
-  'Early access to new features',
-];
+// Features are built inline using t() below
 
 export default function Upgrade() {
   const { t } = useTranslation();
   const { makePurchase, restorePurchases, purchaseInProgress, purchaseError, isInitialized } = useRevenueCat();
+
+  const ELITE_FEATURES = [
+    t('upgrade.eliteFeature1', 'Unlimited TREK AI signals'),
+    t('upgrade.eliteFeature2', 'Super AI — 4-model consensus'),
+    t('upgrade.eliteFeature3', 'Real-time price alerts'),
+    t('upgrade.eliteFeature4', 'Advanced analytics & charts'),
+    t('upgrade.eliteFeature5', 'Priority support 24/7'),
+  ];
+
+  const FOUNDING_FEATURES = [
+    t('upgrade.foundingFeature1', 'Elite FREE for 30 days'),
+    t('upgrade.foundingFeature2', 'Then 89 SEK/month for life (normally 179 SEK)'),
+    t('upgrade.foundingFeature3', 'OG Founding Member badge'),
+    t('upgrade.foundingFeature4', 'Personal referral link'),
+    t('upgrade.foundingFeature5', 'Early access to new features'),
+  ];
   const [stats, setStats] = useState({ foundingSpotsTaken: 0, foundingSpotsRemaining: 100, isSoldOut: false });
   const [loadingStats, setLoadingStats] = useState(true);
   const [joining, setJoining] = useState(false);
@@ -104,7 +106,7 @@ export default function Upgrade() {
     <div className="min-h-screen bg-background p-4 lg:p-6 max-w-2xl mx-auto pb-24 space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
          <h1 className="text-2xl font-black text-white/95 tracking-tight">{t('upgrade.title', 'Upgrade')}</h1>
-         <p className="text-sm text-white/35 mt-1">{t('home.title', 'Unlock the full power of TREK')}</p>
+         <p className="text-sm text-white/35 mt-1">{t('upgrade.unlockPower', 'Unlock the full power of TREK')}</p>
        </motion.div>
 
       {/* OG100 FOUNDING MEMBER BLOCK */}
@@ -153,14 +155,14 @@ export default function Upgrade() {
               <div className="flex items-center gap-1.5">
                 <Users className="h-3 w-3 text-white/30" />
                 {loadingStats ? (
-                  <span className="text-[11px] text-white/30">Loading...</span>
+                  <span className="text-[11px] text-white/30">{t('common.loading', 'Loading...')}</span>
                 ) : joined ? (
                   <span className="text-[11px] text-[#F59E0B] font-bold">You are OG #{joinedNumber}</span>
                 ) : stats.isSoldOut ? (
-                  <span className="text-[11px] text-red-400 font-bold">SOLD OUT — All 100 spots claimed</span>
+                  <span className="text-[11px] text-red-400 font-bold">{t('upgrade.soldOut', 'SOLD OUT — All 100 spots claimed')}</span>
                 ) : (
                   <span className="text-[11px] text-white/50">
-                    <span className="text-white/80 font-bold">{stats.foundingSpotsRemaining}</span> of 100 spots left
+                    <span className="text-white/80 font-bold">{stats.foundingSpotsRemaining}</span> {t('upgrade.spotsLeft', 'of 100 spots left')}
                   </span>
                 )}
               </div>
@@ -182,12 +184,12 @@ export default function Upgrade() {
           ) : joined ? (
             <div className="text-center py-3 rounded-xl font-black text-sm"
               style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e' }}>
-              ✓ You're OG #{joinedNumber} — Founding Member
+              ✓ {t('upgrade.youAreOG', "You're OG")} #{joinedNumber} — {t('upgrade.foundingMember', 'Founding Member')}
             </div>
           ) : stats.isSoldOut ? (
             <div className="text-center py-3 rounded-xl font-bold text-sm text-white/30"
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              All 100 founding spots are taken
+              {t('upgrade.allSpotsTaken', 'All 100 founding spots are taken')}
             </div>
           ) : (
             <motion.button
@@ -202,7 +204,7 @@ export default function Upgrade() {
                 boxShadow: '0 0 30px rgba(245,158,11,0.2)',
               }}
             >
-              {joining ? t('common.loading', 'Loading...') : 'CLAIM YOUR SPOT →'}
+              {joining ? t('common.loading', 'Loading...') : t('upgrade.claimSpot', 'CLAIM YOUR SPOT →')}
             </motion.button>
           )}
         </div>
@@ -279,7 +281,7 @@ export default function Upgrade() {
             {billingCycle === 'monthly' ? '/mo' : '/yr'}
           </span>
         </p>
-        <p className="text-xs text-white/30 mb-5">{t('home.title', 'Unlock the full power of TREK')}</p>
+        <p className="text-xs text-white/30 mb-5">{t('upgrade.unlockPower', 'Unlock the full power of TREK')}</p>
         <ul className="space-y-2.5 mb-6">
           {[t('upgrade.proFeature1', 'Unlimited TREK signals'), t('upgrade.proFeature2', 'Real-time price alerts'), t('upgrade.proFeature3', 'Advanced charts')].map(f => (
             <li key={f} className="flex items-center gap-2.5 text-sm text-white/55">

@@ -3,15 +3,17 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 export default function TradeHistory() {
+  const { t } = useTranslation();
   const { data: trades = [], isLoading } = useQuery({
     queryKey: ['tradelog'],
     queryFn: () => base44.entities.TradeLog.list('-created_date', 50),
   });
 
   if (isLoading) {
-    return <div className="p-8 text-center text-white/25 text-[12px]">Loading trade history...</div>;
+    return <div className="p-8 text-center text-white/25 text-[12px]">{t('portfolio.loadingTrades', 'Loading trade history...')}</div>;
   }
 
   if (!Array.isArray(trades) || trades.length === 0) {
@@ -21,8 +23,8 @@ export default function TradeHistory() {
           <ArrowUpRight className="h-7 w-7 text-white/20" />
         </div>
         <div>
-          <p className="text-sm font-bold text-white/60 mb-1">No trades yet</p>
-          <p className="text-[11px] text-white/25 max-w-xs">Your paper trading history will appear here after you execute trades.</p>
+          <p className="text-sm font-bold text-white/60 mb-1">{t('portfolio.noTradesYet', 'No trades yet')}</p>
+          <p className="text-[11px] text-white/25 max-w-xs">{t('portfolio.noTradesDesc', 'Your paper trading history will appear here after you execute trades.')}</p>
         </div>
       </div>
     );
@@ -33,7 +35,7 @@ export default function TradeHistory() {
       <table className="w-full">
         <thead>
           <tr className="border-b border-white/[0.05]">
-            {['Date', 'Symbol', 'Action', 'Shares', 'Price', 'Total', 'Status'].map((h, i) => (
+            {[t('portfolio.date','Date'), t('markets.symbol','Symbol'), t('portfolio.action','Action'), t('paperTrading.shares','Shares'), t('portfolio.price','Price'), t('portfolio.total','Total'), t('portfolio.status','Status')].map((h, i) => (
               <th key={i} className={`${i === 0 || i === 1 ? 'text-left px-5' : 'text-right px-4'} py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase`}>
                 {h}
               </th>
@@ -76,7 +78,7 @@ export default function TradeHistory() {
                     trade.status === 'cancelled' ? 'bg-destructive/10 text-destructive' :
                     'bg-white/5 text-white/40'
                   }`}>
-                    {trade.status || 'executed'}
+                    {trade.status === 'executed' ? t('portfolio.executed','executed') : trade.status === 'cancelled' ? t('portfolio.cancelled','cancelled') : trade.status || t('portfolio.executed','executed')}
                   </span>
                 </td>
               </motion.tr>
