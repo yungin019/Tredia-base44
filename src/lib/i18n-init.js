@@ -44,6 +44,7 @@ if (!i18n.isInitialized) {
     .init({
       resources,
       fallbackLng: 'en',
+      keySeparator: false, // Translations use flat keys like "alpaca.unlockRealTrading"
       interpolation: {
         escapeValue: false,
       },
@@ -59,6 +60,14 @@ if (!i18n.isInitialized) {
       },
     })
     .catch(() => {});
+  
+  // Debug: Log resource bundle for French
+  if (import.meta.env.MODE === 'development') {
+    const frBundle = i18n.getResourceBundle('fr', 'translation');
+    console.log('🌐 i18n FR Bundle keys:', Object.keys(frBundle).slice(0, 20));
+    console.log('✓ alpaca.unlockRealTrading:', frBundle['alpaca.unlockRealTrading']);
+    console.log('✓ settings.trading:', frBundle['settings.trading']);
+  }
 }
 
 export default i18n;
