@@ -50,18 +50,7 @@ export default function Settings({ onLogout }) {
   const { t, i18n } = useTranslation();
   const { tier } = useSubscriptionStatus();
 
-  // Debug: Log i18n state and translation resolution
-  useEffect(() => {
-    if (import.meta.env.MODE === 'development') {
-      console.log('\n========== SETTINGS i18n DEBUG ==========');
-      console.log('i18n.language:', i18n.language);
-      console.log('i18n.resolvedLanguage:', i18n.resolvedLanguage);
-      console.log('t("alpaca.unlockRealTrading"):', t('alpaca.unlockRealTrading'));
-      console.log('t("settings.trading"):', t('settings.trading'));
-      console.log('t("alpaca.connectDesc"):', t('alpaca.connectDesc'));
-      console.log('=========================================\n');
-    }
-  }, [i18n.language, t]);
+
   const { restorePurchases, purchaseInProgress, purchaseError } = useRevenueCat();
   const [user, setUser] = useState(null);
   const [foundingMember, setFoundingMember] = useState(null);

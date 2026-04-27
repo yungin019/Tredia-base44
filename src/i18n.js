@@ -62,29 +62,7 @@ if (!i18n.isInitialized) {
     })
     .catch(() => {});
 
-  // Debug: Log resource bundles
-  if (import.meta.env.MODE === 'development') {
-    console.log('\n========== i18n SINGLETON INITIALIZED ==========');
-    ['sv', 'fr'].forEach(lang => {
-      const bundle = i18n.getResourceBundle(lang, 'translation');
-      const allKeys = Object.keys(bundle);
-      console.log(`\n🌐 ${lang.toUpperCase()} Bundle: ${allKeys.length} total keys`);
-      
-      const testKeys = [
-        'settings.trading',
-        'alpaca.unlockRealTrading',
-        'alpaca.connectDesc',
-        'settings.connectedAccounts',
-        'settings.priceAlertsDesc',
-      ];
-      
-      testKeys.forEach(key => {
-        const value = bundle[key];
-        console.log(`  ${value ? '✓' : '✗'} ${key}: ${value ? '"' + value.substring(0, 40) + '..."' : 'MISSING'}`);
-      });
-    });
-    console.log('\n=============================================\n');
-  }
+
 }
 
 export default i18n;
