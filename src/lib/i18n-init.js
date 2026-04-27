@@ -61,12 +61,39 @@ if (!i18n.isInitialized) {
     })
     .catch(() => {});
   
-  // Debug: Log resource bundle for French
+  // Debug: Log resource bundles for all languages
   if (import.meta.env.MODE === 'development') {
-    const frBundle = i18n.getResourceBundle('fr', 'translation');
-    console.log('🌐 i18n FR Bundle keys:', Object.keys(frBundle).slice(0, 20));
-    console.log('✓ alpaca.unlockRealTrading:', frBundle['alpaca.unlockRealTrading']);
-    console.log('✓ settings.trading:', frBundle['settings.trading']);
+    console.log('\n========== i18n RESOURCE BUNDLE DIAGNOSIS ==========');
+    ['sv', 'fr'].forEach(lang => {
+      const bundle = i18n.getResourceBundle(lang, 'translation');
+      const allKeys = Object.keys(bundle);
+      console.log(`\n🌐 ${lang.toUpperCase()} Bundle: ${allKeys.length} total keys`);
+      
+      // Check for specific keys
+      const testKeys = [
+        'settings.trading',
+        'alpaca.unlockRealTrading',
+        'alpaca.connectDesc',
+        'settings.connectedAccounts',
+        'settings.priceAlertsDesc',
+        'alpaca.feat1',
+        'alpaca.connectAlpacaFree'
+      ];
+      
+      testKeys.forEach(key => {
+        const value = bundle[key];
+        if (value) {
+          console.log(`  ✓ ${key}: "${value.substring(0, 50)}..."`);
+        } else {
+          console.warn(`  ✗ MISSING: ${key}`);
+        }
+      });
+      
+      // Show sample of keys that DO exist
+      const sampleKeys = allKeys.filter(k => k.includes('settings') || k.includes('alpaca')).slice(0, 10);
+      console.log(`  Sample keys found: ${sampleKeys.join(', ')}`);
+    });
+    console.log('\n===========================================\n');
   }
 }
 
