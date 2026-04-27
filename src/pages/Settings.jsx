@@ -52,7 +52,8 @@ export default function Settings({ onLogout }) {
   const { restorePurchases, purchaseInProgress, purchaseError } = useRevenueCat();
   const [user, setUser] = useState(null);
   const [foundingMember, setFoundingMember] = useState(null);
-  const [currentLang, setCurrentLang] = useState(i18n.language);
+  // i18n.language from useTranslation() updates automatically on changeLanguage()
+  const currentLang = i18n.language || 'en';
   const [notifications, setNotifications] = useState({
     priceAlerts: true,
     trekSignals: true,
@@ -83,18 +84,6 @@ export default function Settings({ onLogout }) {
     })
     .catch(() => { setNotifLoaded(true); });
   }, []);
-
-  useEffect(() => {
-    const handleLanguageChanged = (lng) => {
-      setCurrentLang(lng);
-    };
-    i18n.on('languageChanged', handleLanguageChanged);
-    return () => i18n.off('languageChanged', handleLanguageChanged);
-  }, [i18n]);
-
-  // Force re-render when language changes so all t() calls update
-  // eslint-disable-next-line no-unused-vars
-  const _lang = currentLang;
 
   const toggle = (key) => {
     const updated = { ...notifications, [key]: !notifications[key] };

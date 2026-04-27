@@ -6,21 +6,29 @@ import translations from '../locales/translations';
 import enExtra from '../locales/en-extra';
 import alpacaTranslations from '../locales/alpaca-translations';
 import extraTranslations from '../locales/extra-translations';
+import coreTranslations from '../locales/core-translations';
 
 // RTL language codes
 const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];
 
+// All supported languages (union of translations + core)
+const ALL_LANGS = Array.from(new Set([
+  ...Object.keys(translations),
+  ...Object.keys(coreTranslations),
+]));
+
 // Build resources from centralized translations object
+// core-translations is merged LAST so it wins over stale/partial keys
 const buildResources = () => {
   const resources = {};
-  Object.keys(translations).forEach(lang => {
-    const t = translations[lang].translation;
+  ALL_LANGS.forEach(lang => {
+    const base = translations[lang]?.translation || {};
     const alpacaKeys = alpacaTranslations[lang] || {};
     const extraKeys = extraTranslations[lang] || {};
-    // Merge all translation layers
+    const coreKeys = coreTranslations[lang] || {};
     const merged = lang === 'en'
-      ? { ...t, ...enExtra, ...alpacaKeys, ...extraKeys }
-      : { ...t, ...alpacaKeys, ...extraKeys };
+      ? { ...base, ...enExtra, ...alpacaKeys, ...extraKeys, ...coreKeys }
+      : { ...base, ...alpacaKeys, ...extraKeys, ...coreKeys };
     resources[lang] = { translation: merged };
   });
   return resources;
@@ -52,10 +60,11 @@ if (!i18n.isInitialized) {
     })
     .catch(() => {});
 } else {
-  // Already initialized (HMR / re-render) — patch in any new keys so they
-  // are not shown as raw key strings at runtime.
-  Object.keys(resources).forEach(lang => {
-    i18n.addResourceBundle(lang, 'translation', resources[lang].translation, true, true);
+  // Already initialized (HMR / re-render) — patch in any new keys.
+  ALL_LANGS.forEach(lang => {
+    if (resources[lang]) {
+      i18n.addResourceBundle(lang, 'translation', resources[lang].translation, true, true);
+    }
   });
 }
 
