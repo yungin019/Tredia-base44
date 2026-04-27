@@ -59,14 +59,14 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const AppRoutes = ({ user, onLogout }) => {
+const AppRoutes = ({ user, onLogout, onLoginSuccess }) => {
   const location = useLocation();
 
   if (!user) {
     return (
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/SignIn" element={<PageTransition><SignIn /></PageTransition>} />
+          <Route path="/SignIn" element={<PageTransition><SignIn onLoginSuccess={onLoginSuccess} /></PageTransition>} />
           <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
           <Route path="*" element={<Navigate to="/SignIn" replace />} />
         </Routes>
@@ -80,7 +80,7 @@ const AppRoutes = ({ user, onLogout }) => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Navigate to={needsOnboarding ? "/Onboarding" : "/Home"} replace />} />
-        <Route path="/SignIn" element={<Navigate to={needsOnboarding ? "/Onboarding" : "/Home"} replace />} />
+        <Route path="/SignIn" element={<PageTransition><SignIn onLoginSuccess={onLoginSuccess} /></PageTransition>} />
         <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
         <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
         <Route path="/OnboardingQuick" element={<PageTransition><OnboardingQuick /></PageTransition>} />
@@ -135,6 +135,15 @@ function App() {
     await base44.auth.logout('/SignIn');
   };
 
+  const handleLoginSuccess = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser || null);
+    } catch {
+      setUser(null);
+    }
+  };
+
   return (
     <QueryClientProvider client={queryClientInstance}>
       {loading ? (
@@ -142,7 +151,7 @@ function App() {
       ) : (
         <Router>
           <NavigationProvider>
-            <AppRoutes user={user} onLogout={handleLogout} />
+            <AppRoutes user={user} onLogout={handleLogout} onLoginSuccess={handleLoginSuccess} />
             <Toaster />
           </NavigationProvider>
         </Router>

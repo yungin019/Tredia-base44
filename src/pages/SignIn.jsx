@@ -12,7 +12,7 @@ const getCapacitorApp = () => window.Capacitor?.Plugins?.App ?? null;
 // Detect if running inside a native Capacitor iOS/Android app
 const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
 
-export default function SignIn() {
+export default function SignIn({ onLoginSuccess }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [mode, setMode] = useState('login');
@@ -45,6 +45,7 @@ export default function SignIn() {
               localStorage.setItem('base44_access_token', token);
               await Browser.close().catch(() => {});
               const needsOnboarding = await initProfile();
+              if (onLoginSuccess) await onLoginSuccess();
               navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
             }
           } catch (_) { /* ignore parse errors */ }
@@ -67,7 +68,11 @@ export default function SignIn() {
       if (!u.referral_code) updates.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
       if (!u.subscription_tier) updates.subscription_tier = 'free';
       if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates);
-      return !u.onboarding_completed;
+      // If onboarding_completed is explicitly true → dashboard
+      // If it's false → onboarding
+      // If it's undefined (existing account before flag existed) → treat as done, go to dashboard
+      const needsOnboarding = u.onboarding_completed === false;
+      return needsOnboarding;
     } catch { /* non-fatal */ }
     return false;
   };
@@ -90,6 +95,7 @@ export default function SignIn() {
       } else {
         await base44.auth.loginViaEmailPassword(email, password);
         const needsOnboarding = await initProfile();
+        if (onLoginSuccess) await onLoginSuccess();
         navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
       }
     } catch (err) {
