@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Zap, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function UpgradeCall({ onUpgrade }) {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -21,9 +23,9 @@ export default function UpgradeCall({ onUpgrade }) {
           <Zap className="h-4 w-4" style={{ color: '#0ec8dc' }} />
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-white mb-1">Real-Time Signals Before They Hit</h3>
+          <h3 className="font-bold text-white mb-1">{t('upgrade.unlockPower', 'Unlock the full power of TREK')}</h3>
           <p className="text-sm mb-4" style={{ color: 'rgba(180,210,240,0.6)' }}>
-            TREK Elite delivers instant alerts when the next move is forming. Entry, exit, risk — all spelled out.
+            {t('upgrade.eliteFeature1', 'Unlimited TREK AI signals')} · {t('upgrade.eliteFeature3', 'Real-time price alerts')} · {t('upgrade.eliteFeature4', 'Advanced analytics')}
           </p>
           <button
             onClick={onUpgrade}
@@ -34,7 +36,7 @@ export default function UpgradeCall({ onUpgrade }) {
               boxShadow: '0 4px 20px rgba(14,200,220,0.25)',
             }}
           >
-            View Elite
+            {t('upgrade.upgrade', 'Upgrade')}
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

@@ -5,8 +5,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export function OG100Card({ onClaim }) {
+  const { t } = useTranslation();
   const [remaining, setRemaining] = useState(100);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
@@ -93,7 +95,7 @@ export function OG100Card({ onClaim }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5" style={{ color: '#0ec8dc' }} />
-              <h3 className="text-base font-black text-white">FOUNDING MEMBER OFFER</h3>
+              <h3 className="text-base font-black text-white">{t('upgrade.foundingMember', 'FOUNDING MEMBER OFFER').toUpperCase()}</h3>
             </div>
             <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: 'rgba(14,200,220,0.15)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.3)' }}>
               NEW
@@ -103,29 +105,17 @@ export function OG100Card({ onClaim }) {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#0ec8dc' }} />
             <p className="text-sm font-bold text-white">
-              {remaining} of 100 spots remaining
+              {remaining} {t('upgrade.spotsLeft', 'of 100 spots left')}
             </p>
           </div>
 
           <div className="space-y-2 text-sm" style={{ color: 'rgba(180,210,240,0.7)' }}>
-            <p className="font-bold text-white">First 100 members get:</p>
+            <p className="font-bold text-white">{t('upgrade.first100', 'First 100 members get')}:</p>
             <ul className="space-y-1 ml-4">
-              <li className="flex items-start gap-2">
-                <span style={{ color: '#0ec8dc' }}>•</span>
-                <span>Elite FREE for 30 days</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span style={{ color: '#0ec8dc' }}>•</span>
-                <span>Then Elite for 89 SEK forever <span style={{ color: 'rgba(180,210,240,0.4)' }}>(normally 179 SEK/month)</span></span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span style={{ color: '#0ec8dc' }}>•</span>
-                <span>OG Founding Member badge</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span style={{ color: '#0ec8dc' }}>•</span>
-                <span>Personal referral link</span>
-              </li>
+              <li className="flex items-start gap-2"><span style={{ color: '#0ec8dc' }}>•</span><span>{t('upgrade.foundingFeature1', 'Elite FREE for 30 days')}</span></li>
+              <li className="flex items-start gap-2"><span style={{ color: '#0ec8dc' }}>•</span><span>{t('upgrade.foundingFeature2', 'Then 89 SEK/month for life')}</span></li>
+              <li className="flex items-start gap-2"><span style={{ color: '#0ec8dc' }}>•</span><span>{t('upgrade.foundingFeature3', 'OG Founding Member badge')}</span></li>
+              <li className="flex items-start gap-2"><span style={{ color: '#0ec8dc' }}>•</span><span>{t('upgrade.foundingFeature4', 'Personal referral link')}</span></li>
             </ul>
           </div>
 
@@ -139,7 +129,7 @@ export function OG100Card({ onClaim }) {
               boxShadow: '0 4px 20px rgba(14,200,220,0.25)',
             }}
           >
-            {claiming ? 'CLAIMING...' : 'CLAIM YOUR SPOT'} <ChevronRight className="h-5 w-5" />
+            {claiming ? t('common.loading', 'Loading...') : t('upgrade.claimSpot', 'CLAIM YOUR SPOT →')} <ChevronRight className="h-5 w-5" />
           </button>
         </div>
       </div>

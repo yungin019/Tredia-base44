@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import FeedReactionBlock from './FeedReactionBlock';
+import { useTranslation } from 'react-i18next';
 
 // ── VALIDATION: reject vague signals ─────────────────────────────────────────
 const BANNED = ['sentiment', 'narrative', 'uncertain'];
@@ -97,16 +98,18 @@ function FeedSeparator({ label }) {
 
 // ── EMPTY STATE ───────────────────────────────────────────────────────────────
 function EmptyState({ region }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl px-5 py-8 text-center" style={{ background: 'rgba(8,16,36,0.55)', border: '1px solid rgba(100,220,255,0.07)' }}>
-      <p className="text-white/30 text-sm font-medium">No signals for {region} right now</p>
-      <p className="text-white/15 text-xs mt-1">TREK is monitoring — check back soon</p>
+      <p className="text-white/30 text-sm font-medium">{t('feed.noSignals', 'No signals for')} {region} {t('feed.rightNow', 'right now')}</p>
+      <p className="text-white/15 text-xs mt-1">{t('feed.trekMonitoring', 'TREK is monitoring — check back soon')}</p>
     </div>
   );
 }
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function IntelligenceFeed({ activeRegion }) {
+  const { t } = useTranslation();
   const [reactions, setReactions] = useState([]);
   const [watchItems, setWatchItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -184,7 +187,7 @@ export default function IntelligenceFeed({ activeRegion }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Live Signals · {activeRegion}</span>
+            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{t('home.liveSignals', 'Live Signals')} · {activeRegion}</span>
           </div>
           {lastUpdated && (
             <span className="text-[9px] text-white/20 flex items-center gap-1">
@@ -202,7 +205,7 @@ export default function IntelligenceFeed({ activeRegion }) {
         {/* Watch layer */}
         {watchItems.length > 0 && (
           <>
-            <FeedSeparator label="Trek is watching" />
+            <FeedSeparator label={t('feed.trekWatching', 'Trek is watching')} />
             <div className="rounded-xl px-4 py-3.5 space-y-2.5" style={{
               background: 'rgba(3, 7, 18, 0.82)',
               backdropFilter: 'blur(28px)',
@@ -211,7 +214,7 @@ export default function IntelligenceFeed({ activeRegion }) {
             }}>
               <div className="flex items-center gap-2 mb-1">
                 <Eye className="h-3.5 w-3.5 text-primary/50" />
-                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">On the radar</span>
+                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{t('feed.onRadar', 'On the radar')}</span>
               </div>
               {watchItems.map((item, i) => (
                 <WatchRow key={i} item={item} index={i} />
@@ -221,7 +224,7 @@ export default function IntelligenceFeed({ activeRegion }) {
         )}
 
         {/* Remaining reactions */}
-        {reactions.slice(2).length > 0 && <FeedSeparator label="More context" />}
+        {reactions.slice(2).length > 0 && <FeedSeparator label={t('feed.moreContext', 'More context')} />}
         {reactions.slice(2).map((r, i) => (
           <FeedReactionBlock key={r.id} reaction={r} index={i + 2} />
         ))}

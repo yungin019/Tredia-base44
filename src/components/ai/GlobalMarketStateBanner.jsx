@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import i18n from 'i18next';
+import { useTranslation } from 'react-i18next';
 
 export default function GlobalMarketStateBanner() {
+  const { t } = useTranslation();
   const [state, setState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -66,8 +68,8 @@ export default function GlobalMarketStateBanner() {
           border: '1px solid rgba(100,220,255,0.09)',
         }}
       >
-        <h3 className="text-xs font-black text-white/80 uppercase tracking-widest">Market State</h3>
-        <p className="text-[11px] text-white/60">Unable to load market state. Please refresh.</p>
+        <h3 className="text-xs font-black text-white/80 uppercase tracking-widest">{t('feed.marketState', 'Market State')}</h3>
+        <p className="text-[11px] text-white/60">{t('feed.unableToLoad', 'Unable to load market state. Please refresh.')}</p>
       </div>
     );
   }
@@ -82,7 +84,7 @@ export default function GlobalMarketStateBanner() {
         border: '1px solid rgba(100,220,255,0.09)',
       }}
     >
-      <h3 className="text-xs font-black text-white/80 uppercase tracking-widest">Market State</h3>
+      <h3 className="text-xs font-black text-white/80 uppercase tracking-widest">{t('feed.marketState', 'Market State')}</h3>
       
       {/* Market State */}
       <p className="text-[11px] text-white/60 leading-snug">{state.marketState}</p>
@@ -90,7 +92,7 @@ export default function GlobalMarketStateBanner() {
       {/* Bias */}
       <div className="flex items-start gap-2 pt-1">
         <span className="text-sm flex-shrink-0" style={{ color: 'rgb(14,200,220)' }}>⚡</span>
-        <span className="text-[10px] font-bold text-white/70">Bias: {state.bias}</span>
+        <span className="text-[10px] font-bold text-white/70">{t('feed.bias', 'Bias')}: {state.bias}</span>
       </div>
       
       {/* Watch List */}
@@ -101,7 +103,7 @@ export default function GlobalMarketStateBanner() {
           border: '1px solid rgba(14,200,220,0.1)',
         }}
       >
-        <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1.5">Watch</p>
+        <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1.5">{t('trek.watch', 'Watch')}</p>
         <div className="space-y-1">
           {state.watch && state.watch.map((item, idx) => (
             <div key={idx} className="flex items-start gap-2">

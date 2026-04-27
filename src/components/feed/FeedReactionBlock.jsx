@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, Clock, ChevronDown, ChevronUp, Zap, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { calculateSignalStrength, getSignalColor } from '@/lib/signalStrength';
+import { useTranslation } from 'react-i18next';
 
 // ── VALIDATION ────────────────────────────────────────────────────────────────
 const BANNED_PHRASES = ['sentiment', 'narrative', 'momentum', 'uncertain'];
@@ -53,6 +54,7 @@ function AssetPill({ symbol, direction, onClick }) {
 
 export default function FeedReactionBlock({ reaction, index = 0 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   if (!reaction) return null;
@@ -190,17 +192,17 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
       {/* ── TRADE SETUP ─────────────────────────────────────────── */}
       {tradeSetup && (
         <div className="px-4 py-3 space-y-1.5" style={{ borderTop: '1px solid rgba(245,158,11,0.12)', background: 'rgba(245,158,11,0.04)' }}>
-          <p className="text-[8px] font-black uppercase tracking-widest mb-2" style={{ color: 'rgba(245,158,11,0.5)' }}>⚡ Trade Setup</p>
+          <p className="text-[8px] font-black uppercase tracking-widest mb-2" style={{ color: 'rgba(245,158,11,0.5)' }}>⚡ {t('feed.tradeSetup', 'Trade Setup')}</p>
           <div className="flex items-start gap-2">
-            <span className="text-[8px] font-black text-yellow-500/50 uppercase w-16 flex-shrink-0 pt-0.5">Entry</span>
+            <span className="text-[8px] font-black text-yellow-500/50 uppercase w-16 flex-shrink-0 pt-0.5">{t('asset.entry', 'Entry')}</span>
             <span className="text-[10px] text-white/70">{tradeSetup.entry}</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-[8px] font-black text-orange-500/50 uppercase w-16 flex-shrink-0 pt-0.5">Invalid.</span>
+            <span className="text-[8px] font-black text-orange-500/50 uppercase w-16 flex-shrink-0 pt-0.5">{t('feed.invalid', 'Invalid.')}</span>
             <span className="text-[10px] text-white/70">{tradeSetup.invalidation}</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-[8px] font-black text-white/20 uppercase w-16 flex-shrink-0 pt-0.5">Time</span>
+            <span className="text-[8px] font-black text-white/20 uppercase w-16 flex-shrink-0 pt-0.5">{t('feed.time', 'Time')}</span>
             <span className="text-[10px] text-white/40">{tradeSetup.timeframe}</span>
           </div>
         </div>
@@ -241,7 +243,7 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
           ))}
         </div>
         <div className="flex items-center gap-1" style={{ color: 'rgba(100,220,255,0.3)' }}>
-          <span className="text-[9px]">{expanded ? 'Less' : 'More'}</span>
+          <span className="text-[9px]">{expanded ? t('asset.showLess', 'Less') : t('common.learnMore', 'More')}</span>
           {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </div>
       </div>
