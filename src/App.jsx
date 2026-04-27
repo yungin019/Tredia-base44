@@ -7,7 +7,7 @@ import { AnimatePresence } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
 import PageTransition from '@/components/ui/page-transition';
 import { base44 } from '@/api/base44Client';
-import i18n from 'i18next';
+import i18n from '@/lib/i18n-init'; // Initialize i18n before app renders
 
 import AppShell from './components/layout/AppShell';
 import { NavigationProvider } from '@/lib/NavigationManager';
