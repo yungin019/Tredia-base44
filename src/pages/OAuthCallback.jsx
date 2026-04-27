@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { Browser } from '@capacitor/browser';
 
-// Handles the redirect back from Google/Apple OAuth.
-// Base44 lands the user here with ?access_token=... after a successful OAuth flow.
+// Handles the redirect back from Google/Apple OAuth (web flow).
+// On native, the deep-link is handled by SignIn's appUrlOpen listener instead.
+// This page is only hit on web or if the in-app browser redirects to it.
 export default function OAuthCallback() {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
@@ -11,24 +13,28 @@ export default function OAuthCallback() {
   useEffect(() => {
     const handle = async () => {
       try {
-        // Base44 may embed the token in the URL params or hash
+        // Close any open in-app browser sheet (no-op if already closed)
+        await Browser.close().catch(() => {});
+
+        // Extract token from URL params or hash
         const params = new URLSearchParams(window.location.search);
         const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
-        const token = params.get('access_token') || params.get('token') ||
-                      hashParams.get('access_token') || hashParams.get('token');
+        const token =
+          params.get('access_token') || params.get('token') ||
+          hashParams.get('access_token') || hashParams.get('token');
 
         if (token) {
           localStorage.setItem('base44_access_token', token);
         }
 
-        // Fetch the user — if token is already stored by Base44 SDK this will work even without explicit token
+        // Fetch user — SDK picks up the token from localStorage
         const user = await base44.auth.me();
         if (!user) {
           navigate('/SignIn', { replace: true });
           return;
         }
 
-        // Initialize profile defaults for new OAuth users
+        // Init profile defaults for new OAuth users
         const updates = {};
         if (!user.broker_status) updates.broker_status = 'not_connected';
         if (!user.trading_mode) updates.trading_mode = 'practice';
@@ -38,8 +44,6 @@ export default function OAuthCallback() {
           await base44.auth.updateMe(updates).catch(() => {});
         }
 
-        // New users (onboarding_completed === false) → Onboarding
-        // Existing users (true or undefined) → Home
         const needsOnboarding = user.onboarding_completed === false;
         navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
       } catch (err) {
@@ -53,32 +57,32 @@ export default function OAuthCallback() {
 
   if (error) {
     return (
-      <div style={{
-        minHeight: '100vh', background: '#080B12',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexDirection: 'column', gap: '12px',
-      }}>
+      <div style={containerStyle}>
         <p style={{ color: '#ef4444', fontSize: '14px' }}>{error}</p>
-        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>Redirecting to sign in...</p>
+        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px', marginTop: '8px' }}>Redirecting…</p>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh', background: '#080B12',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      flexDirection: 'column', gap: '16px',
-    }}>
-      <img src="/logo-full.svg" alt="TREDIO" style={{ height: '32px' }} />
-      <div style={{
-        width: 28, height: 28,
-        border: '3px solid #F59E0B',
-        borderTopColor: 'transparent',
-        borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite',
-      }} />
+    <div style={containerStyle}>
+      <img src="/logo-full.svg" alt="TREDIO" style={{ height: '32px', marginBottom: '20px' }} />
+      <div style={spinnerStyle} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
+
+const containerStyle = {
+  minHeight: '100vh', background: '#080B12',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  flexDirection: 'column', gap: '8px',
+};
+
+const spinnerStyle = {
+  width: 28, height: 28,
+  border: '3px solid #F59E0B',
+  borderTopColor: 'transparent',
+  borderRadius: '50%',
+  animation: 'spin 0.8s linear infinite',
+};
