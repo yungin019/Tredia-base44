@@ -157,25 +157,25 @@ export default function Settings({ onLogout }) {
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 rounded-full bg-[#F59E0B] mt-2" />
               <div className="flex-1">
-                <p className="text-sm font-bold text-white mb-2">{t('settings.unlockRealTrading', 'Unlock Real Trading')}</p>
-                <p className="text-xs text-white/60 mb-3">{t('settings.alpacaDesc', 'Connect Alpaca and TREK starts monitoring YOUR real portfolio immediately. Commission-free.')}</p>
+                <p className="text-sm font-bold text-white mb-2">{t('alpaca.unlockRealTrading', 'Unlock Real Trading')}</p>
+                <p className="text-xs text-white/60 mb-3">{t('alpaca.connectDesc', 'Connect Alpaca and TREK starts monitoring YOUR real portfolio immediately. Commission-free.')}</p>
 
                 <div className="space-y-1.5 mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">{t('settings.feat1', 'Zero hidden fees')}</p>
+                    <p className="text-xs text-white/70">{t('alpaca.feat1', 'Zero hidden fees')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">{t('settings.feat2', 'TREK analyzes your positions')}</p>
+                    <p className="text-xs text-white/70">{t('alpaca.feat2', 'TREK analyzes your positions')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">{t('settings.feat3', 'Real-time alerts on YOUR actual holdings')}</p>
+                    <p className="text-xs text-white/70">{t('alpaca.feat3', 'Real-time alerts on YOUR actual holdings')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">{t('settings.feat4', 'Takes 30 seconds')}</p>
+                    <p className="text-xs text-white/70">{t('alpaca.feat4', 'Takes 30 seconds')}</p>
                   </div>
                 </div>
 
@@ -183,11 +183,11 @@ export default function Settings({ onLogout }) {
                   onClick={() => navigate('/alpaca-connect')}
                   className="w-full px-4 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white mb-3"
                 >
-                  {t('settings.connectAlpaca', 'CONNECT ALPACA - FREE →')}
+                  {t('alpaca.connectAlpacaFree', 'CONNECT ALPACA - FREE →')}
                 </button>
 
                 <div className="text-center">
-                  <p className="text-[11px] text-white/40 mb-1">{t('settings.newToAlpaca', 'New to Alpaca?')}</p>
+                  <p className="text-[11px] text-white/40 mb-1">{t('alpaca.newToAlpaca', 'New to Alpaca?')}</p>
                   <button
                     onClick={async () => {
                       if (isNative()) {
@@ -199,7 +199,7 @@ export default function Settings({ onLogout }) {
                     style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                     className="text-[11px] text-[#F59E0B] hover:underline"
                   >
-                    {t('settings.createAlpacaAccount', 'Create free account → Commission-free · Takes 5 min')}
+                    {t('alpaca.createFreeAccount', 'Create free account → Commission-free · Takes 5 min')}
                   </button>
                 </div>
               </div>

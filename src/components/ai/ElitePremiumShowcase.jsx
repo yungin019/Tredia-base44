@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Lock, TrendingUp, Zap, Globe, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const PREMIUM_FEATURES = [
   {
@@ -77,6 +78,7 @@ const FREE_VS_ELITE = [
 
 export default function ElitePremiumShowcase() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('features');
 
   return (
@@ -85,19 +87,19 @@ export default function ElitePremiumShowcase() {
       <div className="text-center space-y-3 mb-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/25">
           <Zap className="h-4 w-4 text-primary" />
-          <span className="text-xs font-semibold text-primary">ELITE MEMBERSHIP</span>
+          <span className="text-xs font-semibold text-primary">{t('elite.membership', 'ELITE MEMBERSHIP')}</span>
         </div>
-        <h2 className="text-2xl font-black text-foreground">Upgrade to TREK Elite</h2>
+        <h2 className="text-2xl font-black text-foreground">{t('elite.upgradeTo', 'Upgrade to TREK Elite')}</h2>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          Stop checking 5 apps. TREK Elite gives you the global edge in ONE place.
+          {t('elite.tagline', 'Stop checking 5 apps. TREK Elite gives you the global edge in ONE place.')}
         </p>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2 justify-center mb-6">
         {[
-          { id: 'features', label: 'What You Get' },
-          { id: 'comparison', label: 'Free vs Elite' },
+          { id: 'features', label: t('elite.whatYouGet', 'What You Get') },
+          { id: 'comparison', label: t('elite.freeVsElite', 'Free vs Elite') },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -130,10 +132,10 @@ export default function ElitePremiumShowcase() {
               className="relative group"
             >
               {/* Locked Badge */}
-              <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-lg bg-warning/15 border border-warning/25">
-                <Lock className="h-3 w-3 text-warning" />
-                <span className="text-[10px] font-bold text-warning uppercase">Elite Only</span>
-              </div>
+               <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-lg bg-warning/15 border border-warning/25">
+                 <Lock className="h-3 w-3 text-warning" />
+                 <span className="text-[10px] font-bold text-warning uppercase">{t('elite.eliteOnly', 'Elite Only')}</span>
+               </div>
 
               {/* Card */}
               <div className="p-4 rounded-2xl border border-white/10 bg-white/[0.02] hover:border-primary/25 transition-all cursor-pointer group-hover:scale-[1.01]">
@@ -204,16 +206,16 @@ export default function ElitePremiumShowcase() {
         />
 
         <div className="relative flex items-center justify-center gap-2">
-          <span className="text-lg">Unlock Elite Access</span>
-          <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-        </div>
-      </motion.button>
+           <span className="text-lg">{t('elite.unlockAccess', 'Unlock Elite Access')}</span>
+           <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+         </div>
+        </motion.button>
 
-      {/* Social Proof */}
-      <div className="text-center space-y-2 text-xs text-muted-foreground">
-        <p>🔒 Secure payment • 7-day free trial • Cancel anytime</p>
-        <p>Join 15,000+ traders using TREK Elite</p>
-      </div>
+        {/* Social Proof */}
+        <div className="text-center space-y-2 text-xs text-muted-foreground">
+         <p>{t('elite.securePayment', '🔒 Secure payment • 7-day free trial • Cancel anytime')}</p>
+         <p>{t('elite.joinTraders', 'Join 15,000+ traders using TREK Elite')}</p>
+        </div>
     </div>
   );
 }
