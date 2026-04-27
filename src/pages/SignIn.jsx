@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useTranslation } from 'react-i18next';
 
-// Apple Sign-In requires explicit opt-in in Base44 Dashboard → Settings → Authentication → Apple.
-// Set this to true only after you have enabled it there.
-const APPLE_SIGNIN_ENABLED = true;
-
 export default function SignIn() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const accountDeleted = new URLSearchParams(window.location.search).get('deleted') === '1';
   const [email, setEmail] = useState('');
@@ -40,10 +38,10 @@ export default function SignIn() {
       } else {
         await base44.auth.loginViaEmailPassword(email, password);
         const needsOnboarding = await initProfile();
-        window.location.href = needsOnboarding ? '/Onboarding' : '/Home';
+        navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
       }
     } catch (err) {
-      setError(err?.message || t('error.serverError'));
+      setError(err?.message || t('error.serverError', 'An error occurred. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -89,7 +87,7 @@ export default function SignIn() {
         await base44.auth.updateMe(updates);
       } catch { /* non-fatal */ }
       // New registrations always go to onboarding
-      window.location.href = '/Onboarding';
+      navigate('/Onboarding', { replace: true });
     } catch (err) {
       setError(err?.message || t('signin.error.invalidCode'));
     } finally {
@@ -106,9 +104,7 @@ export default function SignIn() {
     }
   };
 
-  // Google: loginWithProvider redirects to Google OAuth.
-  // Base44 handles the callback internally at /auth/callback.
-  // Requires: Dashboard → Settings → Authentication → Google → Enabled
+  // Google OAuth — handled in-app via Base44 SDK (uses SFSafariViewController on iOS, not external Safari)
   const handleGoogle = () => {
     base44.auth.loginWithProvider('google', '/Home');
   };
@@ -122,6 +118,7 @@ export default function SignIn() {
       justifyContent: 'center',
       padding: '24px',
     }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -279,8 +276,21 @@ export default function SignIn() {
                   opacity: loading ? 0.7 : 1,
                   cursor: loading ? 'not-allowed' : 'pointer',
                   marginTop: '4px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 }}>
-                  {loading ? t('common.loading', 'Loading...') : mode === 'login' ? t('signin.signIn', 'Sign In') : t('signin.createAccount', 'Create Account')}
+                  {loading && (
+                    <span style={{
+                      display: 'inline-block', width: 16, height: 16,
+                      border: '2px solid rgba(3,8,16,0.3)',
+                      borderTopColor: '#030810',
+                      borderRadius: '50%',
+                      animation: 'spin 0.7s linear infinite',
+                    }} />
+                  )}
+                  {loading
+                    ? (mode === 'login' ? t('signin.signingIn', 'Signing in…') : t('signin.creating', 'Creating account…'))
+                    : (mode === 'login' ? t('signin.signIn', 'Sign In') : t('signin.createAccount', 'Create Account'))
+                  }
                 </button>
               </form>
 
@@ -291,7 +301,7 @@ export default function SignIn() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {/* Google: handled by Base44 OAuth redirect. Requires Google enabled in Dashboard → Auth */}
+                {/* Google: handled by Base44 OAuth (SFSafariViewController on iOS — stays in-app) */}
                 <button onClick={handleGoogle} style={socialBtnStyle}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -301,31 +311,7 @@ export default function SignIn() {
                   </svg>
                   {t('signin.google', 'Continue with Google')}
                 </button>
-
-                {/* Apple: disabled until enabled in Dashboard → Settings → Authentication → Apple */}
-                {APPLE_SIGNIN_ENABLED ? (
-                  <button
-                    onClick={() => base44.auth.loginWithProvider('apple', '/Home')}
-                    style={socialBtnStyle}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                    </svg>
-                    {t('signin.apple', 'Continue with Apple')}
-                  </button>
-                ) : (
-                  <div style={{
-                    width: '100%', padding: '11px 12px', borderRadius: '10px', fontSize: '13px',
-                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
-                    color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', gap: '8px', cursor: 'default',
-                  }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.3 }}>
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                    </svg>
-                    {t('signin.appleComingSoon', 'Apple Sign-In — Coming Soon')}
-                  </div>
-                )}
+                {/* Apple Sign-In removed: broken on iOS, Apple prefers no button over a broken one */}
               </div>
             </motion.div>
             )}

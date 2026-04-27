@@ -23,9 +23,17 @@ export default function AlpacaConnect() {
       // Get the OAuth URL from backend — keeps client_id server-side
       const res = await base44.functions.invoke('alpacaOAuth', { action: 'get_auth_url' });
       if (res?.data?.auth_url) {
-        window.location.href = res.data.auth_url;
+        const url = res.data.auth_url;
+        // On iOS Capacitor: use native SFSafariViewController (stays in-app)
+        // On web: standard redirect
+        if (window.Capacitor?.isNativePlatform?.()) {
+          window.Capacitor.Plugins.Browser?.open({ url });
+        } else {
+          window.location.href = url;
+        }
       }
     } catch (e) {
+      console.error('Alpaca connect error:', e);
       setConnecting(false);
     }
   };
