@@ -178,7 +178,7 @@ export default function SignIn({ onLoginSuccess }) {
   // Open OAuth in SFSafariViewController (in-app) on iOS, or redirect on web
   const openOAuth = async (provider) => {
     setError('');
-    setLoading(true);
+    startLoadingWithTimeout();
     try {
       // Get the OAuth URL from Base44 — this is the URL that starts the OAuth flow
       // and will eventually redirect back to tredio.app with the access token
@@ -194,20 +194,33 @@ export default function SignIn({ onLoginSuccess }) {
           presentationStyle: 'popover',
           toolbarColor: '#080B12',
         });
-        // The appUrlOpen listener above will handle the callback
-        setLoading(false);
+        // Browser.open resolves immediately after the sheet opens (not after it closes),
+        // so stop loading here — the appUrlOpen listener handles the success callback.
+        stopLoading();
       } else if (isNative()) {
-        // Fallback: use loginWithProvider — it will open in WKWebView context
-        // This is acceptable as it stays within the app's webview context
+        // Fallback: loginWithProvider opens a webview — stop loading immediately
         base44.auth.loginWithProvider(provider, '/Home');
-        setLoading(false);
+        stopLoading();
       } else {
-        // Web: standard redirect flow
+        // Web: standard redirect flow — page will navigate away, no need to stop loading
         base44.auth.loginWithProvider(provider, '/Home');
       }
     } catch (err) {
-      setError(`${provider === 'apple' ? 'Apple' : 'Google'} sign in failed. Please try email instead.`);
-      setLoading(false);
+      // Cancelled sign-ins throw errors with codes like 'SIGN_IN_CANCELLED',
+      // 'USER_CANCELLED', or Apple's error code 1001 — don't show an error for those.
+      const isCancelled =
+        err?.code === 'SIGN_IN_CANCELLED' ||
+        err?.code === 'USER_CANCELLED' ||
+        err?.code === 1001 ||
+        err?.message?.toLowerCase().includes('cancel') ||
+        err?.message?.toLowerCase().includes('dismiss');
+
+      if (!isCancelled) {
+        setError(`${provider === 'apple' ? 'Apple' : 'Google'} sign in failed. Please try email instead.`);
+      }
+    } finally {
+      // Always stop the spinner — regardless of success, error, or user cancel
+      stopLoading();
     }
   };
 
