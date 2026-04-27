@@ -10,6 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getStockPrice } from '../MarketData';
 import MobileSelect from '@/components/ui/mobile-select';
 import BrokerDisclosureBanner from '@/components/broker/BrokerDisclosureBanner';
+import { useTranslation } from 'react-i18next';
 
 const ORDER_TYPES = [
   { value: 'market', label: 'Market' },
@@ -27,6 +28,7 @@ const TIF_OPTIONS = [
 
 export default function OrderForm({ isLive, onOrderSuccess }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [action, setAction] = useState('buy');
   const [symbol, setSymbol] = useState('');
   const [qty, setQty] = useState('');
@@ -104,7 +106,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
       <div className="h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-white/80">New Order</h3>
+          <h3 className="text-sm font-bold text-white/80">{t('paperTrading.newOrder', 'New Order')}</h3>
           {isLive && (
             <span className="flex items-center gap-1 text-[9px] font-black text-chart-3 bg-chart-3/10 border border-chart-3/20 px-2 py-1 rounded-full">
               <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
@@ -133,7 +135,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
         <div className="space-y-3">
           {/* Symbol */}
           <div>
-            <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Symbol</Label>
+            <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">{t('markets.symbol', 'Symbol')}</Label>
             <Input
               value={symbol}
               onChange={(e) => { setSymbol(e.target.value.toUpperCase()); setPreview(null); }}
@@ -144,7 +146,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
 
           {/* Qty */}
           <div>
-            <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Quantity</Label>
+            <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">{t('order.quantity', 'Quantity')}</Label>
             <Input
               type="number"
               value={qty}
@@ -157,7 +159,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
           {/* Order Type + TIF */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Order Type</Label>
+              <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">{t('order.orderType', 'Order Type')}</Label>
               <MobileSelect
                 trigger={
                   <button className="mt-1.5 w-full h-11 bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 text-[13px] font-mono font-bold text-white/80 text-left flex items-center justify-between active:bg-white/[0.07] transition-colors">
@@ -172,7 +174,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
               />
             </div>
             <div>
-              <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Time in Force</Label>
+              <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">{t('order.timeInForce', 'Time in Force')}</Label>
               <MobileSelect
                 trigger={
                   <button className="mt-1.5 w-full h-11 bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 text-[13px] font-mono font-bold text-white/80 text-left flex items-center justify-between active:bg-white/[0.07] transition-colors">
@@ -193,7 +195,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
             <div className="grid grid-cols-2 gap-2">
               {needsStop && (
                 <div>
-                  <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Stop Price</Label>
+                  <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">{t('order.stopPrice', 'Stop Price')}</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -206,7 +208,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
               )}
               {needsLimit && (
                 <div>
-                  <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">Limit Price</Label>
+                  <Label className="text-[10px] text-white/30 font-semibold tracking-[0.1em] uppercase">{t('order.limitPrice', 'Limit Price')}</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -225,7 +227,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
             variant="outline"
             className="w-full h-9 bg-transparent border-white/[0.1] text-white/50 hover:bg-white/[0.04] hover:text-white/80 text-[11px] font-semibold"
           >
-            Preview Order
+            {t('paperTrading.previewOrder', 'Preview Order')}
           </Button>
         </div>
 
@@ -239,7 +241,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
               className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden"
             >
               <div className="px-4 py-2.5 border-b border-white/[0.06] flex items-center justify-between">
-                <span className="text-[9px] text-white/30 font-semibold uppercase tracking-[0.1em]">Order Preview</span>
+                <span className="text-[9px] text-white/30 font-semibold uppercase tracking-[0.1em]">{t('paperTrading.previewOrder', 'Order Preview')}</span>
                 <div className="flex items-center gap-1.5">
                   <span className={`text-[9px] font-bold px-2 py-0.5 rounded tracking-wider ${action === 'buy' ? 'text-chart-3 bg-chart-3/10' : 'text-destructive bg-destructive/10'}`}>
                     {action.toUpperCase()}
@@ -270,7 +272,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
                 ) : (
                   <div className="flex items-start gap-2 p-2 rounded-lg mb-3 bg-primary/5 border border-primary/10">
                     <AlertTriangle className="h-3 w-3 text-primary/50 flex-shrink-0 mt-0.5" />
-                    <p className="text-[9px] text-white/35 leading-relaxed">Practice mode — no real money involved. Virtual funds only.</p>
+                    <p className="text-[9px] text-white/35 leading-relaxed">{t('paperTrading.simulation', 'Practice mode — no real money involved. Virtual funds only.')}</p>
                   </div>
                 )}
                 <Button
@@ -281,10 +283,10 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
                   }`}
                 >
                   {executing
-                    ? 'Submitting...'
+                    ? t('common.loading', 'Loading...')
                     : isLive
-                      ? `🚀 EXECUTE WITH ALPACA — ${action.toUpperCase()}`
-                      : `PAPER ${action.toUpperCase()}`
+                      ? `🚀 ${t('order.executeWithAlpaca', 'EXECUTE WITH ALPACA')} — ${action.toUpperCase()}`
+                      : `${t('order.paper', 'PAPER')} ${action.toUpperCase()}`
                   }
                 </Button>
               </div>

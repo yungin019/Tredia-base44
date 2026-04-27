@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Parse signal from AI text (BUY/SELL/HOLD/WATCH) to override static
 function parseSignalFromText(text) {
@@ -23,6 +24,7 @@ function extractSummaryLine(text) {
 
 export default function TrekInstantRead({ symbol, signal, trekText, trekLoading, aiConfidence, conviction }) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useTranslation();
 
   const aiSignal = parseSignalFromText(trekText);
   const activeSignal = aiSignal || signal;
@@ -54,11 +56,11 @@ export default function TrekInstantRead({ symbol, signal, trekText, trekLoading,
       <div className="flex items-center gap-2 px-4 pt-4 pb-3">
         <Zap className="h-3.5 w-3.5 flex-shrink-0" style={{ color: colors.text }} />
         <span className="text-[10px] font-black uppercase tracking-[0.12em]" style={{ color: colors.text }}>
-          ⚡ Trek Analysis
+          ⚡ {t('trek.analysis', 'TREK Analysis')}
         </span>
         {(aiConfidence || conviction) && !loading && (
           <span className="ml-auto text-[10px] font-black" style={{ color: cvColor }}>
-            {aiConfidence ? `${aiConfidence}% confidence` : ''}{conviction ? ` · ${conviction}` : ''}
+            {aiConfidence ? `${aiConfidence}% ${t('trek.confidence', 'confidence')}` : ''}{conviction ? ` · ${conviction}` : ''}
           </span>
         )}
         {loading && <Loader2 className="h-3 w-3 animate-spin ml-auto" style={{ color: colors.text }} />}
@@ -73,7 +75,7 @@ export default function TrekInstantRead({ symbol, signal, trekText, trekLoading,
                 <motion.span key={i} animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay }}>●</motion.span>
               ))}
             </div>
-            <span className="text-[12px]">Analyzing {symbol}…</span>
+            <span className="text-[12px]">{t('asset.analyzing', 'Analyzing')} {symbol}…</span>
           </div>
         ) : (
           <div className="flex items-start gap-2">
@@ -95,7 +97,7 @@ export default function TrekInstantRead({ symbol, signal, trekText, trekLoading,
             style={{ color: colors.text, borderColor: `${colors.border}`, background: 'rgba(0,0,0,0.15)' }}
           >
             {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            {expanded ? 'Show less' : 'See full analysis'}
+            {expanded ? t('asset.showLess', 'Show less') : t('asset.seeFullAnalysis', 'See full analysis')}
           </button>
 
           <AnimatePresence>
