@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { X, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function QueryLimitModal({ isOpen, onClose }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   if (!isOpen) return null;
 
@@ -35,11 +37,11 @@ export default function QueryLimitModal({ isOpen, onClose }) {
           <div className="h-10 w-10 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
             <Lock className="h-5 w-5 text-primary" />
           </div>
-          <h2 className="text-lg font-black text-white/95">Daily Limit Reached</h2>
+          <h2 className="text-lg font-black text-white/95">{t('queryLimit.title', 'Daily Limit Reached')}</h2>
         </div>
 
-        <p className="text-sm text-white/60 mb-1">You've used your 5 free TREK queries today.</p>
-        <p className="text-sm text-white/40 mb-6">Upgrade to PRO or ELITE for unlimited access and premium features.</p>
+        <p className="text-sm text-white/60 mb-1">{t('queryLimit.usedQueries', 'You\'ve used your 5 free TREK queries today.')}</p>
+        <p className="text-sm text-white/40 mb-6">{t('queryLimit.upgradeHint', 'Upgrade to PRO or ELITE for unlimited access and premium features.')}</p>
 
         <div className="space-y-3">
           <Button
@@ -49,19 +51,19 @@ export default function QueryLimitModal({ isOpen, onClose }) {
             }}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-10"
           >
-            Upgrade Now
+            {t('queryLimit.upgradeBtnText', 'Upgrade Now')}
           </Button>
           <Button
             onClick={onClose}
             variant="outline"
             className="w-full h-10 border-white/[0.1] hover:bg-white/[0.05] text-white/70"
           >
-            Maybe Later
+            {t('queryLimit.laterBtnText', 'Maybe Later')}
           </Button>
         </div>
 
         <p className="text-[10px] text-white/25 text-center mt-4">
-          Your daily limit resets at midnight UTC
+          {t('queryLimit.resetNote', 'Your daily limit resets at midnight UTC')}
         </p>
       </motion.div>
     </motion.div>
