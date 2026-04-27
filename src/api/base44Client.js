@@ -10,5 +10,6 @@ export const base44 = createClient({
   functionsVersion,
   serverUrl: '',
   requiresAuth: false,
-  appBaseUrl
+  // Force the OAuth domain to tredio.app so Google consent screen shows the correct origin
+  appBaseUrl: 'https://tredio.app',
 });

@@ -180,9 +180,9 @@ export default function SignIn({ onLoginSuccess }) {
     setError('');
     startLoadingWithTimeout();
     try {
-      // Get the OAuth URL from Base44 — this is the URL that starts the OAuth flow
-      // and will eventually redirect back to tredio.app with the access token
-      const redirectUrl = 'https://tredio.app/Home';
+      // Get the OAuth URL from Base44 — redirect must match Google Cloud Console setting:
+      // Authorized redirect URI: https://tredio.app/auth/google/callback
+      const redirectUrl = 'https://tredio.app/auth/google/callback';
       const oauthUrl = base44.auth.getProviderLoginUrl
         ? base44.auth.getProviderLoginUrl(provider, redirectUrl)
         : null;
