@@ -430,29 +430,17 @@ export default function Settings({ onLogout }) {
        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
        <SectionHeader title={t('settings.language', 'Language')} />
        <div className="space-y-3">
-         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+         <div className="grid grid-cols-3 gap-2">
            {[
              { code: 'en', name: 'English', flag: '🇬🇧' },
              { code: 'fr', name: 'Français', flag: '🇫🇷' },
-             { code: 'sv', name: 'Svenska', flag: '🇸🇪' },
-             { code: 'es', name: 'Español', flag: '🇪🇸' },
              { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+             { code: 'es', name: 'Español', flag: '🇪🇸' },
              { code: 'it', name: 'Italiano', flag: '🇮🇹' },
              { code: 'pt', name: 'Português', flag: '🇵🇹' },
-             { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-             { code: 'ja', name: '日本語', flag: '🇯🇵' },
-             { code: 'zh', name: '中文', flag: '🇨🇳' },
-             { code: 'ko', name: '한국어', flag: '🇰🇷' },
-             { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-             { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
              { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
-             { code: 'pl', name: 'Polski', flag: '🇵🇱' },
-             { code: 'th', name: 'ภาษาไทย', flag: '🇹🇭' },
-             { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
-             { code: 'ro', name: 'Română', flag: '🇷🇴' },
-             { code: 'el', name: 'Ελληνικά', flag: '🇬🇷' },
-             { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
-             { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
+             { code: 'sv', name: 'Svenska', flag: '🇸🇪' },
+             { code: 'ar', name: 'العربية', flag: '🇸🇦' },
            ].map(lang => (
              <button
                key={lang.code}
