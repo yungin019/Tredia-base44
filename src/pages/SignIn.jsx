@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useTranslation } from 'react-i18next';
+import { Browser } from '@capacitor/browser';
+
+// Use Capacitor App plugin via the global Capacitor object (no separate npm install needed)
+const getCapacitorApp = () => window.Capacitor?.Plugins?.App ?? null;
+
+// Detect if running inside a native Capacitor iOS/Android app
+const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
 
 export default function SignIn() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [mode, setMode] = useState('login');
   const accountDeleted = new URLSearchParams(window.location.search).get('deleted') === '1';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,8 +23,54 @@ export default function SignIn() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [step, setStep] = useState('form'); // 'form' | 'verify'
+  const [step, setStep] = useState('form');
   const [verifyCode, setVerifyCode] = useState('');
+
+  // Listen for deep-link callback from in-app browser OAuth
+  // Base44 redirects back to tredio.app with ?access_token=... after OAuth
+  useEffect(() => {
+    if (!isNative()) return;
+    const CapacitorApp = getCapacitorApp();
+    if (!CapacitorApp) return;
+
+    let removeListener = null;
+
+    const setup = async () => {
+      try {
+        const handle = await CapacitorApp.addListener('appUrlOpen', async (event) => {
+          try {
+            const url = new URL(event.url);
+            const token = url.searchParams.get('access_token') || url.searchParams.get('token');
+            if (token) {
+              localStorage.setItem('base44_access_token', token);
+              await Browser.close().catch(() => {});
+              const needsOnboarding = await initProfile();
+              navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
+            }
+          } catch (_) { /* ignore parse errors */ }
+        });
+        removeListener = () => handle.remove();
+      } catch (_) {}
+    };
+
+    setup();
+    return () => { if (removeListener) removeListener(); };
+  }, [navigate]);
+
+  const initProfile = async () => {
+    try {
+      const u = await base44.auth.me();
+      if (!u) return false;
+      const updates = {};
+      if (!u.broker_status) updates.broker_status = 'not_connected';
+      if (!u.trading_mode) updates.trading_mode = 'practice';
+      if (!u.referral_code) updates.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      if (!u.subscription_tier) updates.subscription_tier = 'free';
+      if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates);
+      return !u.onboarding_completed;
+    } catch { /* non-fatal */ }
+    return false;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,8 +85,6 @@ export default function SignIn() {
     setLoading(true);
     try {
       if (mode === 'register') {
-        // SDK register() accepts: email, password, referral_code
-        // full_name is NOT accepted by register() — must be set after login via updateMe()
         await base44.auth.register({ email, password });
         setStep('verify');
       } else {
@@ -47,33 +99,13 @@ export default function SignIn() {
     }
   };
 
-  // After login, initialize profile fields if first time
-  // Returns true if this is a brand new user who needs onboarding
-  const initProfile = async () => {
-    try {
-      const u = await base44.auth.me();
-      if (!u) return false;
-      const updates = {};
-      if (!u.broker_status) updates.broker_status = 'not_connected';
-      if (!u.trading_mode) updates.trading_mode = 'practice';
-      if (!u.referral_code) updates.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
-      // Always default new users to free — never elite/pro
-      if (!u.subscription_tier) updates.subscription_tier = 'free';
-      if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates);
-      return !u.onboarding_completed;
-    } catch { /* non-fatal */ }
-    return false;
-  };
-
   const handleVerify = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
       await base44.auth.verifyOtp({ email, otpCode: verifyCode });
-      // Login after successful verification
       await base44.auth.loginViaEmailPassword(email, password);
-      // Now set full_name and init profile (register() doesn't accept full_name)
       try {
         const updates = {
           full_name: name || undefined,
@@ -82,11 +114,9 @@ export default function SignIn() {
           subscription_tier: 'free',
           referral_code: 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase(),
         };
-        // Remove undefined keys
         Object.keys(updates).forEach(k => updates[k] === undefined && delete updates[k]);
         await base44.auth.updateMe(updates);
       } catch { /* non-fatal */ }
-      // New registrations always go to onboarding
       navigate('/Onboarding', { replace: true });
     } catch (err) {
       setError(err?.message || t('signin.error.invalidCode'));
@@ -99,25 +129,49 @@ export default function SignIn() {
     setError('');
     try {
       await base44.auth.resendOtp(email);
-    } catch (err) {
+    } catch {
       setError(t('signin.error.resendFailed'));
     }
   };
 
-  // Google OAuth — handled in-app via Base44 SDK (uses SFSafariViewController on iOS, not external Safari)
-  const handleGoogle = () => {
-    base44.auth.loginWithProvider('google', '/Home');
-  };
-
-  // Apple Sign-In — required by Apple when any third-party login (Google) is offered
-  const handleApple = () => {
+  // Open OAuth in SFSafariViewController (in-app) on iOS, or redirect on web
+  const openOAuth = async (provider) => {
     setError('');
+    setLoading(true);
     try {
-      base44.auth.loginWithProvider('apple', '/Home');
+      // Get the OAuth URL from Base44 — this is the URL that starts the OAuth flow
+      // and will eventually redirect back to tredio.app with the access token
+      const redirectUrl = 'https://tredio.app/Home';
+      const oauthUrl = base44.auth.getProviderLoginUrl
+        ? base44.auth.getProviderLoginUrl(provider, redirectUrl)
+        : null;
+
+      if (isNative() && oauthUrl) {
+        // Open in SFSafariViewController — stays inside the app, no external Safari
+        await Browser.open({
+          url: oauthUrl,
+          presentationStyle: 'popover',
+          toolbarColor: '#080B12',
+        });
+        // The appUrlOpen listener above will handle the callback
+        setLoading(false);
+      } else if (isNative()) {
+        // Fallback: use loginWithProvider — it will open in WKWebView context
+        // This is acceptable as it stays within the app's webview context
+        base44.auth.loginWithProvider(provider, '/Home');
+        setLoading(false);
+      } else {
+        // Web: standard redirect flow
+        base44.auth.loginWithProvider(provider, '/Home');
+      }
     } catch (err) {
-      setError(err?.message || 'Apple Sign-In failed. Please try email login.');
+      setError(`${provider === 'apple' ? 'Apple' : 'Google'} sign in failed. Please try email instead.`);
+      setLoading(false);
     }
   };
+
+  const handleGoogle = () => openOAuth('google');
+  const handleApple = () => openOAuth('apple');
 
   return (
     <div style={{
@@ -133,7 +187,7 @@ export default function SignIn() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        style={{ width: '100%', maxWidth: '380px' }}
+        style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}
       >
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
@@ -191,11 +245,7 @@ export default function SignIn() {
                     autoFocus
                     style={{ ...inputStyle, textAlign: 'center', fontSize: '18px', letterSpacing: '4px', fontWeight: '700' }}
                   />
-
-                  {error && (
-                    <div style={errorStyle}>{error}</div>
-                  )}
-
+                  {error && <div style={errorStyle}>{error}</div>}
                   <button type="submit" disabled={loading || !verifyCode} style={{
                     ...submitBtnStyle,
                     opacity: (loading || !verifyCode) ? 0.6 : 1,
@@ -311,8 +361,8 @@ export default function SignIn() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {/* Google: handled by Base44 OAuth (SFSafariViewController on iOS — stays in-app) */}
-                <button onClick={handleGoogle} style={socialBtnStyle}>
+                {/* Google Sign In — opens in SFSafariViewController on iOS (in-app, not external Safari) */}
+                <button onClick={handleGoogle} disabled={loading} style={{ ...socialBtnStyle, opacity: loading ? 0.6 : 1 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -321,12 +371,14 @@ export default function SignIn() {
                   </svg>
                   {t('signin.google', 'Continue with Google')}
                 </button>
-                {/* Apple Sign-In — required by Apple guidelines when Google login is present */}
-                <button onClick={handleApple} style={{
+
+                {/* Apple Sign In — required by Apple guidelines */}
+                <button onClick={handleApple} disabled={loading} style={{
                   width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '700',
                   background: '#fff', border: '1px solid #fff',
-                  color: '#000', cursor: 'pointer', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  color: '#000', cursor: loading ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  opacity: loading ? 0.6 : 1,
                 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="black">
                     <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>

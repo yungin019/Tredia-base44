@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, AlertCircle, CheckCircle2, Copy, Share2 } from 'lucide-react';
+import { Browser } from '@capacitor/browser';
+
+const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
 import DeleteAccountModal from '@/components/settings/DeleteAccountModal';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -141,18 +144,12 @@ export default function Settings({ onLogout }) {
                   </button>
                   <button
                     onClick={async () => {
-                      if (window.confirm('Disconnect Alpaca? TREK will stop monitoring your real portfolio.')) {
-                        try {
-                          await base44.auth.updateMe({
-                            alpaca_connected: false,
-                            alpaca_token: null,
-                            alpaca_refresh_token: null
-                          });
-                          setUser(prev => ({ ...prev, alpaca_connected: false }));
-                        } catch (err) {
-                          console.error('Disconnect failed:', err);
-                        }
-                      }
+                      await base44.auth.updateMe({
+                        alpaca_connected: false,
+                        alpaca_token: null,
+                        alpaca_refresh_token: null
+                      });
+                      setUser(prev => ({ ...prev, alpaca_connected: false }));
                     }}
                     className="px-4 py-3 rounded-lg font-bold text-sm border border-white/[0.1] hover:border-white/20 transition-colors text-white/55"
                   >
@@ -198,14 +195,19 @@ export default function Settings({ onLogout }) {
 
                 <div className="text-center">
                   <p className="text-[11px] text-white/40 mb-1">{t('settings.newToAlpaca', 'New to Alpaca?')}</p>
-                  <a
-                    href="https://alpaca.markets"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={async () => {
+                      if (isNative()) {
+                        await Browser.open({ url: 'https://alpaca.markets', presentationStyle: 'popover' });
+                      } else {
+                        window.open('https://alpaca.markets', '_blank', 'noopener,noreferrer');
+                      }
+                    }}
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                     className="text-[11px] text-[#F59E0B] hover:underline"
                   >
                     {t('settings.createAlpacaAccount', 'Create free account → Commission-free · Takes 5 min')}
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>
@@ -336,16 +338,14 @@ export default function Settings({ onLogout }) {
         <AlpacaConnectedAccounts
           user={user}
           onDisconnect={async () => {
-            if (window.confirm('Disconnect Alpaca? Live trading will be disabled. Paper trading remains available.')) {
-              await base44.auth.updateMe({
-                alpaca_connected: false,
-                alpaca_token: null,
-                alpaca_refresh_token: null,
-                broker_status: 'not_connected',
-                trading_mode: 'practice',
-              });
-              setUser(prev => ({ ...prev, alpaca_connected: false, broker_status: 'not_connected' }));
-            }
+            await base44.auth.updateMe({
+              alpaca_connected: false,
+              alpaca_token: null,
+              alpaca_refresh_token: null,
+              broker_status: 'not_connected',
+              trading_mode: 'practice',
+            });
+            setUser(prev => ({ ...prev, alpaca_connected: false, broker_status: 'not_connected' }));
           }}
         />
       </motion.div>
@@ -498,16 +498,12 @@ export default function Settings({ onLogout }) {
         className="rounded-xl border border-red-500/20 bg-[#111118] p-5">
         <button
           onClick={async () => {
-            try {
-              localStorage.removeItem('base44_access_token');
-              localStorage.removeItem('token');
-              if (onLogout) {
-                await onLogout();
-              } else {
-                await base44.auth.logout('/SignIn');
-              }
-            } catch (err) {
-              window.location.href = '/SignIn';
+            localStorage.removeItem('base44_access_token');
+            localStorage.removeItem('token');
+            if (onLogout) {
+              await onLogout();
+            } else {
+              await base44.auth.logout('/SignIn');
             }
           }}
           className="w-full py-3.5 rounded-xl font-black text-sm tracking-wide transition-all hover:opacity-90"

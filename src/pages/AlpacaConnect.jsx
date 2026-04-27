@@ -3,8 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Zap, BarChart3, Bell, Shield } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Browser } from '@capacitor/browser';
 
 import { base44 } from '@/api/base44Client';
+
+const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
 
 export default function AlpacaConnect() {
   const navigate = useNavigate();
@@ -20,21 +23,29 @@ export default function AlpacaConnect() {
   const handleConnect = async () => {
     setConnecting(true);
     try {
-      // Get the OAuth URL from backend — keeps client_id server-side
       const res = await base44.functions.invoke('alpacaOAuth', { action: 'get_auth_url' });
       if (res?.data?.auth_url) {
         const url = res.data.auth_url;
-        // On iOS Capacitor: use native SFSafariViewController (stays in-app)
-        // On web: standard redirect
-        if (window.Capacitor?.isNativePlatform?.()) {
-          window.Capacitor.Plugins.Browser?.open({ url });
+        if (isNative()) {
+          // Opens in SFSafariViewController — stays inside the app on iOS
+          await Browser.open({ url, presentationStyle: 'popover', toolbarColor: '#080B12' });
         } else {
           window.location.href = url;
         }
       }
     } catch (e) {
       console.error('Alpaca connect error:', e);
+    } finally {
       setConnecting(false);
+    }
+  };
+
+  const handleAlpacaSignup = async (e) => {
+    e.preventDefault();
+    if (isNative()) {
+      await Browser.open({ url: 'https://app.alpaca.markets/signup', presentationStyle: 'popover' });
+    } else {
+      window.open('https://app.alpaca.markets/signup', '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -95,14 +106,12 @@ export default function AlpacaConnect() {
             {connecting ? t('alpaca.connecting', 'Connecting...') : t('alpaca.connectBtn', 'Connect Alpaca — Free')}
           </motion.button>
 
-          <a
-            href="https://app.alpaca.markets/signup"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={handleAlpacaSignup}
             className="flex items-center justify-center w-full py-3 rounded-xl font-bold text-sm border border-white/[0.1] text-white/60 hover:border-white/20 transition-colors"
           >
             {t('alpaca.openAccount', 'Open free Alpaca account')}
-          </a>
+          </button>
 
           <button
             onClick={() => navigate('/Home')}
