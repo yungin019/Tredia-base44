@@ -108,20 +108,20 @@ export default function Settings({ onLogout }) {
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 rounded-full bg-[#22c55e] mt-2" />
               <div className="flex-1">
-                <p className="text-sm font-bold text-white mb-1">{t('settings.alpacaConnected', 'Alpaca Connected')}</p>
-                <p className="text-xs text-white/60 mb-3">{t('settings.trekWatching', 'TREK is watching your portfolio')}</p>
+                <p className="text-sm font-bold text-white mb-1">{t('settings.alpacaConnected')}</p>
+                <p className="text-xs text-white/60 mb-3">{t('settings.trekWatching')}</p>
 
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.08]">
-                    <p className="text-[10px] text-white/40 mb-1">{t('settings.buyingPower', 'Buying Power')}</p>
+                    <p className="text-[10px] text-white/40 mb-1">{t('settings.buyingPower')}</p>
                     <p className="text-sm font-bold text-white">${(user.alpaca_buying_power || 0).toLocaleString()}</p>
                   </div>
                   <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.08]">
-                    <p className="text-[10px] text-white/40 mb-1">{t('settings.positions', 'Positions')}</p>
+                    <p className="text-[10px] text-white/40 mb-1">{t('settings.positions')}</p>
                     <p className="text-sm font-bold text-white">{user.alpaca_position_count || 0}</p>
                   </div>
                   <div className="p-3 rounded-lg bg-white/[0.04] border border-white/[0.08]">
-                    <p className="text-[10px] text-white/40 mb-1">{t('settings.todayPnl', "Today P&L")}</p>
+                    <p className="text-[10px] text-white/40 mb-1">{t('settings.todayPnl')}</p>
                     <p className={`text-sm font-bold ${(user.alpaca_daily_pnl || 0) >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
                       {(user.alpaca_daily_pnl || 0) >= 0 ? '+' : ''}${(user.alpaca_daily_pnl || 0).toLocaleString()}
                     </p>
@@ -133,7 +133,7 @@ export default function Settings({ onLogout }) {
                     onClick={() => navigate('/Portfolio')}
                     className="flex-1 px-4 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white"
                   >
-                    {t('settings.viewPortfolio', 'VIEW PORTFOLIO →')}
+                    {t('settings.viewPortfolio')}
                   </button>
                   <button
                     onClick={async () => {
@@ -146,7 +146,7 @@ export default function Settings({ onLogout }) {
                     }}
                     className="px-4 py-3 rounded-lg font-bold text-sm border border-white/[0.1] hover:border-white/20 transition-colors text-white/55"
                   >
-                    {t('settings.disconnect', 'DISCONNECT')}
+                    {t('settings.disconnect')}
                   </button>
                 </div>
               </div>
@@ -157,25 +157,25 @@ export default function Settings({ onLogout }) {
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 rounded-full bg-[#F59E0B] mt-2" />
               <div className="flex-1">
-                <p className="text-sm font-bold text-white mb-2">{t('alpaca.unlockRealTrading', 'Unlock Real Trading')}</p>
-                <p className="text-xs text-white/60 mb-3">{t('alpaca.connectDesc', 'Connect Alpaca and TREK starts monitoring YOUR real portfolio immediately. Commission-free.')}</p>
+                <p className="text-sm font-bold text-white mb-2">{t('alpaca.unlockRealTrading')}</p>
+                <p className="text-xs text-white/60 mb-3">{t('alpaca.connectDesc')}</p>
 
                 <div className="space-y-1.5 mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">{t('alpaca.feat1', 'Zero hidden fees')}</p>
+                    <p className="text-xs text-white/70">{t('alpaca.feat1')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">{t('alpaca.feat2', 'TREK analyzes your positions')}</p>
+                    <p className="text-xs text-white/70">{t('alpaca.feat2')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">{t('alpaca.feat3', 'Real-time alerts on YOUR actual holdings')}</p>
+                    <p className="text-xs text-white/70">{t('alpaca.feat3')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-[#F59E0B]" />
-                    <p className="text-xs text-white/70">{t('alpaca.feat4', 'Takes 30 seconds')}</p>
+                    <p className="text-xs text-white/70">{t('alpaca.feat4')}</p>
                   </div>
                 </div>
 
@@ -183,11 +183,11 @@ export default function Settings({ onLogout }) {
                   onClick={() => navigate('/alpaca-connect')}
                   className="w-full px-4 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white mb-3"
                 >
-                  {t('alpaca.connectAlpacaFree', 'CONNECT ALPACA - FREE →')}
+                  {t('alpaca.connectAlpacaFree')}
                 </button>
 
                 <div className="text-center">
-                  <p className="text-[11px] text-white/40 mb-1">{t('alpaca.newToAlpaca', 'New to Alpaca?')}</p>
+                  <p className="text-[11px] text-white/40 mb-1">{t('alpaca.newToAlpaca')}</p>
                   <button
                     onClick={async () => {
                       if (isNative()) {
@@ -199,7 +199,7 @@ export default function Settings({ onLogout }) {
                     style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                     className="text-[11px] text-[#F59E0B] hover:underline"
                   >
-                    {t('alpaca.createFreeAccount', 'Create free account → Commission-free · Takes 5 min')}
+                    {t('alpaca.createFreeAccount')}
                   </button>
                 </div>
               </div>
@@ -219,18 +219,18 @@ export default function Settings({ onLogout }) {
       {foundingMember && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }}
           className="rounded-xl border border-[#F59E0B]/20 bg-[#111118] p-5 space-y-4">
-          <SectionHeader title={t('settings.referralProgram', 'REFERRAL PROGRAM')} />
-          <p className="text-xs text-white/40 mb-3">{t('settings.referralDesc', 'Share TREDIO with friends. You both win.')}</p>
+          <SectionHeader title={t('settings.referralProgram')} />
+          <p className="text-xs text-white/40 mb-3">{t('settings.referralDesc')}</p>
 
           <div className="rounded-lg p-3 mb-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">{t('settings.friendsReferred', 'Friends referred')}</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">{t('settings.friendsReferred')}</span>
               <span className="text-lg font-black text-[#F59E0B]">{foundingMember.referral_count || 0}</span>
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-white/30 block mb-2">{t('settings.yourReferralLink', 'Your referral link')}</label>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-white/30 block mb-2">{t('settings.yourReferralLink')}</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -270,20 +270,20 @@ export default function Settings({ onLogout }) {
       {/* PROFILE */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-4">
-        <SectionHeader title={t('settings.profile', 'Profile')} />
+        <SectionHeader title={t('settings.profile')} />
         <div className="flex items-center gap-4">
           <div className="h-20 w-20 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center flex-shrink-0">
             <User className="h-9 w-9 text-white/25" />
           </div>
           <div className="flex-1 space-y-2">
             <div>
-              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.name', 'Name')}</label>
+              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.name')}</label>
               <div className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85">
                 {user?.full_name || '—'}
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.email', 'Email')}</label>
+              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.email')}</label>
               <div className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85">
                 {user?.email || '—'}
               </div>
@@ -294,7 +294,7 @@ export default function Settings({ onLogout }) {
         {/* AI Profile Summary */}
         {(user?.budget_range || user?.experience_level) && (
           <div className="pt-3 border-t border-white/[0.05]">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/25 mb-2">{t('settings.aiPersonalization', 'AI Personalization')}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/25 mb-2">{t('settings.aiPersonalization')}</p>
             <div className="flex flex-wrap gap-2">
               {user.budget_range && (
                 <span className="text-[10px] px-2 py-1 rounded-lg font-semibold"
@@ -346,12 +346,12 @@ export default function Settings({ onLogout }) {
       {/* NOTIFICATIONS */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
-        <SectionHeader title={t('settings.notifications', 'Notifications')} />
+        <SectionHeader title={t('settings.notifications')} />
         {[
-          { key: 'priceAlerts', label: t('settings.priceAlerts', 'Price Alerts'), desc: t('settings.priceAlertsDesc', 'Get notified when price targets are hit') },
-          { key: 'trekSignals', label: t('settings.trekSignals', 'TREK Signals'), desc: t('settings.trekSignalsDesc', 'Receive live AI trading signal alerts') },
-          { key: 'newsAlerts', label: t('settings.newsAlerts', 'News Alerts'), desc: t('settings.newsAlertsDesc', 'Breaking market news and earnings updates') },
-          { key: 'earningsCalendar', label: t('settings.earningsCalendar', 'Earnings Calendar'), desc: t('settings.earningsCalendarDesc', 'Reminders before key earnings releases') },
+          { key: 'priceAlerts', label: t('settings.priceAlerts'), desc: t('settings.priceAlertsDesc') },
+          { key: 'trekSignals', label: t('settings.trekSignals'), desc: t('settings.trekSignalsDesc') },
+          { key: 'newsAlerts', label: t('settings.newsAlerts'), desc: t('settings.newsAlertsDesc') },
+          { key: 'earningsCalendar', label: t('settings.earningsCalendar'), desc: t('settings.earningsCalendarDesc') },
         ].map(({ key, label, desc }) => (
           <div key={key} className="flex items-center justify-between gap-4 py-2 border-b border-white/[0.04] last:border-0">
             <div>
@@ -366,7 +366,7 @@ export default function Settings({ onLogout }) {
       {/* ACCOUNT TIER */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-4">
-        <SectionHeader title={t('settings.subscription', 'Subscription')} />
+        <SectionHeader title={t('settings.subscription')} />
         <div className="flex items-center gap-3 mb-2">
           <span className={`text-xs font-black px-3 py-1 rounded-full tracking-widest uppercase ${
             tier === 'elite' ? 'bg-[#F59E0B]/15 border border-[#F59E0B]/40 text-[#F59E0B]' :
@@ -374,12 +374,12 @@ export default function Settings({ onLogout }) {
             'bg-white/[0.06] border border-white/[0.1] text-white/40'
           }`}
           style={tier === 'elite' ? { animation: 'eliteGoldGlow 2s ease-in-out infinite' } : {}}>
-            {tier ? tier.toUpperCase() : t('upgrade.free', 'FREE')}
+            {tier ? tier.toUpperCase() : t('upgrade.free')}
           </span>
-          <span className="text-xs text-white/25">{t('settings.current', 'Current plan')}</span>
+          <span className="text-xs text-white/25">{t('settings.current')}</span>
         </div>
         <ul className="space-y-2 mb-4">
-          {[t('settings.unlimited', 'Unlimited TREK signals'), t('settings.realtimeAlerts', 'Real-time price alerts'), t('settings.advancedAnalytics', 'Advanced analytics'), t('settings.prioritySupport', 'Priority support')].map(f => (
+          {[t('settings.unlimited'), t('settings.realtimeAlerts'), t('settings.advancedAnalytics'), t('settings.prioritySupport')].map(f => (
             <li key={f} className="flex items-center gap-2 text-sm text-white/50">
               <span style={{ color: '#F59E0B' }}>⚡</span>{f}
             </li>
@@ -405,22 +405,22 @@ export default function Settings({ onLogout }) {
             onClick={() => navigate('/Upgrade')}
             className="py-3 rounded-xl font-black text-sm tracking-wide transition-opacity hover:opacity-90"
             style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#0A0A0F' }}>
-            ⚡ {t('upgrade.upgrade', 'Upgrade')}
+            ⚡ {t('upgrade.upgrade')}
           </button>
           <button
             onClick={async () => {
               setRestoreMessage(null);
               const success = await restorePurchases();
               if (success) {
-                setRestoreMessage({ type: 'success', text: t('settings.restorePurchases', 'Purchases restored') });
+                setRestoreMessage({ type: 'success', text: t('settings.restorePurchases') });
               } else {
-                setRestoreMessage({ type: 'error', text: purchaseError || t('common.error', 'Something went wrong') });
+                setRestoreMessage({ type: 'error', text: purchaseError || t('common.error') });
               }
             }}
             disabled={purchaseInProgress}
             className="py-3 rounded-xl font-bold text-sm tracking-wide border border-white/[0.1] hover:border-white/20 transition-colors text-white/55 disabled:opacity-50"
-            title={t('settings.restorePurchases', 'Restore Purchases')}>
-            {purchaseInProgress ? t('common.loading', 'Loading...') : t('settings.restorePurchases', 'Restore Purchases')}
+            title={t('settings.restorePurchases')}>
+            {purchaseInProgress ? t('common.loading') : t('settings.restorePurchases')}
           </button>
         </div>
       </motion.div>
@@ -428,7 +428,7 @@ export default function Settings({ onLogout }) {
       {/* LANGUAGE */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
        className="rounded-xl border border-white/[0.06] bg-[#111118] p-5 space-y-3">
-       <SectionHeader title={t('settings.language', 'Language')} />
+       <SectionHeader title={t('settings.language')} />
        <div className="space-y-3">
          <div className="grid grid-cols-3 gap-2">
            {[
@@ -465,7 +465,7 @@ export default function Settings({ onLogout }) {
            ))}
          </div>
          <p style={{ color: '#6b7280', fontSize: '11px', marginTop: '8px', lineHeight: '1.4' }}>
-           {t('settings.languageNote', 'App language will update immediately.')}
+           {t('settings.languageNote')}
          </p>
        </div>
       </motion.div>
@@ -473,8 +473,8 @@ export default function Settings({ onLogout }) {
       {/* DISCORD COMMUNITY */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}
         className="rounded-xl border border-[#5865F2]/30 bg-[#111118] p-5">
-        <SectionHeader title={t('discord.joinCommunity', 'Join Discord Community')} />
-        <p className="text-xs text-white/50 mb-4">{t('discord.desc', 'Trade ideas, signals, and live discussions with other TREDIO members.')}</p>
+        <SectionHeader title={t('discord.joinCommunity')} />
+        <p className="text-xs text-white/50 mb-4">{t('discord.desc')}</p>
         <a
           href="https://discord.gg/tredio"
           target="_blank"
@@ -483,7 +483,7 @@ export default function Settings({ onLogout }) {
           style={{ background: 'linear-gradient(135deg, #5865F2, #4752C4)', color: '#fff' }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.031.05a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
-          {t('discord.joinButton', 'JOIN DISCORD →')}
+          {t('discord.joinButton')}
         </a>
       </motion.div>
 
@@ -506,20 +506,20 @@ export default function Settings({ onLogout }) {
           className="w-full py-3.5 rounded-xl font-black text-sm tracking-wide transition-all hover:opacity-90"
           style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff' }}
         >
-          {t('settings.signOut', 'Sign Out')}
+          {t('settings.signOut')}
         </button>
       </motion.div>
 
       {/* VERSION */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="text-center pb-4">
-        <span className="text-xs text-white/25 font-mono">{t('settings.version', 'TREDIO v1.0')}</span>
+        <span className="text-xs text-white/25 font-mono">{t('settings.version')}</span>
       </motion.div>
 
       {/* DANGER ZONE — Account Deletion */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
         className="pb-8"
         style={{ borderTop: '1px solid rgba(239,68,68,0.15)', paddingTop: '24px' }}>
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'rgba(239,68,68,0.5)' }}>{t('settings.dangerZone', 'Danger Zone')}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-3" style={{ color: 'rgba(239,68,68,0.5)' }}>{t('settings.dangerZone')}</p>
           <button
             onClick={() => setDeleteModal(true)}
             style={{
@@ -535,9 +535,9 @@ export default function Settings({ onLogout }) {
               touchAction: 'manipulation',
             }}
           >
-            {t('settings.deleteAccount', 'Delete Account')}
-          </button>
-          <p className="text-[10px] text-white/20 text-center mt-2">{t('settings.deleteAccountWarning', 'Permanently delete your account and all associated data')}</p>
+            {t('settings.deleteAccount')}
+            </button>
+            <p className="text-[10px] text-white/20 text-center mt-2">{t('settings.deleteAccountWarning')}</p>
       </motion.div>
 
       {deleteModal && (
