@@ -10,8 +10,8 @@ import coreTranslations from '../locales/core-translations';
 import portfolioTranslations from '../locales/portfolio-translations';
 import deTranslations from '../locales/de-translations';
 import ptTranslations from '../locales/pt-translations';
-import tradersTranslations from '../locales/traders-translations';
-// Translation bundle version: 4.0
+import tradersTranslations, { alpacaConnectorTranslations } from '../locales/traders-translations';
+// Translation bundle version: 4.1
 
 // RTL language codes
 const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];
@@ -20,7 +20,7 @@ const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];
 const ALL_LANGS = ['en', 'sv', 'fr', 'de', 'it', 'es', 'pt', 'ar'];
 
 // Build resources from centralized translations object
-// Merged LAST: traders, pt, de, core, portfolio win over partial keys
+// Merged LAST: alpacaConnector, traders, pt, de, core, portfolio win over partial keys
 const buildResources = () => {
   const resources = {};
   ALL_LANGS.forEach(lang => {
@@ -32,9 +32,10 @@ const buildResources = () => {
     const deKeys = deTranslations[lang] || {};
     const ptKeys = ptTranslations[lang] || {};
     const tradersKeys = tradersTranslations[lang] || {};
+    const alpacaConnectorKeys = alpacaConnectorTranslations[lang] || {};
     const merged = lang === 'en'
-      ? { ...base, ...enExtra, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys, ...tradersKeys }
-      : { ...base, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys, ...tradersKeys };
+      ? { ...base, ...enExtra, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys, ...tradersKeys, ...alpacaConnectorKeys }
+      : { ...base, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys, ...tradersKeys, ...alpacaConnectorKeys };
     resources[lang] = { translation: merged };
   });
   return resources;
@@ -74,7 +75,8 @@ if (!i18n.isInitialized) {
       const deExtra = deTranslations[lang] || {};
       const ptExtra = ptTranslations[lang] || {};
       const tradersExtra = tradersTranslations[lang] || {};
-      i18n.addResourceBundle(lang, 'translation', { ...resources[lang].translation, ...extra, ...deExtra, ...ptExtra, ...tradersExtra }, true, true);
+      const alpacaConnectorExtra = alpacaConnectorTranslations[lang] || {};
+      i18n.addResourceBundle(lang, 'translation', { ...resources[lang].translation, ...extra, ...deExtra, ...ptExtra, ...tradersExtra, ...alpacaConnectorExtra }, true, true);
     }
   });
 }
