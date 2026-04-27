@@ -95,13 +95,13 @@ export default function Settings({ onLogout }) {
     <div className="min-h-screen bg-background p-4 lg:p-6 max-w-2xl mx-auto space-y-6">
       <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="text-2xl font-black text-white/95 tracking-tight">
-        {t('settings.title', 'Settings')}
+        {t('settings.title')}
       </motion.h1>
 
       {/* TRADING STATUS */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
         className="rounded-xl border border-[#F59E0B]/20 bg-[#111118] p-5 space-y-4">
-        <SectionHeader title={t('settings.trading', 'TRADING')} />
+        <SectionHeader title={t('settings.trading')} />
 
         {user?.alpaca_connected ? (
           <div className="space-y-4">
