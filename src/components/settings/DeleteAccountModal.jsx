@@ -28,7 +28,8 @@ export default function DeleteAccountModal({ onConfirm, onCancel, loading, error
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ alignItems: 'center' }}
       style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
@@ -39,7 +40,7 @@ export default function DeleteAccountModal({ onConfirm, onCancel, loading, error
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -12, scale: 0.97 }}
           transition={{ duration: 0.2 }}
-          className="w-full max-w-sm rounded-2xl border overflow-hidden"
+          className="w-full max-w-sm rounded-2xl border overflow-hidden max-h-[85vh] overflow-y-auto"
           style={{ background: '#111118', borderColor: 'rgba(239,68,68,0.25)' }}
         >
           {/* Header */}

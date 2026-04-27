@@ -7,6 +7,7 @@ import { AnimatePresence } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
 import PageTransition from '@/components/ui/page-transition';
 import { base44 } from '@/api/base44Client';
+import i18n from 'i18next';
 
 import AppShell from './components/layout/AppShell';
 import { NavigationProvider } from '@/lib/NavigationManager';
@@ -119,6 +120,14 @@ function App() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser || null);
+        // Load language from user profile or fallback to device language
+        const lang = currentUser?.language || navigator.language?.split('-')[0] || 'en';
+        if (i18n.isInitialized && i18n.language !== lang) {
+          await i18n.changeLanguage(lang).catch(() => {});
+          const RTL = ['ar','he','ur','fa','yi','ji','iw','ku'];
+          document.documentElement.lang = lang;
+          document.documentElement.dir = RTL.some(r => lang.startsWith(r)) ? 'rtl' : 'ltr';
+        }
       } catch (error) {
         setUser(null);
       } finally {

@@ -464,14 +464,13 @@ export default function Settings({ onLogout }) {
              <button
                key={lang.code}
                onClick={async () => {
-                 try {
-                   document.documentElement.lang = lang.code;
-                   document.documentElement.dir = lang.code === 'ar' ? 'rtl' : 'ltr';
-                   await i18n.changeLanguage(lang.code);
-                   setCurrentLang(lang.code);
-                 } catch (e) {
-                   console.error('Language change failed:', e);
-                 }
+                 const RTL = ['ar','he','ur','fa','yi','ji','iw','ku'];
+                 document.documentElement.lang = lang.code;
+                 document.documentElement.dir = RTL.some(r => lang.code.startsWith(r)) ? 'rtl' : 'ltr';
+                 await i18n.changeLanguage(lang.code).catch(() => {});
+                 setCurrentLang(lang.code);
+                 // Persist to user profile so language loads correctly on next app open
+                 base44.auth.updateMe({ language: lang.code }).catch(() => {});
                }}
                className={`p-3 rounded-lg border transition-all text-sm font-semibold flex items-center gap-2 justify-center ${
                  currentLang === lang.code

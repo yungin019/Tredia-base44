@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +25,39 @@ export default function SignIn({ onLoginSuccess }) {
   const [error, setError] = useState('');
   const [step, setStep] = useState('form');
   const [verifyCode, setVerifyCode] = useState('');
+  const [showCancel, setShowCancel] = useState(false);
+  const loadingTimerRef = useRef(null);
+  const cancelTimerRef = useRef(null);
+
+  // Cleanup on unmount — always stop spinner if user navigates away
+  useEffect(() => {
+    return () => {
+      clearTimeout(loadingTimerRef.current);
+      clearTimeout(cancelTimerRef.current);
+      setLoading(false);
+    };
+  }, []);
+
+  const startLoadingWithTimeout = () => {
+    setLoading(true);
+    setShowCancel(false);
+    setError('');
+    // Show "Cancel" link after 3s
+    cancelTimerRef.current = setTimeout(() => setShowCancel(true), 3000);
+    // Auto-timeout after 15s
+    loadingTimerRef.current = setTimeout(() => {
+      setLoading(false);
+      setShowCancel(false);
+      setError(t('signin.error.timeout', 'Sign in timed out. Please try again.'));
+    }, 15000);
+  };
+
+  const stopLoading = () => {
+    clearTimeout(loadingTimerRef.current);
+    clearTimeout(cancelTimerRef.current);
+    setLoading(false);
+    setShowCancel(false);
+  };
 
   // Listen for deep-link callback from in-app browser OAuth
   // Base44 redirects back to tredio.app with ?access_token=... after OAuth
@@ -87,28 +120,29 @@ export default function SignIn({ onLoginSuccess }) {
       if (password !== confirmPassword) { setError(t('signin.error.passwordMismatch')); return; }
     }
 
-    setLoading(true);
+    startLoadingWithTimeout();
     try {
       if (mode === 'register') {
         await base44.auth.register({ email, password });
+        stopLoading();
         setStep('verify');
       } else {
         await base44.auth.loginViaEmailPassword(email, password);
         const needsOnboarding = await initProfile();
         if (onLoginSuccess) await onLoginSuccess();
+        stopLoading();
         navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
       }
     } catch (err) {
+      stopLoading();
       setError(err?.message || t('error.serverError', 'An error occurred. Please try again.'));
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleVerify = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    startLoadingWithTimeout();
     try {
       await base44.auth.verifyOtp({ email, otpCode: verifyCode });
       await base44.auth.loginViaEmailPassword(email, password);
@@ -123,11 +157,12 @@ export default function SignIn({ onLoginSuccess }) {
         Object.keys(updates).forEach(k => updates[k] === undefined && delete updates[k]);
         await base44.auth.updateMe(updates);
       } catch { /* non-fatal */ }
+      if (onLoginSuccess) await onLoginSuccess();
+      stopLoading();
       navigate('/Onboarding', { replace: true });
     } catch (err) {
+      stopLoading();
       setError(err?.message || t('signin.error.invalidCode'));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -358,6 +393,15 @@ export default function SignIn({ onLoginSuccess }) {
                     : (mode === 'login' ? t('signin.signIn', 'Sign In') : t('signin.createAccount', 'Create Account'))
                   }
                 </button>
+                {showCancel && (
+                  <button
+                    type="button"
+                    onClick={() => { stopLoading(); setError(''); }}
+                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '4px' }}
+                  >
+                    {t('common.cancel', 'Cancel')}
+                  </button>
+                )}
               </form>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
