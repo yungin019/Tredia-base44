@@ -10,19 +10,17 @@ import coreTranslations from '../locales/core-translations';
 import portfolioTranslations from '../locales/portfolio-translations';
 import deTranslations from '../locales/de-translations';
 import ptTranslations from '../locales/pt-translations';
-// Translation bundle version: 3.0
+import tradersTranslations from '../locales/traders-translations';
+// Translation bundle version: 4.0
 
 // RTL language codes
 const RTL_LANGUAGES = ['ar', 'he', 'ur', 'fa', 'yi', 'ji', 'iw', 'ku'];
 
-// All supported languages (union of translations + core)
-const ALL_LANGS = Array.from(new Set([
-  ...Object.keys(translations),
-  ...Object.keys(coreTranslations),
-]));
+// All supported languages — 8 production-ready languages
+const ALL_LANGS = ['en', 'sv', 'fr', 'de', 'it', 'es', 'pt', 'ar'];
 
 // Build resources from centralized translations object
-// Merged LAST: coreTranslations, deTranslations, ptTranslations win over partial keys
+// Merged LAST: traders, pt, de, core, portfolio win over partial keys
 const buildResources = () => {
   const resources = {};
   ALL_LANGS.forEach(lang => {
@@ -33,9 +31,10 @@ const buildResources = () => {
     const portfolioKeys = portfolioTranslations[lang] || {};
     const deKeys = deTranslations[lang] || {};
     const ptKeys = ptTranslations[lang] || {};
+    const tradersKeys = tradersTranslations[lang] || {};
     const merged = lang === 'en'
-      ? { ...base, ...enExtra, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys }
-      : { ...base, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys };
+      ? { ...base, ...enExtra, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys, ...tradersKeys }
+      : { ...base, ...alpacaKeys, ...extraKeys, ...coreKeys, ...portfolioKeys, ...deKeys, ...ptKeys, ...tradersKeys };
     resources[lang] = { translation: merged };
   });
   return resources;
@@ -74,7 +73,8 @@ if (!i18n.isInitialized) {
       const extra = portfolioTranslations[lang] || {};
       const deExtra = deTranslations[lang] || {};
       const ptExtra = ptTranslations[lang] || {};
-      i18n.addResourceBundle(lang, 'translation', { ...resources[lang].translation, ...extra, ...deExtra, ...ptExtra }, true, true);
+      const tradersExtra = tradersTranslations[lang] || {};
+      i18n.addResourceBundle(lang, 'translation', { ...resources[lang].translation, ...extra, ...deExtra, ...ptExtra, ...tradersExtra }, true, true);
     }
   });
 }

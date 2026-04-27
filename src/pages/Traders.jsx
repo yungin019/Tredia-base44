@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useTranslation } from 'react-i18next';
 
 const LEADERBOARD = [
   {
@@ -75,6 +76,7 @@ const PAPER_LEADERBOARD = [
 ];
 
 function TraderDetailSheet({ trader, children }) {
+  const { t } = useTranslation();
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -82,67 +84,67 @@ function TraderDetailSheet({ trader, children }) {
       </SheetTrigger>
       <SheetContent side="bottom" className="bg-[#0D1117] border-white/[0.06] max-h-[85vh] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-white text-xl">TREK Analysis: {trader.username}</SheetTitle>
+          <SheetTitle className="text-white text-xl">{t('traders.trekAnalysis', 'TREK Analysis')}: {trader.username}</SheetTitle>
         </SheetHeader>
 
         <div className="space-y-6 mt-6 pb-6">
           <div className="p-5 rounded-lg bg-[#080B12] border border-white/[0.06]">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-gray-400">Overall Grade</span>
-              <span className="text-3xl font-bold text-[#00D68F]">A</span>
-            </div>
-            <p className="text-sm text-gray-300">
-              Consistently profitable momentum trader with excellent risk management. Strong in tech sector timing.
-            </p>
+           <div className="flex items-center justify-between mb-4">
+            <span className="text-sm text-gray-400">{t('traders.overallGrade', 'Overall Grade')}</span>
+            <span className="text-3xl font-bold text-[#00D68F]">A</span>
+          </div>
+          <p className="text-sm text-gray-300">
+            {t('traders.gradeDescription', 'Consistently profitable momentum trader with excellent risk management. Strong in tech sector timing.')}
+          </p>
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-white mb-3">Performance Breakdown</h3>
+            <h3 className="text-sm font-bold text-white mb-3">{t('traders.performanceBreakdown', 'Performance Breakdown')}</h3>
             <div className="space-y-2 text-sm font-mono">
               <div className="flex justify-between">
-                <span className="text-gray-400">Win Rate:</span>
+                <span className="text-gray-400">{t('traders.winRate', 'Win Rate')}:</span>
                 <span className="text-white">{trader.winRate}% ({Math.floor(trader.trades * trader.winRate / 100)} / {trader.trades})</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Average Win:</span>
+                <span className="text-gray-400">{t('traders.averageWin', 'Average Win')}:</span>
                 <span className="text-[#00D68F]">$2,340 (+8.2%)</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Average Loss:</span>
+                <span className="text-gray-400">{t('traders.averageLoss', 'Average Loss')}:</span>
                 <span className="text-[#FF3B3B]">$620 (-2.1%)</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Sharpe Ratio:</span>
+                <span className="text-gray-400">{t('traders.sharpeRatio', 'Sharpe Ratio')}:</span>
                 <span className="text-white">{trader.sharpe}</span>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-white mb-3">Trading Style</h3>
+            <h3 className="text-sm font-bold text-white mb-3">{t('traders.tradingStyle', 'Trading Style')}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-400">Type:</span>
-                <span className="text-white">Momentum / Swing</span>
+                <span className="text-gray-400">{t('traders.type', 'Type')}:</span>
+                <span className="text-white">{t('traders.momentumSwing', 'Momentum / Swing')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Avg Hold Time:</span>
+                <span className="text-gray-400">{t('traders.avgHoldTime', 'Avg Hold Time')}:</span>
                 <span className="text-white">{trader.avgHold}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Dominant Sectors:</span>
-                <span className="text-white">Tech 65%, Crypto 25%, Other 10%</span>
+                <span className="text-gray-400">{t('traders.dominantSectors', 'Dominant Sectors')}:</span>
+                <span className="text-white">{t('traders.sectorAllocation', 'Tech 65%, Crypto 25%, Other 10%')}</span>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-white mb-3">Three Strengths</h3>
+            <h3 className="text-sm font-bold text-white mb-3">{t('traders.threeStrengths', 'Three Strengths')}</h3>
             <div className="space-y-2">
               {[
-                'Excellent entry timing - 82% of trades enter within 2% of optimal level',
-                'Strong discipline - never breaks stop loss rules (0 violations in 156 trades)',
-                'Sector focus - specialized tech knowledge gives edge in NVDA, TSLA, AMD'
+                t('traders.strength1', 'Excellent entry timing - 82% of trades enter within 2% of optimal level'),
+                t('traders.strength2', 'Strong discipline - never breaks stop loss rules (0 violations in 156 trades)'),
+                t('traders.strength3', 'Sector focus - specialized tech knowledge gives edge in NVDA, TSLA, AMD')
               ].map((strength, i) => (
                 <div key={i} className="flex gap-2">
                   <span className="text-[#00D68F] font-bold">{i + 1}.</span>
@@ -153,12 +155,12 @@ function TraderDetailSheet({ trader, children }) {
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-white mb-3">Three Weaknesses</h3>
+            <h3 className="text-sm font-bold text-white mb-3">{t('traders.threeWeaknesses', 'Three Weaknesses')}</h3>
             <div className="space-y-2">
               {[
-                'Over-concentrated in tech - 65% exposure creates sector risk',
-                'Struggles in choppy markets - win rate drops to 54% when VIX > 20',
-                'Small account size limits position diversification'
+                t('traders.weakness1', 'Over-concentrated in tech - 65% exposure creates sector risk'),
+                t('traders.weakness2', 'Struggles in choppy markets - win rate drops to 54% when VIX > 20'),
+                t('traders.weakness3', 'Small account size limits position diversification')
               ].map((weakness, i) => (
                 <div key={i} className="flex gap-2">
                   <span className="text-[#F59E0B] font-bold">{i + 1}.</span>
@@ -169,14 +171,14 @@ function TraderDetailSheet({ trader, children }) {
           </div>
 
           <div className="p-5 rounded-lg bg-gradient-to-br from-[#F59E0B]/10 to-[#F59E0B]/5 border border-[#F59E0B]/20">
-            <h3 className="text-sm font-bold text-white mb-2">TREK Recommendation</h3>
+            <h3 className="text-sm font-bold text-white mb-2">{t('traders.trekRecommendation', 'TREK Recommendation')}</h3>
             <p className="text-sm text-gray-300">
-              Follow this trader's tech momentum plays with 50% position sizing. Use their entries as signals but apply your own risk management. Avoid copying during high VIX periods.
+              {t('traders.recommendationText', "Follow this trader's tech momentum plays with 50% position sizing. Use their entries as signals but apply your own risk management. Avoid copying during high VIX periods.")}
             </p>
           </div>
 
           <div className="text-center text-xs text-gray-500 font-mono">
-            Confidence: 87% | Trades Analyzed: {trader.trades}
+            {t('traders.confidence', 'Confidence')}: 87% | {t('traders.tradesAnalyzed', 'Trades Analyzed')}: {trader.trades}
           </div>
         </div>
       </SheetContent>
@@ -185,6 +187,7 @@ function TraderDetailSheet({ trader, children }) {
 }
 
 export default function Traders() {
+  const { t } = useTranslation();
   const [following, setFollowing] = useState([]);
 
   const toggleFollow = (username) => {
@@ -201,13 +204,13 @@ export default function Traders() {
         <div className="flex items-center gap-3 mb-6">
           <Trophy className="w-6 h-6 text-[#F59E0B]" />
           <div>
-            <h1 className="text-2xl font-bold text-white">Top Traders</h1>
-            <p className="text-sm text-gray-400">Follow and learn from the best</p>
+            <h1 className="text-2xl font-bold text-white">{t('traders.topTraders', 'Top Traders')}</h1>
+            <p className="text-sm text-gray-400">{t('traders.followBest', 'Follow and learn from the best')}</p>
           </div>
         </div>
 
         <div>
-          <h2 className="text-lg font-bold text-white mb-4">Real Money Leaderboard</h2>
+          <h2 className="text-lg font-bold text-white mb-4">{t('traders.realMoneyLeaderboard', 'Real Money Leaderboard')}</h2>
           <div className="space-y-3">
             {LEADERBOARD.map((trader) => (
               <Card key={trader.rank} className="bg-[#0D1117] border-white/[0.06] p-5">
@@ -227,24 +230,24 @@ export default function Traders() {
                     </div>
 
                     <div className="grid grid-cols-3 gap-3 mb-3">
-                      <div>
-                        <div className="text-xs text-gray-400">Monthly Return</div>
-                        <div className="font-mono font-bold text-[#00D68F]">+{trader.monthlyReturn}%</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-400">Win Rate</div>
-                        <div className="font-mono font-bold text-white">{trader.winRate}%</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-400">Followers</div>
-                        <div className="font-mono font-bold text-white">{trader.followers}</div>
-                      </div>
-                    </div>
+                       <div>
+                         <div className="text-xs text-gray-400">{t('traders.monthlyReturn', 'Monthly Return')}</div>
+                         <div className="font-mono font-bold text-[#00D68F]">+{trader.monthlyReturn}%</div>
+                       </div>
+                       <div>
+                         <div className="text-xs text-gray-400">{t('traders.winRate', 'Win Rate')}</div>
+                         <div className="font-mono font-bold text-white">{trader.winRate}%</div>
+                       </div>
+                       <div>
+                         <div className="text-xs text-gray-400">{t('traders.followers', 'Followers')}</div>
+                         <div className="font-mono font-bold text-white">{trader.followers}</div>
+                       </div>
+                     </div>
 
                     <div className="p-3 rounded-lg bg-[#080B12] border border-white/[0.06] mb-3">
-                      <div className="text-xs text-gray-400 mb-1">Top Trade This Month</div>
-                      <div className="text-sm font-medium text-white">{trader.topTrade}</div>
-                    </div>
+                       <div className="text-xs text-gray-400 mb-1">{t('traders.topTradeMonth', 'Top Trade This Month')}</div>
+                       <div className="text-sm font-medium text-white">{trader.topTrade}</div>
+                     </div>
 
                     <div className="flex gap-2">
                       <Button
@@ -257,13 +260,13 @@ export default function Traders() {
                         }`}
                       >
                         <Users className="w-4 h-4 mr-2" />
-                        {following.includes(trader.username) ? 'Following' : 'Follow'}
+                        {following.includes(trader.username) ? t('traders.following', 'Following') : t('traders.follow', 'Follow')}
                       </Button>
 
                       <TraderDetailSheet trader={trader}>
                         <Button variant="outline" className="flex-1 border-[#F59E0B]/30 text-[#F59E0B] hover:bg-[#F59E0B]/10">
-                          TREK Analysis
-                        </Button>
+                           {t('traders.trekAnalysis', 'TREK Analysis')}
+                         </Button>
                       </TraderDetailSheet>
                     </div>
                   </div>
@@ -275,17 +278,17 @@ export default function Traders() {
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white">Paper Trading Weekly Leaders</h2>
+            <h2 className="text-lg font-bold text-white">{t('traders.paperLeaders', 'Paper Trading Weekly Leaders')}</h2>
             <Star className="w-5 h-5 text-[#F59E0B]" />
           </div>
           <Card className="bg-gradient-to-br from-[#F59E0B]/10 to-[#F59E0B]/5 border-[#F59E0B]/20 p-5 mb-3">
             <p className="text-sm text-gray-300 mb-3">
-              Top 3 paper traders this week win premium subscriptions!
+              {t('traders.topThreeWin', 'Top 3 paper traders this week win premium subscriptions!')}
             </p>
             <div className="flex gap-2 text-xs">
-              <Badge className="bg-[#F59E0B]/20 text-[#F59E0B] border-0">1st: 3mo Elite FREE</Badge>
-              <Badge className="bg-[#F59E0B]/15 text-[#F59E0B] border-0">2nd: 1mo Elite FREE</Badge>
-              <Badge className="bg-[#F59E0B]/10 text-[#F59E0B] border-0">3rd: 1mo Pro FREE</Badge>
+              <Badge className="bg-[#F59E0B]/20 text-[#F59E0B] border-0">{t('traders.firstPlace', '1st: 3mo Elite FREE')}</Badge>
+              <Badge className="bg-[#F59E0B]/15 text-[#F59E0B] border-0">{t('traders.secondPlace', '2nd: 1mo Elite FREE')}</Badge>
+              <Badge className="bg-[#F59E0B]/10 text-[#F59E0B] border-0">{t('traders.thirdPlace', '3rd: 1mo Pro FREE')}</Badge>
             </div>
           </Card>
 
@@ -299,7 +302,7 @@ export default function Traders() {
                     </div>
                     <div>
                       <div className="font-bold text-white">{trader.username}</div>
-                      <div className="text-xs text-gray-400">{trader.trades} trades</div>
+                      <div className="text-xs text-gray-400">{trader.trades} {t('common.trade', 'trades')}</div>
                     </div>
                   </div>
                   <div className="text-right">

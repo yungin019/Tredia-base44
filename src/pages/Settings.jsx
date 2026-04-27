@@ -432,16 +432,15 @@ export default function Settings({ onLogout }) {
        <div className="space-y-3">
          <div className="grid grid-cols-3 gap-2">
            {[
-             { code: 'en', name: 'English', flag: '🇬🇧' },
-             { code: 'fr', name: 'Français', flag: '🇫🇷' },
-             { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-             { code: 'es', name: 'Español', flag: '🇪🇸' },
-             { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-             { code: 'pt', name: 'Português', flag: '🇵🇹' },
-             { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
-             { code: 'sv', name: 'Svenska', flag: '🇸🇪' },
-             { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-           ].map(lang => (
+               { code: 'en', name: 'English', flag: '🇬🇧' },
+               { code: 'sv', name: 'Svenska', flag: '🇸🇪' },
+               { code: 'fr', name: 'Français', flag: '🇫🇷' },
+               { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+               { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+               { code: 'es', name: 'Español', flag: '🇪🇸' },
+               { code: 'pt', name: 'Português', flag: '🇵🇹' },
+               { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+             ].map(lang => (
              <button
                key={lang.code}
                onClick={async () => {
