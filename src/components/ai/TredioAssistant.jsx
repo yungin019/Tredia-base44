@@ -200,7 +200,17 @@ export default function TredioAssistant() {
     setLoading(true);
 
     try {
-      const systemPrompt = `You are TREDIO AI, a friendly and knowledgeable trading mentor inside the TREDIO app. 
+      const currentLang = i18n.language || 'en';
+      const LANG_NAMES = {
+        'en': 'English', 'fr': 'French', 'sv': 'Swedish', 'es': 'Spanish',
+        'de': 'German', 'it': 'Italian', 'pt': 'Portuguese', 'ar': 'Arabic',
+        'ja': 'Japanese', 'zh': 'Chinese', 'ko': 'Korean', 'ru': 'Russian',
+        'tr': 'Turkish', 'nl': 'Dutch', 'pl': 'Polish', 'th': 'Thai', 'id': 'Indonesian',
+      };
+      const langName = LANG_NAMES[currentLang] || LANG_NAMES[currentLang.split('-')[0]] || 'English';
+      const systemPrompt = `IMPORTANT: You must respond entirely in ${langName}. Every word of your response must be in ${langName}, no exceptions.
+
+You are TREDIO AI, a friendly and knowledgeable trading mentor inside the TREDIO app. 
 The user is currently on the "${pageLabel}" page.
 Page context: ${ctx.intro}
 

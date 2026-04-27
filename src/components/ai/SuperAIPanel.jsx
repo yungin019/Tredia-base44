@@ -4,6 +4,7 @@ import { Zap, Share2, X, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { buildMarketContext } from '@/api/marketContext';
 import { useNavigate } from 'react-router-dom';
+import i18n from 'i18next';
 
 const VERDICT_COLORS = {
   'STRONG BUY': '#22c55e',
@@ -71,7 +72,7 @@ export default function SuperAIPanel({ question, onClose, isElite }) {
 
     try {
       const marketContext = await buildMarketContext().catch(() => null);
-      const res = await base44.functions.invoke('superAI', { question, marketContext });
+      const res = await base44.functions.invoke('superAI', { question, marketContext, lang: i18n.language || 'en' });
       if (res.data?.upgrade) {
         setError('upgrade_required');
         return;

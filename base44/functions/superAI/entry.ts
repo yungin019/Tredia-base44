@@ -6,7 +6,7 @@ const GPT_FUNDAMENTAL_PROMPT = `You are the fundamental analysis engine of TREK.
 
 const GEMINI_SENTIMENT_PROMPT = `You are the sentiment analysis engine of TREK. Analyze the asset using: social media sentiment, news sentiment from last 7 days, options market sentiment (put/call ratio), retail vs institutional positioning, Fear & Greed Index impact. Give a clear BULLISH/BEARISH/NEUTRAL verdict. Be concise — max 100 words. End with: Verdict: BULLISH or BEARISH or NEUTRAL`;
 
-async function callClaude(question, marketContext) {
+async function callClaude(question, marketContext, systemPrompt) {
   const contextStr = marketContext ? `\nMarket Context: ${JSON.stringify(marketContext)}` : '';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -18,7 +18,7 @@ async function callClaude(question, marketContext) {
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 300,
-      system: CLAUDE_TECHNICAL_PROMPT + contextStr,
+      system: (systemPrompt || CLAUDE_TECHNICAL_PROMPT) + contextStr,
       messages: [{ role: 'user', content: question }],
     }),
   });
@@ -27,7 +27,7 @@ async function callClaude(question, marketContext) {
   return data.content?.[0]?.text || '';
 }
 
-async function callGPT(question, marketContext) {
+async function callGPT(question, marketContext, systemPrompt) {
   const contextStr = marketContext ? `\nMarket Context: ${JSON.stringify(marketContext)}` : '';
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -39,7 +39,7 @@ async function callGPT(question, marketContext) {
       model: 'gpt-4o',
       max_tokens: 300,
       messages: [
-        { role: 'system', content: GPT_FUNDAMENTAL_PROMPT + contextStr },
+        { role: 'system', content: (systemPrompt || GPT_FUNDAMENTAL_PROMPT) + contextStr },
         { role: 'user', content: question },
       ],
     }),
@@ -49,14 +49,14 @@ async function callGPT(question, marketContext) {
   return data.choices?.[0]?.message?.content || '';
 }
 
-async function callGemini(question, marketContext) {
+async function callGemini(question, marketContext, systemPrompt) {
   const contextStr = marketContext ? `\nMarket Context: ${JSON.stringify(marketContext)}` : '';
   const apiKey = Deno.env.get('GEMINI_API_KEY');
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: GEMINI_SENTIMENT_PROMPT + contextStr + '\n\nUser question: ' + question }] }],
+      contents: [{ parts: [{ text: (systemPrompt || GEMINI_SENTIMENT_PROMPT) + contextStr + '\n\nUser question: ' + question }] }],
       generationConfig: { maxOutputTokens: 300 },
     }),
   });
@@ -115,14 +115,30 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Super AI requires a Pro or Elite subscription.', upgrade: true }, { status: 403 });
     }
 
-    const { question, marketContext } = await req.json();
+    const { question, marketContext, lang } = await req.json();
     if (!question) return Response.json({ error: 'question is required' }, { status: 400 });
+
+    // Build language instruction
+    const LANG_NAMES = {
+      'en': 'English', 'fr': 'French', 'sv': 'Swedish', 'es': 'Spanish',
+      'de': 'German', 'it': 'Italian', 'pt': 'Portuguese', 'ar': 'Arabic',
+      'ja': 'Japanese', 'zh': 'Chinese', 'ko': 'Korean', 'ru': 'Russian',
+      'tr': 'Turkish', 'nl': 'Dutch', 'pl': 'Polish', 'th': 'Thai', 'id': 'Indonesian',
+    };
+    const userLang = lang || user.language || 'en';
+    const langName = LANG_NAMES[userLang] || LANG_NAMES[userLang.split('-')[0]] || 'English';
+    const langInstruction = `IMPORTANT: You must respond entirely in ${langName}. Every word of your response must be in ${langName}, no exceptions. Keep the Verdict tag in English (e.g. "Verdict: BULLISH") but all explanatory text must be in ${langName}.\n\n`;
+
+    // Inject language into prompts
+    const claudePrompt = langInstruction + CLAUDE_TECHNICAL_PROMPT;
+    const gptPrompt = langInstruction + GPT_FUNDAMENTAL_PROMPT;
+    const geminiPrompt = langInstruction + GEMINI_SENTIMENT_PROMPT;
 
     // Call all 3 models in parallel
     const [claudeRaw, gptRaw, geminiRaw] = await Promise.all([
-      callClaude(question, marketContext).catch(e => `Analysis unavailable: ${e.message}`),
-      callGPT(question, marketContext).catch(e => `Analysis unavailable: ${e.message}`),
-      callGemini(question, marketContext).catch(e => `Analysis unavailable: ${e.message}`),
+      callClaude(question, marketContext, claudePrompt).catch(e => `Analysis unavailable: ${e.message}`),
+      callGPT(question, marketContext, gptPrompt).catch(e => `Analysis unavailable: ${e.message}`),
+      callGemini(question, marketContext, geminiPrompt).catch(e => `Analysis unavailable: ${e.message}`),
     ]);
 
     const claudeVerdict = extractVerdict(claudeRaw);

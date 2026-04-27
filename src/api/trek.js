@@ -1,6 +1,21 @@
 // TREDIO - launch ready v1
 import { buildUserContext } from '@/api/userContext';
 import { base44 } from '@/api/base44Client';
+import i18n from 'i18next';
+
+const LANG_NAMES = {
+  'en': 'English', 'fr': 'French', 'sv': 'Swedish', 'es': 'Spanish',
+  'de': 'German', 'it': 'Italian', 'pt': 'Portuguese', 'ar': 'Arabic',
+  'ja': 'Japanese', 'zh': 'Chinese', 'ko': 'Korean', 'ru': 'Russian',
+  'tr': 'Turkish', 'nl': 'Dutch', 'pl': 'Polish', 'th': 'Thai', 'id': 'Indonesian',
+  'ro': 'Romanian', 'el': 'Greek', 'vi': 'Vietnamese', 'hi': 'Hindi',
+};
+
+function getLangInstruction() {
+  const lang = i18n.language || 'en';
+  const langName = LANG_NAMES[lang] || LANG_NAMES[lang.split('-')[0]] || 'English';
+  return `IMPORTANT: You must respond entirely in ${langName}. Every word of your response must be in ${langName}, no exceptions.\n\n`;
+}
 
 const FREE_SYSTEM_PROMPT = `You are TREK Basic. You help beginners understand trading. Give general market direction and education. Never give specific entry/exit prices — those are Pro only. Always end with: upgrade to TREK Pro for exact entry, target and stop loss levels. Be encouraging and explain WHY before WHAT.
 
@@ -176,7 +191,8 @@ If market drops 20%:
 — TREK Portfolio Analysis. Not financial advice.`;
 
 function buildSystemPrompt(marketContext, user, tier = 'free') {
-  let prompt = tier === 'elite' ? ELITE_SYSTEM_PROMPT : tier === 'pro' ? PRO_SYSTEM_PROMPT : FREE_SYSTEM_PROMPT;
+  const langInstruction = getLangInstruction();
+  let prompt = langInstruction + (tier === 'elite' ? ELITE_SYSTEM_PROMPT : tier === 'pro' ? PRO_SYSTEM_PROMPT : FREE_SYSTEM_PROMPT);
 
   if (marketContext) {
     const { fng_value, fng_label, btc_price, btc_change_24h, eth_price, eth_change_24h, portfolio } = marketContext;
@@ -191,7 +207,7 @@ function buildSystemPrompt(marketContext, user, tier = 'free') {
   return prompt;
 }
 
-export async function askTrek(messages, marketContext, user = null, tier = 'free') {
+export async function askTrek(messages, marketContext, user = null, tier = 'free', lang = null) {
   const systemPrompt = buildSystemPrompt(marketContext, user, tier);
 
   const enrichedContext = marketContext ? {
@@ -204,6 +220,7 @@ export async function askTrek(messages, marketContext, user = null, tier = 'free
     recentNews: marketContext.recent_news || '—',
   } : null;
 
-  const res = await base44.functions.invoke('trekChat', { messages, systemPrompt, marketContext: enrichedContext });
+  const resolvedLang = lang || i18n.language || 'en';
+  const res = await base44.functions.invoke('trekChat', { messages, systemPrompt, marketContext: enrichedContext, lang: resolvedLang });
   return res.data?.reply || '';
 }

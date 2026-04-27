@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Loader2, Sparkles, RotateCcw, Zap, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { askTrek } from '@/api/trek';
@@ -137,7 +138,7 @@ export default function AIChat() {
     setQuestionsToday(nextCount);
     
     try {
-      const reply = await askTrek(historyRef.current, marketContext, currentUser, tier);
+      const reply = await askTrek(historyRef.current, marketContext, currentUser, tier, i18n.language || 'en');
       if (reply && reply.trim()) {
         historyRef.current = [...historyRef.current, { role: 'assistant', content: reply }];
         setMessages(prev => [...prev, { role: 'ai', content: reply }]);

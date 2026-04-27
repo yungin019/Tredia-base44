@@ -94,7 +94,7 @@ async function interpretAsSignal(news) {
         messages: [
           {
             role: 'system',
-            content: `You are TREK, a market intelligence engine. Interpret news into market signals.
+            content: `${langInstruction}You are TREK, a market intelligence engine. Interpret news into market signals.
 
 Output ONLY valid JSON with no markdown formatting:
 {
@@ -136,6 +136,17 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Language support
+    const LANG_NAMES = {
+      'en': 'English', 'fr': 'French', 'sv': 'Swedish', 'es': 'Spanish',
+      'de': 'German', 'it': 'Italian', 'pt': 'Portuguese', 'ar': 'Arabic',
+      'ja': 'Japanese', 'zh': 'Chinese', 'ko': 'Korean', 'ru': 'Russian',
+      'tr': 'Turkish', 'nl': 'Dutch', 'pl': 'Polish', 'th': 'Thai', 'id': 'Indonesian',
+    };
+    const userLang = user.language || 'en';
+    const langName = LANG_NAMES[userLang] || LANG_NAMES[userLang.split('-')[0]] || 'English';
+    const langInstruction = `IMPORTANT: You must respond entirely in ${langName}. Every word of your response must be in ${langName}, no exceptions.\n\n`;
 
     // Fetch real news
     const news = await fetchGlobalNews();

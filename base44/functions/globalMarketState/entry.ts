@@ -74,7 +74,7 @@ async function fetchRecentCatalysts(base44) {
 }
 
 // Generate global market state using LLM
-async function generateMarketState(marketData, catalysts, retryCount = 0) {
+async function generateMarketState(marketData, catalysts, retryCount = 0, langInstruction = '') {
   console.log('[GLOBAL STATE] Generating market state (attempt ' + (retryCount + 1) + ')');
 
   const marketSummary = `
@@ -93,7 +93,7 @@ Market Data:
   const forbiddenList = FORBIDDEN_PHRASES.join(', ');
 
   const systemPrompt = retryCount === 0
-    ? `You are a market state summarizer for active traders. Your job is to describe what the market is doing RIGHT NOW in a way that NEVER feels empty.
+    ? `${langInstruction}You are a market state summarizer for active traders. Your job is to describe what the market is doing RIGHT NOW in a way that NEVER feels empty.
 
 ABSOLUTELY FORBIDDEN WORDS (will be rejected):
 ${forbiddenList}
@@ -115,7 +115,7 @@ BIAS:
 
 WATCH:
 [2-3 key upcoming triggers, risks, or data points]`
-    : `Rewrite with MORE CONCRETE language. Use ACTIVE verbs: consolidating, rallying, digesting, grinding, bouncing, rotating, waiting, pausing.
+    : `${langInstruction}Rewrite with MORE CONCRETE language. Use ACTIVE verbs: consolidating, rallying, digesting, grinding, bouncing, rotating, waiting, pausing.
 FORBIDDEN WORDS (will cause rejection): ${forbiddenList}
 
 Describe a VISIBLE STATE even if low activity. Output exact format again.`;
@@ -241,6 +241,21 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // Get language from request body or user profile
+    let reqLang = 'en';
+    try {
+      const body = await req.clone().json().catch(() => ({}));
+      reqLang = body.lang || user.language || 'en';
+    } catch (_) {}
+    const LANG_NAMES = {
+      'en': 'English', 'fr': 'French', 'sv': 'Swedish', 'es': 'Spanish',
+      'de': 'German', 'it': 'Italian', 'pt': 'Portuguese', 'ar': 'Arabic',
+      'ja': 'Japanese', 'zh': 'Chinese', 'ko': 'Korean', 'ru': 'Russian',
+      'tr': 'Turkish', 'nl': 'Dutch', 'pl': 'Polish', 'th': 'Thai', 'id': 'Indonesian',
+    };
+    const langName = LANG_NAMES[reqLang] || LANG_NAMES[reqLang.split('-')[0]] || 'English';
+    const langInstruction = `IMPORTANT: You must respond entirely in ${langName}. Every word of your response must be in ${langName}, no exceptions.\n\n`;
+
     // Step 1: Fetch market data
     const marketData = await fetchMarketData();
     
@@ -248,13 +263,13 @@ Deno.serve(async (req) => {
     const catalysts = await fetchRecentCatalysts(base44);
     result.catalystCount = catalysts.length;
 
-    // Step 3: Generate market state with retry
+    // Step 3: Generate market state with retry (pass lang)
     let state = null;
     let retryCount = 0;
     const maxRetries = 2;
 
     while (retryCount <= maxRetries && !state?.valid) {
-      state = await generateMarketState(marketData, catalysts, retryCount);
+      state = await generateMarketState(marketData, catalysts, retryCount, langInstruction);
       if (state?.valid) {
         console.log('[GLOBAL STATE] ✓ Valid state generated');
         break;

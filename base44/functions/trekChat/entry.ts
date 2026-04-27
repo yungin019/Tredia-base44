@@ -117,7 +117,18 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { messages, systemPrompt, marketContext } = await req.json();
+    const { messages, systemPrompt, marketContext, lang } = await req.json();
+
+    // Language instruction prepended to every system prompt
+    const LANG_NAMES = {
+      'en': 'English', 'fr': 'French', 'sv': 'Swedish', 'es': 'Spanish',
+      'de': 'German', 'it': 'Italian', 'pt': 'Portuguese', 'ar': 'Arabic',
+      'ja': 'Japanese', 'zh': 'Chinese', 'ko': 'Korean', 'ru': 'Russian',
+      'tr': 'Turkish', 'nl': 'Dutch', 'pl': 'Polish', 'th': 'Thai', 'id': 'Indonesian',
+      'ro': 'Romanian', 'el': 'Greek', 'vi': 'Vietnamese', 'hi': 'Hindi',
+    };
+    const langName = lang ? (LANG_NAMES[lang] || LANG_NAMES[lang.split('-')[0]] || 'English') : 'English';
+    const langInstruction = `IMPORTANT: You must respond entirely in ${langName}. Every word of your response must be in ${langName}, no exceptions.\n\n`;
 
     const contextBlock = buildContext(marketContext);
 
@@ -133,13 +144,13 @@ Deno.serve(async (req) => {
 
     if (!isDeepAnalysis) {
       // Simple chat: just use Claude
-      const system = (systemPrompt || TREK_SYSTEM_PROMPT) + contextBlock;
+      const system = langInstruction + (systemPrompt || TREK_SYSTEM_PROMPT) + contextBlock;
       const reply = await callClaude(system, messages);
       return Response.json({ reply });
     }
 
     // DEEP ANALYSIS MODE: Run both models in parallel as independent analysts
-    const analystSystem = ANALYST_PROMPT + (systemPrompt ? `\n\n${systemPrompt}` : '') + contextBlock;
+    const analystSystem = langInstruction + ANALYST_PROMPT + (systemPrompt ? `\n\n${systemPrompt}` : '') + contextBlock;
 
     const [claudeAnalysis, openaiAnalysis] = await Promise.allSettled([
       callClaude(analystSystem, messages),
@@ -173,7 +184,7 @@ ${openaiText}
 Synthesize these two analyses into one definitive TREK verdict.`,
     }];
 
-    const synthSystem = SYNTHESIZER_PROMPT + contextBlock;
+    const synthSystem = langInstruction + SYNTHESIZER_PROMPT + contextBlock;
     const finalReply = await callClaude(synthSystem, synthMessages);
 
     return Response.json({ reply: finalReply, _debug: { claudeText, openaiText } });

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import i18n from 'i18next';
 
 export default function GlobalMarketStateBanner() {
   const [state, setState] = useState(null);
@@ -13,7 +14,7 @@ export default function GlobalMarketStateBanner() {
         setError(null);
         console.log('[GlobalMarketStateBanner] Invoking globalMarketState function');
         
-        const response = await base44.functions.invoke('globalMarketState', {});
+        const response = await base44.functions.invoke('globalMarketState', { lang: i18n.language || 'en' });
         console.log('[GlobalMarketStateBanner] Response:', response.data);
         
         if (response.data?.marketState) {
