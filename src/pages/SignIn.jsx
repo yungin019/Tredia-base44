@@ -76,8 +76,6 @@ export default function SignIn({ onLoginSuccess }) {
       if (!u.referral_code) updates.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
       if (!u.subscription_tier) updates.subscription_tier = 'free';
       if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates);
-      // onboarding_completed === false → needs onboarding
-      // true or undefined (existing users) → go to Home
       return u.onboarding_completed === false;
     } catch (_) {}
     return false;
@@ -100,6 +98,7 @@ export default function SignIn({ onLoginSuccess }) {
   // Listen for deep-link callback from in-app Browser (OAuth)
   const setupAppUrlListener = async () => {
     removeAppUrlListener();
+    if (!isNative()) return;
     const CapacitorApp = window.Capacitor?.Plugins?.App;
     if (!CapacitorApp) return;
     try {
@@ -113,11 +112,12 @@ export default function SignIn({ onLoginSuccess }) {
 
           if (token) {
             localStorage.setItem('base44_access_token', token);
+            localStorage.setItem('token', token);
           }
 
-          // Close the in-app browser immediately
           await Browser.close().catch(() => {});
           removeAppUrlListener();
+          stopTimeout();
           await handleAuthSuccess();
         } catch (_) {}
       });
@@ -194,61 +194,67 @@ export default function SignIn({ onLoginSuccess }) {
     try { await base44.auth.resendOtp(email); } catch (_) {}
   };
 
-  // OAUTH (Google / Apple)
-  const openOAuth = async (provider) => {
+  // GOOGLE SIGN IN — Safari View Controller on iOS, redirect on web
+  const handleGoogle = async () => {
     setError('');
     setLoading(true);
     startTimeout();
-
     try {
       if (isNative()) {
-        // Get the OAuth URL from Base44
-        const redirectUrl = 'https://tredio.app/auth/google/callback';
+        const callbackUrl = 'https://tredio.app/auth/google/callback';
         const oauthUrl = base44.auth.getProviderLoginUrl
-          ? base44.auth.getProviderLoginUrl(provider, redirectUrl)
+          ? base44.auth.getProviderLoginUrl('google', callbackUrl)
           : null;
-
-        if (oauthUrl) {
-          // Listen for the deep-link callback BEFORE opening browser
-          await setupAppUrlListener();
-
-          await Browser.open({
-            url: oauthUrl,
-            presentationStyle: 'popover',
-            toolbarColor: '#080B12',
-          });
-          // Browser.open resolves immediately after the sheet opens.
-          // The appUrlOpen listener handles the callback.
-          // Don't stop loading here — we want the spinner to show until callback arrives.
-          // Timeout (15s) will reset it if callback never comes.
-        } else {
-          // Fallback: use loginWithProvider redirect
-          removeAppUrlListener();
-          await setupAppUrlListener();
-          base44.auth.loginWithProvider(provider, 'https://tredio.app/auth/google/callback');
-        }
+        if (!oauthUrl) throw new Error('Could not get Google auth URL');
+        // Register deep-link listener BEFORE opening browser
+        await setupAppUrlListener();
+        // Opens Safari View Controller — stays inside the app, never leaves to external Safari
+        await Browser.open({ url: oauthUrl, presentationStyle: 'popover', toolbarColor: '#080B12' });
+        // Do NOT stop loading here — appUrlOpen listener handles the callback
       } else {
-        // Web: standard redirect flow
-        base44.auth.loginWithProvider(provider, '/');
-        // Don't stop loading — page will redirect
+        base44.auth.loginWithProvider('google', window.location.origin + '/auth/google/callback');
+        // Page will redirect — keep spinner
       }
     } catch (err) {
       stopTimeout();
       setLoading(false);
       removeAppUrlListener();
       if (!isCancelledError(err)) {
-        setError(
-          provider === 'apple'
-            ? t('signin.error.appleFailed', 'Apple Sign In failed. Please try email instead.')
-            : t('signin.error.googleFailed', 'Google Sign In failed. Please try email instead.')
-        );
+        setError(t('signin.error.googleFailed', 'Google Sign In failed. Please try email instead.'));
       }
-      // If cancelled, fail silently — just stop loading
     }
   };
 
-  const handleGoogle = () => openOAuth('google');
-  const handleApple = () => openOAuth('apple');
+  // APPLE SIGN IN — Safari View Controller on iOS, redirect on web
+  const handleApple = async () => {
+    setError('');
+    setLoading(true);
+    startTimeout();
+    try {
+      if (isNative()) {
+        const callbackUrl = 'https://tredio.app/auth/apple/callback';
+        const oauthUrl = base44.auth.getProviderLoginUrl
+          ? base44.auth.getProviderLoginUrl('apple', callbackUrl)
+          : null;
+        if (!oauthUrl) throw new Error('Could not get Apple auth URL');
+        // Register deep-link listener BEFORE opening browser
+        await setupAppUrlListener();
+        // Opens Safari View Controller — Apple explicitly approves this pattern
+        await Browser.open({ url: oauthUrl, presentationStyle: 'popover', toolbarColor: '#080B12' });
+        // Do NOT stop loading here — appUrlOpen listener handles the callback
+      } else {
+        base44.auth.loginWithProvider('apple', window.location.origin + '/auth/callback');
+        // Page will redirect — keep spinner
+      }
+    } catch (err) {
+      stopTimeout();
+      setLoading(false);
+      removeAppUrlListener();
+      if (!isCancelledError(err)) {
+        setError(t('signin.error.appleFailed', 'Apple Sign In failed. Please try email instead.'));
+      }
+    }
+  };
 
   return (
     <div style={{
@@ -257,7 +263,12 @@ export default function SignIn({ onLoginSuccess }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '24px',
+      // Safe area insets for iOS notch + home bar
+      paddingTop: 'calc(24px + env(safe-area-inset-top))',
+      paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
+      paddingLeft: 'calc(24px + env(safe-area-inset-left))',
+      paddingRight: 'calc(24px + env(safe-area-inset-right))',
+      overflowY: 'auto',
     }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <motion.div
@@ -530,23 +541,28 @@ function AppleIcon() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const inputStyle = {
-  width: '100%', padding: '12px 14px', borderRadius: '10px', fontSize: '14px',
+  width: '100%', padding: '12px 14px', borderRadius: '10px',
+  // 16px prevents iOS Safari from auto-zooming when tapping inputs
+  fontSize: '16px',
   background: 'rgba(6,14,32,0.6)', border: '1px solid rgba(100,220,255,0.1)',
   color: 'rgba(255,255,255,0.88)', outline: 'none', boxSizing: 'border-box',
+  minHeight: '44px', // Apple HIG minimum tap target
 };
 
 const submitBtnStyle = {
-  padding: '13px', borderRadius: '12px', fontWeight: '800', fontSize: '14px',
+  padding: '13px', borderRadius: '12px', fontWeight: '800', fontSize: '15px',
   background: 'linear-gradient(135deg, #0ec8dc, #0aa8be)', color: '#030810',
   border: 'none', letterSpacing: '0.5px', width: '100%',
   boxShadow: '0 4px 20px rgba(14,200,220,0.3)',
+  minHeight: '48px', // Apple HIG minimum tap target
 };
 
 const socialBtnStyle = {
-  width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '600',
+  width: '100%', padding: '12px', borderRadius: '10px', fontSize: '14px', fontWeight: '600',
   background: 'rgba(100,220,255,0.04)', border: '1px solid rgba(100,220,255,0.1)',
   color: 'rgba(255,255,255,0.65)', cursor: 'pointer', display: 'flex',
   alignItems: 'center', justifyContent: 'center', gap: '8px',
+  minHeight: '48px', // Apple HIG minimum tap target
 };
 
 const errorStyle = {

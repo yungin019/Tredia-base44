@@ -30,7 +30,8 @@ export default function AlpacaConnect() {
           // Opens in SFSafariViewController — stays inside the app on iOS
           await Browser.open({ url, presentationStyle: 'popover', toolbarColor: '#080B12' });
         } else {
-          window.location.href = url;
+          // Web: navigate directly (OAuth redirect flow)
+          window.location.assign(url);
         }
       }
     } catch (e) {
