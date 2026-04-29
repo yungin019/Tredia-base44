@@ -155,12 +155,22 @@ export default function SignIn({ onLoginSuccess }) {
         setStep('verify');
       } else {
         const result = await base44.auth.loginViaEmailPassword(email, password);
-        // Explicitly persist token for iOS Capacitor WebView
+        // Explicitly persist token for iOS/iPad Capacitor WebView
         const token = result?.access_token || result?.token;
         if (token) {
           localStorage.setItem('base44_access_token', token);
           localStorage.setItem('token', token);
+          sessionStorage.setItem('base44_access_token', token);
         }
+        // Verify session is active before navigating (fixes iPad login loop)
+        let verifiedUser = null;
+        try {
+          verifiedUser = await base44.auth.me();
+        } catch (_) {
+          await new Promise(r => setTimeout(r, 500));
+          verifiedUser = await base44.auth.me();
+        }
+        if (!verifiedUser) throw new Error('Session could not be verified. Please try again.');
         await handleAuthSuccess();
       }
     } catch (err) {
@@ -217,7 +227,7 @@ export default function SignIn({ onLoginSuccess }) {
         // Register deep-link listener BEFORE opening browser
         await setupAppUrlListener();
         // Opens Safari View Controller — stays inside the app, never leaves to external Safari
-        await Browser.open({ url: oauthUrl, presentationStyle: 'popover', toolbarColor: '#080B12' });
+        await Browser.open({ url: oauthUrl, presentationStyle: getPresStyle(), toolbarColor: '#080B12' });
         // Do NOT stop loading here — appUrlOpen listener handles the callback
       } else {
         base44.auth.loginWithProvider('google', window.location.origin + '/auth/google/callback');
@@ -248,7 +258,7 @@ export default function SignIn({ onLoginSuccess }) {
         // Register deep-link listener BEFORE opening browser
         await setupAppUrlListener();
         // Opens Safari View Controller — Apple explicitly approves this pattern
-        await Browser.open({ url: oauthUrl, presentationStyle: 'popover', toolbarColor: '#080B12' });
+        await Browser.open({ url: oauthUrl, presentationStyle: getPresStyle(), toolbarColor: '#080B12' });
         // Do NOT stop loading here — appUrlOpen listener handles the callback
       } else {
         base44.auth.loginWithProvider('apple', window.location.origin + '/auth/callback');
