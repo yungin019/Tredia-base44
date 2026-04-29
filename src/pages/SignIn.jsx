@@ -146,7 +146,13 @@ export default function SignIn({ onLoginSuccess }) {
         setLoading(false);
         setStep('verify');
       } else {
-        await base44.auth.loginViaEmailPassword(email, password);
+        const result = await base44.auth.loginViaEmailPassword(email, password);
+        // Explicitly persist token for iOS Capacitor WebView
+        const token = result?.access_token || result?.token;
+        if (token) {
+          localStorage.setItem('base44_access_token', token);
+          localStorage.setItem('token', token);
+        }
         await handleAuthSuccess();
       }
     } catch (err) {
@@ -164,7 +170,13 @@ export default function SignIn({ onLoginSuccess }) {
     startTimeout();
     try {
       await base44.auth.verifyOtp({ email, otpCode: verifyCode });
-      await base44.auth.loginViaEmailPassword(email, password);
+      const verifyResult = await base44.auth.loginViaEmailPassword(email, password);
+      // Explicitly persist token for iOS Capacitor WebView
+      const verifyToken = verifyResult?.access_token || verifyResult?.token;
+      if (verifyToken) {
+        localStorage.setItem('base44_access_token', verifyToken);
+        localStorage.setItem('token', verifyToken);
+      }
       // Set name if provided
       if (name) {
         await base44.auth.updateMe({ full_name: name }).catch(() => {});
