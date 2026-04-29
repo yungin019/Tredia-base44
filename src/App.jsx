@@ -33,6 +33,7 @@ import AlpacaCallback from './pages/AlpacaCallback';
 import OAuthCallback from './pages/OAuthCallback';
 import TrekPortfolioWelcome from './pages/TrekPortfolioWelcome';
 import OnboardingQuick from './pages/OnboardingQuick';
+import Support from './pages/Support';
 
 const LoadingSpinner = () => (
   <div style={{
@@ -93,6 +94,7 @@ const AppRoutes = ({ user, onLogout, onLoginSuccess }) => {
         <Route path="/alpaca-callback" element={<AlpacaCallback />} />
         <Route path="/auth/google/callback" element={<OAuthCallback />} />
         <Route path="/auth/callback" element={<OAuthCallback />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/trek-portfolio-welcome" element={<PageTransition><TrekPortfolioWelcome /></PageTransition>} />
         {/* All main app routes — redirect to onboarding if not completed */}
         <Route element={needsOnboarding ? <Navigate to="/Onboarding" replace /> : <AppShell onLogout={onLogout} />}>
