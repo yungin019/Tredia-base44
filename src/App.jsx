@@ -65,14 +65,17 @@ const LoadingSpinner = () => (
 const AppRoutes = ({ user, onLogout, onLoginSuccess }) => {
   const location = useLocation();
 
+  // Always allow OAuth callbacks regardless of auth state
+  if (location.pathname === '/auth/google/callback' || location.pathname === '/auth/callback') {
+    return <OAuthCallback />;
+  }
+
   if (!user) {
     return (
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/SignIn" element={<PageTransition><SignIn onLoginSuccess={onLoginSuccess} /></PageTransition>} />
           <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
-          <Route path="/auth/google/callback" element={<OAuthCallback />} />
-          <Route path="/auth/callback" element={<OAuthCallback />} />
           <Route path="*" element={<Navigate to="/SignIn" replace />} />
         </Routes>
       </AnimatePresence>

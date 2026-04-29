@@ -7,6 +7,14 @@ import { Browser } from '@capacitor/browser';
 
 const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
 
+// iPad detection — popover doesn't work on iPad, must use fullscreen
+const isIPad = () =>
+  /iPad/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+  (isNative() && window.innerWidth >= 768);
+
+const getPresStyle = () => isIPad() ? 'fullscreen' : 'popover';
+
 // Cancelled auth error codes from Capacitor/native plugins
 const isCancelledError = (err) => {
   if (!err) return false;
