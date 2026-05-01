@@ -135,7 +135,7 @@ export default function AppShell({ onLogout }) {
             <Search className="h-4 w-4 text-white/50" />
           </button>
 
-          {/* Elite badge Ã¢ÂÂ only for elite subscribers */}
+          {/* Elite badge ÃÂ¢ÃÂÃÂ only for elite subscribers */}
           {isElite && (
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border"
               style={{ background: 'rgba(245,158,11,0.07)', borderColor: 'rgba(245,158,11,0.2)', boxShadow: '0 0 16px rgba(245,158,11,0.06)' }}>
