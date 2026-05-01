@@ -100,7 +100,7 @@ function FeedSeparator({ label }) {
 function EmptyState({ region }) {
   const { t } = useTranslation();
   return (
-    <div className="rounded-xl px-5 py-8 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="rounded-xl px-5 py-8 text-center" style={{ background: 'rgba(8,16,36,0.55)', border: '1px solid rgba(100,220,255,0.07)' }}>
       <p className="text-white/30 text-sm font-medium">{t('feed.noSignals', 'No signals for')} {region} {t('feed.rightNow', 'right now')}</p>
       <p className="text-white/15 text-xs mt-1">{t('feed.trekMonitoring', 'TREK is monitoring — check back soon')}</p>
     </div>
@@ -207,8 +207,10 @@ export default function IntelligenceFeed({ activeRegion }) {
           <>
             <FeedSeparator label={t('feed.trekWatching', 'Trek is watching')} />
             <div className="rounded-xl px-4 py-3.5 space-y-2.5" style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.07)',
+              background: 'rgba(3, 7, 18, 0.82)',
+              backdropFilter: 'blur(28px)',
+              WebkitBackdropFilter: 'blur(28px)',
+              border: '1px solid rgba(100,220,255,0.07)',
             }}>
               <div className="flex items-center gap-2 mb-1">
                 <Eye className="h-3.5 w-3.5 text-primary/50" />
