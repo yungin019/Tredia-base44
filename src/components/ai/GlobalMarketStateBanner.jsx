@@ -78,10 +78,8 @@ export default function GlobalMarketStateBanner() {
     <div
       className="rounded-xl px-4 py-3.5 space-y-3"
       style={{
-        background: 'rgba(8, 18, 42, 0.65)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        border: '1px solid rgba(100,220,255,0.09)',
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(255,255,255,0.08)',
       }}
     >
       <h3 className="text-xs font-black text-white/80 uppercase tracking-widest">{t('feed.marketState', 'Market State')}</h3>

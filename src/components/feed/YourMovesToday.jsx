@@ -38,10 +38,8 @@ function MoveCard({ move, index, onExplore }) {
       transition={{ delay: index * 0.06 }}
       className="rounded-2xl overflow-hidden"
       style={{
-        background: 'rgba(8, 18, 42, 0.65)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        border: `1px solid rgba(100,220,255,0.09)`,
+        background: 'rgba(255,255,255,0.04)',
+        border: `1px solid rgba(255,255,255,0.08)`,
       }}
     >
       {/* accent line */}

@@ -80,17 +80,13 @@ export default function FeedReactionBlock({ reaction, index = 0 }) {
   const tradeSetup = reaction.trade_setup || null;
 
   const cardStyle = isPrimary ? {
-    background: 'rgba(12, 26, 62, 0.78)',
-    backdropFilter: 'blur(32px) saturate(200%)',
-    WebkitBackdropFilter: 'blur(32px) saturate(200%)',
+    background: 'rgba(255,255,255,0.06)',
     border: `${strength.borderWidth} solid ${sigColor}${strength.level === 'STRONG' ? 'cc' : strength.level === 'MODERATE' ? '66' : '33'}`,
-    boxShadow: `0 0 ${strength.glowSize} ${strength.glow}, 0 0 ${strength.glowSize} ${sigColor}30, 0 12px 40px rgba(0,0,0,0.5)`,
+    boxShadow: `0 0 ${strength.glowSize} ${strength.glow}, 0 0 ${strength.glowSize} ${sigColor}30`,
     opacity: strength.opacity,
   } : {
-    background: 'rgba(8, 18, 42, 0.60)',
-    backdropFilter: 'blur(24px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-    border: `1px solid rgba(100,220,255,${strength.level === 'STRONG' ? '0.15' : strength.level === 'MODERATE' ? '0.09' : '0.05'})`,
+    background: 'rgba(255,255,255,0.04)',
+    border: `1px solid rgba(255,255,255,${strength.level === 'STRONG' ? '0.12' : strength.level === 'MODERATE' ? '0.08' : '0.05'})`,
     opacity: strength.opacity,
   };
 
