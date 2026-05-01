@@ -9,6 +9,7 @@ import NotificationsPanel from '@/components/ui/NotificationsPanel';
 import SearchModal from '@/components/ui/SearchModal';
 import GlobalAssetSearch from '@/components/ui/GlobalAssetSearch';
 import { useNavigation } from '@/lib/NavigationManager';
+import AlpacaConnectBanner from '@/components/broker/AlpacaConnectBanner';
 
 const NAV_CONFIG = [
   { path: '/Home',       icon: Home,       translationKey: 'nav.feed',      isTrek: false },
@@ -161,6 +162,9 @@ export default function AppShell({ onLogout }) {
           </div>
         </div>
       </header>
+
+      {/* Alpaca Banner — below header, above content */}
+      <AlpacaConnectBanner />
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-24 lg:pb-8 w-full">
