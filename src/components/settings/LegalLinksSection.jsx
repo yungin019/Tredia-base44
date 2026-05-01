@@ -4,18 +4,13 @@ import { ExternalLink } from 'lucide-react';
 const LEGAL_LINKS = [
   {
     label: 'Privacy Policy',
-    href: 'https://tredio.app/privacy', // Update this to your actual privacy policy URL
+    href: 'https://pushy-sapphire-d17.notion.site/TREDIO-Privacy-Policy-329bfe5c098c807b9dccf735b02158e3',
     icon: '🔒',
   },
   {
-    label: 'Terms of Service',
-    href: 'https://tredio.app/terms', // Update this to your actual terms URL
+    label: 'Terms of Use',
+    href: 'https://pushy-sapphire-d17.notion.site/TREDIO-Terms-of-Use-32cbfe5c098c809b9956e2b6a6cea173',
     icon: '📋',
-  },
-  {
-    label: 'Cookie Policy',
-    href: 'https://tredio.app/cookies', // Update this to your actual cookie policy URL
-    icon: '🍪',
   },
 ];
 
@@ -49,9 +44,7 @@ export default function LegalLinksSection() {
           </a>
         ))}
       </div>
-      <p className="text-[10px] text-white/20 mt-4">
-        These links are required for App Store submission. Update the URLs in <code className="text-white/30 font-mono">components/settings/LegalLinksSection.jsx</code>
-      </p>
+
     </motion.div>
   );
 }
