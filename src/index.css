@@ -1,0 +1,166 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    /* Dark theme — TREDIO navy/gold palette */
+    --background: 240 10% 4%;
+    --foreground: 210 40% 92%;
+
+    --card: 230 20% 8%;
+    --card-foreground: 210 40% 92%;
+
+    --popover: 230 20% 8%;
+    --popover-foreground: 210 40% 92%;
+
+    /* Primary = cyan/teal */
+    --primary: 189 86% 47%;
+    --primary-foreground: 230 25% 6%;
+
+    --secondary: 230 15% 14%;
+    --secondary-foreground: 210 30% 75%;
+
+    --muted: 230 15% 12%;
+    --muted-foreground: 215 20% 45%;
+
+    --accent: 230 15% 14%;
+    --accent-foreground: 210 40% 92%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 230 15% 14%;
+    --input: 230 15% 14%;
+    --ring: 189 86% 47%;
+
+    --radius: 0.5rem;
+
+    /* Charts */
+    --chart-1: 189 86% 47%;
+    --chart-2: 38 92% 50%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 262 83% 58%;
+
+    /* Sidebar */
+    --sidebar-background: 230 20% 6%;
+    --sidebar-foreground: 210 40% 92%;
+    --sidebar-primary: 189 86% 47%;
+    --sidebar-primary-foreground: 230 25% 6%;
+    --sidebar-accent: 230 15% 12%;
+    --sidebar-accent-foreground: 210 40% 92%;
+    --sidebar-border: 230 15% 14%;
+    --sidebar-ring: 189 86% 47%;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: var(--font-inter);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter);
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent iOS rubber-banding on body */
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100%;
+  }
+}
+
+@layer utilities {
+  /* App background with grid */
+  .app-bg {
+    background: #080B12;
+  }
+
+  .grid-bg {
+    background-color: #080B12;
+    background-image:
+      linear-gradient(rgba(14, 200, 220, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14, 200, 220, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Glass morphism */
+  .glass-dark {
+    background: rgba(8, 12, 24, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  /* Live pulse animation */
+  .live-pulse {
+    animation: live-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Tap feedback for mobile */
+  .tap-feedback {
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.1s ease;
+  }
+
+  .tap-feedback:active {
+    opacity: 0.7;
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Text utilities */
+  .text-gold {
+    color: #F59E0B;
+  }
+
+  .bg-gold {
+    background-color: #F59E0B;
+  }
+
+  /* Safe area helpers */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
