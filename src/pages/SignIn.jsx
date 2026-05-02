@@ -32,13 +32,14 @@ const isCancelledError = (err) => {
 };
 
 // ─── OAuth redirect URLs ───────────────────────────────────────────────────────
-// IMPORTANT: On iOS native, the OAuth provider redirects to https://tredio.app/auth/callback.
-// This URL is intercepted by iOS as a Universal Link (requires Associated Domains entitlement)
-// and handed to the Capacitor appUrlOpen event, which is handled globally in App.jsx.
-// The SFSafariViewController is then closed and the user is navigated to onboarding/dashboard.
+// On iOS native: use custom URL scheme tredio://auth/callback
+// iOS registers this via URL Types in Xcode (no AASA file required).
+// Capacitor fires appUrlOpen when the scheme is intercepted — handled in App.jsx.
 //
-// On web, the redirect goes directly to /auth/callback page in the browser.
-const OAUTH_CALLBACK_URL = 'https://tredio.app/auth/callback';
+// On web: standard redirect to https://tredio.app/auth/callback
+const OAUTH_CALLBACK_URL_NATIVE = 'tredio://auth/callback';
+const OAUTH_CALLBACK_URL_WEB = 'https://tredio.app/auth/callback';
+const getCallbackUrl = () => isNative() ? OAUTH_CALLBACK_URL_NATIVE : OAUTH_CALLBACK_URL_WEB;
 
 export default function SignIn({ onLoginSuccess }) {
   const { t } = useTranslation();
@@ -193,24 +194,20 @@ export default function SignIn({ onLoginSuccess }) {
     setLoading(true);
     try {
       if (isNative()) {
+        const callbackUrl = getCallbackUrl();
         const oauthUrl = base44.auth.getProviderLoginUrl
-          ? base44.auth.getProviderLoginUrl('google', OAUTH_CALLBACK_URL)
+          ? base44.auth.getProviderLoginUrl('google', callbackUrl)
           : null;
         if (!oauthUrl) throw new Error('[SignIn] Could not get Google auth URL from base44.auth.getProviderLoginUrl');
-        console.log('[SignIn] Opening Google OAuth in SFSafariViewController:', oauthUrl);
-        // Open SFSafariViewController. App.jsx appUrlOpen listener handles the return.
-        // Do NOT stop loading here — App.jsx sets onLoginSuccess which triggers re-render.
+        console.log('[SignIn] Opening Google OAuth in SFSafariViewController, callback:', callbackUrl);
         await Browser.open({
           url: oauthUrl,
           presentationStyle: getPresStyle(),
           toolbarColor: '#080B12',
         });
-        // Note: loading stays true until the app comes back via appUrlOpen.
-        // If user closes browser manually, the timeout will clear it.
-        startTimeout(120000); // 2 min timeout for OAuth browser flow
+        startTimeout(120000);
       } else {
-        // Web: redirect entire page
-        base44.auth.loginWithProvider('google', OAUTH_CALLBACK_URL);
+        base44.auth.loginWithProvider('google', OAUTH_CALLBACK_URL_WEB);
       }
     } catch (err) {
       stopTimeout();
@@ -233,11 +230,12 @@ export default function SignIn({ onLoginSuccess }) {
     setLoading(true);
     try {
       if (isNative()) {
+        const callbackUrl = getCallbackUrl();
         const oauthUrl = base44.auth.getProviderLoginUrl
-          ? base44.auth.getProviderLoginUrl('apple', OAUTH_CALLBACK_URL)
+          ? base44.auth.getProviderLoginUrl('apple', callbackUrl)
           : null;
         if (!oauthUrl) throw new Error('[SignIn] Could not get Apple auth URL from base44.auth.getProviderLoginUrl');
-        console.log('[SignIn] Opening Apple OAuth in SFSafariViewController:', oauthUrl);
+        console.log('[SignIn] Opening Apple OAuth in SFSafariViewController, callback:', callbackUrl);
         await Browser.open({
           url: oauthUrl,
           presentationStyle: getPresStyle(),
@@ -245,7 +243,7 @@ export default function SignIn({ onLoginSuccess }) {
         });
         startTimeout(120000);
       } else {
-        base44.auth.loginWithProvider('apple', OAUTH_CALLBACK_URL);
+        base44.auth.loginWithProvider('apple', OAUTH_CALLBACK_URL_WEB);
       }
     } catch (err) {
       stopTimeout();

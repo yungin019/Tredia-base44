@@ -26,7 +26,10 @@ import { Browser } from '@capacitor/browser';
 const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
 
 // Routes we handle as OAuth callbacks
+// Handles both Universal Links (https://tredio.app/auth/callback)
+// and custom URL scheme (tredio://auth/callback)
 const OAUTH_PATHS = ['/auth/callback', '/auth/google/callback', '/auth/apple/callback'];
+const CUSTOM_SCHEME = 'tredio';
 
 export function useOAuthDeepLink(onLoginSuccess) {
   const navigate = useNavigate();
@@ -50,8 +53,13 @@ export function useOAuthDeepLink(onLoginSuccess) {
           try {
             const url = new URL(event.url);
 
-            // Only handle our OAuth callback paths
-            const isOAuthCallback = OAUTH_PATHS.some(p => url.pathname.startsWith(p));
+            // Handle both custom scheme (tredio://auth/callback)
+            // and Universal Links (https://tredio.app/auth/callback)
+            const isCustomScheme = url.protocol === `${CUSTOM_SCHEME}:`;
+            const isOAuthCallback =
+              isCustomScheme ||
+              OAUTH_PATHS.some(p => url.pathname.startsWith(p));
+
             if (!isOAuthCallback) {
               console.log('[useOAuthDeepLink] Not an OAuth callback, ignoring:', url.pathname);
               return;
@@ -67,7 +75,9 @@ export function useOAuthDeepLink(onLoginSuccess) {
               return;
             }
 
-            // Extract token from query params or hash fragment
+            // Extract token — works for both:
+            //   tredio://auth/callback?access_token=xxx
+            //   https://tredio.app/auth/callback?access_token=xxx#access_token=xxx
             const hashParams = new URLSearchParams(url.hash.replace('#', ''));
             const token =
               url.searchParams.get('access_token') ||
@@ -152,60 +162,58 @@ export function useOAuthDeepLink(onLoginSuccess) {
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * XCODE CONFIGURATION REQUIRED FOR THIS TO WORK
+ * XCODE CONFIGURATION — CUSTOM URL SCHEME (tredio://)
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * 1. ASSOCIATED DOMAINS (Universal Links)
- *    Target → Signing & Capabilities → + Capability → Associated Domains
- *    Add:  applinks:tredio.app
+ * No AASA file or Associated Domains required for this approach.
+ * The custom URL scheme is registered entirely in Xcode.
  *
- *    Then host this file at:  https://tredio.app/.well-known/apple-app-site-association
- *    (no file extension, content-type: application/json)
- *    {
- *      "applinks": {
- *        "details": [{
- *          "appIDs": ["TEAMID.com.tredio.app"],
- *          "components": [{ "/": "/auth/*" }]
- *        }]
- *      }
- *    }
- *    Replace TEAMID with your 10-char Apple Developer Team ID.
+ * 1. URL TYPES (required — this is the core config)
+ *    Target → Info → URL Types → click +
+ *
+ *    Field             Value
+ *    ─────────────────────────────
+ *    Identifier        com.tredio.app
+ *    URL Schemes       tredio
+ *    Role              Editor
+ *
+ *    This registers tredio:// with iOS so the OS hands any
+ *    tredio://... URL back to your app via appUrlOpen.
  *
  * 2. SIGN IN WITH APPLE
  *    Target → Signing & Capabilities → + Capability → Sign In with Apple
- *    This enables the entitlement. No extra URL scheme needed.
  *
- *    In Apple Developer Portal:
- *    - App ID: com.tredio.app — enable "Sign In with Apple"
- *    - Services ID: com.tredio.web
- *      - Description: TREDIO Web
- *      - Identifier: com.tredio.web
- *      - Sign In with Apple → Configure:
- *        - Primary App ID: com.tredio.app
- *        - Domains: tredio.app
- *        - Return URL: https://tredio.app/auth/callback
+ *    In Apple Developer Portal → Services ID (com.tredio.web):
+ *    - Sign In with Apple → Configure:
+ *      - Primary App ID: com.tredio.app
+ *      - Domains: tredio.app
+ *      - Return URLs: tredio://auth/callback
+ *                     https://tredio.app/auth/callback   (keep both)
  *
- * 3. URL TYPES / CUSTOM SCHEME
- *    NOT needed for this Universal Links approach.
- *    Do NOT add a custom URL scheme (tredio://) — Universal Links are more
- *    secure and do not require this.
+ * 3. GOOGLE OAUTH (Google Cloud Console)
+ *    Authorized redirect URIs — add BOTH:
+ *      tredio://auth/callback
+ *      https://tredio.app/auth/callback
  *
- * 4. GOOGLE OAUTH (Google Cloud Console)
- *    - Authorized redirect URIs: https://tredio.app/auth/callback
- *    - No iOS custom scheme needed (we use Universal Links)
+ * 4. NO Associated Domains needed
+ *    Remove "applinks:tredio.app" from Signing & Capabilities if present —
+ *    the AASA file Base44 serves does not include com.tredio.app so it
+ *    would cause a validation failure with no benefit.
  *
- * 5. INFO.PLIST (set by Capacitor automatically, but verify)
- *    - NSFaceIDUsageDescription — if using Face ID
- *    - No LSApplicationQueriesSchemes needed
- *
- * 6. CAPACITOR.CONFIG
- *    Make sure your capacitor.config.ts/json has:
+ * 5. CAPACITOR.CONFIG
  *    {
  *      "appId": "com.tredio.app",
  *      "server": { "hostname": "tredio.app", "iosScheme": "https" }
  *    }
- *    iosScheme: "https" is critical — it makes the WebView use https:// URLs
- *    which means the Universal Link for /auth/callback will be recognised.
+ *
+ * 6. HOW IT WORKS AT RUNTIME
+ *    - User taps "Continue with Google/Apple"
+ *    - Browser.open() opens SFSafariViewController with OAuth URL
+ *      (redirect_uri = tredio://auth/callback)
+ *    - Provider redirects to tredio://auth/callback?access_token=xxx
+ *    - iOS sees the tredio:// scheme, closes SFSafariViewController,
+ *      fires appUrlOpen in Capacitor
+ *    - useOAuthDeepLink hook extracts token, persists session, navigates
  *
  * ═══════════════════════════════════════════════════════════════════════════
  */
