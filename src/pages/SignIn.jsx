@@ -7,15 +7,16 @@ import { Browser } from '@capacitor/browser';
 
 const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
 
-// iPad detection — popover doesn't work on iPad, must use fullscreen
-const isIPad = () =>
-  /iPad/.test(navigator.userAgent) ||
-  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
-  (isNative() && window.innerWidth >= 768);
+// iPad uses fullscreen presentation; iPhone uses popover (bottom sheet)
+const getPresStyle = () => {
+  const isIPad =
+    /iPad/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+    (isNative() && window.innerWidth >= 768);
+  return isIPad ? 'fullscreen' : 'popover';
+};
 
-const getPresStyle = () => isIPad() ? 'fullscreen' : 'popover';
-
-// Cancelled auth error codes from Capacitor/native plugins
+// Detect user-cancelled OAuth (don't show error for cancel)
 const isCancelledError = (err) => {
   if (!err) return false;
   const msg = (err.message || '').toLowerCase();
@@ -29,6 +30,15 @@ const isCancelledError = (err) => {
     msg.includes('abort')
   );
 };
+
+// ─── OAuth redirect URLs ───────────────────────────────────────────────────────
+// IMPORTANT: On iOS native, the OAuth provider redirects to https://tredio.app/auth/callback.
+// This URL is intercepted by iOS as a Universal Link (requires Associated Domains entitlement)
+// and handed to the Capacitor appUrlOpen event, which is handled globally in App.jsx.
+// The SFSafariViewController is then closed and the user is navigated to onboarding/dashboard.
+//
+// On web, the redirect goes directly to /auth/callback page in the browser.
+const OAUTH_CALLBACK_URL = 'https://tredio.app/auth/callback';
 
 export default function SignIn({ onLoginSuccess }) {
   const { t } = useTranslation();
@@ -46,29 +56,17 @@ export default function SignIn({ onLoginSuccess }) {
   const [verifyCode, setVerifyCode] = useState('');
 
   const timeoutRef = useRef(null);
-  const appUrlListenerRef = useRef(null);
 
-  // Clean up on unmount
   useEffect(() => {
-    return () => {
-      clearTimeout(timeoutRef.current);
-      removeAppUrlListener();
-    };
+    return () => clearTimeout(timeoutRef.current);
   }, []);
 
-  const removeAppUrlListener = () => {
-    if (appUrlListenerRef.current) {
-      try { appUrlListenerRef.current.remove(); } catch (_) {}
-      appUrlListenerRef.current = null;
-    }
-  };
-
-  const startTimeout = () => {
+  const startTimeout = (ms = 60000) => {
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       setLoading(false);
       setError(t('signin.error.timeout', 'Sign in timed out. Please try again.'));
-    }, 15000);
+    }, ms);
   };
 
   const stopTimeout = () => clearTimeout(timeoutRef.current);
@@ -85,17 +83,20 @@ export default function SignIn({ onLoginSuccess }) {
       if (!u.subscription_tier) updates.subscription_tier = 'free';
       if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates);
       return u.onboarding_completed === false;
-    } catch (_) {}
+    } catch (e) {
+      console.warn('[SignIn] initProfile error:', e.message);
+    }
     return false;
   };
 
-  // After successful auth: init profile, call onLoginSuccess, navigate
+  // After email/password auth success: init profile, notify parent, navigate
   const handleAuthSuccess = async () => {
     try {
       const needsOnboarding = await initProfile();
       if (onLoginSuccess) await onLoginSuccess();
       navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
     } catch (err) {
+      console.error('[SignIn] handleAuthSuccess error:', err.message);
       setError(err?.message || t('common.error', 'Something went wrong'));
     } finally {
       stopTimeout();
@@ -103,37 +104,7 @@ export default function SignIn({ onLoginSuccess }) {
     }
   };
 
-  // Listen for deep-link callback from in-app Browser (OAuth)
-  const setupAppUrlListener = async () => {
-    removeAppUrlListener();
-    if (!isNative()) return;
-    const CapacitorApp = window.Capacitor?.Plugins?.App;
-    if (!CapacitorApp) return;
-    try {
-      const handle = await CapacitorApp.addListener('appUrlOpen', async (event) => {
-        try {
-          const url = new URL(event.url);
-          const token =
-            url.searchParams.get('access_token') ||
-            url.searchParams.get('token') ||
-            new URLSearchParams(url.hash.replace('#', '')).get('access_token');
-
-          if (token) {
-            localStorage.setItem('base44_access_token', token);
-            localStorage.setItem('token', token);
-          }
-
-          await Browser.close().catch(() => {});
-          removeAppUrlListener();
-          stopTimeout();
-          await handleAuthSuccess();
-        } catch (_) {}
-      });
-      appUrlListenerRef.current = handle;
-    } catch (_) {}
-  };
-
-  // EMAIL / PASSWORD SUBMIT
+  // ─── EMAIL / PASSWORD ──────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -145,7 +116,7 @@ export default function SignIn({ onLoginSuccess }) {
     }
 
     setLoading(true);
-    startTimeout();
+    startTimeout(30000);
 
     try {
       if (mode === 'register') {
@@ -155,14 +126,13 @@ export default function SignIn({ onLoginSuccess }) {
         setStep('verify');
       } else {
         const result = await base44.auth.loginViaEmailPassword(email, password);
-        // Explicitly persist token for iOS/iPad Capacitor WebView
         const token = result?.access_token || result?.token;
         if (token) {
           localStorage.setItem('base44_access_token', token);
           localStorage.setItem('token', token);
           sessionStorage.setItem('base44_access_token', token);
         }
-        // Verify session is active before navigating (fixes iPad login loop)
+        // Double-check session before navigating (fixes iPad login loop)
         let verifiedUser = null;
         try {
           verifiedUser = await base44.auth.me();
@@ -176,26 +146,25 @@ export default function SignIn({ onLoginSuccess }) {
     } catch (err) {
       stopTimeout();
       setLoading(false);
+      console.error('[SignIn] Email login error:', err.message);
       setError(err?.message || t('signin.error.invalidCredentials', 'Invalid email or password. Please try again.'));
     }
   };
 
-  // EMAIL VERIFY
+  // ─── EMAIL VERIFY ──────────────────────────────────────────────────────────
   const handleVerify = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    startTimeout();
+    startTimeout(30000);
     try {
       await base44.auth.verifyOtp({ email, otpCode: verifyCode });
       const verifyResult = await base44.auth.loginViaEmailPassword(email, password);
-      // Explicitly persist token for iOS Capacitor WebView
       const verifyToken = verifyResult?.access_token || verifyResult?.token;
       if (verifyToken) {
         localStorage.setItem('base44_access_token', verifyToken);
         localStorage.setItem('token', verifyToken);
       }
-      // Set name if provided
       if (name) {
         await base44.auth.updateMe({ full_name: name }).catch(() => {});
       }
@@ -203,6 +172,7 @@ export default function SignIn({ onLoginSuccess }) {
     } catch (err) {
       stopTimeout();
       setLoading(false);
+      console.error('[SignIn] OTP verify error:', err.message);
       setError(err?.message || t('signin.error.invalidCode', 'Invalid verification code.'));
     }
   };
@@ -212,63 +182,76 @@ export default function SignIn({ onLoginSuccess }) {
     try { await base44.auth.resendOtp(email); } catch (_) {}
   };
 
-  // GOOGLE SIGN IN — Safari View Controller on iOS, redirect on web
+  // ─── GOOGLE SIGN IN ────────────────────────────────────────────────────────
+  // iOS native: opens SFSafariViewController. The OAuth provider redirects to
+  // https://tredio.app/auth/callback which iOS intercepts as a Universal Link,
+  // fires appUrlOpen in App.jsx, which closes the SVC and handles the token.
+  //
+  // Web: standard redirect flow to /auth/callback.
   const handleGoogle = async () => {
     setError('');
     setLoading(true);
-    startTimeout();
     try {
       if (isNative()) {
-        const callbackUrl = 'https://tredio.app/auth/google/callback';
         const oauthUrl = base44.auth.getProviderLoginUrl
-          ? base44.auth.getProviderLoginUrl('google', callbackUrl)
+          ? base44.auth.getProviderLoginUrl('google', OAUTH_CALLBACK_URL)
           : null;
-        if (!oauthUrl) throw new Error('Could not get Google auth URL');
-        // Register deep-link listener BEFORE opening browser
-        await setupAppUrlListener();
-        // Opens Safari View Controller — stays inside the app, never leaves to external Safari
-        await Browser.open({ url: oauthUrl, presentationStyle: getPresStyle(), toolbarColor: '#080B12' });
-        // Do NOT stop loading here — appUrlOpen listener handles the callback
+        if (!oauthUrl) throw new Error('[SignIn] Could not get Google auth URL from base44.auth.getProviderLoginUrl');
+        console.log('[SignIn] Opening Google OAuth in SFSafariViewController:', oauthUrl);
+        // Open SFSafariViewController. App.jsx appUrlOpen listener handles the return.
+        // Do NOT stop loading here — App.jsx sets onLoginSuccess which triggers re-render.
+        await Browser.open({
+          url: oauthUrl,
+          presentationStyle: getPresStyle(),
+          toolbarColor: '#080B12',
+        });
+        // Note: loading stays true until the app comes back via appUrlOpen.
+        // If user closes browser manually, the timeout will clear it.
+        startTimeout(120000); // 2 min timeout for OAuth browser flow
       } else {
-        base44.auth.loginWithProvider('google', window.location.origin + '/auth/google/callback');
-        // Page will redirect — keep spinner
+        // Web: redirect entire page
+        base44.auth.loginWithProvider('google', OAUTH_CALLBACK_URL);
       }
     } catch (err) {
       stopTimeout();
       setLoading(false);
-      removeAppUrlListener();
       if (!isCancelledError(err)) {
+        console.error('[SignIn] Google OAuth error:', err.message, err.code);
         setError(t('signin.error.googleFailed', 'Google Sign In failed. Please try email instead.'));
       }
     }
   };
 
-  // APPLE SIGN IN — Safari View Controller on iOS, redirect on web
+  // ─── APPLE SIGN IN ─────────────────────────────────────────────────────────
+  // Services ID: com.tredio.web  (used as the OAuth client_id for web-based Apple Sign In)
+  // App ID:      com.tredio.app  (the native iOS bundle ID — uses native Sign In with Apple)
+  // Redirect URL: https://tredio.app/auth/callback
+  //
+  // Same Universal Link flow as Google above.
   const handleApple = async () => {
     setError('');
     setLoading(true);
-    startTimeout();
     try {
       if (isNative()) {
-        const callbackUrl = 'https://tredio.app/auth/apple/callback';
         const oauthUrl = base44.auth.getProviderLoginUrl
-          ? base44.auth.getProviderLoginUrl('apple', callbackUrl)
+          ? base44.auth.getProviderLoginUrl('apple', OAUTH_CALLBACK_URL)
           : null;
-        if (!oauthUrl) throw new Error('Could not get Apple auth URL');
-        // Register deep-link listener BEFORE opening browser
-        await setupAppUrlListener();
-        // Opens Safari View Controller — Apple explicitly approves this pattern
-        await Browser.open({ url: oauthUrl, presentationStyle: getPresStyle(), toolbarColor: '#080B12' });
-        // Do NOT stop loading here — appUrlOpen listener handles the callback
+        if (!oauthUrl) throw new Error('[SignIn] Could not get Apple auth URL from base44.auth.getProviderLoginUrl');
+        console.log('[SignIn] Opening Apple OAuth in SFSafariViewController:', oauthUrl);
+        await Browser.open({
+          url: oauthUrl,
+          presentationStyle: getPresStyle(),
+          toolbarColor: '#080B12',
+        });
+        startTimeout(120000);
       } else {
-        base44.auth.loginWithProvider('apple', window.location.origin + '/auth/callback');
-        // Page will redirect — keep spinner
+        base44.auth.loginWithProvider('apple', OAUTH_CALLBACK_URL);
       }
     } catch (err) {
       stopTimeout();
       setLoading(false);
-      removeAppUrlListener();
       if (!isCancelledError(err)) {
+        console.error('[SignIn] Apple OAuth error:', err.message, err.code);
         setError(t('signin.error.appleFailed', 'Apple Sign In failed. Please try email instead.'));
       }
     }
@@ -281,7 +264,6 @@ export default function SignIn({ onLoginSuccess }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      // Safe area insets for iOS notch + home bar
       paddingTop: 'calc(24px + env(safe-area-inset-top))',
       paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
       paddingLeft: 'calc(24px + env(safe-area-inset-left))',
@@ -491,6 +473,7 @@ export default function SignIn({ onLoginSuccess }) {
                     background: '#fff', border: '1px solid #fff', color: '#000',
                     cursor: loading ? 'not-allowed' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    minHeight: '48px',
                     opacity: loading ? 0.6 : 1,
                   }}
                 >
@@ -499,11 +482,11 @@ export default function SignIn({ onLoginSuccess }) {
                 </button>
               </div>
 
-              {/* Cancel loading */}
+              {/* Cancel loading button — lets user dismiss stuck spinner */}
               {loading && (
                 <button
                   type="button"
-                  onClick={() => { stopTimeout(); setLoading(false); setError(''); removeAppUrlListener(); }}
+                  onClick={() => { stopTimeout(); setLoading(false); setError(''); }}
                   style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '8px', marginTop: '4px' }}
                 >
                   {t('common.cancel', 'Cancel')}
@@ -560,11 +543,10 @@ function AppleIcon() {
 
 const inputStyle = {
   width: '100%', padding: '12px 14px', borderRadius: '10px',
-  // 16px prevents iOS Safari from auto-zooming when tapping inputs
-  fontSize: '16px',
+  fontSize: '16px', // 16px prevents iOS Safari auto-zoom
   background: 'rgba(6,14,32,0.6)', border: '1px solid rgba(100,220,255,0.1)',
   color: 'rgba(255,255,255,0.88)', outline: 'none', boxSizing: 'border-box',
-  minHeight: '44px', // Apple HIG minimum tap target
+  minHeight: '44px',
 };
 
 const submitBtnStyle = {
@@ -572,7 +554,7 @@ const submitBtnStyle = {
   background: 'linear-gradient(135deg, #0ec8dc, #0aa8be)', color: '#030810',
   border: 'none', letterSpacing: '0.5px', width: '100%',
   boxShadow: '0 4px 20px rgba(14,200,220,0.3)',
-  minHeight: '48px', // Apple HIG minimum tap target
+  minHeight: '48px',
 };
 
 const socialBtnStyle = {
@@ -580,7 +562,7 @@ const socialBtnStyle = {
   background: 'rgba(100,220,255,0.04)', border: '1px solid rgba(100,220,255,0.1)',
   color: 'rgba(255,255,255,0.65)', cursor: 'pointer', display: 'flex',
   alignItems: 'center', justifyContent: 'center', gap: '8px',
-  minHeight: '48px', // Apple HIG minimum tap target
+  minHeight: '48px',
 };
 
 const errorStyle = {

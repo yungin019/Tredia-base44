@@ -11,6 +11,7 @@ import i18n from '@/i18n'; // Singleton i18n instance
 
 import AppShell from './components/layout/AppShell';
 import { NavigationProvider } from '@/lib/NavigationManager';
+import { useOAuthDeepLink } from '@/hooks/useOAuthDeepLink';
 import SplashScreen from './pages/SplashScreen.jsx';
 import SignIn from './pages/SignIn.jsx';
 import Onboarding from './pages/Onboarding';
@@ -61,6 +62,12 @@ const LoadingSpinner = () => (
     `}</style>
   </div>
 );
+
+// Sits inside Router so it can call useNavigate
+const OAuthDeepLinkHandler = ({ onLoginSuccess }) => {
+  useOAuthDeepLink(onLoginSuccess);
+  return null;
+};
 
 const AppRoutes = ({ user, onLogout, onLoginSuccess }) => {
   const location = useLocation();
@@ -171,6 +178,8 @@ function App() {
       ) : (
         <Router>
           <NavigationProvider>
+            {/* Global OAuth deep-link handler — must be inside Router, always mounted */}
+            <OAuthDeepLinkHandler onLoginSuccess={handleLoginSuccess} />
             <AppRoutes user={user} onLogout={handleLogout} onLoginSuccess={handleLoginSuccess} />
             <Toaster />
           </NavigationProvider>
