@@ -47,9 +47,12 @@ function FAQItem({ q, a }) {
   );
 }
 
+// This page is fully static — no auth, no API calls, no user state required.
+// It renders immediately at /support on a fresh install, logged-out state, or any device.
 export default function Support() {
   return (
-    <div className="min-h-screen bg-[#0A0A0F] flex flex-col items-center px-4 py-12">
+    <div className="min-h-screen bg-[#0A0A0F] flex flex-col items-center px-4 py-12"
+      style={{ paddingTop: 'calc(48px + env(safe-area-inset-top))', paddingBottom: 'calc(48px + env(safe-area-inset-bottom))' }}>
       <div className="w-full max-w-lg space-y-8">
 
         {/* Logo */}

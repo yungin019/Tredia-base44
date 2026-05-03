@@ -72,9 +72,12 @@ const OAuthDeepLinkHandler = ({ onLoginSuccess }) => {
 const AppRoutes = ({ user, onLogout, onLoginSuccess }) => {
   const location = useLocation();
 
-  // Always allow OAuth callbacks regardless of auth state
+  // Always allow OAuth callbacks and support page regardless of auth state
   if (location.pathname === '/auth/google/callback' || location.pathname === '/auth/callback') {
     return <OAuthCallback />;
+  }
+  if (location.pathname === '/support') {
+    return <Support />;
   }
 
   if (!user) {

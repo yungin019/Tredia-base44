@@ -55,6 +55,7 @@ export default function SignIn({ onLoginSuccess }) {
   const [error, setError] = useState('');
   const [step, setStep] = useState('form'); // 'form' | 'verify'
   const [verifyCode, setVerifyCode] = useState('');
+  const [nativeErrorDetail, setNativeErrorDetail] = useState(''); // iOS/iPad only: full technical error
 
   const timeoutRef = useRef(null);
 
@@ -106,6 +107,11 @@ export default function SignIn({ onLoginSuccess }) {
   };
 
   // ─── EMAIL / PASSWORD ──────────────────────────────────────────────────────
+  // ─── DEMO ACCOUNT FAST-PATH ───────────────────────────────────────────────
+  // trediodemo@outlook.com gets direct login + elite access, no verification.
+  const DEMO_EMAIL = 'trediodemo@outlook.com';
+  const DEMO_PASS  = 'trediotest2026';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -119,8 +125,10 @@ export default function SignIn({ onLoginSuccess }) {
     setLoading(true);
     startTimeout(30000);
 
+    const isDemo = email.trim().toLowerCase() === DEMO_EMAIL && password === DEMO_PASS;
+
     try {
-      if (mode === 'register') {
+      if (mode === 'register' && !isDemo) {
         await base44.auth.register({ email, password });
         stopTimeout();
         setLoading(false);
@@ -142,12 +150,20 @@ export default function SignIn({ onLoginSuccess }) {
           verifiedUser = await base44.auth.me();
         }
         if (!verifiedUser) throw new Error('Session could not be verified. Please try again.');
+
+        // For demo account: ensure elite access is configured
+        if (isDemo) {
+          try {
+            await base44.functions.invoke('setupDemoAccount', {});
+          } catch (_) {}
+        }
+
         await handleAuthSuccess();
       }
     } catch (err) {
       stopTimeout();
       setLoading(false);
-      console.error('[SignIn] Email login error:', err.message);
+      console.error('[SignIn] Email login error:', JSON.stringify({ message: err.message, code: err.code, status: err.status }));
       setError(err?.message || t('signin.error.invalidCredentials', 'Invalid email or password. Please try again.'));
     }
   };
@@ -191,6 +207,7 @@ export default function SignIn({ onLoginSuccess }) {
   // Web: standard redirect flow to /auth/callback.
   const handleGoogle = async () => {
     setError('');
+    setNativeErrorDetail('');
     setLoading(true);
     try {
       if (isNative()) {
@@ -198,8 +215,8 @@ export default function SignIn({ onLoginSuccess }) {
         const oauthUrl = base44.auth.getProviderLoginUrl
           ? base44.auth.getProviderLoginUrl('google', callbackUrl)
           : null;
-        if (!oauthUrl) throw new Error('[SignIn] Could not get Google auth URL from base44.auth.getProviderLoginUrl');
-        console.log('[SignIn] Opening Google OAuth in SFSafariViewController, callback:', callbackUrl);
+        if (!oauthUrl) throw new Error('getProviderLoginUrl("google") returned null — SDK may not support this method');
+        console.log('[SignIn:Google] Opening SFSafariViewController. callback:', callbackUrl, 'oauthUrl:', oauthUrl);
         await Browser.open({
           url: oauthUrl,
           presentationStyle: getPresStyle(),
@@ -213,8 +230,10 @@ export default function SignIn({ onLoginSuccess }) {
       stopTimeout();
       setLoading(false);
       if (!isCancelledError(err)) {
-        console.error('[SignIn] Google OAuth error:', err.message, err.code);
+        const detail = `Google OAuth: ${err.message} (code=${err.code ?? 'n/a'})`;
+        console.error('[SignIn:Google] Error:', detail);
         setError(t('signin.error.googleFailed', 'Google Sign In failed. Please try email instead.'));
+        if (isNative()) setNativeErrorDetail(detail);
       }
     }
   };
@@ -227,6 +246,7 @@ export default function SignIn({ onLoginSuccess }) {
   // Same Universal Link flow as Google above.
   const handleApple = async () => {
     setError('');
+    setNativeErrorDetail('');
     setLoading(true);
     try {
       if (isNative()) {
@@ -234,8 +254,8 @@ export default function SignIn({ onLoginSuccess }) {
         const oauthUrl = base44.auth.getProviderLoginUrl
           ? base44.auth.getProviderLoginUrl('apple', callbackUrl)
           : null;
-        if (!oauthUrl) throw new Error('[SignIn] Could not get Apple auth URL from base44.auth.getProviderLoginUrl');
-        console.log('[SignIn] Opening Apple OAuth in SFSafariViewController, callback:', callbackUrl);
+        if (!oauthUrl) throw new Error('getProviderLoginUrl("apple") returned null — SDK may not support this method');
+        console.log('[SignIn:Apple] Opening SFSafariViewController. callback:', callbackUrl, 'oauthUrl:', oauthUrl);
         await Browser.open({
           url: oauthUrl,
           presentationStyle: getPresStyle(),
@@ -249,8 +269,10 @@ export default function SignIn({ onLoginSuccess }) {
       stopTimeout();
       setLoading(false);
       if (!isCancelledError(err)) {
-        console.error('[SignIn] Apple OAuth error:', err.message, err.code);
+        const detail = `Apple OAuth: ${err.message} (code=${err.code ?? 'n/a'})`;
+        console.error('[SignIn:Apple] Error:', detail);
         setError(t('signin.error.appleFailed', 'Apple Sign In failed. Please try email instead.'));
+        if (isNative()) setNativeErrorDetail(detail);
       }
     }
   };
@@ -480,11 +502,23 @@ export default function SignIn({ onLoginSuccess }) {
                 </button>
               </div>
 
+              {/* iOS/iPad only: full technical error for App Review diagnostics */}
+              {nativeErrorDetail && !loading && (
+                <div style={{
+                  marginTop: '8px', padding: '10px 12px',
+                  background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)',
+                  borderRadius: '8px', fontSize: '10px', color: 'rgba(239,68,68,0.8)',
+                  wordBreak: 'break-all', fontFamily: 'monospace',
+                }}>
+                  {nativeErrorDetail}
+                </div>
+              )}
+
               {/* Cancel loading button — lets user dismiss stuck spinner */}
               {loading && (
                 <button
                   type="button"
-                  onClick={() => { stopTimeout(); setLoading(false); setError(''); }}
+                  onClick={() => { stopTimeout(); setLoading(false); setError(''); setNativeErrorDetail(''); }}
                   style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '8px', marginTop: '4px' }}
                 >
                   {t('common.cancel', 'Cancel')}

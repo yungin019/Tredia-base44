@@ -1,23 +1,35 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-// Admin-only function to ensure the demo account has correct profile settings.
-// Call this after trediodemo@outlook.com has logged in at least once.
+/**
+ * setupDemoAccount
+ *
+ * Sets up trediodemo@outlook.com with full access for App Review:
+ *   onboarding_completed = true
+ *   subscription_tier    = elite
+ *   trading_mode         = practice
+ *
+ * Can be called by an admin OR by the demo account itself (self-setup on first login).
+ */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-
-    // Must be admin
     const user = await base44.auth.me();
-    if (user?.role !== 'admin') {
+
+    const DEMO_EMAIL = 'trediodemo@outlook.com';
+
+    // Allow admin OR the demo user itself
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (user.role !== 'admin' && user.email !== DEMO_EMAIL) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Find the demo user
-    const users = await base44.asServiceRole.entities.User.filter({ email: 'trediodemo@outlook.com' });
+    // Find the demo user record
+    const users = await base44.asServiceRole.entities.User.filter({ email: DEMO_EMAIL });
     if (!users || users.length === 0) {
       return Response.json({
-        error: 'Demo account not found. The user must log in at least once to create the record.',
-        hint: 'Register trediodemo@outlook.com via the SignIn page first, then call this endpoint.',
+        error: 'Demo account not found. Must log in at least once first.',
       }, { status: 404 });
     }
 
@@ -32,8 +44,7 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      message: 'Demo account updated: onboarding_completed=true, tier=elite',
-      userId: demoUser.id,
+      message: 'Demo account configured: onboarding_completed=true, tier=elite',
       email: demoUser.email,
     });
   } catch (error) {
