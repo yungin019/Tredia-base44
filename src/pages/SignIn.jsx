@@ -199,64 +199,69 @@ export default function SignIn({ onLoginSuccess }) {
     try { await base44.auth.resendOtp(email); } catch (_) {}
   };
 
-  // ─── GOOGLE SIGN IN ────────────────────────────────────────────────────────
-  // On native: construct the Base44 OAuth URL and open in SFSafariViewController.
-  // getProviderLoginUrl() does NOT exist in Base44 SDK — we build the URL manually.
-  // On web: loginWithProvider() does a direct window.location redirect.
-  const handleGoogle = async () => {
+  // ─── Native OAuth helpers ──────────────────────────────────────────────────
+  // On native iOS, after Browser.open() the SFSafariViewController handles auth.
+  // useOAuthDeepLink fires 'oauth_callback_received' when it gets the tredio:// callback.
+  // We listen for that event to clear the loading state in SignIn.jsx.
+  const openNativeOAuth = async (provider) => {
     setError('');
     setNativeErrorDetail('');
     setLoading(true);
+
+    // Listen for callback — fires when useOAuthDeepLink receives tredio:// URL
+    const onCallback = () => {
+      stopTimeout();
+      setLoading(false);
+      window.removeEventListener('oauth_callback_received', onCallback);
+    };
+    window.addEventListener('oauth_callback_received', onCallback);
+
+    // Also clear loading if Browser closes without a callback (user cancelled)
+    const onBrowserFinished = () => {
+      // Give useOAuthDeepLink 1s to fire first; if not, clear loading
+      setTimeout(() => {
+        stopTimeout();
+        setLoading(false);
+        window.removeEventListener('oauth_callback_received', onCallback);
+      }, 1000);
+    };
+    Browser.addListener('browserFinished', onBrowserFinished).catch(() => {});
+
     try {
-      if (isNative()) {
-        const oauthUrl = getProviderUrl('google');
-        console.log('[SignIn:Google] Opening SFSafariViewController:', oauthUrl.split('?')[0]);
-        await Browser.open({
-          url: oauthUrl,
-          presentationStyle: getPresStyle(),
-          toolbarColor: '#080B12',
-        });
-        startTimeout(120000);
-      } else {
-        base44.auth.loginWithProvider('google', OAUTH_CALLBACK_URL);
-      }
+      const oauthUrl = getProviderUrl(provider);
+      console.log(`[SignIn:${provider}] Opening SFSafariViewController:`, oauthUrl.split('?')[0]);
+      await Browser.open({
+        url: oauthUrl,
+        presentationStyle: getPresStyle(),
+        toolbarColor: '#080B12',
+      });
+      startTimeout(120000);
     } catch (err) {
       stopTimeout();
       setLoading(false);
-      const detail = `Google OAuth: ${err.message} (code=${err.code ?? 'n/a'})`;
-      console.error('[SignIn:Google] Error:', detail);
-      setError('Google Sign In failed. Please try email instead.');
-      if (isNative()) setNativeErrorDetail(detail);
+      window.removeEventListener('oauth_callback_received', onCallback);
+      const detail = `${provider} OAuth: ${err.message} (code=${err.code ?? 'n/a'})`;
+      console.error(`[SignIn:${provider}] Error:`, detail);
+      setError(`${provider === 'apple' ? 'Apple' : 'Google'} Sign In failed. Please try email instead.`);
+      setNativeErrorDetail(detail);
+    }
+  };
+
+  // ─── GOOGLE SIGN IN ────────────────────────────────────────────────────────
+  const handleGoogle = async () => {
+    if (isNative()) {
+      await openNativeOAuth('google');
+    } else {
+      base44.auth.loginWithProvider('google', OAUTH_CALLBACK_URL);
     }
   };
 
   // ─── APPLE SIGN IN ─────────────────────────────────────────────────────────
-  // Same pattern as Google. Apple requires HTTPS redirect URI (not tredio://).
-  // The two-step flow (HTTPS callback → tredio:// redirect) handles this correctly.
   const handleApple = async () => {
-    setError('');
-    setNativeErrorDetail('');
-    setLoading(true);
-    try {
-      if (isNative()) {
-        const oauthUrl = getProviderUrl('apple');
-        console.log('[SignIn:Apple] Opening SFSafariViewController:', oauthUrl.split('?')[0]);
-        await Browser.open({
-          url: oauthUrl,
-          presentationStyle: getPresStyle(),
-          toolbarColor: '#080B12',
-        });
-        startTimeout(120000);
-      } else {
-        base44.auth.loginWithProvider('apple', OAUTH_CALLBACK_URL);
-      }
-    } catch (err) {
-      stopTimeout();
-      setLoading(false);
-      const detail = `Apple OAuth: ${err.message} (code=${err.code ?? 'n/a'})`;
-      console.error('[SignIn:Apple] Error:', detail);
-      setError('Apple Sign In failed. Please try email instead.');
-      if (isNative()) setNativeErrorDetail(detail);
+    if (isNative()) {
+      await openNativeOAuth('apple');
+    } else {
+      base44.auth.loginWithProvider('apple', OAUTH_CALLBACK_URL);
     }
   };
 

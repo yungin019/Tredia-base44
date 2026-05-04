@@ -75,12 +75,23 @@ export default function OAuthCallback() {
 
       const schemeUrl = `tredio://auth/callback?${redirectParams.toString()}`;
       console.log('[OAuthCallback] Redirecting to custom scheme:', schemeUrl.split('?')[0]);
+
+      // Use both techniques to maximize reliability on iOS SFSafariViewController:
+      // 1. iframe src trick (fires synchronously, works even if page is unloading)
+      // 2. window.location.href as fallback
+      try {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = schemeUrl;
+        document.body.appendChild(iframe);
+        setTimeout(() => document.body.removeChild(iframe), 500);
+      } catch (_) {}
       window.location.href = schemeUrl;
 
       // ── STEP 2: Web fallback ──────────────────────────────────────────────
       // On iOS native: the page is gone (SVC closed), this code never runs.
       // On web: custom scheme redirect is a no-op, we handle auth here.
-      await new Promise(r => setTimeout(r, 600));
+      await new Promise(r => setTimeout(r, 800));
 
       // Persist token
       localStorage.setItem('base44_access_token', token);
