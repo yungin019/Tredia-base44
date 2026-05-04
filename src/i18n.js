@@ -39,19 +39,21 @@ const resources = buildResources();
 
 // Initialize ONLY ONCE
 if (!i18n.isInitialized) {
+  // Force English as default unless the user has explicitly saved a language preference.
+  // We do NOT auto-detect from the device locale — prevents Swedish/other device languages
+  // from showing up for App Store reviewers and new users.
+  const savedLang = typeof localStorage !== 'undefined' ? localStorage.getItem('tredio_lang') : null;
+  const defaultLng = savedLang || 'en';
+
   i18n
-    .use(LanguageDetector)
     .use(initReactI18next)
     .init({
       resources,
+      lng: defaultLng,
       fallbackLng: 'en',
       keySeparator: false,
       interpolation: {
         escapeValue: false,
-      },
-      detection: {
-        order: ['localStorage', 'navigator', 'htmlTag'],
-        caches: ['localStorage'],
       },
       react: {
         useSuspense: false,
@@ -61,8 +63,6 @@ if (!i18n.isInitialized) {
       },
     })
     .catch(() => {});
-
-
 }
 
 export default i18n;

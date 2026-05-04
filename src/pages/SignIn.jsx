@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { appParams } from '@/lib/app-params';
 import { useTranslation } from 'react-i18next';
 import { Browser } from '@capacitor/browser';
 
@@ -16,30 +17,19 @@ const getPresStyle = () => {
   return isIPad ? 'fullscreen' : 'popover';
 };
 
-// Detect user-cancelled OAuth (don't show error for cancel)
-const isCancelledError = (err) => {
-  if (!err) return false;
-  const msg = (err.message || '').toLowerCase();
-  const code = err.code;
-  return (
-    code === 'SIGN_IN_CANCELLED' ||
-    code === 'USER_CANCELLED' ||
-    code === 1001 ||
-    msg.includes('cancel') ||
-    msg.includes('dismiss') ||
-    msg.includes('abort')
-  );
-};
-
-// ─── OAuth redirect URLs ───────────────────────────────────────────────────────
-// On iOS native: use custom URL scheme tredio://auth/callback
-// iOS registers this via URL Types in Xcode (no AASA file required).
-// Capacitor fires appUrlOpen when the scheme is intercepted — handled in App.jsx.
+// ─── OAuth URLs ────────────────────────────────────────────────────────────────
+// The Base44 SDK's loginWithProvider() does window.location redirect (web only).
+// On native, we must construct the URL ourselves and open it in Browser.open().
+// Base44's OAuth endpoint: /api/auth/providers/{provider}?from_url=...&app_id=...
 //
-// On web: standard redirect to https://tredio.app/auth/callback
-const OAUTH_CALLBACK_URL_NATIVE = 'tredio://auth/callback';
-const OAUTH_CALLBACK_URL_WEB = 'https://tredio.app/auth/callback';
-const getCallbackUrl = () => isNative() ? OAUTH_CALLBACK_URL_NATIVE : OAUTH_CALLBACK_URL_WEB;
+// HTTPS callback (what providers redirect to — both Apple and Google require HTTPS):
+const OAUTH_CALLBACK_URL = 'https://tredio.app/auth/callback';
+
+const getProviderUrl = (provider) => {
+  const appId = appParams.appId;
+  // Base44 OAuth initiation URL — same domain as the app
+  return `https://tredio.app/api/auth/providers/${provider}?from_url=${encodeURIComponent(OAUTH_CALLBACK_URL)}&app_id=${appId}`;
+};
 
 export default function SignIn({ onLoginSuccess }) {
   const { t } = useTranslation();
@@ -200,23 +190,17 @@ export default function SignIn({ onLoginSuccess }) {
   };
 
   // ─── GOOGLE SIGN IN ────────────────────────────────────────────────────────
-  // iOS native: opens SFSafariViewController. The OAuth provider redirects to
-  // https://tredio.app/auth/callback which iOS intercepts as a Universal Link,
-  // fires appUrlOpen in App.jsx, which closes the SVC and handles the token.
-  //
-  // Web: standard redirect flow to /auth/callback.
+  // On native: construct the Base44 OAuth URL and open in SFSafariViewController.
+  // getProviderLoginUrl() does NOT exist in Base44 SDK — we build the URL manually.
+  // On web: loginWithProvider() does a direct window.location redirect.
   const handleGoogle = async () => {
     setError('');
     setNativeErrorDetail('');
     setLoading(true);
     try {
       if (isNative()) {
-        const callbackUrl = getCallbackUrl();
-        const oauthUrl = base44.auth.getProviderLoginUrl
-          ? base44.auth.getProviderLoginUrl('google', callbackUrl)
-          : null;
-        if (!oauthUrl) throw new Error('getProviderLoginUrl("google") returned null — SDK may not support this method');
-        console.log('[SignIn:Google] Opening SFSafariViewController. callback:', callbackUrl, 'oauthUrl:', oauthUrl);
+        const oauthUrl = getProviderUrl('google');
+        console.log('[SignIn:Google] Opening SFSafariViewController:', oauthUrl.split('?')[0]);
         await Browser.open({
           url: oauthUrl,
           presentationStyle: getPresStyle(),
@@ -224,38 +208,29 @@ export default function SignIn({ onLoginSuccess }) {
         });
         startTimeout(120000);
       } else {
-        base44.auth.loginWithProvider('google', OAUTH_CALLBACK_URL_WEB);
+        base44.auth.loginWithProvider('google', OAUTH_CALLBACK_URL);
       }
     } catch (err) {
       stopTimeout();
       setLoading(false);
-      if (!isCancelledError(err)) {
-        const detail = `Google OAuth: ${err.message} (code=${err.code ?? 'n/a'})`;
-        console.error('[SignIn:Google] Error:', detail);
-        setError(t('signin.error.googleFailed', 'Google Sign In failed. Please try email instead.'));
-        if (isNative()) setNativeErrorDetail(detail);
-      }
+      const detail = `Google OAuth: ${err.message} (code=${err.code ?? 'n/a'})`;
+      console.error('[SignIn:Google] Error:', detail);
+      setError('Google Sign In failed. Please try email instead.');
+      if (isNative()) setNativeErrorDetail(detail);
     }
   };
 
   // ─── APPLE SIGN IN ─────────────────────────────────────────────────────────
-  // Services ID: com.tredio.web  (used as the OAuth client_id for web-based Apple Sign In)
-  // App ID:      com.tredio.app  (the native iOS bundle ID — uses native Sign In with Apple)
-  // Redirect URL: https://tredio.app/auth/callback
-  //
-  // Same Universal Link flow as Google above.
+  // Same pattern as Google. Apple requires HTTPS redirect URI (not tredio://).
+  // The two-step flow (HTTPS callback → tredio:// redirect) handles this correctly.
   const handleApple = async () => {
     setError('');
     setNativeErrorDetail('');
     setLoading(true);
     try {
       if (isNative()) {
-        const callbackUrl = getCallbackUrl();
-        const oauthUrl = base44.auth.getProviderLoginUrl
-          ? base44.auth.getProviderLoginUrl('apple', callbackUrl)
-          : null;
-        if (!oauthUrl) throw new Error('getProviderLoginUrl("apple") returned null — SDK may not support this method');
-        console.log('[SignIn:Apple] Opening SFSafariViewController. callback:', callbackUrl, 'oauthUrl:', oauthUrl);
+        const oauthUrl = getProviderUrl('apple');
+        console.log('[SignIn:Apple] Opening SFSafariViewController:', oauthUrl.split('?')[0]);
         await Browser.open({
           url: oauthUrl,
           presentationStyle: getPresStyle(),
@@ -263,17 +238,15 @@ export default function SignIn({ onLoginSuccess }) {
         });
         startTimeout(120000);
       } else {
-        base44.auth.loginWithProvider('apple', OAUTH_CALLBACK_URL_WEB);
+        base44.auth.loginWithProvider('apple', OAUTH_CALLBACK_URL);
       }
     } catch (err) {
       stopTimeout();
       setLoading(false);
-      if (!isCancelledError(err)) {
-        const detail = `Apple OAuth: ${err.message} (code=${err.code ?? 'n/a'})`;
-        console.error('[SignIn:Apple] Error:', detail);
-        setError(t('signin.error.appleFailed', 'Apple Sign In failed. Please try email instead.'));
-        if (isNative()) setNativeErrorDetail(detail);
-      }
+      const detail = `Apple OAuth: ${err.message} (code=${err.code ?? 'n/a'})`;
+      console.error('[SignIn:Apple] Error:', detail);
+      setError('Apple Sign In failed. Please try email instead.');
+      if (isNative()) setNativeErrorDetail(detail);
     }
   };
 
