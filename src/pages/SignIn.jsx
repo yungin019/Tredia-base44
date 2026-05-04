@@ -89,7 +89,9 @@ export default function SignIn({ onLoginSuccess }) {
       navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
     } catch (err) {
       console.error('[SignIn] handleAuthSuccess error:', err.message);
-      setError(err?.message || t('common.error', 'Something went wrong'));
+      const msg = err?.message || '';
+      const isAuthWall = msg.toLowerCase().includes('must be logged in') || msg.toLowerCase().includes('not logged in') || msg.toLowerCase().includes('unauthorized');
+      setError(isAuthWall ? t('common.error', 'Something went wrong. Please try again.') : msg || t('common.error', 'Something went wrong'));
     } finally {
       stopTimeout();
       setLoading(false);
@@ -154,7 +156,13 @@ export default function SignIn({ onLoginSuccess }) {
       stopTimeout();
       setLoading(false);
       console.error('[SignIn] Email login error:', JSON.stringify({ message: err.message, code: err.code, status: err.status }));
-      setError(err?.message || t('signin.error.invalidCredentials', 'Invalid email or password. Please try again.'));
+      // Suppress SDK auth-wall messages — these are not meaningful to the user on the sign-in screen
+      const msg = err?.message || '';
+      const isAuthWall = msg.toLowerCase().includes('must be logged in') || msg.toLowerCase().includes('not logged in') || msg.toLowerCase().includes('unauthorized');
+      setError(isAuthWall
+        ? t('signin.error.invalidCredentials', 'Invalid email or password. Please try again.')
+        : msg || t('signin.error.invalidCredentials', 'Invalid email or password. Please try again.')
+      );
     }
   };
 
@@ -180,7 +188,9 @@ export default function SignIn({ onLoginSuccess }) {
       stopTimeout();
       setLoading(false);
       console.error('[SignIn] OTP verify error:', err.message);
-      setError(err?.message || t('signin.error.invalidCode', 'Invalid verification code.'));
+      const msg = err?.message || '';
+      const isAuthWall = msg.toLowerCase().includes('must be logged in') || msg.toLowerCase().includes('not logged in') || msg.toLowerCase().includes('unauthorized');
+      setError(isAuthWall ? t('signin.error.invalidCode', 'Invalid verification code.') : msg || t('signin.error.invalidCode', 'Invalid verification code.'));
     }
   };
 
