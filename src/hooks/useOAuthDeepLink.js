@@ -66,12 +66,17 @@ export function useOAuthDeepLink(onLoginSuccess) {
             return;
           }
 
-          // Persist token so SDK picks it up
+          // Persist token — both storage AND SDK instance must be updated
           localStorage.setItem('base44_access_token', token);
           localStorage.setItem('token', token);
           sessionStorage.setItem('base44_access_token', token);
 
-          // Small delay for SDK to pick up the token
+          // Explicitly set token on the SDK instance so auth.me() uses it immediately
+          if (base44.auth.setToken) {
+            base44.auth.setToken(token);
+          }
+
+          // Small delay for SDK to settle
           await new Promise(r => setTimeout(r, 300));
 
           // Verify session

@@ -2,33 +2,38 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
-const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
-
 /**
  * OAuthCallback
  *
- * Handles https://tredio.app/auth/callback in the SFSafariViewController (iOS native)
- * and in the browser (web).
+ * This page runs at https://tredio.app/auth/callback
+ *
+ * CRITICAL: When opened inside SFSafariViewController (iOS native), window.Capacitor
+ * is UNDEFINED — we cannot detect "native" from within the SVC. Therefore:
+ *
+ * Strategy: Always try tredio:// redirect first (works on native SVC).
+ *           If it fails (web browser won't open custom schemes silently),
+ *           fall through to direct web handling.
  *
  * iOS native flow:
- *   Provider → https://tredio.app/auth/callback?token=xxx
- *   → This page extracts token, then redirects to tredio://auth/callback?token=xxx
- *   → iOS closes SVC, fires Capacitor appUrlOpen
+ *   Provider → https://tredio.app/auth/callback?access_token=xxx
+ *   → This page redirects to: tredio://auth/callback?access_token=xxx
+ *   → iOS intercepts tredio://, closes SVC, fires Capacitor appUrlOpen
  *   → useOAuthDeepLink in App.jsx handles the rest
  *
  * Web flow:
- *   Provider → https://tredio.app/auth/callback?token=xxx
- *   → This page persists token, calls auth.me(), navigates directly
+ *   Provider → https://tredio.app/auth/callback?access_token=xxx
+ *   → tredio:// redirect is ignored by browser (no-op)
+ *   → After 500ms timeout, falls through to direct web session handling
  */
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState('processing'); // 'processing' | 'error'
+  const [status, setStatus] = useState('processing');
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     const handle = async () => {
       const params = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+      const hashParams = new URLSearchParams(window.location.hash.replace('#', '?').slice(1));
 
       // Check for provider error
       const oauthError = params.get('error') || hashParams.get('error');
@@ -40,52 +45,53 @@ export default function OAuthCallback() {
         return;
       }
 
-      // Extract token from query params or hash fragment
+      // Extract token — check all common locations
       const token =
         params.get('access_token') ||
         params.get('token') ||
         hashParams.get('access_token') ||
         hashParams.get('token');
 
-      // ── iOS NATIVE: hand off to tredio:// scheme ──────────────────────────
-      // The SFSafariViewController runs in an isolated context — cookies/sessions
-      // set here are NOT shared with the Capacitor WKWebView.
-      // The only reliable channel is the URL itself via the custom scheme.
-      if (isNative()) {
-        if (!token) {
-          setErrorMsg('No authentication token received from provider. Please try again.');
-          setStatus('error');
-          setTimeout(() => navigate('/SignIn', { replace: true }), 3000);
-          return;
-        }
-
-        // Build tredio:// URL preserving all params from provider
-        const redirectParams = new URLSearchParams();
-        redirectParams.set('access_token', token);
-
-        // Preserve any other params the provider may have sent
-        for (const [key, value] of params.entries()) {
-          if (key !== 'access_token' && key !== 'token') {
-            redirectParams.set(key, value);
-          }
-        }
-
-        const schemeUrl = `tredio://auth/callback?${redirectParams.toString()}`;
-        console.log('[OAuthCallback] Native: redirecting to custom scheme');
-
-        // window.location redirect fires appUrlOpen in Capacitor
-        window.location.href = schemeUrl;
+      if (!token) {
+        setErrorMsg('No authentication token received. Please try again.');
+        setStatus('error');
+        setTimeout(() => navigate('/SignIn', { replace: true }), 3000);
         return;
       }
 
-      // ── WEB BROWSER: handle directly ─────────────────────────────────────
-      if (token) {
-        localStorage.setItem('base44_access_token', token);
-        localStorage.setItem('token', token);
-        sessionStorage.setItem('base44_access_token', token);
+      // ── STEP 1: Always attempt tredio:// redirect ─────────────────────────
+      // This is the ONLY way to communicate back to the WKWebView from SVC.
+      // On native iOS: iOS intercepts this, closes SVC, fires appUrlOpen.
+      // On web: browser ignores custom schemes (no-op), we continue below.
+      const redirectParams = new URLSearchParams();
+      redirectParams.set('access_token', token);
+
+      // Forward any extra params (state, scope, etc.)
+      for (const [key, value] of params.entries()) {
+        if (key !== 'access_token' && key !== 'token') {
+          redirectParams.set(key, value);
+        }
       }
 
-      // Small delay for SDK to pick up token
+      const schemeUrl = `tredio://auth/callback?${redirectParams.toString()}`;
+      console.log('[OAuthCallback] Redirecting to custom scheme:', schemeUrl.split('?')[0]);
+      window.location.href = schemeUrl;
+
+      // ── STEP 2: Web fallback ──────────────────────────────────────────────
+      // On iOS native: the page is gone (SVC closed), this code never runs.
+      // On web: custom scheme redirect is a no-op, we handle auth here.
+      await new Promise(r => setTimeout(r, 600));
+
+      // Persist token
+      localStorage.setItem('base44_access_token', token);
+      localStorage.setItem('token', token);
+      sessionStorage.setItem('base44_access_token', token);
+
+      // Let SDK pick it up
+      if (base44.auth.setToken) {
+        base44.auth.setToken(token);
+      }
+
       await new Promise(r => setTimeout(r, 300));
 
       const user = await base44.auth.me();
