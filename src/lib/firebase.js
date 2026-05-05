@@ -1,6 +1,11 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
+/**
+ * Firebase configuration.
+ * For native iOS: replace with values from GoogleService-Info.plist
+ * For native Android: replace with values from google-services.json
+ */
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyC2yUbUi-OdU0Vp-0fHJo_rXLmh2JjaKZk",
   authDomain: "tredia-479515.firebaseapp.com",

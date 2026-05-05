@@ -1,10 +1,8 @@
 /**
- * FirebaseAuthContext — Firebase-based authentication context.
- *
+ * FirebaseAuthContext
  * SINGLE SOURCE OF TRUTH: Firebase onAuthStateChanged()
  * base44.auth.* is NOT used for authentication.
  */
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -13,7 +11,6 @@ import { syncUserProfile, clearUserProfile } from '@/lib/userProfile';
 const FirebaseAuthContext = createContext();
 
 export const FirebaseAuthProvider = ({ children }) => {
-  // undefined = still loading, null = logged out, object = logged in
   const [firebaseUser, setFirebaseUser] = useState(undefined);
   const [profile, setProfile] = useState(null);
 
