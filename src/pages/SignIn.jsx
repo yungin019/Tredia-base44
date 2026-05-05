@@ -1,46 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { appParams } from '@/lib/app-params';
 import { useTranslation } from 'react-i18next';
-import { Browser } from '@capacitor/browser';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+  sendPasswordResetEmail,
+} from 'firebase/auth';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { signInWithCredential, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { syncUserProfile } from '@/lib/userProfile';
 
 const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
 
-// iPad uses fullscreen presentation; iPhone uses popover (bottom sheet)
-const getPresStyle = () => {
-  const isIPad =
-    /iPad/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
-    (isNative() && window.innerWidth >= 768);
-  return isIPad ? 'fullscreen' : 'popover';
-};
-
-// ─── OAuth URLs ────────────────────────────────────────────────────────────────
-// The Base44 SDK's loginWithProvider() does window.location redirect (web only).
-// On native, we must construct the URL ourselves and open it in Browser.open().
-//
-// SDK source (auth.js) builds:
-//   Google: {serverUrl}/api/apps/auth/login?app_id={appId}&from_url=...
-//   Apple:  {serverUrl}/api/apps/auth/apple/login?app_id={appId}&from_url=...
-// serverUrl defaults to https://base44.app (NOT app.base44.com, NOT tredio.app)
-//
-// HTTPS callback (Apple and Google both require HTTPS return URLs):
-const OAUTH_CALLBACK_URL = 'https://tredio.app/auth/callback';
-const BASE44_SERVER = 'https://base44.app';
-
-const getProviderUrl = (provider) => {
-  const appId = appParams.appId || '69b8062cb434d7411d225f06';
-  // Mirror exactly what loginWithProvider() does internally:
-  // Google → /api/apps/auth/login
-  // Apple  → /api/apps/auth/apple/login
-  const providerPath = provider === 'google' ? '' : `/${provider}`;
-  const authPath = `/api/apps/auth${providerPath}/login`;
-  return `${BASE44_SERVER}${authPath}?app_id=${appId}&from_url=${encodeURIComponent(OAUTH_CALLBACK_URL)}`;
-};
-
-export default function SignIn({ onLoginSuccess }) {
+export default function SignIn() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const accountDeleted = new URLSearchParams(window.location.search).get('deleted') === '1';
@@ -53,64 +29,16 @@ export default function SignIn({ onLoginSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState('form'); // 'form' | 'verify' | 'forgot'
-  const [verifyCode, setVerifyCode] = useState('');
-  const [nativeErrorDetail, setNativeErrorDetail] = useState(''); // iOS/iPad only: full technical error
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
 
-  const timeoutRef = useRef(null);
-
-  useEffect(() => {
-    return () => clearTimeout(timeoutRef.current);
-  }, []);
-
-  const startTimeout = (ms = 60000) => {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setLoading(false);
-      setError(t('signin.error.timeout', 'Sign in timed out. Please try again.'));
-    }, ms);
+  const handleAfterLogin = async (fbUser) => {
+    const profile = await syncUserProfile(fbUser);
+    const needsOnboarding = !profile?.onboarding_completed;
+    navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
   };
 
-  const stopTimeout = () => clearTimeout(timeoutRef.current);
-
-  // Initialize profile defaults after login — pass in already-fetched user to avoid re-calling auth.me()
-  const initProfileForUser = async (u) => {
-    try {
-      const updates = {};
-      if (!u.broker_status) updates.broker_status = 'not_connected';
-      if (!u.trading_mode) updates.trading_mode = 'practice';
-      if (!u.referral_code) updates.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
-      if (!u.subscription_tier) updates.subscription_tier = 'free';
-      if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates).catch(() => {});
-    } catch (e) {
-      console.warn('[SignIn] initProfile error:', e.message);
-    }
-    return u.onboarding_completed === false;
-  };
-
-  // After email/password auth success: pass verified user directly, no extra auth.me()
-  const handleAuthSuccess = async (verifiedUser) => {
-    try {
-      const needsOnboarding = await initProfileForUser(verifiedUser);
-      if (onLoginSuccess) await onLoginSuccess();
-      navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
-    } catch (err) {
-      console.error('[SignIn] handleAuthSuccess error:', err.message);
-      setError(err?.message || t('common.error', 'Something went wrong'));
-    } finally {
-      stopTimeout();
-      setLoading(false);
-    }
-  };
-
-  // ─── EMAIL / PASSWORD ──────────────────────────────────────────────────────
-  // ─── DEMO ACCOUNT FAST-PATH ───────────────────────────────────────────────
-  // trediodemo@outlook.com gets direct login + elite access, no verification.
-  const DEMO_EMAIL = 'trediodemo@outlook.com';
-  const DEMO_PASS  = 'trediotest2026';
-  const [demoDebug, setDemoDebug] = useState(null);
-
+  // ── EMAIL / PASSWORD ────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -122,212 +50,83 @@ export default function SignIn({ onLoginSuccess }) {
     }
 
     setLoading(true);
-    startTimeout(30000);
-
-    const isDemo = email.trim().toLowerCase() === DEMO_EMAIL && password === DEMO_PASS;
-
     try {
-      if (mode === 'register' && !isDemo) {
-        await base44.auth.register({ email, password });
-        stopTimeout();
-        setLoading(false);
+      if (mode === 'register') {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        if (name) await updateProfile(cred.user, { displayName: name });
+        await sendEmailVerification(cred.user);
         setStep('verify');
-      } else {
-        let result;
-        try {
-          result = await base44.auth.loginViaEmailPassword(email, password);
-        } catch (loginErr) {
-          if (isDemo) {
-            setDemoDebug({
-              phase: 'loginViaEmailPassword',
-              message: loginErr.message,
-              code: loginErr.code,
-              status: loginErr.status,
-              name: loginErr.name,
-              raw: String(loginErr),
-            });
-          }
-          throw loginErr;
-        }
-
-        const token = result?.access_token || result?.token;
-
-        if (isDemo) {
-          setDemoDebug({
-            phase: 'loginResult',
-            resultKeys: Object.keys(result || {}),
-            hasToken: !!token,
-            tokenLength: token?.length,
-          });
-        }
-
-        if (!token) throw new Error('No access token returned. Please try again.');
-
-        // Set token BEFORE calling auth.me()
-        if (base44.auth.setToken) base44.auth.setToken(token);
-        localStorage.setItem('base44_access_token', token);
-        localStorage.setItem('auth_token', token);
-        localStorage.setItem('token', token);
-        sessionStorage.setItem('base44_access_token', token);
-
-        // Small delay to ensure SDK picks up new token
-        await new Promise(r => setTimeout(r, 300));
-
-        let verifiedUser = null;
-        try {
-          verifiedUser = await base44.auth.me();
-        } catch (meErr) {
-          // Show the EXACT error from auth.me() — this is the real diagnosis
-          if (isDemo) setDemoDebug(prev => ({ ...prev, auth_me_error: meErr.message, auth_me_status: meErr.status }));
-          throw new Error(`auth.me() failed: ${meErr.message}`);
-        }
-
-        if (!verifiedUser) throw new Error('auth.me() returned null — token not accepted.');
-
-        if (isDemo) setDemoDebug(prev => ({ ...prev, auth_me_ok: true, userId: verifiedUser.id }));
-
-        // For demo account: ensure elite access is configured
-        if (isDemo) {
-          try {
-            await base44.functions.invoke('setupDemoAccount', {});
-          } catch (_) {}
-        }
-
-        await handleAuthSuccess(verifiedUser);
+        setLoading(false);
+        return;
       }
-    } catch (err) {
-      stopTimeout();
-      setLoading(false);
-      console.error('[SignIn] Email login error:', JSON.stringify({ message: err.message, code: err.code, status: err.status }));
-      // Show raw error for ALL users — helps diagnose TestFlight issues
-      const msg = err?.message || '';
-      setError(msg || t('signin.error.invalidCredentials', 'Invalid email or password. Please try again.'));
-    }
-  };
 
-  // ─── EMAIL VERIFY ──────────────────────────────────────────────────────────
-  const handleVerify = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    startTimeout(30000);
-    try {
-      await base44.auth.verifyOtp({ email, otpCode: verifyCode });
-      const verifyResult = await base44.auth.loginViaEmailPassword(email, password);
-      const verifyToken = verifyResult?.access_token || verifyResult?.token;
-      if (verifyToken) {
-        if (base44.auth.setToken) base44.auth.setToken(verifyToken);
-        localStorage.setItem('base44_access_token', verifyToken);
-        localStorage.setItem('auth_token', verifyToken);
-        localStorage.setItem('token', verifyToken);
-        await new Promise(r => setTimeout(r, 300));
-      }
-      const verifyUser = await base44.auth.me();
-      if (!verifyUser) throw new Error('Session could not be verified after OTP.');
-      if (name) {
-        await base44.auth.updateMe({ full_name: name }).catch(() => {});
-      }
-      await handleAuthSuccess(verifyUser);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      await handleAfterLogin(cred.user);
     } catch (err) {
-      stopTimeout();
-      setLoading(false);
-      console.error('[SignIn] OTP verify error:', err.message);
-      const msg = err?.message || '';
-      const isAuthWall = msg.toLowerCase().includes('must be logged in') || msg.toLowerCase().includes('not logged in') || msg.toLowerCase().includes('unauthorized');
-      setError(isAuthWall ? t('signin.error.invalidCode', 'Invalid verification code.') : msg || t('signin.error.invalidCode', 'Invalid verification code.'));
-    }
-  };
-
-  const handleResendOtp = async () => {
-    setError('');
-    try { await base44.auth.resendOtp(email); } catch (_) {}
-  };
-
-  // ─── FORGOT PASSWORD ───────────────────────────────────────────────────────
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      await base44.auth.requestPasswordReset(forgotEmail);
-      setForgotSent(true);
-    } catch (err) {
-      setError(err?.message || 'Could not send reset email. Please try again.');
+      setError(mapFirebaseError(err));
     } finally {
       setLoading(false);
     }
   };
 
-  // ─── Native OAuth helpers ──────────────────────────────────────────────────
-  // On native iOS, after Browser.open() the SFSafariViewController handles auth.
-  // useOAuthDeepLink fires 'oauth_callback_received' when it gets the tredio:// callback.
-  // We listen for that event to clear the loading state in SignIn.jsx.
-  const openNativeOAuth = async (provider) => {
-    setError('');
-    setNativeErrorDetail('');
-    setLoading(true);
-
-    // Shared handle so both listeners can clean each other up
-    let browserFinishedHandle = null;
-
-    // Listen for callback — fires when useOAuthDeepLink receives tredio:// URL
-    const onCallback = () => {
-      stopTimeout();
-      setLoading(false);
-      window.removeEventListener('oauth_callback_received', onCallback);
-      browserFinishedHandle?.remove?.();
-    };
-    window.addEventListener('oauth_callback_received', onCallback);
-
-    // Also clear loading if Browser closes without a callback (user cancelled)
-    const onBrowserFinished = () => {
-      // Give useOAuthDeepLink 1s to fire the oauth_callback_received event first
-      setTimeout(() => {
-        stopTimeout();
-        setLoading(false);
-        window.removeEventListener('oauth_callback_received', onCallback);
-        browserFinishedHandle?.remove?.();
-      }, 1000);
-    };
-    Browser.addListener('browserFinished', onBrowserFinished)
-      .then(h => { browserFinishedHandle = h; })
-      .catch(() => {});
-
-    try {
-      const oauthUrl = getProviderUrl(provider);
-      console.log(`[SignIn:${provider}] Opening SFSafariViewController:`, oauthUrl.split('?')[0]);
-      await Browser.open({
-        url: oauthUrl,
-        presentationStyle: getPresStyle(),
-        toolbarColor: '#080B12',
-      });
-      startTimeout(120000);
-    } catch (err) {
-      stopTimeout();
-      setLoading(false);
-      window.removeEventListener('oauth_callback_received', onCallback);
-      const detail = `${provider} OAuth: ${err.message} (code=${err.code ?? 'n/a'})`;
-      console.error(`[SignIn:${provider}] Error:`, detail);
-      setError(`${provider === 'apple' ? 'Apple' : 'Google'} Sign In failed. Please try email instead.`);
-      setNativeErrorDetail(detail);
-    }
-  };
-
-  // ─── GOOGLE SIGN IN ────────────────────────────────────────────────────────
+  // ── GOOGLE ──────────────────────────────────────────────────────────────────
   const handleGoogle = async () => {
-    if (isNative()) {
-      await openNativeOAuth('google');
-    } else {
-      base44.auth.loginWithProvider('google', OAUTH_CALLBACK_URL);
+    setError('');
+    setLoading(true);
+    try {
+      if (isNative()) {
+        const result = await FirebaseAuthentication.signInWithGoogle();
+        const credential = GoogleAuthProvider.credential(result.credential?.idToken);
+        const cred = await signInWithCredential(auth, credential);
+        await handleAfterLogin(cred.user);
+      } else {
+        // Web: use redirect (no popup)
+        const { signInWithRedirect } = await import('firebase/auth');
+        await signInWithRedirect(auth, new GoogleAuthProvider());
+        // Result handled by onAuthStateChanged
+      }
+    } catch (err) {
+      setError(mapFirebaseError(err));
+      setLoading(false);
     }
   };
 
-  // ─── APPLE SIGN IN ─────────────────────────────────────────────────────────
+  // ── APPLE ───────────────────────────────────────────────────────────────────
   const handleApple = async () => {
-    if (isNative()) {
-      await openNativeOAuth('apple');
-    } else {
-      base44.auth.loginWithProvider('apple', OAUTH_CALLBACK_URL);
+    setError('');
+    setLoading(true);
+    try {
+      if (isNative()) {
+        const result = await FirebaseAuthentication.signInWithApple();
+        const provider = new OAuthProvider('apple.com');
+        const credential = provider.credential({
+          idToken: result.credential?.idToken,
+          rawNonce: result.credential?.nonce,
+        });
+        const cred = await signInWithCredential(auth, credential);
+        await handleAfterLogin(cred.user);
+      } else {
+        const { signInWithRedirect } = await import('firebase/auth');
+        await signInWithRedirect(auth, new OAuthProvider('apple.com'));
+      }
+    } catch (err) {
+      setError(mapFirebaseError(err));
+      setLoading(false);
+    }
+  };
+
+  // ── FORGOT PASSWORD ─────────────────────────────────────────────────────────
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, forgotEmail);
+      setForgotSent(true);
+    } catch (err) {
+      setError(mapFirebaseError(err));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -335,9 +134,7 @@ export default function SignIn({ onLoginSuccess }) {
     <div style={{
       minHeight: '100vh',
       background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14, 50, 90, 0.35) 0%, transparent 70%), linear-gradient(180deg, #040d1e 0%, #030810 60%, #020608 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
       paddingTop: 'calc(24px + env(safe-area-inset-top))',
       paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
       paddingLeft: 'calc(24px + env(safe-area-inset-left))',
@@ -345,12 +142,9 @@ export default function SignIn({ onLoginSuccess }) {
       overflowY: 'auto',
     }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}
-      >
+      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+        style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
+
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <img src="/logo-icon.svg" alt="TREDIO" style={{ height: '52px', width: '52px', margin: '0 auto 12px' }} />
@@ -360,37 +154,21 @@ export default function SignIn({ onLoginSuccess }) {
           </div>
         </div>
 
-        {/* Account deleted banner */}
         {accountDeleted && (
-          <div style={{
-            background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)',
-            borderRadius: '12px', padding: '12px 16px', marginBottom: '16px',
-            fontSize: '13px', color: '#22c55e', textAlign: 'center',
-          }}>
+          <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', fontSize: '13px', color: '#22c55e', textAlign: 'center' }}>
             ✓ {t('signin.accountDeleted', 'Your account has been permanently deleted.')}
           </div>
         )}
 
-        {/* Card */}
-        <div style={{
-          background: 'rgba(8, 16, 36, 0.55)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(100, 220, 255, 0.09)',
-          borderRadius: '20px',
-          padding: '28px',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(100,220,255,0.06)',
-        }}>
+        <div style={{ background: 'rgba(8, 16, 36, 0.55)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(100, 220, 255, 0.09)', borderRadius: '20px', padding: '28px', boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(100,220,255,0.06)' }}>
           <AnimatePresence mode="wait">
 
-            {/* FORGOT PASSWORD STEP */}
+            {/* FORGOT PASSWORD */}
             {step === 'forgot' ? (
               <motion.div key="forgot" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔑</div>
-                  <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>
-                    Reset your password
-                  </p>
+                  <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>Reset your password</p>
                   <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>
                     {forgotSent ? 'Check your inbox for a reset link.' : "Enter your email and we'll send you a reset link."}
                   </p>
@@ -401,36 +179,21 @@ export default function SignIn({ onLoginSuccess }) {
                   </div>
                 ) : (
                   <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <input
-                      type="email"
-                      placeholder="Email address"
-                      value={forgotEmail}
-                      onChange={e => setForgotEmail(e.target.value)}
-                      required
-                      autoFocus
-                      style={inputStyle}
-                    />
+                    <input type="email" placeholder="Email address" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} required autoFocus style={inputStyle} />
                     {error && <div style={errorStyle}>{error}</div>}
-                    <button type="submit" disabled={loading || !forgotEmail} style={{
-                      ...submitBtnStyle,
-                      opacity: (loading || !forgotEmail) ? 0.6 : 1,
-                      cursor: (loading || !forgotEmail) ? 'not-allowed' : 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    }}>
+                    <button type="submit" disabled={loading || !forgotEmail} style={{ ...submitBtnStyle, opacity: (loading || !forgotEmail) ? 0.6 : 1, cursor: (loading || !forgotEmail) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                       {loading && <Spinner />}
                       {loading ? 'Sending…' : 'Send Reset Link'}
                     </button>
                   </form>
                 )}
-                <button
-                  onClick={() => { setStep('form'); setError(''); setForgotSent(false); setForgotEmail(''); }}
-                  style={{ width: '100%', padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', marginTop: '8px' }}
-                >
+                <button onClick={() => { setStep('form'); setError(''); setForgotSent(false); setForgotEmail(''); }}
+                  style={{ width: '100%', padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', marginTop: '8px' }}>
                   ← Back to Sign In
                 </button>
               </motion.div>
-            ) : step === 'verify' ? (
 
+            ) : step === 'verify' ? (
               <motion.div key="verify" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>📧</div>
@@ -438,217 +201,83 @@ export default function SignIn({ onLoginSuccess }) {
                     {t('signin.verifyTitle', 'Check your email')}
                   </p>
                   <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>
-                    {t('signin.verifySubtitle', 'We sent a verification code to')}<br />
+                    {t('signin.verifySubtitle', 'We sent a verification link to')}<br />
                     <span style={{ color: '#F59E0B', fontWeight: '600' }}>{email}</span>
                   </p>
+                  <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px', marginTop: '8px' }}>
+                    Click the link in the email then come back to sign in.
+                  </p>
                 </div>
-                <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <input
-                    type="text"
-                    placeholder={t('signin.verifyCodePlaceholder', 'Enter verification code')}
-                    value={verifyCode}
-                    onChange={e => setVerifyCode(e.target.value)}
-                    required
-                    autoFocus
-                    style={{ ...inputStyle, textAlign: 'center', fontSize: '18px', letterSpacing: '4px', fontWeight: '700' }}
-                  />
+                <button onClick={() => { setStep('form'); setMode('login'); }}
+                  style={{ ...submitBtnStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  Go to Sign In
+                </button>
+              </motion.div>
+
+            ) : (
+              /* MAIN FORM */
+              <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                {/* Tab Toggle */}
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', background: 'rgba(14,200,220,0.05)', border: '1px solid rgba(14,200,220,0.1)', borderRadius: '12px', padding: '4px' }}>
+                  {['login', 'register'].map(m => (
+                    <button key={m} onClick={() => { setMode(m); setError(''); }}
+                      style={{ flex: 1, padding: '8px', borderRadius: '9px', fontSize: '13px', fontWeight: '700', border: 'none', cursor: 'pointer', transition: 'all 0.2s', background: mode === m ? 'rgba(14,200,220,0.18)' : 'transparent', color: mode === m ? 'rgb(120,230,245)' : 'rgba(255,255,255,0.35)', boxShadow: mode === m ? '0 0 10px rgba(14,200,220,0.15)' : 'none' }}>
+                      {m === 'login' ? t('signin.signIn', 'Sign In') : t('signin.register', 'Register')}
+                    </button>
+                  ))}
+                </div>
+
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {mode === 'register' && (
+                    <input type="text" placeholder={t('signin.fullName', 'Full Name')} value={name} onChange={e => setName(e.target.value)} required autoComplete="name" style={inputStyle} />
+                  )}
+                  <input type="email" placeholder={t('signin.enterEmail', 'Email address')} value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" style={inputStyle} />
+                  <input type="password" placeholder={t('signin.password', 'Password')} value={password} onChange={e => setPassword(e.target.value)} required minLength={mode === 'register' ? 8 : undefined} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} style={inputStyle} />
+                  {mode === 'login' && (
+                    <button type="button" onClick={() => { setStep('forgot'); setForgotEmail(email); setError(''); }}
+                      style={{ background: 'none', border: 'none', color: 'rgba(14,200,220,0.6)', fontSize: '12px', cursor: 'pointer', textAlign: 'right', padding: '0', alignSelf: 'flex-end' }}>
+                      Forgot password?
+                    </button>
+                  )}
+                  {mode === 'register' && (
+                    <input type="password" placeholder={t('signin.confirmPassword', 'Confirm password')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required autoComplete="new-password" style={inputStyle} />
+                  )}
+
                   {error && <div style={errorStyle}>{error}</div>}
-                  <button type="submit" disabled={loading || !verifyCode} style={{
-                    ...submitBtnStyle,
-                    opacity: (loading || !verifyCode) ? 0.6 : 1,
-                    cursor: (loading || !verifyCode) ? 'not-allowed' : 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  }}>
+
+                  <button type="submit" disabled={loading} style={{ ...submitBtnStyle, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                     {loading && <Spinner />}
-                    {loading ? t('common.loading', 'Loading...') : t('signin.verifyBtn', 'Verify & Sign In')}
+                    {loading
+                      ? (mode === 'login' ? t('signin.signingIn', 'Signing in…') : t('signin.creating', 'Creating account…'))
+                      : (mode === 'login' ? t('signin.signIn', 'Sign In') : t('signin.createAccount', 'Create Account'))
+                    }
                   </button>
                 </form>
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                  <button
-                    onClick={() => { setStep('form'); setError(''); setVerifyCode(''); }}
-                    style={{ flex: 1, padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer' }}
-                  >
-                    ← {t('common.back', 'Back')}
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>OR</span>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button onClick={handleGoogle} disabled={loading} style={{ ...socialBtnStyle, opacity: loading ? 0.6 : 1 }}>
+                    <GoogleIcon />
+                    {t('signin.google', 'Continue with Google')}
                   </button>
-                  <button
-                    onClick={handleResendOtp}
-                    style={{ flex: 1, padding: '10px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'rgba(255,255,255,0.4)', fontSize: '12px', cursor: 'pointer' }}
-                  >
-                    {t('signin.resendCode', 'Resend code')}
+                  <button onClick={handleApple} disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '700', background: '#fff', border: '1px solid #fff', color: '#000', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px', opacity: loading ? 0.6 : 1 }}>
+                    <AppleIcon />
+                    {t('signin.apple', 'Continue with Apple')}
                   </button>
                 </div>
+
+                {loading && (
+                  <button type="button" onClick={() => { setLoading(false); setError(''); }}
+                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '8px', marginTop: '4px' }}>
+                    {t('common.cancel', 'Cancel')}
+                  </button>
+                )}
               </motion.div>
-            ) : (
-
-            /* MAIN FORM STEP */
-            <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-
-              {/* Tab Toggle */}
-              <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', background: 'rgba(14,200,220,0.05)', border: '1px solid rgba(14,200,220,0.1)', borderRadius: '12px', padding: '4px' }}>
-                {['login', 'register'].map(m => (
-                  <button key={m}
-                    onClick={() => { setMode(m); setError(''); }}
-                    style={{
-                      flex: 1, padding: '8px', borderRadius: '9px', fontSize: '13px', fontWeight: '700',
-                      border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                      background: mode === m ? 'rgba(14,200,220,0.18)' : 'transparent',
-                      color: mode === m ? 'rgb(120,230,245)' : 'rgba(255,255,255,0.35)',
-                      boxShadow: mode === m ? '0 0 10px rgba(14,200,220,0.15)' : 'none',
-                    }}>
-                    {m === 'login' ? t('signin.signIn', 'Sign In') : t('signin.register', 'Register')}
-                  </button>
-                ))}
-              </div>
-
-              {/* Email/Password Form */}
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {mode === 'register' && (
-                  <input
-                    type="text"
-                    placeholder={t('signin.fullName', 'Full Name')}
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    required
-                    autoComplete="name"
-                    style={inputStyle}
-                  />
-                )}
-                <input
-                  type="email"
-                  placeholder={t('signin.enterEmail', 'Email address')}
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  style={inputStyle}
-                />
-                <input
-                  type="password"
-                  placeholder={t('signin.password', 'Password')}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  minLength={mode === 'register' ? 8 : undefined}
-                  autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                  style={inputStyle}
-                />
-                {mode === 'login' && (
-                  <button
-                    type="button"
-                    onClick={() => { setStep('forgot'); setForgotEmail(email); setError(''); }}
-                    style={{ background: 'none', border: 'none', color: 'rgba(14,200,220,0.6)', fontSize: '12px', cursor: 'pointer', textAlign: 'right', padding: '0', alignSelf: 'flex-end' }}
-                  >
-                    Forgot password?
-                  </button>
-                )}
-                {mode === 'register' && (
-                  <input
-                    type="password"
-                    placeholder={t('signin.confirmPassword', 'Confirm password')}
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
-                    required
-                    autoComplete="new-password"
-                    style={inputStyle}
-                  />
-                )}
-
-                {error && <div style={errorStyle}>{error}</div>}
-
-                {/* Demo debug panel — visible when demo login fails */}
-                {demoDebug && (
-                  <div style={{
-                    padding: '10px 12px', background: 'rgba(245,158,11,0.07)',
-                    border: '1px solid rgba(245,158,11,0.25)', borderRadius: '8px',
-                    fontSize: '10px', fontFamily: 'monospace', color: 'rgba(245,158,11,0.9)',
-                    wordBreak: 'break-all',
-                  }}>
-                    <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🔍 DEMO DEBUG</div>
-                    {Object.entries(demoDebug).map(([k, v]) => (
-                      <div key={k}><span style={{ color: 'rgba(14,200,220,0.7)' }}>{k}:</span> {typeof v === 'object' ? JSON.stringify(v) : String(v)}</div>
-                    ))}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    ...submitBtnStyle,
-                    opacity: loading ? 0.7 : 1,
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    marginTop: '4px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  }}
-                >
-                  {loading && <Spinner />}
-                  {loading
-                    ? (mode === 'login' ? t('signin.signingIn', 'Signing in…') : t('signin.creating', 'Creating account…'))
-                    : (mode === 'login' ? t('signin.signIn', 'Sign In') : t('signin.createAccount', 'Create Account'))
-                  }
-                </button>
-              </form>
-
-              {/* Divider */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>OR</span>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-              </div>
-
-              {/* Social Auth Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {/* Google */}
-                <button
-                  onClick={handleGoogle}
-                  disabled={loading}
-                  style={{ ...socialBtnStyle, opacity: loading ? 0.6 : 1 }}
-                >
-                  <GoogleIcon />
-                  {t('signin.google', 'Continue with Google')}
-                </button>
-
-                {/* Apple — required by App Store guidelines */}
-                <button
-                  onClick={handleApple}
-                  disabled={loading}
-                  style={{
-                    width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '700',
-                    background: '#fff', border: '1px solid #fff', color: '#000',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    minHeight: '48px',
-                    opacity: loading ? 0.6 : 1,
-                  }}
-                >
-                  <AppleIcon />
-                  {t('signin.apple', 'Continue with Apple')}
-                </button>
-              </div>
-
-              {/* iOS/iPad only: full technical error for App Review diagnostics */}
-              {nativeErrorDetail && !loading && (
-                <div style={{
-                  marginTop: '8px', padding: '10px 12px',
-                  background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)',
-                  borderRadius: '8px', fontSize: '10px', color: 'rgba(239,68,68,0.8)',
-                  wordBreak: 'break-all', fontFamily: 'monospace',
-                }}>
-                  {nativeErrorDetail}
-                </div>
-              )}
-
-              {/* Cancel loading button — lets user dismiss stuck spinner */}
-              {loading && (
-                <button
-                  type="button"
-                  onClick={() => { stopTimeout(); setLoading(false); setError(''); setNativeErrorDetail(''); }}
-                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '8px', marginTop: '4px' }}
-                >
-                  {t('common.cancel', 'Cancel')}
-                </button>
-              )}
-            </motion.div>
             )}
           </AnimatePresence>
         </div>
@@ -661,18 +290,9 @@ export default function SignIn({ onLoginSuccess }) {
   );
 }
 
-// ─── Small reusable pieces ────────────────────────────────────────────────────
-
 function Spinner() {
   return (
-    <span style={{
-      display: 'inline-block', width: 16, height: 16,
-      border: '2px solid rgba(3,8,16,0.3)',
-      borderTopColor: '#030810',
-      borderRadius: '50%',
-      animation: 'spin 0.7s linear infinite',
-      flexShrink: 0,
-    }} />
+    <span style={{ display: 'inline-block', width: 16, height: 16, border: '2px solid rgba(3,8,16,0.3)', borderTopColor: '#030810', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
   );
 }
 
@@ -695,34 +315,36 @@ function AppleIcon() {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+function mapFirebaseError(err) {
+  const code = err?.code || '';
+  if (code.includes('user-not-found') || code.includes('wrong-password') || code.includes('invalid-credential')) return 'Invalid email or password.';
+  if (code.includes('email-already-in-use')) return 'An account with this email already exists.';
+  if (code.includes('weak-password')) return 'Password must be at least 6 characters.';
+  if (code.includes('invalid-email')) return 'Please enter a valid email address.';
+  if (code.includes('too-many-requests')) return 'Too many attempts. Please try again later.';
+  if (code.includes('network-request-failed')) return 'Network error. Please check your connection.';
+  if (code.includes('cancelled') || code.includes('canceled')) return '';
+  return err?.message || 'Something went wrong. Please try again.';
+}
 
 const inputStyle = {
-  width: '100%', padding: '12px 14px', borderRadius: '10px',
-  fontSize: '16px', // 16px prevents iOS Safari auto-zoom
+  width: '100%', padding: '12px 14px', borderRadius: '10px', fontSize: '16px',
   background: 'rgba(6,14,32,0.6)', border: '1px solid rgba(100,220,255,0.1)',
-  color: 'rgba(255,255,255,0.88)', outline: 'none', boxSizing: 'border-box',
-  minHeight: '44px',
+  color: 'rgba(255,255,255,0.88)', outline: 'none', boxSizing: 'border-box', minHeight: '44px',
 };
-
 const submitBtnStyle = {
   padding: '13px', borderRadius: '12px', fontWeight: '800', fontSize: '15px',
   background: 'linear-gradient(135deg, #0ec8dc, #0aa8be)', color: '#030810',
   border: 'none', letterSpacing: '0.5px', width: '100%',
-  boxShadow: '0 4px 20px rgba(14,200,220,0.3)',
-  minHeight: '48px',
+  boxShadow: '0 4px 20px rgba(14,200,220,0.3)', minHeight: '48px',
 };
-
 const socialBtnStyle = {
   width: '100%', padding: '12px', borderRadius: '10px', fontSize: '14px', fontWeight: '600',
   background: 'rgba(100,220,255,0.04)', border: '1px solid rgba(100,220,255,0.1)',
   color: 'rgba(255,255,255,0.65)', cursor: 'pointer', display: 'flex',
-  alignItems: 'center', justifyContent: 'center', gap: '8px',
-  minHeight: '48px',
+  alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px',
 };
-
 const errorStyle = {
   fontSize: '12px', color: '#ef4444', padding: '8px 12px',
-  background: 'rgba(239,68,68,0.1)', borderRadius: '8px',
-  border: '1px solid rgba(239,68,68,0.2)',
+  background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)',
 };

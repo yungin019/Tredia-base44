@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
@@ -6,17 +5,16 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'r
 import { AnimatePresence } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
 import PageTransition from '@/components/ui/page-transition';
-import { base44 } from '@/api/base44Client';
-import i18n from '@/i18n'; // Singleton i18n instance
+import i18n from '@/i18n';
+
+import { FirebaseAuthProvider, useFirebaseAuth } from '@/lib/FirebaseAuthContext';
+import { NavigationProvider } from '@/lib/NavigationManager';
 
 import AppShell from './components/layout/AppShell';
-import { NavigationProvider } from '@/lib/NavigationManager';
-import { useOAuthDeepLink } from '@/hooks/useOAuthDeepLink';
 import SplashScreen from './pages/SplashScreen.jsx';
 import SignIn from './pages/SignIn.jsx';
 import Onboarding from './pages/Onboarding';
 import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
 import Markets from './pages/Markets';
 import AIInsights from './pages/AIInsights';
 import Portfolio from './pages/Portfolio';
@@ -31,86 +29,71 @@ import TradingSetup from './pages/TradingSetup';
 import Admin from './pages/Admin.jsx';
 import AlpacaConnect from './pages/AlpacaConnect';
 import AlpacaCallback from './pages/AlpacaCallback';
-import OAuthCallback from './pages/OAuthCallback';
 import TrekPortfolioWelcome from './pages/TrekPortfolioWelcome';
 import OnboardingQuick from './pages/OnboardingQuick';
 import Support from './pages/Support';
 
 const LoadingSpinner = () => (
   <div style={{
-    background: '#080B12',
-    height: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'column',
-    gap: '16px'
+    background: '#080B12', height: '100vh', display: 'flex',
+    alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px'
   }}>
-  <img src="/logo-full.svg" alt="TREDIO" style={{ height: '36px' }} />
-    <div style={{
-      width: 32,
-      height: 32,
-      border: '3px solid #F59E0B',
-      borderTopColor: 'transparent',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite'
-    }} />
-    <style>{`
-      @keyframes spin {
-        to { transform: rotate(360deg) }
-      }
-    `}</style>
+    <img src="/logo-full.svg" alt="TREDIO" style={{ height: '36px' }} />
+    <div style={{ width: 32, height: 32, border: '3px solid #F59E0B', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+    <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
   </div>
 );
 
-// Sits inside Router so it can call useNavigate
-const OAuthDeepLinkHandler = ({ onLoginSuccess }) => {
-  useOAuthDeepLink(onLoginSuccess);
-  return null;
-};
-
-const AppRoutes = ({ user, onLogout, onLoginSuccess }) => {
+const AppRoutes = () => {
   const location = useLocation();
+  const { firebaseUser, profile, isLoading, logout } = useFirebaseAuth();
 
-  // Always allow OAuth callbacks and support page regardless of auth state
-  if (location.pathname === '/auth/google/callback' || location.pathname === '/auth/callback') {
-    return <OAuthCallback />;
-  }
+  if (isLoading) return <LoadingSpinner />;
+
+  // Support page always accessible
   if (location.pathname === '/support') {
     return <Support />;
   }
 
-  if (!user) {
+  // Not authenticated → only SignIn / SplashScreen
+  if (!firebaseUser) {
     return (
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/SignIn" element={<PageTransition><SignIn onLoginSuccess={onLoginSuccess} /></PageTransition>} />
+          <Route path="/SignIn" element={<PageTransition><SignIn /></PageTransition>} />
           <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
+          <Route path="/support" element={<Support />} />
           <Route path="*" element={<Navigate to="/SignIn" replace />} />
         </Routes>
       </AnimatePresence>
     );
   }
 
-  const needsOnboarding = !user.onboarding_completed;
+  // Apply language from profile
+  const lang = localStorage.getItem('tredio_lang') || profile?.language || 'en';
+  if (i18n.isInitialized && i18n.language !== lang) {
+    i18n.changeLanguage(lang).catch(() => {});
+    const RTL = ['ar','he','ur','fa','yi','ji','iw','ku'];
+    document.documentElement.lang = lang;
+    document.documentElement.dir = RTL.some(r => lang.startsWith(r)) ? 'rtl' : 'ltr';
+  }
+
+  const needsOnboarding = !profile?.onboarding_completed;
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Navigate to={needsOnboarding ? "/Onboarding" : "/Home"} replace />} />
-        <Route path="/SignIn" element={<PageTransition><SignIn onLoginSuccess={onLoginSuccess} /></PageTransition>} />
+        <Route path="/SignIn" element={<PageTransition><SignIn /></PageTransition>} />
         <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
         <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
         <Route path="/OnboardingQuick" element={<PageTransition><OnboardingQuick /></PageTransition>} />
         <Route path="/Admin" element={<PageTransition><Admin /></PageTransition>} />
         <Route path="/alpaca-connect" element={<PageTransition><AlpacaConnect /></PageTransition>} />
         <Route path="/alpaca-callback" element={<AlpacaCallback />} />
-        <Route path="/auth/google/callback" element={<OAuthCallback />} />
-        <Route path="/auth/callback" element={<OAuthCallback />} />
         <Route path="/support" element={<Support />} />
         <Route path="/trek-portfolio-welcome" element={<PageTransition><TrekPortfolioWelcome /></PageTransition>} />
-        {/* All main app routes — redirect to onboarding if not completed */}
-        <Route element={needsOnboarding ? <Navigate to="/Onboarding" replace /> : <AppShell onLogout={onLogout} />}>
+        <Route element={needsOnboarding ? <Navigate to="/Onboarding" replace /> : <AppShell onLogout={logout} />}>
           <Route path="/Home" element={<PageTransition><Home /></PageTransition>} />
           <Route path="/Dashboard" element={<Navigate to="/Home" replace />} />
           <Route path="/Markets" element={<PageTransition><Markets /></PageTransition>} />
@@ -118,7 +101,7 @@ const AppRoutes = ({ user, onLogout, onLoginSuccess }) => {
           <Route path="/Traders" element={<PageTransition><Traders /></PageTransition>} />
           <Route path="/Portfolio" element={<PageTransition><Portfolio /></PageTransition>} />
           <Route path="/Trade" element={<PageTransition><Trade /></PageTransition>} />
-          <Route path="/Settings" element={<PageTransition><Settings onLogout={onLogout} /></PageTransition>} />
+          <Route path="/Settings" element={<PageTransition><Settings onLogout={logout} /></PageTransition>} />
           <Route path="/Upgrade" element={<PageTransition><Upgrade /></PageTransition>} />
           <Route path="/PaperTrading" element={<PageTransition><PaperTrading /></PageTransition>} />
           <Route path="/Notifications" element={<PageTransition><Notifications /></PageTransition>} />
@@ -132,63 +115,16 @@ const AppRoutes = ({ user, onLogout, onLoginSuccess }) => {
 };
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser || null);
-        // Load language: localStorage explicit choice first, then user profile setting.
-        // Do NOT fall back to device/navigator locale — prevents auto-Swedish on Swedish devices.
-        const savedLang = localStorage.getItem('tredio_lang');
-        const lang = savedLang || currentUser?.language || 'en';
-        if (i18n.isInitialized && i18n.language !== lang) {
-          await i18n.changeLanguage(lang).catch(() => {});
-          const RTL = ['ar','he','ur','fa','yi','ji','iw','ku'];
-          document.documentElement.lang = lang;
-          document.documentElement.dir = RTL.some(r => lang.startsWith(r)) ? 'rtl' : 'ltr';
-        }
-      } catch (error) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuth();
-  }, []);
-
-  const handleLogout = async () => {
-    setUser(null);
-    localStorage.removeItem('base44_access_token');
-    localStorage.removeItem('token');
-    await base44.auth.logout('/SignIn');
-  };
-
-  const handleLoginSuccess = async () => {
-    try {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser || null);
-    } catch {
-      setUser(null);
-    }
-  };
-
   return (
     <QueryClientProvider client={queryClientInstance}>
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
+      <FirebaseAuthProvider>
         <Router>
           <NavigationProvider>
-            {/* Global OAuth deep-link handler — must be inside Router, always mounted */}
-            <OAuthDeepLinkHandler onLoginSuccess={handleLoginSuccess} />
-            <AppRoutes user={user} onLogout={handleLogout} onLoginSuccess={handleLoginSuccess} />
+            <AppRoutes />
             <Toaster />
           </NavigationProvider>
         </Router>
-      )}
+      </FirebaseAuthProvider>
     </QueryClientProvider>
   );
 }

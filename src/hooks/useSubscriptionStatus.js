@@ -19,16 +19,15 @@
 import { useRevenueCat } from './useRevenueCat';
 import { useMemo, useEffect, useState } from 'react';
 import { REVENUECAT_CONFIG } from '@/lib/revenuecat-config';
-import { base44 } from '@/api/base44Client';
+import { getCachedProfile } from '@/lib/userProfile';
 
 export function useSubscriptionStatus() {
   const { getCurrentTier: getRevenueCatTier, hasActiveSubscription, checkEntitlement } = useRevenueCat();
   const [dbTier, setDbTier] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
-      if (u?.subscription_tier) setDbTier(u.subscription_tier);
-    }).catch(() => {});
+    const p = getCachedProfile();
+    if (p?.subscription_tier) setDbTier(p.subscription_tier);
   }, []);
 
   /**

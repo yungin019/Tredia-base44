@@ -7,6 +7,8 @@ const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
 import DeleteAccountModal from '@/components/settings/DeleteAccountModal';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
+import { getCachedProfile, updateUserProfile } from '@/lib/userProfile';
 import { base44 } from '@/api/base44Client';
 import { getFoundingMemberInfo } from '@/api/foundingMembers';
 import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
@@ -49,7 +51,7 @@ export default function Settings({ onLogout }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { tier } = useSubscriptionStatus();
-
+  const { firebaseUser, logout: firebaseLogout } = useFirebaseAuth();
 
   const { restorePurchases, purchaseInProgress, purchaseError } = useRevenueCat();
   const [user, setUser] = useState(null);
@@ -70,27 +72,26 @@ export default function Settings({ onLogout }) {
   const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
-    base44.auth.me()
-    .then(u => {
-      setUser(u);
-      if (u?.notification_prefs) {
-        setNotifications(prev => ({ ...prev, ...u.notification_prefs }));
+    const p = getCachedProfile();
+    if (p) {
+      setUser(p);
+      if (p.notification_prefs) {
+        setNotifications(prev => ({ ...prev, ...p.notification_prefs }));
       }
-      setNotifLoaded(true);
-      const userId = u?.email || u?.id;
+      const userId = p.email || p.uid;
       if (userId) {
         getFoundingMemberInfo(userId)
           .then(setFoundingMember)
           .catch(() => {});
       }
-    })
-    .catch(() => { setNotifLoaded(true); });
+    }
+    setNotifLoaded(true);
   }, []);
 
   const toggle = (key) => {
     const updated = { ...notifications, [key]: !notifications[key] };
     setNotifications(updated);
-    base44.auth.updateMe({ notification_prefs: updated }).catch(() => {});
+    updateUserProfile({ notification_prefs: updated }).catch(() => {});
   };
 
   return (
@@ -139,7 +140,7 @@ export default function Settings({ onLogout }) {
                   </button>
                   <button
                     onClick={async () => {
-                      await base44.auth.updateMe({
+                      await updateUserProfile({
                         alpaca_connected: false,
                         alpaca_token: null,
                         alpaca_refresh_token: null
@@ -333,7 +334,7 @@ export default function Settings({ onLogout }) {
         <AlpacaConnectedAccounts
           user={user}
           onDisconnect={async () => {
-            await base44.auth.updateMe({
+            await updateUserProfile({
               alpaca_connected: false,
               alpaca_token: null,
               alpaca_refresh_token: null,
@@ -450,7 +451,7 @@ export default function Settings({ onLogout }) {
                  // Save to localStorage before changing language
                  localStorage.setItem('tredio_lang', lang.code);
                  // Persist to user profile
-                 await base44.auth.updateMe({ language: lang.code }).catch(() => {});
+                 await updateUserProfile({ language: lang.code }).catch(() => {});
                  // Change language and reload
                  await i18n.changeLanguage(lang.code).catch(() => {});
                  window.location.reload();
@@ -497,12 +498,10 @@ export default function Settings({ onLogout }) {
         className="rounded-xl border border-red-500/20 bg-[#111118] p-5">
         <button
           onClick={async () => {
-            localStorage.removeItem('base44_access_token');
-            localStorage.removeItem('token');
             if (onLogout) {
               await onLogout();
             } else {
-              await base44.auth.logout('/SignIn');
+              await firebaseLogout();
             }
           }}
           className="w-full py-3.5 rounded-xl font-black text-sm tracking-wide transition-all hover:opacity-90"

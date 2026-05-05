@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Check, Brain, Zap, TrendingUp, Shield, Crown, Link2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { updateUserProfile } from '@/lib/userProfile';
 import { claimFoundingMemberSlot, getFoundingStats } from '@/api/foundingMembers';
 
 const fadeUp = {
@@ -83,18 +83,20 @@ export default function Onboarding() {
 
   const handleOGClaim = async () => {
     try {
-      const user = await base44.auth.me();
-      if (user?.id || user?.email) {
-        const member = await claimFoundingMemberSlot(user.email || user.id);
+      const cached = (await import('@/lib/userProfile')).getCachedProfile();
+      const userId = cached?.email || cached?.uid;
+      if (userId) {
+        const member = await claimFoundingMemberSlot(userId);
         if (member) {
           setOgNumber(member.og_number);
           setStep(2);
+          return;
         }
       }
     } catch (e) {
       console.error('OG claim error:', e);
-      setStep(2);
     }
+    setStep(2);
   };
 
   const handleProfileSave = async () => {
@@ -107,7 +109,7 @@ export default function Onboarding() {
         ...(horizon && { time_horizon: horizon }),
         ...(interests && { interests }),
       };
-      await base44.auth.updateMe(profileData);
+      await updateUserProfile(profileData);
     } catch (e) {
       console.error('Profile save error:', e);
     }
@@ -361,8 +363,7 @@ export default function Onboarding() {
 
                 <button
                   onClick={async () => {
-                    // Ensure onboarding_completed is set before navigating
-                    try { await base44.auth.updateMe({ onboarding_completed: true }); } catch {}
+                    try { await updateUserProfile({ onboarding_completed: true }); } catch {}
                     window.location.href = '/Home';
                   }}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
@@ -397,7 +398,7 @@ export default function Onboarding() {
 
                 <button
                   onClick={async () => {
-                    try { await base44.auth.updateMe({ onboarding_completed: true }); } catch {}
+                    try { await updateUserProfile({ onboarding_completed: true }); } catch {}
                     window.location.href = '/Home';
                   }}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
