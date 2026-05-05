@@ -46,21 +46,53 @@ export function useOAuthDeepLink(onLoginSuccess) {
     const handleUrl = async (event) => {
       console.log('[useOAuthDeepLink] appUrlOpen fired:', event.url?.split('?')[0]);
 
+      // On-screen debug overlay — shows in real app WebView (not SVC)
+      const showNativeDebug = (msg, color = '#0ec8dc') => {
+        try {
+          let el = document.getElementById('__oauth_debug__');
+          if (!el) {
+            el = document.createElement('div');
+            el.id = '__oauth_debug__';
+            Object.assign(el.style, {
+              position: 'fixed', bottom: '80px', left: '12px', right: '12px', zIndex: '999999',
+              background: 'rgba(0,0,0,0.92)', border: '1px solid rgba(14,200,220,0.4)',
+              borderRadius: '10px', padding: '10px 12px', fontSize: '10px',
+              fontFamily: 'monospace', color: '#0ec8dc', wordBreak: 'break-all',
+              maxHeight: '200px', overflowY: 'auto',
+            });
+            document.body.appendChild(el);
+            setTimeout(() => el?.remove(), 20000); // auto-hide after 20s
+          }
+          const line = document.createElement('div');
+          line.style.color = color;
+          line.style.marginBottom = '2px';
+          line.textContent = `[${new Date().toISOString().slice(11,19)}] ${msg}`;
+          el.appendChild(line);
+        } catch (_) {}
+      };
+
       try {
         const url = new URL(event.url);
+        showNativeDebug(`appUrlOpen: ${event.url.split('?')[0]}`);
 
-        if (url.protocol !== `${CUSTOM_SCHEME}:`) return;
-        if (!url.pathname.startsWith('/auth/callback') && !url.pathname.startsWith('/auth/google/callback')) return;
+        if (url.protocol !== `${CUSTOM_SCHEME}:`) {
+          showNativeDebug(`SKIP: wrong protocol ${url.protocol}`, '#f59e0b');
+          return;
+        }
+        if (!url.pathname.startsWith('/auth/callback') && !url.pathname.startsWith('/auth/google/callback')) {
+          showNativeDebug(`SKIP: wrong path ${url.pathname}`, '#f59e0b');
+          return;
+        }
 
-        // Close SFSafariViewController immediately — this must happen first
+        showNativeDebug('Closing SFSafariViewController…');
         await Browser.close().catch(() => {});
+        showNativeDebug('Browser.close() done');
 
-        // Dispatch event so SignIn.jsx can clear its loading state regardless of outcome
         window.dispatchEvent(new CustomEvent('oauth_callback_received'));
 
         const oauthError = url.searchParams.get('error');
         if (oauthError) {
-          console.error('[useOAuthDeepLink] OAuth error:', oauthError);
+          showNativeDebug(`OAuth error: ${oauthError}`, '#ef4444');
           navigateRef.current('/SignIn', { replace: true });
           return;
         }
@@ -70,18 +102,19 @@ export function useOAuthDeepLink(onLoginSuccess) {
           url.searchParams.get('token');
 
         if (!token) {
-          console.error('[useOAuthDeepLink] No token in tredio:// callback');
+          showNativeDebug('NO TOKEN in tredio:// URL', '#ef4444');
           navigateRef.current('/SignIn', { replace: true });
           return;
         }
 
-        console.log('[useOAuthDeepLink] Token received, setting on SDK...');
+        showNativeDebug(`Token received (len=${token.length}), calling setToken…`);
 
         // Persist + inject into SDK
+        if (base44.auth.setToken) base44.auth.setToken(token);
         localStorage.setItem('base44_access_token', token);
+        localStorage.setItem('auth_token', token);
         localStorage.setItem('token', token);
         sessionStorage.setItem('base44_access_token', token);
-        if (base44.auth.setToken) base44.auth.setToken(token);
 
         await new Promise(r => setTimeout(r, 400));
 
@@ -90,20 +123,21 @@ export function useOAuthDeepLink(onLoginSuccess) {
         for (let attempt = 0; attempt < 3; attempt++) {
           try {
             user = await base44.auth.me();
-            if (user) break;
+            if (user) {
+              showNativeDebug(`auth.me() OK: ${user.email}`, '#22c55e');
+              break;
+            }
           } catch (e) {
-            console.warn(`[useOAuthDeepLink] auth.me() attempt ${attempt + 1} failed:`, e.message);
+            showNativeDebug(`auth.me() attempt ${attempt + 1} FAIL: ${e.message}`, '#ef4444');
             await new Promise(r => setTimeout(r, 600));
           }
         }
 
         if (!user) {
-          console.error('[useOAuthDeepLink] auth.me() returned null after 3 attempts');
+          showNativeDebug('auth.me() null after 3 attempts → back to SignIn', '#ef4444');
           navigateRef.current('/SignIn', { replace: true });
           return;
         }
-
-        console.log('[useOAuthDeepLink] Session confirmed for:', user.email);
 
         // Init profile defaults for new OAuth users
         const updates = {};
@@ -115,12 +149,12 @@ export function useOAuthDeepLink(onLoginSuccess) {
           await base44.auth.updateMe(updates).catch(() => {});
         }
 
+        showNativeDebug(`Navigating → ${user.onboarding_completed === false ? '/Onboarding' : '/Home'}`, '#22c55e');
         if (onLoginSuccessRef.current) await onLoginSuccessRef.current();
-
         navigateRef.current(user.onboarding_completed === false ? '/Onboarding' : '/Home', { replace: true });
 
       } catch (err) {
-        console.error('[useOAuthDeepLink] Fatal error:', err.message);
+        showNativeDebug(`FATAL: ${err.message}`, '#ef4444');
         await Browser.close().catch(() => {});
         window.dispatchEvent(new CustomEvent('oauth_callback_received'));
         navigateRef.current('/SignIn', { replace: true });
@@ -130,6 +164,21 @@ export function useOAuthDeepLink(onLoginSuccess) {
     CapacitorApp.addListener('appUrlOpen', handleUrl).then(handle => {
       _appUrlOpenListener = handle;
       console.log('[useOAuthDeepLink] appUrlOpen listener registered');
+      // Confirm registration on-screen for TestFlight debugging
+      try {
+        const badge = document.createElement('div');
+        badge.id = '__deeplink_ready__';
+        Object.assign(badge.style, {
+          position: 'fixed', top: 'env(safe-area-inset-top, 0px)', right: '8px',
+          zIndex: '999998', background: 'rgba(34,197,94,0.15)',
+          border: '1px solid rgba(34,197,94,0.3)', borderRadius: '6px',
+          padding: '2px 6px', fontSize: '9px', color: '#22c55e',
+          fontFamily: 'monospace', pointerEvents: 'none',
+        });
+        badge.textContent = '🔗 deeplink:ready';
+        document.body.appendChild(badge);
+        setTimeout(() => badge?.remove(), 10000); // hide after 10s
+      } catch (_) {}
     });
 
     // Intentionally no cleanup — listener must persist for entire app lifetime

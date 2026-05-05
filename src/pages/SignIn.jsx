@@ -74,35 +74,30 @@ export default function SignIn({ onLoginSuccess }) {
 
   const stopTimeout = () => clearTimeout(timeoutRef.current);
 
-  // Initialize profile defaults after login
-  const initProfile = async () => {
+  // Initialize profile defaults after login — pass in already-fetched user to avoid re-calling auth.me()
+  const initProfileForUser = async (u) => {
     try {
-      const u = await base44.auth.me();
-      if (!u) return false;
       const updates = {};
       if (!u.broker_status) updates.broker_status = 'not_connected';
       if (!u.trading_mode) updates.trading_mode = 'practice';
       if (!u.referral_code) updates.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
       if (!u.subscription_tier) updates.subscription_tier = 'free';
-      if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates);
-      return u.onboarding_completed === false;
+      if (Object.keys(updates).length > 0) await base44.auth.updateMe(updates).catch(() => {});
     } catch (e) {
       console.warn('[SignIn] initProfile error:', e.message);
     }
-    return false;
+    return u.onboarding_completed === false;
   };
 
-  // After email/password auth success: init profile, notify parent, navigate
-  const handleAuthSuccess = async () => {
+  // After email/password auth success: pass verified user directly, no extra auth.me()
+  const handleAuthSuccess = async (verifiedUser) => {
     try {
-      const needsOnboarding = await initProfile();
+      const needsOnboarding = await initProfileForUser(verifiedUser);
       if (onLoginSuccess) await onLoginSuccess();
       navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
     } catch (err) {
       console.error('[SignIn] handleAuthSuccess error:', err.message);
-      const msg = err?.message || '';
-      const isAuthWall = msg.toLowerCase().includes('must be logged in') || msg.toLowerCase().includes('not logged in') || msg.toLowerCase().includes('unauthorized');
-      setError(isAuthWall ? t('common.error', 'Something went wrong. Please try again.') : msg || t('common.error', 'Something went wrong'));
+      setError(err?.message || t('common.error', 'Something went wrong'));
     } finally {
       stopTimeout();
       setLoading(false);
@@ -176,10 +171,20 @@ export default function SignIn({ onLoginSuccess }) {
         sessionStorage.setItem('base44_access_token', token);
 
         // Small delay to ensure SDK picks up new token
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 300));
 
-        const verifiedUser = await base44.auth.me();
-        if (!verifiedUser) throw new Error('Session could not be verified. Please try again.');
+        let verifiedUser = null;
+        try {
+          verifiedUser = await base44.auth.me();
+        } catch (meErr) {
+          // Show the EXACT error from auth.me() — this is the real diagnosis
+          if (isDemo) setDemoDebug(prev => ({ ...prev, auth_me_error: meErr.message, auth_me_status: meErr.status }));
+          throw new Error(`auth.me() failed: ${meErr.message}`);
+        }
+
+        if (!verifiedUser) throw new Error('auth.me() returned null — token not accepted.');
+
+        if (isDemo) setDemoDebug(prev => ({ ...prev, auth_me_ok: true, userId: verifiedUser.id }));
 
         // For demo account: ensure elite access is configured
         if (isDemo) {
@@ -188,7 +193,7 @@ export default function SignIn({ onLoginSuccess }) {
           } catch (_) {}
         }
 
-        await handleAuthSuccess();
+        await handleAuthSuccess(verifiedUser);
       }
     } catch (err) {
       stopTimeout();
@@ -211,13 +216,18 @@ export default function SignIn({ onLoginSuccess }) {
       const verifyResult = await base44.auth.loginViaEmailPassword(email, password);
       const verifyToken = verifyResult?.access_token || verifyResult?.token;
       if (verifyToken) {
+        if (base44.auth.setToken) base44.auth.setToken(verifyToken);
         localStorage.setItem('base44_access_token', verifyToken);
+        localStorage.setItem('auth_token', verifyToken);
         localStorage.setItem('token', verifyToken);
+        await new Promise(r => setTimeout(r, 300));
       }
+      const verifyUser = await base44.auth.me();
+      if (!verifyUser) throw new Error('Session could not be verified after OTP.');
       if (name) {
         await base44.auth.updateMe({ full_name: name }).catch(() => {});
       }
-      await handleAuthSuccess();
+      await handleAuthSuccess(verifyUser);
     } catch (err) {
       stopTimeout();
       setLoading(false);
