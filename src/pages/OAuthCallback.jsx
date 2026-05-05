@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { appParams } from '@/lib/app-params';
 
 /**
  * OAuthCallback
@@ -33,7 +34,7 @@ export default function OAuthCallback() {
   useEffect(() => {
     const handle = async () => {
       const params = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.replace('#', '?').slice(1));
+      const hashParams = new URLSearchParams(window.location.hash.replace('#', '').replace('?', ''));
 
       // Check for provider error
       const oauthError = params.get('error') || hashParams.get('error');
@@ -45,12 +46,17 @@ export default function OAuthCallback() {
         return;
       }
 
-      // Extract token — check all common locations
+      // CRITICAL: app-params.js strips ?access_token from the URL via history.replaceState
+      // on module import (before this component mounts). Read from appParams.token first,
+      // then fall back to raw URL params for any edge cases.
       const token =
+        appParams.token ||
         params.get('access_token') ||
         params.get('token') ||
         hashParams.get('access_token') ||
         hashParams.get('token');
+
+      console.log('[OAuthCallback] token source:', appParams.token ? 'appParams' : 'url params', '| has token:', !!token);
 
       if (!token) {
         setErrorMsg('No authentication token received. Please try again.');
