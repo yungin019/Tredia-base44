@@ -20,15 +20,24 @@ const getPresStyle = () => {
 // ─── OAuth URLs ────────────────────────────────────────────────────────────────
 // The Base44 SDK's loginWithProvider() does window.location redirect (web only).
 // On native, we must construct the URL ourselves and open it in Browser.open().
-// Base44's OAuth endpoint: /api/auth/providers/{provider}?from_url=...&app_id=...
 //
-// HTTPS callback (what providers redirect to — both Apple and Google require HTTPS):
+// SDK source (auth.js) builds:
+//   Google: {serverUrl}/api/apps/auth/login?app_id={appId}&from_url=...
+//   Apple:  {serverUrl}/api/apps/auth/apple/login?app_id={appId}&from_url=...
+// serverUrl defaults to https://base44.app (NOT app.base44.com, NOT tredio.app)
+//
+// HTTPS callback (Apple and Google both require HTTPS return URLs):
 const OAUTH_CALLBACK_URL = 'https://tredio.app/auth/callback';
+const BASE44_SERVER = 'https://base44.app';
 
 const getProviderUrl = (provider) => {
   const appId = appParams.appId || '69b8062cb434d7411d225f06';
-  // Correct Base44 OAuth endpoint — app.base44.com, NOT tredio.app
-  return `https://app.base44.com/api/apps/${appId}/auth/providers/${provider}?from_url=${encodeURIComponent(OAUTH_CALLBACK_URL)}`;
+  // Mirror exactly what loginWithProvider() does internally:
+  // Google → /api/apps/auth/login
+  // Apple  → /api/apps/auth/apple/login
+  const providerPath = provider === 'google' ? '' : `/${provider}`;
+  const authPath = `/api/apps/auth${providerPath}/login`;
+  return `${BASE44_SERVER}${authPath}?app_id=${appId}&from_url=${encodeURIComponent(OAUTH_CALLBACK_URL)}`;
 };
 
 export default function SignIn({ onLoginSuccess }) {
