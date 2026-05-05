@@ -8,13 +8,12 @@ import {
   sendEmailVerification,
   updateProfile,
   sendPasswordResetEmail,
+  signInWithPopup,
+  GoogleAuthProvider,
+  OAuthProvider,
 } from 'firebase/auth';
-import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
-import { signInWithCredential, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { syncUserProfile } from '@/lib/userProfile';
-
-const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
 
 export default function SignIn() {
   const { t } = useTranslation();
@@ -74,17 +73,9 @@ export default function SignIn() {
     setError('');
     setLoading(true);
     try {
-      if (isNative()) {
-        const result = await FirebaseAuthentication.signInWithGoogle();
-        const credential = GoogleAuthProvider.credential(result.credential?.idToken);
-        const cred = await signInWithCredential(auth, credential);
-        await handleAfterLogin(cred.user);
-      } else {
-        // Web: use redirect (no popup)
-        const { signInWithRedirect } = await import('firebase/auth');
-        await signInWithRedirect(auth, new GoogleAuthProvider());
-        // Result handled by onAuthStateChanged
-      }
+      const provider = new GoogleAuthProvider();
+      const cred = await signInWithPopup(auth, provider);
+      await handleAfterLogin(cred.user);
     } catch (err) {
       setError(mapFirebaseError(err));
       setLoading(false);
@@ -96,19 +87,9 @@ export default function SignIn() {
     setError('');
     setLoading(true);
     try {
-      if (isNative()) {
-        const result = await FirebaseAuthentication.signInWithApple();
-        const provider = new OAuthProvider('apple.com');
-        const credential = provider.credential({
-          idToken: result.credential?.idToken,
-          rawNonce: result.credential?.nonce,
-        });
-        const cred = await signInWithCredential(auth, credential);
-        await handleAfterLogin(cred.user);
-      } else {
-        const { signInWithRedirect } = await import('firebase/auth');
-        await signInWithRedirect(auth, new OAuthProvider('apple.com'));
-      }
+      const provider = new OAuthProvider('apple.com');
+      const cred = await signInWithPopup(auth, provider);
+      await handleAfterLogin(cred.user);
     } catch (err) {
       setError(mapFirebaseError(err));
       setLoading(false);
