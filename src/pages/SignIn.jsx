@@ -26,9 +26,9 @@ const getPresStyle = () => {
 const OAUTH_CALLBACK_URL = 'https://tredio.app/auth/callback';
 
 const getProviderUrl = (provider) => {
-  const appId = appParams.appId;
-  // Base44 OAuth initiation URL — same domain as the app
-  return `https://tredio.app/api/auth/providers/${provider}?from_url=${encodeURIComponent(OAUTH_CALLBACK_URL)}&app_id=${appId}`;
+  const appId = appParams.appId || '69b8062cb434d7411d225f06';
+  // Correct Base44 OAuth endpoint — app.base44.com, NOT tredio.app
+  return `https://app.base44.com/api/apps/${appId}/auth/providers/${provider}?from_url=${encodeURIComponent(OAUTH_CALLBACK_URL)}`;
 };
 
 export default function SignIn({ onLoginSuccess }) {
