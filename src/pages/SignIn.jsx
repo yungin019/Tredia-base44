@@ -52,9 +52,11 @@ export default function SignIn({ onLoginSuccess }) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [step, setStep] = useState('form'); // 'form' | 'verify'
+  const [step, setStep] = useState('form'); // 'form' | 'verify' | 'forgot'
   const [verifyCode, setVerifyCode] = useState('');
   const [nativeErrorDetail, setNativeErrorDetail] = useState(''); // iOS/iPad only: full technical error
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState(false);
 
   const timeoutRef = useRef(null);
 
@@ -233,6 +235,21 @@ export default function SignIn({ onLoginSuccess }) {
     try { await base44.auth.resendOtp(email); } catch (_) {}
   };
 
+  // ─── FORGOT PASSWORD ───────────────────────────────────────────────────────
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await base44.auth.requestPasswordReset(forgotEmail);
+      setForgotSent(true);
+    } catch (err) {
+      setError(err?.message || 'Could not send reset email. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ─── Native OAuth helpers ──────────────────────────────────────────────────
   // On native iOS, after Browser.open() the SFSafariViewController handles auth.
   // useOAuthDeepLink fires 'oauth_callback_received' when it gets the tredio:// callback.
@@ -358,8 +375,54 @@ export default function SignIn({ onLoginSuccess }) {
         }}>
           <AnimatePresence mode="wait">
 
-            {/* VERIFY STEP */}
-            {step === 'verify' ? (
+            {/* FORGOT PASSWORD STEP */}
+            {step === 'forgot' ? (
+              <motion.div key="forgot" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔑</div>
+                  <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>
+                    Reset your password
+                  </p>
+                  <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>
+                    {forgotSent ? 'Check your inbox for a reset link.' : "Enter your email and we'll send you a reset link."}
+                  </p>
+                </div>
+                {forgotSent ? (
+                  <div style={{ textAlign: 'center', padding: '16px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '12px', color: '#22c55e', fontSize: '13px' }}>
+                    ✓ Reset link sent to <strong>{forgotEmail}</strong>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <input
+                      type="email"
+                      placeholder="Email address"
+                      value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)}
+                      required
+                      autoFocus
+                      style={inputStyle}
+                    />
+                    {error && <div style={errorStyle}>{error}</div>}
+                    <button type="submit" disabled={loading || !forgotEmail} style={{
+                      ...submitBtnStyle,
+                      opacity: (loading || !forgotEmail) ? 0.6 : 1,
+                      cursor: (loading || !forgotEmail) ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    }}>
+                      {loading && <Spinner />}
+                      {loading ? 'Sending…' : 'Send Reset Link'}
+                    </button>
+                  </form>
+                )}
+                <button
+                  onClick={() => { setStep('form'); setError(''); setForgotSent(false); setForgotEmail(''); }}
+                  style={{ width: '100%', padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', marginTop: '8px' }}
+                >
+                  ← Back to Sign In
+                </button>
+              </motion.div>
+            ) : step === 'verify' ? (
+
               <motion.div key="verify" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>📧</div>
@@ -461,6 +524,15 @@ export default function SignIn({ onLoginSuccess }) {
                   autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
                   style={inputStyle}
                 />
+                {mode === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => { setStep('forgot'); setForgotEmail(email); setError(''); }}
+                    style={{ background: 'none', border: 'none', color: 'rgba(14,200,220,0.6)', fontSize: '12px', cursor: 'pointer', textAlign: 'right', padding: '0', alignSelf: 'flex-end' }}
+                  >
+                    Forgot password?
+                  </button>
+                )}
                 {mode === 'register' && (
                   <input
                     type="password"
