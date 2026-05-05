@@ -6,34 +6,23 @@ import { base44 } from '@/api/base44Client';
  * OAuthCallback — https://tredio.app/auth/callback
  *
  * CRITICAL: This page runs inside SFSafariViewController on iOS native.
- * window.Capacitor is UNDEFINED here — cannot detect native context.
+ * window.Capacitor is UNDEFINED here — we CANNOT detect native vs web.
  *
- * The token arrives as ?access_token=xxx in the URL.
- * app-params.js consumes it on import, so we must read it from localStorage
- * (where app-params saved it) OR from the raw URL before app-params runs.
+ * RULE: Always fire tredio:// redirect when we have a token.
+ * On native: iOS intercepts tredio://, closes SVC, fires appUrlOpen → useOAuthDeepLink handles login.
+ * On web: tredio:// is ignored after ~600ms → fall through to direct web login.
  *
- * NATIVE flow:
- *   Base44 → https://tredio.app/auth/callback?access_token=xxx
- *   → This page fires: window.location.href = tredio://auth/callback?access_token=xxx
- *   → iOS intercepts tredio://, closes SVC, fires Capacitor appUrlOpen
- *   → useOAuthDeepLink handles the rest
- *
- * WEB flow:
- *   tredio:// is ignored by desktop browsers → falls through to direct login
+ * NEVER render /Home or /Onboarding from this page on native.
+ * The dashboard must open inside the real app WebView, not the SVC.
  */
 
-// ── STEP 0: Fire tredio:// redirect SYNCHRONOUSLY at module parse time ────────
-// This runs before React mounts, before app-params strips the URL.
-// On native iOS inside SFSafariViewController: iOS intercepts immediately.
-// On web: custom scheme is silently ignored.
+// ── Read token at module parse time (before app-params.js can strip the URL) ──
 const _rawSearch = typeof window !== 'undefined' ? window.location.search : '';
-const _rawHash = typeof window !== 'undefined' ? window.location.hash : '';
-const _urlParams = new URLSearchParams(_rawSearch);
+const _rawHash   = typeof window !== 'undefined' ? window.location.hash : '';
+const _urlParams  = new URLSearchParams(_rawSearch);
 const _hashParams = new URLSearchParams(_rawHash.replace(/^#\??/, ''));
 
-// app-params.js runs before this module on a fresh page load and strips
-// access_token from the URL, saving it to localStorage as 'base44_access_token'.
-// If _urlParams is already empty (stripped), read from storage as fallback.
+// app-params.js may have already stripped ?access_token and saved to localStorage
 const _storedToken = typeof window !== 'undefined'
   ? (localStorage.getItem('base44_access_token') || sessionStorage.getItem('base44_access_token'))
   : null;
@@ -43,23 +32,16 @@ const _moduleToken =
   _urlParams.get('token') ||
   _hashParams.get('access_token') ||
   _hashParams.get('token') ||
-  // Fallback: app-params.js already consumed & stored the token
   (_storedToken && !_storedToken.includes('undefined') ? _storedToken : null);
 
-// Also capture any extra params to forward (state, is_new_user, etc.)
-const _extraParams = new URLSearchParams();
-for (const [k, v] of _urlParams.entries()) {
-  if (k !== 'access_token' && k !== 'token') _extraParams.set(k, v);
-}
-
+// ── Always fire tredio:// immediately when token is available ──────────────────
+// On native iOS: SFSafariViewController intercepts this, closes itself, fires appUrlOpen.
+// On web: silently ignored, we fall through to web login below.
 if (_moduleToken && typeof window !== 'undefined') {
-  const schemeUrl = `tredio://auth/callback?access_token=${encodeURIComponent(_moduleToken)}${_extraParams.toString() ? '&' + _extraParams.toString() : ''}`;
-  console.log('[OAuthCallback] Module-level tredio:// redirect firing');
-  // Primary: window.location — iOS SFSafariViewController intercepts this instantly
+  const schemeUrl = `tredio://auth/callback?access_token=${encodeURIComponent(_moduleToken)}`;
+  console.log('[OAuthCallback] Firing tredio:// redirect');
   window.location.href = schemeUrl;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
@@ -69,42 +51,29 @@ export default function OAuthCallback() {
 
   useEffect(() => {
     const handle = async () => {
-      // On native iOS: if we got here, SVC was already closed by the module-level redirect.
-      // The web fallback handles the rest.
-
-      // Re-read URL (app-params.js may have stripped ?access_token already)
-      const params = new URLSearchParams(window.location.search);
+      const params     = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#\??/, ''));
 
-      const searchKeys = [...params.keys()];
-      const hashKeys = [...hashParams.keys()];
-
-      // Diagnostic snapshot (values redacted for security)
-      const storedTokenForDiag = localStorage.getItem('base44_access_token') || sessionStorage.getItem('base44_access_token');
-      const diagSnapshot = {
-        search: window.location.search.replace(/([?&])(access_token|token|code|id_token)=[^&]*/gi, '$1$2=[REDACTED]'),
-        hash: window.location.hash.replace(/([#&])(access_token|token|code|id_token)=[^&]*/gi, '$1$2=[REDACTED]'),
-        searchKeys,
-        hashKeys,
-        moduleToken: !!_moduleToken,
-        hasAccessToken: params.has('access_token') || hashParams.has('access_token') || !!_moduleToken,
-        hasCode: params.has('code') || hashParams.has('code'),
-        storedToken: storedTokenForDiag ? `[SET:${storedTokenForDiag.length}chars]` : '(empty)',
-        storedTokenValid: !!(storedTokenForDiag && !storedTokenForDiag.includes('undefined')),
+      // Diagnostic (values redacted)
+      const storedForDiag = localStorage.getItem('base44_access_token') || sessionStorage.getItem('base44_access_token');
+      const diag = {
+        search:           window.location.search.replace(/([?&])(access_token|token)=[^&]*/gi, '$1$2=[REDACTED]'),
+        hash:             window.location.hash.replace(/([#&])(access_token|token)=[^&]*/gi, '$1$2=[REDACTED]'),
+        searchKeys:       [...params.keys()],
+        hashKeys:         [...hashParams.keys()],
+        moduleToken:      !!_moduleToken,
+        storedToken:      storedForDiag ? `[SET:${storedForDiag.length}]` : '(empty)',
       };
-      console.log('[OAuthCallback] effect diagnostic:', JSON.stringify(diagSnapshot));
-      setDebugInfo(diagSnapshot);
+      console.log('[OAuthCallback] diagnostic:', JSON.stringify(diag));
+      setDebugInfo(diag);
 
       const oauthError = params.get('error') || hashParams.get('error');
       if (oauthError) {
-        const desc = params.get('error_description') || oauthError;
-        setErrorMsg(`Sign in failed: ${desc}`);
+        setErrorMsg(`Sign in failed: ${params.get('error_description') || oauthError}`);
         setStatus('error');
         return;
       }
 
-      // Token: use module-level capture (before app-params strips it) or fallback
-      // Also check localStorage — app-params.js strips the URL param and saves it there
       const storedToken = localStorage.getItem('base44_access_token') || sessionStorage.getItem('base44_access_token');
       const validStored = storedToken && !storedToken.includes('undefined') ? storedToken : null;
 
@@ -117,22 +86,23 @@ export default function OAuthCallback() {
         validStored;
 
       if (!token) {
-        setErrorMsg('No authentication token received.');
+        setErrorMsg('No authentication token received. Please try again.');
         setStatus('error');
         return;
       }
 
-      // ── WEB fallback: if still here after 600ms, tredio:// was ignored (web browser)
-      // Re-fire the scheme redirect just in case (belt & suspenders for edge cases)
-      const schemeUrl = `tredio://auth/callback?access_token=${encodeURIComponent(token)}`;
-      window.location.href = schemeUrl;
-      await new Promise(r => setTimeout(r, 600));
+      // Re-fire tredio:// in case module-level ran before React hydrated
+      // On native: if iOS hasn't intercepted yet, this gives another chance.
+      // On web: ignored → we continue below after 700ms.
+      window.location.href = `tredio://auth/callback?access_token=${encodeURIComponent(token)}`;
+      await new Promise(r => setTimeout(r, 700));
 
-      // ── Web session handling ──────────────────────────────────────────────
+      // ── WEB-ONLY fallback (native would have exited via tredio:// above) ──────
+      if (base44.auth.setToken) base44.auth.setToken(token);
       localStorage.setItem('base44_access_token', token);
+      localStorage.setItem('auth_token', token);
       localStorage.setItem('token', token);
       sessionStorage.setItem('base44_access_token', token);
-      if (base44.auth.setToken) base44.auth.setToken(token);
 
       await new Promise(r => setTimeout(r, 300));
 
@@ -164,27 +134,23 @@ export default function OAuthCallback() {
         <p style={{ color: '#ef4444', fontSize: '13px', textAlign: 'center', width: '100%', marginBottom: '16px' }}>
           {errorMsg}
         </p>
-
         {debugInfo && (
           <div style={{
-            width: '100%', background: 'rgba(14,200,220,0.06)',
-            border: '1px solid rgba(14,200,220,0.2)', borderRadius: '10px',
-            padding: '12px', fontSize: '10px', fontFamily: 'monospace',
+            width: '100%', background: 'rgba(14,200,220,0.06)', border: '1px solid rgba(14,200,220,0.2)',
+            borderRadius: '10px', padding: '12px', fontSize: '10px', fontFamily: 'monospace',
             color: 'rgba(255,255,255,0.7)', wordBreak: 'break-all',
           }}>
-            <div style={{ color: '#0ec8dc', fontWeight: 'bold', marginBottom: '8px', fontSize: '11px' }}>
-              📋 CALLBACK DIAGNOSTIC
-            </div>
-            <DiagRow label="search" value={debugInfo.search || '(empty)'} />
-            <DiagRow label="hash" value={debugInfo.hash || '(empty)'} />
-            <DiagRow label="searchKeys" value={debugInfo.searchKeys.join(', ') || '(none)'} />
-            <DiagRow label="hashKeys" value={debugInfo.hashKeys.join(', ') || '(none)'} />
-            <DiagRow label="moduleToken" value={String(debugInfo.moduleToken)} highlight={debugInfo.moduleToken} />
-            <DiagRow label="hasAccessToken" value={String(debugInfo.hasAccessToken)} highlight={debugInfo.hasAccessToken} />
-            <DiagRow label="hasCode" value={String(debugInfo.hasCode)} highlight={debugInfo.hasCode} />
+            <div style={{ color: '#0ec8dc', fontWeight: 'bold', marginBottom: '8px' }}>📋 CALLBACK DIAGNOSTIC</div>
+            {Object.entries(debugInfo).map(([k, v]) => (
+              <div key={k} style={{ display: 'flex', gap: '6px', marginBottom: '3px' }}>
+                <span style={{ color: 'rgba(14,200,220,0.6)', minWidth: '110px', flexShrink: 0 }}>{k}:</span>
+                <span style={{ color: v === true || (typeof v === 'string' && v.startsWith('[SET')) ? '#22c55e' : 'rgba(255,255,255,0.6)' }}>
+                  {Array.isArray(v) ? v.join(', ') || '(none)' : String(v)}
+                </span>
+              </div>
+            ))}
           </div>
         )}
-
         <button
           onClick={() => navigate('/SignIn', { replace: true })}
           style={{
@@ -207,15 +173,6 @@ export default function OAuthCallback() {
       <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px', marginTop: '16px' }}>
         Completing sign in…
       </p>
-    </div>
-  );
-}
-
-function DiagRow({ label, value, highlight }) {
-  return (
-    <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
-      <span style={{ color: 'rgba(14,200,220,0.6)', minWidth: '110px', flexShrink: 0 }}>{label}:</span>
-      <span style={{ color: highlight ? '#22c55e' : 'rgba(255,255,255,0.6)' }}>{value}</span>
     </div>
   );
 }

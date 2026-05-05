@@ -142,7 +142,6 @@ export default function SignIn({ onLoginSuccess }) {
         try {
           result = await base44.auth.loginViaEmailPassword(email, password);
         } catch (loginErr) {
-          // Show raw error for demo account to help diagnose TestFlight issues
           if (isDemo) {
             setDemoDebug({
               phase: 'loginViaEmailPassword',
@@ -158,7 +157,6 @@ export default function SignIn({ onLoginSuccess }) {
 
         const token = result?.access_token || result?.token;
 
-        // For demo: capture result shape
         if (isDemo) {
           setDemoDebug({
             phase: 'loginResult',
@@ -168,19 +166,19 @@ export default function SignIn({ onLoginSuccess }) {
           });
         }
 
-        if (token) {
-          localStorage.setItem('base44_access_token', token);
-          localStorage.setItem('token', token);
-          sessionStorage.setItem('base44_access_token', token);
-        }
-        // Double-check session before navigating (fixes iPad login loop)
-        let verifiedUser = null;
-        try {
-          verifiedUser = await base44.auth.me();
-        } catch (_) {
-          await new Promise(r => setTimeout(r, 500));
-          verifiedUser = await base44.auth.me();
-        }
+        if (!token) throw new Error('No access token returned. Please try again.');
+
+        // Set token BEFORE calling auth.me()
+        if (base44.auth.setToken) base44.auth.setToken(token);
+        localStorage.setItem('base44_access_token', token);
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('token', token);
+        sessionStorage.setItem('base44_access_token', token);
+
+        // Small delay to ensure SDK picks up new token
+        await new Promise(r => setTimeout(r, 200));
+
+        const verifiedUser = await base44.auth.me();
         if (!verifiedUser) throw new Error('Session could not be verified. Please try again.');
 
         // For demo account: ensure elite access is configured
