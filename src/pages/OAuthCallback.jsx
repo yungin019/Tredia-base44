@@ -30,11 +30,37 @@ export default function OAuthCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('processing');
   const [errorMsg, setErrorMsg] = useState('');
+  const [debugInfo, setDebugInfo] = useState(null);
 
   useEffect(() => {
     const handle = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.replace('#', '').replace('?', ''));
+      // ── DIAGNOSTIC: capture FULL URL state before anything touches it ──────
+      const rawHref = window.location.href;
+      const rawSearch = window.location.search;
+      const rawHash = window.location.hash;
+
+      const params = new URLSearchParams(rawSearch);
+      const hashParams = new URLSearchParams(rawHash.replace('#', '').replace('?', ''));
+
+      // Collect every key present (search + hash), redacting values for privacy
+      const searchKeys = [...params.keys()];
+      const hashKeys = [...hashParams.keys()];
+
+      const diagSnapshot = {
+        href: rawHref.replace(/([?#&])(access_token|token|code|id_token)=[^&]*/gi, '$1$2=[REDACTED]'),
+        search: rawSearch.replace(/([?&])(access_token|token|code|id_token)=[^&]*/gi, '$1$2=[REDACTED]'),
+        hash: rawHash.replace(/([#&])(access_token|token|code|id_token)=[^&]*/gi, '$1$2=[REDACTED]'),
+        searchKeys,
+        hashKeys,
+        appParamsToken: !!appParams.token,
+        hasAccessToken: params.has('access_token') || hashParams.has('access_token'),
+        hasToken: params.has('token') || hashParams.has('token'),
+        hasCode: params.has('code') || hashParams.has('code'),
+        hasIdToken: params.has('id_token') || hashParams.has('id_token'),
+      };
+
+      console.log('[OAuthCallback] DIAGNOSTIC:', JSON.stringify(diagSnapshot, null, 2));
+      setDebugInfo(diagSnapshot);
 
       // Check for provider error
       const oauthError = params.get('error') || hashParams.get('error');
@@ -42,7 +68,7 @@ export default function OAuthCallback() {
         const desc = params.get('error_description') || hashParams.get('error_description') || oauthError;
         setErrorMsg(`Sign in was cancelled or failed: ${desc}`);
         setStatus('error');
-        setTimeout(() => navigate('/SignIn', { replace: true }), 3000);
+        setTimeout(() => navigate('/SignIn', { replace: true }), 5000);
         return;
       }
 
@@ -59,9 +85,9 @@ export default function OAuthCallback() {
       console.log('[OAuthCallback] token source:', appParams.token ? 'appParams' : 'url params', '| has token:', !!token);
 
       if (!token) {
-        setErrorMsg('No authentication token received. Please try again.');
+        setErrorMsg('No authentication token received.');
         setStatus('error');
-        setTimeout(() => navigate('/SignIn', { replace: true }), 3000);
+        // Don't auto-redirect — stay on screen so user can screenshot the diagnostic
         return;
       }
 
@@ -137,14 +163,45 @@ export default function OAuthCallback() {
 
   if (status === 'error') {
     return (
-      <div style={containerStyle}>
-        <img src="/logo-full.svg" alt="TREDIO" style={{ height: '28px', marginBottom: '24px' }} />
-        <p style={{ color: '#ef4444', fontSize: '14px', textAlign: 'center', maxWidth: 300 }}>
+      <div style={{ ...containerStyle, alignItems: 'flex-start', overflowY: 'auto' }}>
+        <img src="/logo-full.svg" alt="TREDIO" style={{ height: '24px', marginBottom: '16px', alignSelf: 'center' }} />
+        <p style={{ color: '#ef4444', fontSize: '13px', textAlign: 'center', width: '100%', marginBottom: '16px' }}>
           {errorMsg}
         </p>
-        <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '11px', marginTop: '12px' }}>
-          Redirecting back to sign in…
-        </p>
+
+        {/* ── ON-SCREEN DIAGNOSTIC — screenshot this on TestFlight ── */}
+        {debugInfo && (
+          <div style={{
+            width: '100%', background: 'rgba(14,200,220,0.06)',
+            border: '1px solid rgba(14,200,220,0.2)', borderRadius: '10px',
+            padding: '12px', fontSize: '10px', fontFamily: 'monospace',
+            color: 'rgba(255,255,255,0.7)', wordBreak: 'break-all',
+          }}>
+            <div style={{ color: '#0ec8dc', fontWeight: 'bold', marginBottom: '8px', fontSize: '11px' }}>
+              📋 CALLBACK DIAGNOSTIC — screenshot &amp; share
+            </div>
+            <Row label="search" value={debugInfo.search || '(empty)'} />
+            <Row label="hash" value={debugInfo.hash || '(empty)'} />
+            <Row label="searchKeys" value={debugInfo.searchKeys.join(', ') || '(none)'} />
+            <Row label="hashKeys" value={debugInfo.hashKeys.join(', ') || '(none)'} />
+            <Row label="appParams.token" value={String(debugInfo.appParamsToken)} />
+            <Row label="has access_token" value={String(debugInfo.hasAccessToken)} highlight={debugInfo.hasAccessToken} />
+            <Row label="has token" value={String(debugInfo.hasToken)} highlight={debugInfo.hasToken} />
+            <Row label="has code" value={String(debugInfo.hasCode)} highlight={debugInfo.hasCode} />
+            <Row label="has id_token" value={String(debugInfo.hasIdToken)} highlight={debugInfo.hasIdToken} />
+          </div>
+        )}
+
+        <button
+          onClick={() => navigate('/SignIn', { replace: true })}
+          style={{
+            marginTop: '16px', alignSelf: 'center', padding: '10px 24px',
+            background: 'rgba(14,200,220,0.15)', border: '1px solid rgba(14,200,220,0.3)',
+            borderRadius: '8px', color: '#0ec8dc', fontSize: '13px', cursor: 'pointer',
+          }}
+        >
+          Back to Sign In
+        </button>
       </div>
     );
   }
@@ -171,6 +228,15 @@ const containerStyle = {
   gap: '4px',
   padding: '24px',
 };
+
+function Row({ label, value, highlight }) {
+  return (
+    <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
+      <span style={{ color: 'rgba(14,200,220,0.6)', minWidth: '110px', flexShrink: 0 }}>{label}:</span>
+      <span style={{ color: highlight ? '#22c55e' : 'rgba(255,255,255,0.6)' }}>{value}</span>
+    </div>
+  );
+}
 
 const spinnerStyle = {
   width: 28, height: 28,
