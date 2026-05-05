@@ -31,11 +31,20 @@ const _rawHash = typeof window !== 'undefined' ? window.location.hash : '';
 const _urlParams = new URLSearchParams(_rawSearch);
 const _hashParams = new URLSearchParams(_rawHash.replace(/^#\??/, ''));
 
+// app-params.js runs before this module on a fresh page load and strips
+// access_token from the URL, saving it to localStorage as 'base44_access_token'.
+// If _urlParams is already empty (stripped), read from storage as fallback.
+const _storedToken = typeof window !== 'undefined'
+  ? (localStorage.getItem('base44_access_token') || sessionStorage.getItem('base44_access_token'))
+  : null;
+
 const _moduleToken =
   _urlParams.get('access_token') ||
   _urlParams.get('token') ||
   _hashParams.get('access_token') ||
-  _hashParams.get('token');
+  _hashParams.get('token') ||
+  // Fallback: app-params.js already consumed & stored the token
+  (_storedToken && !_storedToken.includes('undefined') ? _storedToken : null);
 
 // Also capture any extra params to forward (state, is_new_user, etc.)
 const _extraParams = new URLSearchParams();
@@ -71,6 +80,7 @@ export default function OAuthCallback() {
       const hashKeys = [...hashParams.keys()];
 
       // Diagnostic snapshot (values redacted for security)
+      const storedTokenForDiag = localStorage.getItem('base44_access_token') || sessionStorage.getItem('base44_access_token');
       const diagSnapshot = {
         search: window.location.search.replace(/([?&])(access_token|token|code|id_token)=[^&]*/gi, '$1$2=[REDACTED]'),
         hash: window.location.hash.replace(/([#&])(access_token|token|code|id_token)=[^&]*/gi, '$1$2=[REDACTED]'),
@@ -79,6 +89,8 @@ export default function OAuthCallback() {
         moduleToken: !!_moduleToken,
         hasAccessToken: params.has('access_token') || hashParams.has('access_token') || !!_moduleToken,
         hasCode: params.has('code') || hashParams.has('code'),
+        storedToken: storedTokenForDiag ? `[SET:${storedTokenForDiag.length}chars]` : '(empty)',
+        storedTokenValid: !!(storedTokenForDiag && !storedTokenForDiag.includes('undefined')),
       };
       console.log('[OAuthCallback] effect diagnostic:', JSON.stringify(diagSnapshot));
       setDebugInfo(diagSnapshot);
@@ -92,12 +104,17 @@ export default function OAuthCallback() {
       }
 
       // Token: use module-level capture (before app-params strips it) or fallback
+      // Also check localStorage — app-params.js strips the URL param and saves it there
+      const storedToken = localStorage.getItem('base44_access_token') || sessionStorage.getItem('base44_access_token');
+      const validStored = storedToken && !storedToken.includes('undefined') ? storedToken : null;
+
       const token =
         _moduleToken ||
         params.get('access_token') ||
         params.get('token') ||
         hashParams.get('access_token') ||
-        hashParams.get('token');
+        hashParams.get('token') ||
+        validStored;
 
       if (!token) {
         setErrorMsg('No authentication token received.');

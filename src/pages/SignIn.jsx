@@ -112,6 +112,7 @@ export default function SignIn({ onLoginSuccess }) {
   // trediodemo@outlook.com gets direct login + elite access, no verification.
   const DEMO_EMAIL = 'trediodemo@outlook.com';
   const DEMO_PASS  = 'trediotest2026';
+  const [demoDebug, setDemoDebug] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,8 +136,36 @@ export default function SignIn({ onLoginSuccess }) {
         setLoading(false);
         setStep('verify');
       } else {
-        const result = await base44.auth.loginViaEmailPassword(email, password);
+        let result;
+        try {
+          result = await base44.auth.loginViaEmailPassword(email, password);
+        } catch (loginErr) {
+          // Show raw error for demo account to help diagnose TestFlight issues
+          if (isDemo) {
+            setDemoDebug({
+              phase: 'loginViaEmailPassword',
+              message: loginErr.message,
+              code: loginErr.code,
+              status: loginErr.status,
+              name: loginErr.name,
+              raw: String(loginErr),
+            });
+          }
+          throw loginErr;
+        }
+
         const token = result?.access_token || result?.token;
+
+        // For demo: capture result shape
+        if (isDemo) {
+          setDemoDebug({
+            phase: 'loginResult',
+            resultKeys: Object.keys(result || {}),
+            hasToken: !!token,
+            tokenLength: token?.length,
+          });
+        }
+
         if (token) {
           localStorage.setItem('base44_access_token', token);
           localStorage.setItem('token', token);
@@ -165,13 +194,9 @@ export default function SignIn({ onLoginSuccess }) {
       stopTimeout();
       setLoading(false);
       console.error('[SignIn] Email login error:', JSON.stringify({ message: err.message, code: err.code, status: err.status }));
-      // Suppress SDK auth-wall messages — these are not meaningful to the user on the sign-in screen
+      // Show raw error for ALL users — helps diagnose TestFlight issues
       const msg = err?.message || '';
-      const isAuthWall = msg.toLowerCase().includes('must be logged in') || msg.toLowerCase().includes('not logged in') || msg.toLowerCase().includes('unauthorized');
-      setError(isAuthWall
-        ? t('signin.error.invalidCredentials', 'Invalid email or password. Please try again.')
-        : msg || t('signin.error.invalidCredentials', 'Invalid email or password. Please try again.')
-      );
+      setError(msg || t('signin.error.invalidCredentials', 'Invalid email or password. Please try again.'));
     }
   };
 
@@ -449,6 +474,21 @@ export default function SignIn({ onLoginSuccess }) {
                 )}
 
                 {error && <div style={errorStyle}>{error}</div>}
+
+                {/* Demo debug panel — visible when demo login fails */}
+                {demoDebug && (
+                  <div style={{
+                    padding: '10px 12px', background: 'rgba(245,158,11,0.07)',
+                    border: '1px solid rgba(245,158,11,0.25)', borderRadius: '8px',
+                    fontSize: '10px', fontFamily: 'monospace', color: 'rgba(245,158,11,0.9)',
+                    wordBreak: 'break-all',
+                  }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🔍 DEMO DEBUG</div>
+                    {Object.entries(demoDebug).map(([k, v]) => (
+                      <div key={k}><span style={{ color: 'rgba(14,200,220,0.7)' }}>{k}:</span> {typeof v === 'object' ? JSON.stringify(v) : String(v)}</div>
+                    ))}
+                  </div>
+                )}
 
                 <button
                   type="submit"
