@@ -217,24 +217,31 @@ export default function SignIn({ onLoginSuccess }) {
     setNativeErrorDetail('');
     setLoading(true);
 
+    // Shared handle so both listeners can clean each other up
+    let browserFinishedHandle = null;
+
     // Listen for callback — fires when useOAuthDeepLink receives tredio:// URL
     const onCallback = () => {
       stopTimeout();
       setLoading(false);
       window.removeEventListener('oauth_callback_received', onCallback);
+      browserFinishedHandle?.remove?.();
     };
     window.addEventListener('oauth_callback_received', onCallback);
 
     // Also clear loading if Browser closes without a callback (user cancelled)
     const onBrowserFinished = () => {
-      // Give useOAuthDeepLink 1s to fire first; if not, clear loading
+      // Give useOAuthDeepLink 1s to fire the oauth_callback_received event first
       setTimeout(() => {
         stopTimeout();
         setLoading(false);
         window.removeEventListener('oauth_callback_received', onCallback);
+        browserFinishedHandle?.remove?.();
       }, 1000);
     };
-    Browser.addListener('browserFinished', onBrowserFinished).catch(() => {});
+    Browser.addListener('browserFinished', onBrowserFinished)
+      .then(h => { browserFinishedHandle = h; })
+      .catch(() => {});
 
     try {
       const oauthUrl = getProviderUrl(provider);
