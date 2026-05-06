@@ -1,16 +1,18 @@
 /**
  * FirebaseAuthContext
- * SINGLE SOURCE OF TRUTH: Firebase onAuthStateChanged()
  *
- * Guarantees:
- * - isLoading is NEVER true for more than 8 seconds (hard timeout)
- * - syncUserProfile failure → fallback minimal profile, app continues
- * - firebaseUser is always set (null or user) — never left undefined
+ * Source of truth hierarchy:
+ * 1. onAuthStateChanged (web — JS SDK has the session)
+ * 2. getNativeSession()  (native iOS/Android — plugin session, JS SDK blind to it)
+ * 3. null -> user is logged out
+ *
+ * isLoading is never true for more than 8 seconds (hard timeout).
  */
 import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { syncUserProfile, clearUserProfile, getCachedProfile, buildMinimalProfile } from '@/lib/userProfile';
+import { getNativeSession, clearNativeSession } from '@/lib/nativeSession';
 
 const FirebaseAuthContext = createContext();
 
@@ -22,7 +24,6 @@ export const FirebaseAuthProvider = ({ children }) => {
   const hardTimeoutRef = useRef(null);
 
   useEffect(() => {
-    // Hard timeout: if auth hasn't resolved in 8s, force isLoading → false
     hardTimeoutRef.current = setTimeout(() => {
       setFirebaseUser(prev => {
         if (prev === undefined) {
@@ -37,33 +38,63 @@ export const FirebaseAuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       clearTimeout(hardTimeoutRef.current);
 
-      if (!fbUser) {
-        setLoadingPhase('no-user');
-        clearUserProfile();
-        setProfile(null);
-        setFirebaseUser(null);
+      if (fbUser) {
+        // Web path: JS SDK has a real session
+        setLoadingPhase('syncing-profile');
+        let p = null;
+        try {
+          p = await Promise.race([
+            syncUserProfile(fbUser),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('syncUserProfile timed out after 5s')), 5000)
+            ),
+          ]);
+          setLoadingPhase('profile-ok');
+        } catch (err) {
+          setLastError('Profile sync failed: ' + err.message);
+          setLoadingPhase('profile-fallback');
+          p = getCachedProfile() || buildMinimalProfile(fbUser);
+        }
+        setProfile(p);
+        setFirebaseUser(fbUser);
         return;
       }
 
-      setLoadingPhase('syncing-profile');
-
-      let p = null;
-      try {
-        p = await Promise.race([
-          syncUserProfile(fbUser),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('syncUserProfile timed out after 5s')), 5000)
-          ),
-        ]);
-        setLoadingPhase('profile-ok');
-      } catch (err) {
-        setLastError('Profile sync failed: ' + err.message);
-        setLoadingPhase('profile-fallback');
-        p = getCachedProfile() || buildMinimalProfile(fbUser);
+      // No JS SDK session — check native session
+      const nativeSession = getNativeSession();
+      if (nativeSession) {
+        setLoadingPhase('native-session');
+        const syntheticUser = {
+          email: nativeSession.email,
+          uid: nativeSession.uid,
+          displayName: nativeSession.displayName,
+          photoURL: nativeSession.photoURL,
+          _isNativeSession: true,
+        };
+        let p = null;
+        try {
+          p = await Promise.race([
+            syncUserProfile(syntheticUser, nativeSession.idToken),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('native syncUserProfile timeout 5s')), 5000)
+            ),
+          ]);
+          setLoadingPhase('native-profile-ok');
+        } catch (err) {
+          setLastError('Native profile sync failed: ' + err.message);
+          setLoadingPhase('native-profile-fallback');
+          p = getCachedProfile() || buildMinimalProfile(syntheticUser);
+        }
+        setProfile(p);
+        setFirebaseUser(syntheticUser);
+        return;
       }
 
-      setProfile(p);
-      setFirebaseUser(fbUser);
+      // Truly unauthenticated
+      setLoadingPhase('no-user');
+      clearUserProfile();
+      setProfile(null);
+      setFirebaseUser(null);
     });
 
     return () => {
@@ -73,17 +104,19 @@ export const FirebaseAuthProvider = ({ children }) => {
   }, []);
 
   const logout = async () => {
+    clearNativeSession();
     clearUserProfile();
     setProfile(null);
     setFirebaseUser(null);
     setLoadingPhase('logged-out');
-    await signOut(auth);
+    try { await signOut(auth); } catch (_) {}
   };
 
   const refreshProfile = async () => {
     if (firebaseUser) {
       try {
-        const p = await syncUserProfile(firebaseUser);
+        const nativeSession = getNativeSession();
+        const p = await syncUserProfile(firebaseUser, nativeSession?.idToken || null);
         setProfile(p);
         return p;
       } catch (err) {
@@ -93,11 +126,19 @@ export const FirebaseAuthProvider = ({ children }) => {
     return null;
   };
 
+  // Called by SignIn.jsx on native login to immediately unblock AppRoutes
+  // without waiting for onAuthStateChanged (which never fires on native).
+  const setNativeUser = (syntheticUser, p) => {
+    setFirebaseUser(syntheticUser);
+    setProfile(p);
+    setLoadingPhase('native-injected');
+  };
+
   const isLoading = firebaseUser === undefined;
 
   return (
     <FirebaseAuthContext.Provider value={{
-      firebaseUser, profile, isLoading, logout, refreshProfile,
+      firebaseUser, profile, isLoading, logout, refreshProfile, setNativeUser,
       loadingPhase, lastError,
     }}>
       {children}

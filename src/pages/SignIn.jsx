@@ -12,6 +12,12 @@
  *   so it never calls firebaseUser.getIdToken() on a plain data object.
  * - 10-second safetyTimer prevents infinite spinner.
  * - Step-by-step debug panel shows exactly where the flow is.
+ *
+ * AUTH GUARD FIX (native):
+ * - After native login, setNativeSession() persists the session to localStorage.
+ * - setNativeUser() injects the user directly into FirebaseAuthContext so
+ *   AppRoutes immediately sees an authenticated user — no waiting for
+ *   onAuthStateChanged (which never fires on native).
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,14 +36,12 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { syncUserProfile } from '@/lib/userProfile';
-
-// NOTE: signInWithCredential, GoogleAuthProvider.credential, OAuthProvider.credential
-// are intentionally NOT imported — they must never be called on native.
+import { setNativeSession } from '@/lib/nativeSession';
+import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
 const PLATFORM = Capacitor.getPlatform();
 
-// Retry auth.currentUser — the native plugin may need a tick to propagate
 async function waitForCurrentUser(retries = 6, delayMs = 500) {
   for (let i = 0; i < retries; i++) {
     if (auth.currentUser) return auth.currentUser;
@@ -53,6 +57,7 @@ function log(msg, data) {
 export default function SignIn() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { setNativeUser } = useFirebaseAuth();
   const accountDeleted = new URLSearchParams(window.location.search).get('deleted') === '1';
 
   const [mode, setMode] = useState('login');
@@ -111,16 +116,11 @@ export default function SignIn() {
     return parts.join(' | ') || String(err);
   };
 
-  // Web post-login (real Firebase User object)
   const handleAfterLoginWeb = async (fbUser) => {
     const profile = await syncUserProfile(fbUser);
     navigate(!profile?.onboarding_completed ? '/Onboarding' : '/Home', { replace: true });
   };
 
-  // Native post-login
-  // pluginResult: the raw result from FA.signInWithGoogle() / FA.signInWithApple()
-  // The plugin already completed Firebase auth natively.
-  // We use result.user (plain object) + idToken from result.credential to sync profile.
   const handleAfterLoginNative = async (pluginResult) => {
     addStep('STEP 2: handleAfterLoginNative entered');
 
@@ -129,11 +129,9 @@ export default function SignIn() {
 
     addStep('STEP 3: idToken=' + (idToken ? 'YES' : 'NO') + ' result.user=' + (resultUser ? 'YES(email:' + resultUser.email + ')' : 'NO'));
 
-    // Wait for auth.currentUser (set by the native plugin bridge)
     const currentUser = await waitForCurrentUser(6, 500);
     addStep('STEP 4: auth.currentUser after retries=' + (currentUser ? 'YES' : 'NO'));
 
-    // Prefer real Firebase User (has getIdToken), fall back to plain result.user
     const userForSync = currentUser || resultUser;
 
     if (!userForSync) {
@@ -148,7 +146,6 @@ export default function SignIn() {
 
     let profile;
     try {
-      // Pass idToken directly — avoids calling getIdToken() on a plain object
       profile = await Promise.race([
         syncUserProfile(userForSync, idToken),
         new Promise((_, reject) => setTimeout(() => reject(new Error('syncUserProfile timeout 8s')), 8000)),
@@ -156,9 +153,24 @@ export default function SignIn() {
       addStep('STEP 6: syncUserProfile done, onboarding=' + profile?.onboarding_completed);
     } catch (syncErr) {
       addStep('STEP 6-FAIL: syncUserProfile threw: ' + syncErr.message);
-      // Non-fatal — navigate with minimal data anyway
       profile = { onboarding_completed: false };
     }
+
+    // Persist session to localStorage so FirebaseAuthContext survives reloads
+    const sessionUser = userForSync;
+    setNativeSession(sessionUser, idToken);
+    addStep('STEP 6b: native session stored in localStorage');
+
+    // Inject user into context immediately — this unblocks AppRoutes before navigate()
+    const syntheticUser = {
+      email: sessionUser.email,
+      uid: sessionUser.uid,
+      displayName: sessionUser.displayName,
+      photoURL: sessionUser.photoURL,
+      _isNativeSession: true,
+    };
+    setNativeUser(syntheticUser, profile);
+    addStep('STEP 6c: setNativeUser injected — AppRoutes unblocked');
 
     addStep('STEP 7: calling navigate');
     stopSafetyTimer();
@@ -176,7 +188,6 @@ export default function SignIn() {
     }
   };
 
-  // Email/Password
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -203,7 +214,6 @@ export default function SignIn() {
     }
   };
 
-  // GOOGLE
   const handleGoogle = async () => {
     setError('');
     setDebugSteps([]);
@@ -242,7 +252,6 @@ export default function SignIn() {
         }
 
         addStep('STEP 1-OK: native Google result keys=' + JSON.stringify(Object.keys(result || {})));
-        // NEVER call signInWithCredential here — plugin already did the Firebase auth natively
         await handleAfterLoginNative(result);
       } else {
         const provider = new GoogleAuthProvider();
@@ -258,7 +267,6 @@ export default function SignIn() {
     }
   };
 
-  // APPLE
   const handleApple = async () => {
     setError('');
     setDebugSteps([]);
@@ -297,7 +305,6 @@ export default function SignIn() {
         }
 
         addStep('STEP 1-OK: native Apple result keys=' + JSON.stringify(Object.keys(result || {})));
-        // NEVER call signInWithCredential here — plugin already did the Firebase auth natively
         await handleAfterLoginNative(result);
       } else {
         const provider = new OAuthProvider('apple.com');
@@ -313,7 +320,6 @@ export default function SignIn() {
     }
   };
 
-  // Forgot password
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setError('');
@@ -333,12 +339,10 @@ export default function SignIn() {
       <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
 
-        {/* Static debug bar */}
         <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,0,0.4)', borderRadius: '8px', padding: '6px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(255,255,0,0.9)', lineHeight: '1.8' }}>
           mode: <strong>{IS_NATIVE ? 'NATIVE' : 'web'}</strong> | platform: <strong>{PLATFORM}</strong> | plugin: <strong>{pluginAvailable === null ? 'checking...' : String(pluginAvailable)}</strong>
         </div>
 
-        {/* Step-by-step auth trace */}
         {debugSteps.length > 0 && (
           <div style={{ background: 'rgba(0,15,5,0.9)', border: '1px solid rgba(0,255,100,0.35)', borderRadius: '8px', padding: '8px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(0,255,120,0.9)', lineHeight: '1.85' }}>
             <div style={{ fontWeight: 'bold', color: '#fff', marginBottom: '4px' }}>Auth trace</div>
