@@ -2,12 +2,15 @@
  * userProfile.js
  * Syncs a Firebase-authenticated user into the Base44 User entity.
  * NEVER throws — always returns a profile object.
+ *
+ * syncUserProfile(firebaseUser, overrideIdToken)
+ *   overrideIdToken: pass the idToken from the native plugin result directly
+ *   to avoid calling getIdToken() on a plain data object (which would hang/throw).
  */
 import { base44 } from '@/api/base44Client';
 
 const PROFILE_KEY = 'tredio_user_profile';
 
-/** Build a minimal working profile from Firebase user alone (no API needed) */
 export function buildMinimalProfile(firebaseUser) {
   return {
     email: firebaseUser.email,
@@ -22,25 +25,37 @@ export function buildMinimalProfile(firebaseUser) {
   };
 }
 
-export async function syncUserProfile(firebaseUser) {
+export async function syncUserProfile(firebaseUser, overrideIdToken = null) {
   if (!firebaseUser) return null;
 
-  // Step 1: set token (best-effort — 3s timeout)
-  try {
-    const idToken = await Promise.race([
-      firebaseUser.getIdToken(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('getIdToken timeout')), 3000)),
-    ]);
+  // Step 1: get idToken — use override (from native plugin result) or call getIdToken()
+  // On native, firebaseUser may be a plain data object without getIdToken(), so override is critical.
+  let idToken = overrideIdToken || null;
+  if (!idToken && typeof firebaseUser.getIdToken === 'function') {
+    try {
+      idToken = await Promise.race([
+        firebaseUser.getIdToken(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('getIdToken timeout')), 3000)),
+      ]);
+    } catch (_) {}
+  }
+
+  if (idToken) {
     if (base44.auth?.setToken) base44.auth.setToken(idToken);
     localStorage.setItem('base44_access_token', idToken);
     localStorage.setItem('auth_token', idToken);
-  } catch (_) {}
+  }
 
-  // Step 2: fetch existing user record (best-effort)
+  // Step 2: fetch existing user record (best-effort, 4s timeout)
   let existing = null;
   try {
-    const users = await base44.entities.User.filter({ email: firebaseUser.email });
-    existing = users?.[0] || null;
+    const email = firebaseUser.email;
+    if (email) {
+      existing = await Promise.race([
+        base44.entities.User.filter({ email }).then(u => u?.[0] || null),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('User filter timeout')), 4000)),
+      ]);
+    }
   } catch (_) {}
 
   const profileData = {
@@ -57,7 +72,12 @@ export async function syncUserProfile(firebaseUser) {
   if (!merged.referral_code) merged.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
 
   try {
-    if (existing?.id) await base44.entities.User.update(existing.id, merged);
+    if (existing?.id) {
+      await Promise.race([
+        base44.entities.User.update(existing.id, merged),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('User update timeout')), 4000)),
+      ]);
+    }
   } catch (_) {}
 
   localStorage.setItem(PROFILE_KEY, JSON.stringify(merged));

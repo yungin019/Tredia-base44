@@ -1,4 +1,19 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * SignIn.jsx — TREDIO native-safe auth
+ *
+ * ARCHITECTURE:
+ * - Native iOS/Android: @capacitor-firebase/authentication handles the full OAuth flow
+ *   natively. The plugin sets auth.currentUser automatically. We NEVER call
+ *   signInWithCredential() on native — it causes nonce/duplicate errors.
+ * - Web: signInWithPopup() as normal.
+ *
+ * HANG FIX:
+ * - syncUserProfile now accepts an overrideIdToken (idToken from plugin result)
+ *   so it never calls firebaseUser.getIdToken() on a plain data object.
+ * - 10-second safetyTimer prevents infinite spinner.
+ * - Step-by-step debug panel shows exactly where the flow is.
+ */
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -10,15 +25,30 @@ import {
   updateProfile,
   sendPasswordResetEmail,
   signInWithPopup,
-  signInWithCredential,
   GoogleAuthProvider,
   OAuthProvider,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { syncUserProfile } from '@/lib/userProfile';
 
+// NOTE: signInWithCredential, GoogleAuthProvider.credential, OAuthProvider.credential
+// are intentionally NOT imported — they must never be called on native.
+
 const IS_NATIVE = Capacitor.isNativePlatform();
 const PLATFORM = Capacitor.getPlatform();
+
+// Retry auth.currentUser — the native plugin may need a tick to propagate
+async function waitForCurrentUser(retries = 6, delayMs = 500) {
+  for (let i = 0; i < retries; i++) {
+    if (auth.currentUser) return auth.currentUser;
+    await new Promise(r => setTimeout(r, delayMs));
+  }
+  return null;
+}
+
+function log(msg, data) {
+  console.log('[TREDIO AUTH] ' + msg, data || '');
+}
 
 export default function SignIn() {
   const { t } = useTranslation();
@@ -36,23 +66,117 @@ export default function SignIn() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
   const [pluginAvailable, setPluginAvailable] = useState(null);
-  const [nativeDebug, setNativeDebug] = useState(null);
+  const [debugSteps, setDebugSteps] = useState([]);
+
+  const safetyTimer = useRef(null);
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    isMounted.current = true;
     if (IS_NATIVE) {
       import('@capacitor-firebase/authentication')
-        .then(m => setPluginAvailable(!!m && !!m.FirebaseAuthentication))
-        .catch(() => setPluginAvailable(false));
+        .then(m => { if (isMounted.current) setPluginAvailable(!!m?.FirebaseAuthentication); })
+        .catch(() => { if (isMounted.current) setPluginAvailable(false); });
     } else {
       setPluginAvailable(false);
     }
+    return () => {
+      isMounted.current = false;
+      clearTimeout(safetyTimer.current);
+    };
   }, []);
 
-  const handleAfterLogin = async (fbUser) => {
+  const addStep = (msg) => {
+    log(msg);
+    if (isMounted.current) setDebugSteps(prev => [...prev, msg]);
+  };
+
+  const startSafetyTimer = () => {
+    clearTimeout(safetyTimer.current);
+    safetyTimer.current = setTimeout(() => {
+      if (isMounted.current) {
+        setLoading(false);
+        setError('TIMEOUT (10s): sign-in hung. Check debug steps above.');
+      }
+    }, 10000);
+  };
+
+  const stopSafetyTimer = () => clearTimeout(safetyTimer.current);
+
+  const formatError = (err) => {
+    const parts = [];
+    if (err?.message) parts.push(err.message);
+    if (err?.code) parts.push('code: ' + err.code);
+    try { if (err && typeof err === 'object') parts.push(JSON.stringify(err)); } catch (_) {}
+    return parts.join(' | ') || String(err);
+  };
+
+  // Web post-login (real Firebase User object)
+  const handleAfterLoginWeb = async (fbUser) => {
     const profile = await syncUserProfile(fbUser);
     navigate(!profile?.onboarding_completed ? '/Onboarding' : '/Home', { replace: true });
   };
 
+  // Native post-login
+  // pluginResult: the raw result from FA.signInWithGoogle() / FA.signInWithApple()
+  // The plugin already completed Firebase auth natively.
+  // We use result.user (plain object) + idToken from result.credential to sync profile.
+  const handleAfterLoginNative = async (pluginResult) => {
+    addStep('STEP 2: handleAfterLoginNative entered');
+
+    const idToken = pluginResult?.credential?.idToken || null;
+    const resultUser = pluginResult?.user || null;
+
+    addStep('STEP 3: idToken=' + (idToken ? 'YES' : 'NO') + ' result.user=' + (resultUser ? 'YES(email:' + resultUser.email + ')' : 'NO'));
+
+    // Wait for auth.currentUser (set by the native plugin bridge)
+    const currentUser = await waitForCurrentUser(6, 500);
+    addStep('STEP 4: auth.currentUser after retries=' + (currentUser ? 'YES' : 'NO'));
+
+    // Prefer real Firebase User (has getIdToken), fall back to plain result.user
+    const userForSync = currentUser || resultUser;
+
+    if (!userForSync) {
+      addStep('STEP 4-FAIL: no user object available at all');
+      setError('Native sign-in succeeded but no user data found. Try again.');
+      setLoading(false);
+      stopSafetyTimer();
+      return;
+    }
+
+    addStep('STEP 5: calling syncUserProfile (idToken override=' + (idToken ? 'YES' : 'NO') + ')');
+
+    let profile;
+    try {
+      // Pass idToken directly — avoids calling getIdToken() on a plain object
+      profile = await Promise.race([
+        syncUserProfile(userForSync, idToken),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('syncUserProfile timeout 8s')), 8000)),
+      ]);
+      addStep('STEP 6: syncUserProfile done, onboarding=' + profile?.onboarding_completed);
+    } catch (syncErr) {
+      addStep('STEP 6-FAIL: syncUserProfile threw: ' + syncErr.message);
+      // Non-fatal — navigate with minimal data anyway
+      profile = { onboarding_completed: false };
+    }
+
+    addStep('STEP 7: calling navigate');
+    stopSafetyTimer();
+    try {
+      navigate(!profile?.onboarding_completed ? '/Onboarding' : '/Home', { replace: true });
+      addStep('STEP 8: navigate called');
+    } catch (navErr) {
+      addStep('STEP 8-FAIL: navigate threw: ' + navErr.message);
+      setError('Navigation failed: ' + navErr.message);
+    }
+
+    if (isMounted.current) {
+      setLoading(false);
+      addStep('STEP 9: setLoading(false)');
+    }
+  };
+
+  // Email/Password
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -68,11 +192,10 @@ export default function SignIn() {
         if (name) await updateProfile(cred.user, { displayName: name });
         await sendEmailVerification(cred.user);
         setStep('verify');
-        setLoading(false);
         return;
       }
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      await handleAfterLogin(cred.user);
+      await handleAfterLoginWeb(cred.user);
     } catch (err) {
       setError(mapFirebaseError(err));
     } finally {
@@ -80,173 +203,117 @@ export default function SignIn() {
     }
   };
 
-  const formatError = (err) => {
-    try {
-      const parts = [];
-      if (err?.message) parts.push('msg: ' + err.message);
-      if (err?.code) parts.push('code: ' + err.code);
-      if (err?.name) parts.push('name: ' + err.name);
-      try { parts.push('json: ' + JSON.stringify(err)); } catch (_) {}
-      if (err?.stack) parts.push('stack: ' + String(err.stack).slice(0, 300));
-      return parts.join(' | ') || String(err);
-    } catch (_) {
-      return 'Unknown error';
-    }
-  };
-
-  // GOOGLE: native Capacitor plugin on iOS/Android — popup ONLY on web
+  // GOOGLE
   const handleGoogle = async () => {
     setError('');
-    setNativeDebug(null);
+    setDebugSteps([]);
     setLoading(true);
+    startSafetyTimer();
+    addStep('STEP 1: Google sign-in started (native=' + IS_NATIVE + ')');
+
     try {
       if (IS_NATIVE) {
-        // Step 1 — load plugin
         let FA;
         try {
           const mod = await import('@capacitor-firebase/authentication');
           FA = mod.FirebaseAuthentication;
-        } catch (pluginErr) {
-          setError('Plugin load failed: ' + formatError(pluginErr));
+        } catch (err) {
+          setError('Plugin import failed: ' + formatError(err));
           setLoading(false);
-          return;
-        }
-        if (!FA) {
-          setError('FirebaseAuthentication plugin is null/undefined after import');
-          setLoading(false);
+          stopSafetyTimer();
           return;
         }
 
-        // Step 2 — call native sign-in
+        if (!FA) {
+          setError('FirebaseAuthentication is null after import');
+          setLoading(false);
+          stopSafetyTimer();
+          return;
+        }
+
         let result;
         try {
           result = await FA.signInWithGoogle();
-        } catch (nativeErr) {
-          setError('Native Google sign-in failed: ' + formatError(nativeErr));
+        } catch (err) {
+          setError('FA.signInWithGoogle() failed: ' + formatError(err));
           setLoading(false);
+          stopSafetyTimer();
           return;
         }
 
-        // Step 3 — inspect result structure and show on screen
-        const debugInfo = {
-          resultKeys: result ? Object.keys(result) : [],
-          credentialKeys: result?.credential ? Object.keys(result.credential) : [],
-          hasIdToken: !!result?.credential?.idToken,
-          hasAccessToken: !!result?.credential?.accessToken,
-          hasUser: !!result?.user,
-          userEmail: result?.user?.email || null,
-        };
-        setNativeDebug(debugInfo);
-
-        // Step 4 — extract idToken (v8 API: result.credential.idToken)
-        const idToken = result?.credential?.idToken;
-        if (!idToken) {
-          setError(
-            'Google native sign-in returned no idToken.\n' +
-            'result keys: ' + JSON.stringify(debugInfo.resultKeys) + '\n' +
-            'credential keys: ' + JSON.stringify(debugInfo.credentialKeys)
-          );
-          setLoading(false);
-          return;
-        }
-
-        // Step 5 — exchange for Firebase credential
-        let cred;
-        try {
-          const firebaseCredential = GoogleAuthProvider.credential(idToken);
-          cred = await signInWithCredential(auth, firebaseCredential);
-        } catch (credErr) {
-          setError('signInWithCredential failed: ' + formatError(credErr));
-          setLoading(false);
-          return;
-        }
-
-        await handleAfterLogin(cred.user);
+        addStep('STEP 1-OK: native Google result keys=' + JSON.stringify(Object.keys(result || {})));
+        // NEVER call signInWithCredential here — plugin already did the Firebase auth natively
+        await handleAfterLoginNative(result);
       } else {
         const provider = new GoogleAuthProvider();
         const cred = await signInWithPopup(auth, provider);
-        await handleAfterLogin(cred.user);
+        stopSafetyTimer();
+        await handleAfterLoginWeb(cred.user);
+        setLoading(false);
       }
     } catch (err) {
-      setError('Unexpected Google error: ' + formatError(err));
+      setError('Google error: ' + formatError(err));
       setLoading(false);
+      stopSafetyTimer();
     }
   };
 
-  // APPLE: native Capacitor plugin on iOS/Android — popup ONLY on web
+  // APPLE
   const handleApple = async () => {
     setError('');
-    setNativeDebug(null);
+    setDebugSteps([]);
     setLoading(true);
+    startSafetyTimer();
+    addStep('STEP 1: Apple sign-in started (native=' + IS_NATIVE + ')');
+
     try {
       if (IS_NATIVE) {
         let FA;
         try {
           const mod = await import('@capacitor-firebase/authentication');
           FA = mod.FirebaseAuthentication;
-        } catch (pluginErr) {
-          setError('Plugin load failed: ' + formatError(pluginErr));
+        } catch (err) {
+          setError('Plugin import failed: ' + formatError(err));
           setLoading(false);
+          stopSafetyTimer();
           return;
         }
+
         if (!FA) {
-          setError('FirebaseAuthentication plugin is null/undefined after import');
+          setError('FirebaseAuthentication is null after import');
           setLoading(false);
+          stopSafetyTimer();
           return;
         }
 
         let result;
         try {
           result = await FA.signInWithApple();
-        } catch (nativeErr) {
-          setError('Native Apple sign-in failed: ' + formatError(nativeErr));
+        } catch (err) {
+          setError('FA.signInWithApple() failed: ' + formatError(err));
           setLoading(false);
+          stopSafetyTimer();
           return;
         }
 
-        const debugInfo = {
-          resultKeys: result ? Object.keys(result) : [],
-          credentialKeys: result?.credential ? Object.keys(result.credential) : [],
-          hasIdToken: !!result?.credential?.idToken,
-          hasNonce: !!result?.credential?.nonce,
-        };
-        setNativeDebug(debugInfo);
-
-        const idToken = result?.credential?.idToken;
-        const rawNonce = result?.credential?.nonce;
-        if (!idToken) {
-          setError(
-            'Apple native sign-in returned no idToken.\n' +
-            'result keys: ' + JSON.stringify(debugInfo.resultKeys) + '\n' +
-            'credential keys: ' + JSON.stringify(debugInfo.credentialKeys)
-          );
-          setLoading(false);
-          return;
-        }
-
-        let cred;
-        try {
-          const provider = new OAuthProvider('apple.com');
-          const firebaseCredential = provider.credential({ idToken, rawNonce });
-          cred = await signInWithCredential(auth, firebaseCredential);
-        } catch (credErr) {
-          setError('signInWithCredential (Apple) failed: ' + formatError(credErr));
-          setLoading(false);
-          return;
-        }
-
-        await handleAfterLogin(cred.user);
+        addStep('STEP 1-OK: native Apple result keys=' + JSON.stringify(Object.keys(result || {})));
+        // NEVER call signInWithCredential here — plugin already did the Firebase auth natively
+        await handleAfterLoginNative(result);
       } else {
         const provider = new OAuthProvider('apple.com');
         const cred = await signInWithPopup(auth, provider);
-        await handleAfterLogin(cred.user);
+        stopSafetyTimer();
+        await handleAfterLoginWeb(cred.user);
+        setLoading(false);
       }
     } catch (err) {
-      setError('Unexpected Apple error: ' + formatError(err));
+      setError('Apple error: ' + formatError(err));
       setLoading(false);
+      stopSafetyTimer();
     }
   };
 
+  // Forgot password
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setError('');
@@ -266,23 +333,16 @@ export default function SignIn() {
       <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
 
-        {/* Debug bar */}
+        {/* Static debug bar */}
         <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,0,0.4)', borderRadius: '8px', padding: '6px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(255,255,0,0.9)', lineHeight: '1.8' }}>
-          Auth mode: <strong>{IS_NATIVE ? 'native' : 'web'}</strong> &nbsp;|&nbsp;
-          Platform: <strong>{PLATFORM}</strong> &nbsp;|&nbsp;
-          Plugin: <strong>{pluginAvailable === null ? 'checking...' : String(pluginAvailable)}</strong>
+          mode: <strong>{IS_NATIVE ? 'NATIVE' : 'web'}</strong> | platform: <strong>{PLATFORM}</strong> | plugin: <strong>{pluginAvailable === null ? 'checking...' : String(pluginAvailable)}</strong>
         </div>
 
-        {/* Native result debug panel */}
-        {nativeDebug && (
-          <div style={{ background: 'rgba(0,20,0,0.85)', border: '1px solid rgba(0,255,100,0.4)', borderRadius: '8px', padding: '8px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(0,255,120,0.9)', lineHeight: '1.8' }}>
-            <div style={{ fontWeight: 'bold', color: '#fff', marginBottom: '4px' }}>📦 Native result structure</div>
-            <div>result keys: <strong>{JSON.stringify(nativeDebug.resultKeys)}</strong></div>
-            <div>credential keys: <strong>{JSON.stringify(nativeDebug.credentialKeys)}</strong></div>
-            <div>idToken present: <strong>{String(nativeDebug.hasIdToken)}</strong></div>
-            {nativeDebug.hasAccessToken !== undefined && <div>accessToken present: <strong>{String(nativeDebug.hasAccessToken)}</strong></div>}
-            {nativeDebug.hasNonce !== undefined && <div>nonce present: <strong>{String(nativeDebug.hasNonce)}</strong></div>}
-            {nativeDebug.userEmail && <div>user.email: <strong>{nativeDebug.userEmail}</strong></div>}
+        {/* Step-by-step auth trace */}
+        {debugSteps.length > 0 && (
+          <div style={{ background: 'rgba(0,15,5,0.9)', border: '1px solid rgba(0,255,100,0.35)', borderRadius: '8px', padding: '8px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(0,255,120,0.9)', lineHeight: '1.85' }}>
+            <div style={{ fontWeight: 'bold', color: '#fff', marginBottom: '4px' }}>Auth trace</div>
+            {debugSteps.map((s, i) => <div key={i}>{s}</div>)}
           </div>
         )}
 
@@ -303,7 +363,7 @@ export default function SignIn() {
             {step === 'forgot' ? (
               <motion.div key='forgot' initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔑</div>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>&#128273;</div>
                   <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>Reset your password</p>
                   <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>{forgotSent ? 'Check your inbox for a reset link.' : "Enter your email and we'll send you a reset link."}</p>
                 </div>
@@ -321,12 +381,12 @@ export default function SignIn() {
             ) : step === 'verify' ? (
               <motion.div key='verify' initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📧</div>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>&#128231;</div>
                   <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>{t('signin.verifyTitle', 'Check your email')}</p>
                   <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>{t('signin.verifySubtitle', 'We sent a verification link to')}<br /><span style={{ color: '#F59E0B', fontWeight: '600' }}>{email}</span></p>
                   <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px', marginTop: '8px' }}>Click the link in the email then come back to sign in.</p>
                 </div>
-                <button onClick={() => { setStep('form'); setMode('login'); }} style={{ ...submitBtnStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Go to Sign In</button>
+                <button onClick={() => { setStep('form'); setMode('login'); setLoading(false); }} style={{ ...submitBtnStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Go to Sign In</button>
               </motion.div>
             ) : (
               <motion.div key='form' initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -358,7 +418,11 @@ export default function SignIn() {
                   <button onClick={handleGoogle} disabled={loading} style={{ ...socialBtnStyle, opacity: loading ? 0.6 : 1 }}><GoogleIcon />{t('signin.google', 'Continue with Google')}</button>
                   <button onClick={handleApple} disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '700', background: '#fff', border: '1px solid #fff', color: '#000', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px', opacity: loading ? 0.6 : 1 }}><AppleIcon />{t('signin.apple', 'Continue with Apple')}</button>
                 </div>
-                {loading && <button type='button' onClick={() => { setLoading(false); setError(''); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '8px', marginTop: '4px' }}>{t('common.cancel', 'Cancel')}</button>}
+                {loading && (
+                  <button type='button' onClick={() => { setLoading(false); setError('Cancelled'); stopSafetyTimer(); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '8px', marginTop: '4px' }}>
+                    {t('common.cancel', 'Cancel')}
+                  </button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
