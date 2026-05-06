@@ -17,9 +17,8 @@ import {
 import { auth } from '@/lib/firebase';
 import { syncUserProfile } from '@/lib/userProfile';
 
-// Static platform detection — evaluated at module load time
 const IS_NATIVE = Capacitor.isNativePlatform();
-const PLATFORM = Capacitor.getPlatform(); // 'ios' | 'android' | 'web'
+const PLATFORM = Capacitor.getPlatform();
 
 export default function SignIn() {
   const { t } = useTranslation();
@@ -37,6 +36,7 @@ export default function SignIn() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
   const [pluginAvailable, setPluginAvailable] = useState(null);
+  const [nativeDebug, setNativeDebug] = useState(null);
 
   useEffect(() => {
     if (IS_NATIVE) {
@@ -80,18 +80,87 @@ export default function SignIn() {
     }
   };
 
+  const formatError = (err) => {
+    try {
+      const parts = [];
+      if (err?.message) parts.push('msg: ' + err.message);
+      if (err?.code) parts.push('code: ' + err.code);
+      if (err?.name) parts.push('name: ' + err.name);
+      try { parts.push('json: ' + JSON.stringify(err)); } catch (_) {}
+      if (err?.stack) parts.push('stack: ' + String(err.stack).slice(0, 300));
+      return parts.join(' | ') || String(err);
+    } catch (_) {
+      return 'Unknown error';
+    }
+  };
+
   // GOOGLE: native Capacitor plugin on iOS/Android — popup ONLY on web
   const handleGoogle = async () => {
     setError('');
+    setNativeDebug(null);
     setLoading(true);
     try {
       if (IS_NATIVE) {
-        const mod = await import('@capacitor-firebase/authentication');
-        const FA = mod.FirebaseAuthentication;
-        if (!FA) { setError('Native Firebase plugin not loaded'); setLoading(false); return; }
-        const result = await FA.signInWithGoogle();
-        const credential = GoogleAuthProvider.credential(result.credential?.idToken);
-        const cred = await signInWithCredential(auth, credential);
+        // Step 1 — load plugin
+        let FA;
+        try {
+          const mod = await import('@capacitor-firebase/authentication');
+          FA = mod.FirebaseAuthentication;
+        } catch (pluginErr) {
+          setError('Plugin load failed: ' + formatError(pluginErr));
+          setLoading(false);
+          return;
+        }
+        if (!FA) {
+          setError('FirebaseAuthentication plugin is null/undefined after import');
+          setLoading(false);
+          return;
+        }
+
+        // Step 2 — call native sign-in
+        let result;
+        try {
+          result = await FA.signInWithGoogle();
+        } catch (nativeErr) {
+          setError('Native Google sign-in failed: ' + formatError(nativeErr));
+          setLoading(false);
+          return;
+        }
+
+        // Step 3 — inspect result structure and show on screen
+        const debugInfo = {
+          resultKeys: result ? Object.keys(result) : [],
+          credentialKeys: result?.credential ? Object.keys(result.credential) : [],
+          hasIdToken: !!result?.credential?.idToken,
+          hasAccessToken: !!result?.credential?.accessToken,
+          hasUser: !!result?.user,
+          userEmail: result?.user?.email || null,
+        };
+        setNativeDebug(debugInfo);
+
+        // Step 4 — extract idToken (v8 API: result.credential.idToken)
+        const idToken = result?.credential?.idToken;
+        if (!idToken) {
+          setError(
+            'Google native sign-in returned no idToken.\n' +
+            'result keys: ' + JSON.stringify(debugInfo.resultKeys) + '\n' +
+            'credential keys: ' + JSON.stringify(debugInfo.credentialKeys)
+          );
+          setLoading(false);
+          return;
+        }
+
+        // Step 5 — exchange for Firebase credential
+        let cred;
+        try {
+          const firebaseCredential = GoogleAuthProvider.credential(idToken);
+          cred = await signInWithCredential(auth, firebaseCredential);
+        } catch (credErr) {
+          setError('signInWithCredential failed: ' + formatError(credErr));
+          setLoading(false);
+          return;
+        }
+
         await handleAfterLogin(cred.user);
       } else {
         const provider = new GoogleAuthProvider();
@@ -99,7 +168,7 @@ export default function SignIn() {
         await handleAfterLogin(cred.user);
       }
     } catch (err) {
-      setError(mapFirebaseError(err));
+      setError('Unexpected Google error: ' + formatError(err));
       setLoading(false);
     }
   };
@@ -107,16 +176,65 @@ export default function SignIn() {
   // APPLE: native Capacitor plugin on iOS/Android — popup ONLY on web
   const handleApple = async () => {
     setError('');
+    setNativeDebug(null);
     setLoading(true);
     try {
       if (IS_NATIVE) {
-        const mod = await import('@capacitor-firebase/authentication');
-        const FA = mod.FirebaseAuthentication;
-        if (!FA) { setError('Native Firebase plugin not loaded'); setLoading(false); return; }
-        const result = await FA.signInWithApple();
-        const provider = new OAuthProvider('apple.com');
-        const credential = provider.credential({ idToken: result.credential?.idToken, rawNonce: result.credential?.nonce });
-        const cred = await signInWithCredential(auth, credential);
+        let FA;
+        try {
+          const mod = await import('@capacitor-firebase/authentication');
+          FA = mod.FirebaseAuthentication;
+        } catch (pluginErr) {
+          setError('Plugin load failed: ' + formatError(pluginErr));
+          setLoading(false);
+          return;
+        }
+        if (!FA) {
+          setError('FirebaseAuthentication plugin is null/undefined after import');
+          setLoading(false);
+          return;
+        }
+
+        let result;
+        try {
+          result = await FA.signInWithApple();
+        } catch (nativeErr) {
+          setError('Native Apple sign-in failed: ' + formatError(nativeErr));
+          setLoading(false);
+          return;
+        }
+
+        const debugInfo = {
+          resultKeys: result ? Object.keys(result) : [],
+          credentialKeys: result?.credential ? Object.keys(result.credential) : [],
+          hasIdToken: !!result?.credential?.idToken,
+          hasNonce: !!result?.credential?.nonce,
+        };
+        setNativeDebug(debugInfo);
+
+        const idToken = result?.credential?.idToken;
+        const rawNonce = result?.credential?.nonce;
+        if (!idToken) {
+          setError(
+            'Apple native sign-in returned no idToken.\n' +
+            'result keys: ' + JSON.stringify(debugInfo.resultKeys) + '\n' +
+            'credential keys: ' + JSON.stringify(debugInfo.credentialKeys)
+          );
+          setLoading(false);
+          return;
+        }
+
+        let cred;
+        try {
+          const provider = new OAuthProvider('apple.com');
+          const firebaseCredential = provider.credential({ idToken, rawNonce });
+          cred = await signInWithCredential(auth, firebaseCredential);
+        } catch (credErr) {
+          setError('signInWithCredential (Apple) failed: ' + formatError(credErr));
+          setLoading(false);
+          return;
+        }
+
         await handleAfterLogin(cred.user);
       } else {
         const provider = new OAuthProvider('apple.com');
@@ -124,7 +242,7 @@ export default function SignIn() {
         await handleAfterLogin(cred.user);
       }
     } catch (err) {
-      setError(mapFirebaseError(err));
+      setError('Unexpected Apple error: ' + formatError(err));
       setLoading(false);
     }
   };
@@ -149,11 +267,24 @@ export default function SignIn() {
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
 
         {/* Debug bar */}
-        <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,0,0.4)', borderRadius: '8px', padding: '6px 12px', marginBottom: '12px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(255,255,0,0.9)', lineHeight: '1.8' }}>
+        <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,0,0.4)', borderRadius: '8px', padding: '6px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(255,255,0,0.9)', lineHeight: '1.8' }}>
           Auth mode: <strong>{IS_NATIVE ? 'native' : 'web'}</strong> &nbsp;|&nbsp;
           Platform: <strong>{PLATFORM}</strong> &nbsp;|&nbsp;
           Plugin: <strong>{pluginAvailable === null ? 'checking...' : String(pluginAvailable)}</strong>
         </div>
+
+        {/* Native result debug panel */}
+        {nativeDebug && (
+          <div style={{ background: 'rgba(0,20,0,0.85)', border: '1px solid rgba(0,255,100,0.4)', borderRadius: '8px', padding: '8px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(0,255,120,0.9)', lineHeight: '1.8' }}>
+            <div style={{ fontWeight: 'bold', color: '#fff', marginBottom: '4px' }}>📦 Native result structure</div>
+            <div>result keys: <strong>{JSON.stringify(nativeDebug.resultKeys)}</strong></div>
+            <div>credential keys: <strong>{JSON.stringify(nativeDebug.credentialKeys)}</strong></div>
+            <div>idToken present: <strong>{String(nativeDebug.hasIdToken)}</strong></div>
+            {nativeDebug.hasAccessToken !== undefined && <div>accessToken present: <strong>{String(nativeDebug.hasAccessToken)}</strong></div>}
+            {nativeDebug.hasNonce !== undefined && <div>nonce present: <strong>{String(nativeDebug.hasNonce)}</strong></div>}
+            {nativeDebug.userEmail && <div>user.email: <strong>{nativeDebug.userEmail}</strong></div>}
+          </div>
+        )}
 
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <img src='/logo-icon.svg' alt='TREDIO' style={{ height: '52px', width: '52px', margin: '0 auto 12px' }} />
@@ -261,4 +392,4 @@ function mapFirebaseError(err) {
 const inputStyle = { width: '100%', padding: '12px 14px', borderRadius: '10px', fontSize: '16px', background: 'rgba(6,14,32,0.6)', border: '1px solid rgba(100,220,255,0.1)', color: 'rgba(255,255,255,0.88)', outline: 'none', boxSizing: 'border-box', minHeight: '44px' };
 const submitBtnStyle = { padding: '13px', borderRadius: '12px', fontWeight: '800', fontSize: '15px', background: 'linear-gradient(135deg,#0ec8dc,#0aa8be)', color: '#030810', border: 'none', letterSpacing: '0.5px', width: '100%', boxShadow: '0 4px 20px rgba(14,200,220,0.3)', minHeight: '48px' };
 const socialBtnStyle = { width: '100%', padding: '12px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', background: 'rgba(100,220,255,0.04)', border: '1px solid rgba(100,220,255,0.1)', color: 'rgba(255,255,255,0.65)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px' };
-const errorStyle = { fontSize: '12px', color: '#ef4444', padding: '8px 12px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)' };
+const errorStyle = { fontSize: '12px', color: '#ef4444', padding: '8px 12px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)', whiteSpace: 'pre-wrap' };
