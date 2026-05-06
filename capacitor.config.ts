@@ -1,9 +1,15 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.tredio.app',
-  appName: 'TREDIO',
-  webDir: 'dist'
+  appId: 'app.tredio.ios',
+  appName: 'Tredio',
+  webDir: 'dist',
+  plugins: {
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ['google.com', 'apple.com'],
+    },
+  },
 };
 
 export default config;
