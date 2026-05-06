@@ -9,11 +9,21 @@ import {
   updateProfile,
   sendPasswordResetEmail,
   signInWithPopup,
+  signInWithCredential,
   GoogleAuthProvider,
   OAuthProvider,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { syncUserProfile } from '@/lib/userProfile';
+
+// Detect native Capacitor environment
+const isNative = () => !!(window.Capacitor?.isNativePlatform?.());
+
+// Lazy-load native FirebaseAuthentication plugin (only available in Capacitor builds)
+async function getFirebaseAuth() {
+  const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+  return FirebaseAuthentication;
+}
 
 export default function SignIn() {
   const { t } = useTranslation();
@@ -27,27 +37,23 @@ export default function SignIn() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [step, setStep] = useState('form'); // 'form' | 'verify' | 'forgot'
+  const [step, setStep] = useState('form');
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
 
   const handleAfterLogin = async (fbUser) => {
     const profile = await syncUserProfile(fbUser);
-    const needsOnboarding = !profile?.onboarding_completed;
-    navigate(needsOnboarding ? '/Onboarding' : '/Home', { replace: true });
+    navigate(!profile?.onboarding_completed ? '/Onboarding' : '/Home', { replace: true });
   };
 
-  // ── EMAIL / PASSWORD ────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
     if (mode === 'register') {
       if (!name.trim()) { setError(t('signin.error.nameRequired', 'Please enter your name')); return; }
       if (password.length < 8) { setError(t('signin.error.weakPassword', 'Password must be at least 8 characters')); return; }
       if (password !== confirmPassword) { setError(t('signin.error.passwordMismatch', 'Passwords do not match')); return; }
     }
-
     setLoading(true);
     try {
       if (mode === 'register') {
@@ -58,7 +64,6 @@ export default function SignIn() {
         setLoading(false);
         return;
       }
-
       const cred = await signInWithEmailAndPassword(auth, email, password);
       await handleAfterLogin(cred.user);
     } catch (err) {
@@ -68,35 +73,54 @@ export default function SignIn() {
     }
   };
 
-  // ── GOOGLE ──────────────────────────────────────────────────────────────────
+  // GOOGLE: native Capacitor plugin on iOS/Android, popup fallback on web
   const handleGoogle = async () => {
     setError('');
     setLoading(true);
     try {
-      const provider = new GoogleAuthProvider();
-      const cred = await signInWithPopup(auth, provider);
-      await handleAfterLogin(cred.user);
+      if (isNative()) {
+        const FA = await getFirebaseAuth();
+        const result = await FA.signInWithGoogle();
+        const credential = GoogleAuthProvider.credential(result.credential?.idToken);
+        const cred = await signInWithCredential(auth, credential);
+        await handleAfterLogin(cred.user);
+      } else {
+        const provider = new GoogleAuthProvider();
+        const cred = await signInWithPopup(auth, provider);
+        await handleAfterLogin(cred.user);
+      }
     } catch (err) {
       setError(mapFirebaseError(err));
       setLoading(false);
     }
   };
 
-  // ── APPLE ───────────────────────────────────────────────────────────────────
+  // APPLE: native Capacitor plugin on iOS/Android, popup fallback on web
   const handleApple = async () => {
     setError('');
     setLoading(true);
     try {
-      const provider = new OAuthProvider('apple.com');
-      const cred = await signInWithPopup(auth, provider);
-      await handleAfterLogin(cred.user);
+      if (isNative()) {
+        const FA = await getFirebaseAuth();
+        const result = await FA.signInWithApple();
+        const provider = new OAuthProvider('apple.com');
+        const credential = provider.credential({
+          idToken: result.credential?.idToken,
+          rawNonce: result.credential?.nonce,
+        });
+        const cred = await signInWithCredential(auth, credential);
+        await handleAfterLogin(cred.user);
+      } else {
+        const provider = new OAuthProvider('apple.com');
+        const cred = await signInWithPopup(auth, provider);
+        await handleAfterLogin(cred.user);
+      }
     } catch (err) {
       setError(mapFirebaseError(err));
       setLoading(false);
     }
   };
 
-  // ── FORGOT PASSWORD ─────────────────────────────────────────────────────────
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setError('');
@@ -112,190 +136,99 @@ export default function SignIn() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14, 50, 90, 0.35) 0%, transparent 70%), linear-gradient(180deg, #040d1e 0%, #030810 60%, #020608 100%)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      paddingTop: 'calc(24px + env(safe-area-inset-top))',
-      paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
-      paddingLeft: 'calc(24px + env(safe-area-inset-left))',
-      paddingRight: 'calc(24px + env(safe-area-inset-right))',
-      overflowY: 'auto',
-    }}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-        style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
-
-        {/* Logo */}
+    <div style={{ minHeight: '100vh', background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14,50,90,0.35) 0%, transparent 70%), linear-gradient(180deg,#040d1e 0%,#030810 60%,#020608 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 'calc(24px + env(safe-area-inset-top))', paddingBottom: 'calc(24px + env(safe-area-inset-bottom))', paddingLeft: 'calc(24px + env(safe-area-inset-left))', paddingRight: 'calc(24px + env(safe-area-inset-right))', overflowY: 'auto' }}>
+      <style>{"@keyframes spin { to { transform: rotate(360deg); } }"}</style>
+      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <img src="/logo-icon.svg" alt="TREDIO" style={{ height: '52px', width: '52px', margin: '0 auto 12px' }} />
           <img src="/logo-full.svg" alt="TREDIO" style={{ height: '32px', margin: '0 auto 6px' }} />
-          <div style={{ fontSize: '11px', color: 'rgba(100,220,255,0.35)', letterSpacing: '2px', textTransform: 'uppercase' }}>
-            {t('signin.subtitle', 'Your AI Trading Studio')}
-          </div>
+          <div style={{ fontSize: '11px', color: 'rgba(100,220,255,0.35)', letterSpacing: '2px', textTransform: 'uppercase' }}>{t('signin.subtitle', 'Your AI Trading Studio')}</div>
         </div>
-
         {accountDeleted && (
           <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', fontSize: '13px', color: '#22c55e', textAlign: 'center' }}>
-            ✓ {t('signin.accountDeleted', 'Your account has been permanently deleted.')}
+            checkmark {t('signin.accountDeleted', 'Your account has been permanently deleted.')}
           </div>
         )}
-
-        <div style={{ background: 'rgba(8, 16, 36, 0.55)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(100, 220, 255, 0.09)', borderRadius: '20px', padding: '28px', boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(100,220,255,0.06)' }}>
+        <div style={{ background: 'rgba(8,16,36,0.55)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(100,220,255,0.09)', borderRadius: '20px', padding: '28px', boxShadow: '0 8px 40px rgba(0,0,0,0.5)' }}>
           <AnimatePresence mode="wait">
-
-            {/* FORGOT PASSWORD */}
             {step === 'forgot' ? (
               <motion.div key="forgot" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔑</div>
                   <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>Reset your password</p>
-                  <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>
-                    {forgotSent ? 'Check your inbox for a reset link.' : "Enter your email and we'll send you a reset link."}
-                  </p>
+                  <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>{forgotSent ? 'Check your inbox for a reset link.' : "Enter your email and we'll send you a reset link."}</p>
                 </div>
                 {forgotSent ? (
-                  <div style={{ textAlign: 'center', padding: '16px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '12px', color: '#22c55e', fontSize: '13px' }}>
-                    ✓ Reset link sent to <strong>{forgotEmail}</strong>
-                  </div>
+                  <div style={{ textAlign: 'center', padding: '16px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '12px', color: '#22c55e', fontSize: '13px' }}>Reset link sent to <strong>{forgotEmail}</strong></div>
                 ) : (
                   <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <input type="email" placeholder="Email address" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} required autoFocus style={inputStyle} />
                     {error && <div style={errorStyle}>{error}</div>}
-                    <button type="submit" disabled={loading || !forgotEmail} style={{ ...submitBtnStyle, opacity: (loading || !forgotEmail) ? 0.6 : 1, cursor: (loading || !forgotEmail) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                      {loading && <Spinner />}
-                      {loading ? 'Sending…' : 'Send Reset Link'}
-                    </button>
+                    <button type="submit" disabled={loading || !forgotEmail} style={{ ...submitBtnStyle, opacity: (loading || !forgotEmail) ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>{loading && <Spinner />}{loading ? 'Sending...' : 'Send Reset Link'}</button>
                   </form>
                 )}
-                <button onClick={() => { setStep('form'); setError(''); setForgotSent(false); setForgotEmail(''); }}
-                  style={{ width: '100%', padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', marginTop: '8px' }}>
-                  ← Back to Sign In
-                </button>
+                <button onClick={() => { setStep('form'); setError(''); setForgotSent(false); setForgotEmail(''); }} style={{ width: '100%', padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', marginTop: '8px' }}>Back to Sign In</button>
               </motion.div>
-
             ) : step === 'verify' ? (
               <motion.div key="verify" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>📧</div>
-                  <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>
-                    {t('signin.verifyTitle', 'Check your email')}
-                  </p>
-                  <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>
-                    {t('signin.verifySubtitle', 'We sent a verification link to')}<br />
-                    <span style={{ color: '#F59E0B', fontWeight: '600' }}>{email}</span>
-                  </p>
-                  <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px', marginTop: '8px' }}>
-                    Click the link in the email then come back to sign in.
-                  </p>
+                  <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>{t('signin.verifyTitle', 'Check your email')}</p>
+                  <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>{t('signin.verifySubtitle', 'We sent a verification link to')}<br /><span style={{ color: '#F59E0B', fontWeight: '600' }}>{email}</span></p>
+                  <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px', marginTop: '8px' }}>Click the link in the email then come back to sign in.</p>
                 </div>
-                <button onClick={() => { setStep('form'); setMode('login'); }}
-                  style={{ ...submitBtnStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  Go to Sign In
-                </button>
+                <button onClick={() => { setStep('form'); setMode('login'); }} style={{ ...submitBtnStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Go to Sign In</button>
               </motion.div>
-
             ) : (
-              /* MAIN FORM */
               <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                {/* Tab Toggle */}
                 <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', background: 'rgba(14,200,220,0.05)', border: '1px solid rgba(14,200,220,0.1)', borderRadius: '12px', padding: '4px' }}>
                   {['login', 'register'].map(m => (
-                    <button key={m} onClick={() => { setMode(m); setError(''); }}
-                      style={{ flex: 1, padding: '8px', borderRadius: '9px', fontSize: '13px', fontWeight: '700', border: 'none', cursor: 'pointer', transition: 'all 0.2s', background: mode === m ? 'rgba(14,200,220,0.18)' : 'transparent', color: mode === m ? 'rgb(120,230,245)' : 'rgba(255,255,255,0.35)', boxShadow: mode === m ? '0 0 10px rgba(14,200,220,0.15)' : 'none' }}>
+                    <button key={m} onClick={() => { setMode(m); setError(''); }} style={{ flex: 1, padding: '8px', borderRadius: '9px', fontSize: '13px', fontWeight: '700', border: 'none', cursor: 'pointer', transition: 'all 0.2s', background: mode === m ? 'rgba(14,200,220,0.18)' : 'transparent', color: mode === m ? 'rgb(120,230,245)' : 'rgba(255,255,255,0.35)', boxShadow: mode === m ? '0 0 10px rgba(14,200,220,0.15)' : 'none' }}>
                       {m === 'login' ? t('signin.signIn', 'Sign In') : t('signin.register', 'Register')}
                     </button>
                   ))}
                 </div>
-
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {mode === 'register' && (
-                    <input type="text" placeholder={t('signin.fullName', 'Full Name')} value={name} onChange={e => setName(e.target.value)} required autoComplete="name" style={inputStyle} />
-                  )}
+                  {mode === 'register' && <input type="text" placeholder={t('signin.fullName', 'Full Name')} value={name} onChange={e => setName(e.target.value)} required autoComplete="name" style={inputStyle} />}
                   <input type="email" placeholder={t('signin.enterEmail', 'Email address')} value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" style={inputStyle} />
                   <input type="password" placeholder={t('signin.password', 'Password')} value={password} onChange={e => setPassword(e.target.value)} required minLength={mode === 'register' ? 8 : undefined} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} style={inputStyle} />
-                  {mode === 'login' && (
-                    <button type="button" onClick={() => { setStep('forgot'); setForgotEmail(email); setError(''); }}
-                      style={{ background: 'none', border: 'none', color: 'rgba(14,200,220,0.6)', fontSize: '12px', cursor: 'pointer', textAlign: 'right', padding: '0', alignSelf: 'flex-end' }}>
-                      Forgot password?
-                    </button>
-                  )}
-                  {mode === 'register' && (
-                    <input type="password" placeholder={t('signin.confirmPassword', 'Confirm password')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required autoComplete="new-password" style={inputStyle} />
-                  )}
-
+                  {mode === 'login' && <button type="button" onClick={() => { setStep('forgot'); setForgotEmail(email); setError(''); }} style={{ background: 'none', border: 'none', color: 'rgba(14,200,220,0.6)', fontSize: '12px', cursor: 'pointer', textAlign: 'right', padding: '0', alignSelf: 'flex-end' }}>Forgot password?</button>}
+                  {mode === 'register' && <input type="password" placeholder={t('signin.confirmPassword', 'Confirm password')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required autoComplete="new-password" style={inputStyle} />}
                   {error && <div style={errorStyle}>{error}</div>}
-
                   <button type="submit" disabled={loading} style={{ ...submitBtnStyle, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                     {loading && <Spinner />}
-                    {loading
-                      ? (mode === 'login' ? t('signin.signingIn', 'Signing in…') : t('signin.creating', 'Creating account…'))
-                      : (mode === 'login' ? t('signin.signIn', 'Sign In') : t('signin.createAccount', 'Create Account'))
-                    }
+                    {loading ? (mode === 'login' ? t('signin.signingIn', 'Signing in...') : t('signin.creating', 'Creating account...')) : (mode === 'login' ? t('signin.signIn', 'Sign In') : t('signin.createAccount', 'Create Account'))}
                   </button>
                 </form>
-
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
                   <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
                   <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>OR</span>
                   <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
                 </div>
-
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <button onClick={handleGoogle} disabled={loading} style={{ ...socialBtnStyle, opacity: loading ? 0.6 : 1 }}>
-                    <GoogleIcon />
-                    {t('signin.google', 'Continue with Google')}
-                  </button>
-                  <button onClick={handleApple} disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '700', background: '#fff', border: '1px solid #fff', color: '#000', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px', opacity: loading ? 0.6 : 1 }}>
-                    <AppleIcon />
-                    {t('signin.apple', 'Continue with Apple')}
-                  </button>
+                  <button onClick={handleGoogle} disabled={loading} style={{ ...socialBtnStyle, opacity: loading ? 0.6 : 1 }}><GoogleIcon />{t('signin.google', 'Continue with Google')}</button>
+                  <button onClick={handleApple} disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '700', background: '#fff', border: '1px solid #fff', color: '#000', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px', opacity: loading ? 0.6 : 1 }}><AppleIcon />{t('signin.apple', 'Continue with Apple')}</button>
                 </div>
-
-                {loading && (
-                  <button type="button" onClick={() => { setLoading(false); setError(''); }}
-                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '8px', marginTop: '4px' }}>
-                    {t('common.cancel', 'Cancel')}
-                  </button>
-                )}
+                {loading && <button type="button" onClick={() => { setLoading(false); setError(''); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '8px', marginTop: '4px' }}>{t('common.cancel', 'Cancel')}</button>}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-
-        <p style={{ textAlign: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '20px' }}>
-          {t('signin.terms', 'By continuing, you agree to our Terms of Service & Privacy Policy')}
-        </p>
+        <p style={{ textAlign: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '20px' }}>{t('signin.terms', 'By continuing, you agree to our Terms of Service & Privacy Policy')}</p>
       </motion.div>
     </div>
   );
 }
 
 function Spinner() {
-  return (
-    <span style={{ display: 'inline-block', width: 16, height: 16, border: '2px solid rgba(3,8,16,0.3)', borderTopColor: '#030810', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
-  );
+  return <span style={{ display: 'inline-block', width: 16, height: 16, border: '2px solid rgba(3,8,16,0.3)', borderTopColor: '#030810', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />;
 }
-
 function GoogleIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-    </svg>
-  );
+  return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>);
 }
-
 function AppleIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="black">
-      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-    </svg>
-  );
+  return (<svg width="16" height="16" viewBox="0 0 24 24" fill="black"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>);
 }
-
 function mapFirebaseError(err) {
   const code = err?.code || '';
   if (code.includes('user-not-found') || code.includes('wrong-password') || code.includes('invalid-credential')) return 'Invalid email or password.';
@@ -307,25 +240,7 @@ function mapFirebaseError(err) {
   if (code.includes('cancelled') || code.includes('canceled')) return '';
   return err?.message || 'Something went wrong. Please try again.';
 }
-
-const inputStyle = {
-  width: '100%', padding: '12px 14px', borderRadius: '10px', fontSize: '16px',
-  background: 'rgba(6,14,32,0.6)', border: '1px solid rgba(100,220,255,0.1)',
-  color: 'rgba(255,255,255,0.88)', outline: 'none', boxSizing: 'border-box', minHeight: '44px',
-};
-const submitBtnStyle = {
-  padding: '13px', borderRadius: '12px', fontWeight: '800', fontSize: '15px',
-  background: 'linear-gradient(135deg, #0ec8dc, #0aa8be)', color: '#030810',
-  border: 'none', letterSpacing: '0.5px', width: '100%',
-  boxShadow: '0 4px 20px rgba(14,200,220,0.3)', minHeight: '48px',
-};
-const socialBtnStyle = {
-  width: '100%', padding: '12px', borderRadius: '10px', fontSize: '14px', fontWeight: '600',
-  background: 'rgba(100,220,255,0.04)', border: '1px solid rgba(100,220,255,0.1)',
-  color: 'rgba(255,255,255,0.65)', cursor: 'pointer', display: 'flex',
-  alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px',
-};
-const errorStyle = {
-  fontSize: '12px', color: '#ef4444', padding: '8px 12px',
-  background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)',
-};
+const inputStyle = { width: '100%', padding: '12px 14px', borderRadius: '10px', fontSize: '16px', background: 'rgba(6,14,32,0.6)', border: '1px solid rgba(100,220,255,0.1)', color: 'rgba(255,255,255,0.88)', outline: 'none', boxSizing: 'border-box', minHeight: '44px' };
+const submitBtnStyle = { padding: '13px', borderRadius: '12px', fontWeight: '800', fontSize: '15px', background: 'linear-gradient(135deg,#0ec8dc,#0aa8be)', color: '#030810', border: 'none', letterSpacing: '0.5px', width: '100%', boxShadow: '0 4px 20px rgba(14,200,220,0.3)', minHeight: '48px' };
+const socialBtnStyle = { width: '100%', padding: '12px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', background: 'rgba(100,220,255,0.04)', border: '1px solid rgba(100,220,255,0.1)', color: 'rgba(255,255,255,0.65)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px' };
+const errorStyle = { fontSize: '12px', color: '#ef4444', padding: '8px 12px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)' };
