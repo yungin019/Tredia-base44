@@ -40,17 +40,29 @@ export function useRevenueCat() {
         return;
       }
       try {
+        const apiKey = REVENUECAT_CONFIG.apiKey;
+        if (!apiKey) {
+          console.error('[RevenueCat] FATAL: apiKey is empty. Set VITE_REVENUECAT_IOS_KEY in environment variables. Purchases will be unavailable.');
+          setIsInitialized(false);
+          return;
+        }
+        console.log('[RevenueCat] Initializing with key prefix:', apiKey.substring(0, 8) + '...');
         const { Purchases, LOG_LEVEL } = await import(/* @vite-ignore */ RC_PKG);
-        await Purchases.setLogLevel({ level: REVENUECAT_CONFIG.logLevel === 'debug' ? LOG_LEVEL.DEBUG : LOG_LEVEL.INFO });
-        await Purchases.configure({ apiKey: REVENUECAT_CONFIG.apiKey });
+        const logLevel = REVENUECAT_CONFIG.logLevel === 'debug' ? LOG_LEVEL.DEBUG : LOG_LEVEL.INFO;
+        await Purchases.setLogLevel({ level: logLevel });
+        await Purchases.configure({ apiKey });
+        console.log('[RevenueCat] Configured successfully');
         const { customerInfo: info } = await Purchases.getCustomerInfo();
+        console.log('[RevenueCat] CustomerInfo loaded, active entitlements:', Object.keys(info?.entitlements?.active || {}));
         updateFromCustomerInfo(info);
         setIsInitialized(true);
       } catch (error) {
-        console.error('[RevenueCat] init failed:', error);
+        const errMsg = error?.message || error?.code || JSON.stringify(error) || 'unknown error';
+        console.error('[RevenueCat] init failed:', errMsg, error);
         setActiveEntitlements([]);
         setCustomerInfo(null);
-        setIsInitialized(true);
+        // Leave isInitialized=false so UI can show "not ready" state
+        setIsInitialized(false);
       }
     };
     init();
@@ -59,6 +71,7 @@ export function useRevenueCat() {
   const makePurchase = useCallback(async (productId) => {
     if (!productId) { setPurchaseError('Invalid product ID'); return false; }
     if (!IS_NATIVE) { setPurchaseError('In-app purchases are only available on iOS and Android.'); return false; }
+    if (!isInitialized) { setPurchaseError('Purchases are not ready yet. Please wait a moment and try again.'); return false; }
 
     setPurchaseInProgress(true);
     setPurchaseError(null);
@@ -90,7 +103,7 @@ export function useRevenueCat() {
     } finally {
       setPurchaseInProgress(false);
     }
-  }, [updateFromCustomerInfo]);
+  }, [isInitialized, updateFromCustomerInfo]);
 
   const restorePurchases = useCallback(async () => {
     if (!IS_NATIVE) { setPurchaseError('Restore is only available on iOS and Android.'); return false; }

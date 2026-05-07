@@ -8,8 +8,17 @@
  * - Lifetime → identifier: $rc_lifetime → product: lifetime
  */
 
+// iOS RevenueCat public SDK key — set as VITE_REVENUECAT_IOS_KEY in env, fallback to VITE_REVENUECAT_API_KEY
+const resolveApiKey = () => {
+  const ios = import.meta.env?.VITE_REVENUECAT_IOS_KEY;
+  const fallback = import.meta.env?.VITE_REVENUECAT_API_KEY;
+  const key = ios || fallback || '';
+  if (!key) console.warn('[RevenueCat] WARNING: No API key found. Set VITE_REVENUECAT_IOS_KEY in environment variables.');
+  return key;
+};
+
 export const REVENUECAT_CONFIG = {
-  apiKey: import.meta.env?.VITE_REVENUECAT_API_KEY ?? '',
+  apiKey: resolveApiKey(),
   entitlements: {
     elite: 'elite_monthly',
     pro: '$rc_monthly',

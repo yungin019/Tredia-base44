@@ -14,17 +14,20 @@ export default function GlobalMarketStateBanner() {
       try {
         setLoading(true);
         setError(null);
-        console.log('[GlobalMarketStateBanner] Invoking globalMarketState function');
-        
         const response = await base44.functions.invoke('globalMarketState', { lang: i18n.language || 'en' });
-        console.log('[GlobalMarketStateBanner] Response:', response.data);
-        
-        if (response.data?.marketState) {
-          setState(response.data.marketState);
-          console.log('[GlobalMarketStateBanner] ✓ State received:', response.data.marketState.marketState);
+
+        // Guard: if native returned HTML instead of JSON, treat as unavailable
+        const raw = response.data;
+        if (typeof raw === 'string' && raw.trim().startsWith('<')) {
+          console.warn('[GlobalMarketStateBanner] Received HTML instead of JSON — API URL misconfigured');
+          setError('unavailable');
+          return;
+        }
+
+        if (raw?.marketState) {
+          setState(raw.marketState);
         } else {
           setError('No market state received');
-          console.warn('[GlobalMarketStateBanner] No marketState in response');
         }
       } catch (err) {
         console.error('[GlobalMarketStateBanner] Error:', err.message);
@@ -35,7 +38,6 @@ export default function GlobalMarketStateBanner() {
     };
 
     fetchMarketState();
-    // Refresh every 5 minutes
     const interval = setInterval(fetchMarketState, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
@@ -85,17 +87,11 @@ export default function GlobalMarketStateBanner() {
       }}
     >
       <h3 className="text-xs font-black text-white/80 uppercase tracking-widest">{t('feed.marketState', 'Market State')}</h3>
-      
-      {/* Market State */}
       <p className="text-[11px] text-white/60 leading-snug">{state.marketState}</p>
-      
-      {/* Bias */}
       <div className="flex items-start gap-2 pt-1">
         <span className="text-sm flex-shrink-0" style={{ color: 'rgb(14,200,220)' }}>⚡</span>
         <span className="text-[10px] font-bold text-white/70">{t('feed.bias', 'Bias')}: {state.bias}</span>
       </div>
-      
-      {/* Watch List */}
       <div
         className="rounded-lg px-3 py-2.5"
         style={{
