@@ -1,136 +1,59 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ChevronRight } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-import { useTranslation } from 'react-i18next';
 
-export function OG100Card({ onClaim }) {
-  const { t } = useTranslation();
-  const [remaining, setRemaining] = useState(100);
-  const [loading, setLoading] = useState(true);
+export function OG100Card({ onClaim, onSkip }) {
   const [claiming, setClaiming] = useState(false);
-
-  useEffect(() => {
-    const loadCounter = async () => {
-      try {
-        const result = await base44.sql('SELECT value FROM app_settings WHERE key = $1', ['og100_spots_remaining']);
-        if (result && result.length > 0) {
-          setRemaining(parseInt(result[0].value) || 100);
-        } else {
-          await base44.sql('INSERT INTO app_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING', ['og100_spots_remaining', '100']);
-        }
-      } catch (error) {
-        console.log('OG100 counter not yet initialized, showing default');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadCounter();
-  }, []);
 
   const handleClaim = async () => {
     setClaiming(true);
     try {
       const user = await base44.auth.me();
-      if (!user) {
-        toast.error('Please sign in first');
-        return;
-      }
-
-      const currentRemaining = await base44.sql('SELECT value FROM app_settings WHERE key = $1', ['og100_spots_remaining']);
-      const spotsLeft = parseInt(currentRemaining[0]?.value || '100');
-
-      if (spotsLeft <= 0) {
-        toast.error('All spots have been claimed!');
-        return;
-      }
-
-      const ogNumber = 100 - spotsLeft + 1;
-
-      await base44.sql('UPDATE app_settings SET value = $1 WHERE key = $2', [String(spotsLeft - 1), 'og100_spots_remaining']);
-
-      await base44.sql(
-        'INSERT INTO founding_members (user_id, og_number, claimed_at) VALUES ($1, $2, NOW()) ON CONFLICT (user_id) DO NOTHING',
-        [user.id, ogNumber]
-      );
-
-      setRemaining(spotsLeft - 1);
-      toast.success(`You are OG #${ogNumber}! Welcome to the founding members.`);
-
+      if (!user) { toast.error('Please sign in first'); return; }
       if (onClaim) onClaim();
     } catch (error) {
       console.error('Claim error:', error);
-      toast.error('Failed to claim spot');
+      toast.error('Failed to proceed');
     } finally {
       setClaiming(false);
     }
   };
 
-  if (remaining <= 0) return null;
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="relative"
-    >
-      <div
-        className="relative overflow-hidden rounded-2xl"
-        style={{
-          background: 'rgba(10, 22, 52, 0.75)',
-          backdropFilter: 'blur(28px)',
-          WebkitBackdropFilter: 'blur(28px)',
-          border: '1px solid rgba(14,200,220,0.22)',
-          boxShadow: '0 0 40px rgba(14,200,220,0.08), 0 12px 40px rgba(0,0,0,0.45)',
-        }}
-      >
-        <div className="absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(14,200,220,0.07)' }} />
-        {/* top accent line */}
-        <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, rgba(14,200,220,0.7) 0%, rgba(14,200,220,0.2) 50%, transparent 100%)' }} />
-
-        <div className="relative p-6 space-y-4">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative">
+      <div className="relative overflow-hidden rounded-2xl" style={{ background: 'rgba(10,22,52,0.75)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(245,158,11,0.3)', boxShadow: '0 0 40px rgba(245,158,11,0.06), 0 12px 40px rgba(0,0,0,0.45)' }}>
+        <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.3) 60%, transparent 100%)' }} />
+        <div className="absolute top-0 right-0 w-56 h-56 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(245,158,11,0.05)' }} />
+        <div className="relative p-6 space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5" style={{ color: '#0ec8dc' }} />
-              <h3 className="text-base font-black text-white">{t('upgrade.foundingMember', 'FOUNDING MEMBER OFFER').toUpperCase()}</h3>
+              <Sparkles className="w-5 h-5" style={{ color: '#F59E0B' }} />
+              <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: '#F59E0B' }}>Founding Member Offer</span>
             </div>
-            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: 'rgba(14,200,220,0.15)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.3)' }}>
-              NEW
-            </span>
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)' }}>OG100</span>
           </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#0ec8dc' }} />
-            <p className="text-sm font-bold text-white">
-              {remaining} {t('upgrade.spotsLeft', 'of 100 spots left')}
-            </p>
+          <div>
+            <h3 className="text-xl font-black text-white mb-1">Join the OG100</h3>
+            <p className="text-sm" style={{ color: 'rgba(180,210,240,0.65)' }}>First 100 members unlock lifetime founding perks</p>
           </div>
-
-          <div className="space-y-2 text-sm" style={{ color: 'rgba(180,210,240,0.7)' }}>
-            <p className="font-bold text-white">{t('upgrade.first100', 'First 100 members get')}:</p>
-            <ul className="space-y-1 ml-4">
-              <li className="flex items-start gap-2"><span style={{ color: '#0ec8dc' }}>•</span><span>{t('upgrade.foundingFeature1', 'Elite FREE for 30 days')}</span></li>
-              <li className="flex items-start gap-2"><span style={{ color: '#0ec8dc' }}>•</span><span>{t('upgrade.foundingFeature2', 'Then 89 SEK/month for life')}</span></li>
-              <li className="flex items-start gap-2"><span style={{ color: '#0ec8dc' }}>•</span><span>{t('upgrade.foundingFeature3', 'OG Founding Member badge')}</span></li>
-              <li className="flex items-start gap-2"><span style={{ color: '#0ec8dc' }}>•</span><span>{t('upgrade.foundingFeature4', 'Personal referral link')}</span></li>
-            </ul>
+          <ul className="space-y-2">
+            {['Elite FREE for 30 days','Then Elite for 89 SEK/month for life (normally 179 SEK)','OG Founding Member badge','Personal referral link'].map((item, i) => (
+              <li key={i} className="flex items-start gap-2.5 text-sm" style={{ color: 'rgba(180,210,240,0.8)' }}>
+                <span className="mt-0.5 text-base leading-none" style={{ color: '#F59E0B' }}>✦</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="space-y-2 pt-1">
+            <button onClick={handleClaim} disabled={claiming} className="w-full font-black h-12 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 tracking-wider text-sm" style={{ background: 'linear-gradient(135deg, #F59E0B, #d97706)', color: '#0a0e1a', boxShadow: '0 4px 24px rgba(245,158,11,0.3)' }}>
+              {claiming ? 'Loading...' : 'JOIN OG100'}
+            </button>
+            {onSkip && (
+              <button onClick={onSkip} className="w-full h-10 rounded-xl text-sm font-semibold transition-all" style={{ background: 'transparent', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.07)' }}>SKIP</button>
+            )}
           </div>
-
-          <button
-            onClick={handleClaim}
-            disabled={claiming || loading}
-            className="w-full font-bold h-12 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-            style={{
-              background: 'linear-gradient(135deg, rgba(14,200,220,0.9), rgba(8,160,185,0.9))',
-              color: '#040d1e',
-              boxShadow: '0 4px 20px rgba(14,200,220,0.25)',
-            }}
-          >
-            {claiming ? t('common.loading', 'Loading...') : t('upgrade.claimSpot', 'CLAIM YOUR SPOT →')} <ChevronRight className="h-5 w-5" />
-          </button>
         </div>
       </div>
     </motion.div>
