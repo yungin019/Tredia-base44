@@ -8,7 +8,7 @@
  * - Lifetime → identifier: $rc_lifetime → product: lifetime
  */
 
-// iOS RevenueCat public SDK key — set as VITE_REVENUECAT_IOS_KEY in env, fallback to VITE_REVENUECAT_API_KEY
+// iOS RevenueCat public SDK key — set as VITE_REVENUECAT_IOS_KEY in env
 const resolveApiKey = () => {
   const ios = import.meta.env?.VITE_REVENUECAT_IOS_KEY;
   const fallback = import.meta.env?.VITE_REVENUECAT_API_KEY;

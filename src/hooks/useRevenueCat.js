@@ -11,10 +11,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { REVENUECAT_CONFIG } from '@/lib/revenuecat-config';
 
-// Dynamic import path stored in a variable so Rollup/Vite does NOT
-// statically analyse it as a module dependency at build time.
 const RC_PKG = '@revenuecat/purchases-capacitor';
-
 const IS_NATIVE = Capacitor.isNativePlatform();
 
 export function useRevenueCat() {
@@ -42,7 +39,7 @@ export function useRevenueCat() {
       try {
         const apiKey = REVENUECAT_CONFIG.apiKey;
         if (!apiKey) {
-          console.error('[RevenueCat] FATAL: apiKey is empty. Set VITE_REVENUECAT_IOS_KEY in environment variables. Purchases will be unavailable.');
+          console.error('[RevenueCat] FATAL: apiKey is empty. Set VITE_REVENUECAT_IOS_KEY in environment variables.');
           setIsInitialized(false);
           return;
         }
@@ -61,7 +58,6 @@ export function useRevenueCat() {
         console.error('[RevenueCat] init failed:', errMsg, error);
         setActiveEntitlements([]);
         setCustomerInfo(null);
-        // Leave isInitialized=false so UI can show "not ready" state
         setIsInitialized(false);
       }
     };
@@ -107,10 +103,8 @@ export function useRevenueCat() {
 
   const restorePurchases = useCallback(async () => {
     if (!IS_NATIVE) { setPurchaseError('Restore is only available on iOS and Android.'); return false; }
-
     setPurchaseInProgress(true);
     setPurchaseError(null);
-
     try {
       const { Purchases } = await import(/* @vite-ignore */ RC_PKG);
       const { customerInfo: info } = await Purchases.restorePurchases();

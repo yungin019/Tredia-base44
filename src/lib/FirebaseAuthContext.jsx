@@ -2,8 +2,8 @@
  * FirebaseAuthContext
  *
  * Source of truth hierarchy:
- * 1. onAuthStateChanged (web — JS SDK has the session)
- * 2. getNativeSession()  (native iOS/Android — plugin session, JS SDK blind to it)
+ * 1. onAuthStateChanged (web)
+ * 2. getNativeSession() (native iOS/Android)
  * 3. null -> user is logged out
  *
  * isLoading is never true for more than 8 seconds (hard timeout).
@@ -37,7 +37,6 @@ export const FirebaseAuthProvider = ({ children }) => {
 
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       clearTimeout(hardTimeoutRef.current);
-
       if (fbUser) {
         setLoadingPhase('syncing-profile');
         let p = null;
@@ -123,14 +122,12 @@ export const FirebaseAuthProvider = ({ children }) => {
     return null;
   };
 
-  // Called by SignIn.jsx on native login to immediately unblock AppRoutes
   const setNativeUser = (syntheticUser, p) => {
     setFirebaseUser(syntheticUser);
     setProfile(p);
     setLoadingPhase('native-injected');
   };
 
-  // Called by Onboarding/Settings to update in-memory profile immediately
   const updateProfile = (updates) => {
     setProfile(prev => prev ? { ...prev, ...updates } : updates);
   };

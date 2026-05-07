@@ -44,15 +44,8 @@ export default function GlobalMarketStateBanner() {
 
   if (loading) {
     return (
-      <div
-        className="rounded-xl px-4 py-3.5 space-y-3 animate-pulse"
-        style={{
-          background: 'rgba(8, 18, 42, 0.65)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(100,220,255,0.09)',
-        }}
-      >
+      <div className="rounded-xl px-4 py-3.5 space-y-3 animate-pulse"
+        style={{ background: 'rgba(8, 18, 42, 0.65)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(100,220,255,0.09)' }}>
         <div className="h-4 bg-white/10 rounded w-24" />
         <div className="h-3 bg-white/10 rounded w-full" />
       </div>
@@ -61,15 +54,8 @@ export default function GlobalMarketStateBanner() {
 
   if (error || !state) {
     return (
-      <div
-        className="rounded-xl px-4 py-3.5 space-y-3"
-        style={{
-          background: 'rgba(8, 18, 42, 0.65)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(100,220,255,0.09)',
-        }}
-      >
+      <div className="rounded-xl px-4 py-3.5 space-y-3"
+        style={{ background: 'rgba(8, 18, 42, 0.65)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(100,220,255,0.09)' }}>
         <h3 className="text-xs font-black text-white/80 uppercase tracking-widest">{t('feed.marketState', 'Market State')}</h3>
         <p className="text-[11px] text-white/60">{t('feed.unableToLoad', 'Unable to load market state. Please refresh.')}</p>
       </div>
@@ -77,28 +63,15 @@ export default function GlobalMarketStateBanner() {
   }
 
   return (
-    <div
-      className="rounded-xl px-4 py-3.5 space-y-3"
-      style={{
-        background: 'rgba(8, 18, 42, 0.65)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        border: '1px solid rgba(100,220,255,0.09)',
-      }}
-    >
+    <div className="rounded-xl px-4 py-3.5 space-y-3"
+      style={{ background: 'rgba(8, 18, 42, 0.65)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(100,220,255,0.09)' }}>
       <h3 className="text-xs font-black text-white/80 uppercase tracking-widest">{t('feed.marketState', 'Market State')}</h3>
       <p className="text-[11px] text-white/60 leading-snug">{state.marketState}</p>
       <div className="flex items-start gap-2 pt-1">
         <span className="text-sm flex-shrink-0" style={{ color: 'rgb(14,200,220)' }}>⚡</span>
         <span className="text-[10px] font-bold text-white/70">{t('feed.bias', 'Bias')}: {state.bias}</span>
       </div>
-      <div
-        className="rounded-lg px-3 py-2.5"
-        style={{
-          background: 'rgba(14,200,220,0.04)',
-          border: '1px solid rgba(14,200,220,0.1)',
-        }}
-      >
+      <div className="rounded-lg px-3 py-2.5" style={{ background: 'rgba(14,200,220,0.04)', border: '1px solid rgba(14,200,220,0.1)' }}>
         <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1.5">{t('trek.watch', 'Watch')}</p>
         <div className="space-y-1">
           {state.watch && state.watch.map((item, idx) => (

@@ -12,12 +12,6 @@
 
 const KEY = 'tredio_native_session';
 
-/**
- * Persist the native user result after a successful native sign-in.
- *
- * @param {object} userData  - plain user object from plugin result or auth.currentUser
- * @param {string} idToken   - idToken from plugin credential (optional)
- */
 export function setNativeSession(userData, idToken = null) {
   const session = {
     email: userData.email || null,
@@ -30,9 +24,6 @@ export function setNativeSession(userData, idToken = null) {
   localStorage.setItem(KEY, JSON.stringify(session));
 }
 
-/**
- * Returns the stored native session, or null if none / expired (>24h).
- */
 export function getNativeSession() {
   try {
     const raw = localStorage.getItem(KEY);
@@ -48,9 +39,6 @@ export function getNativeSession() {
   }
 }
 
-/**
- * Clear the native session (call on logout).
- */
 export function clearNativeSession() {
   localStorage.removeItem(KEY);
 }
