@@ -78,7 +78,17 @@ const AppRoutes = () => {
     document.documentElement.dir = RTL.some(r => lang.startsWith(r)) ? 'rtl' : 'ltr';
   }
 
-  const needsOnboarding = !profile?.onboarding_completed;
+  // FIX: Also check localStorage directly — on native, profile in context may lag
+  // behind what was already written to localStorage during onboarding completion.
+  const getCachedOnboarding = () => {
+    try {
+      const raw = localStorage.getItem('tredio_user_profile');
+      if (!raw) return false;
+      const p = JSON.parse(raw);
+      return p?.onboarding_completed === true;
+    } catch (_) { return false; }
+  };
+  const needsOnboarding = !(profile?.onboarding_completed === true || getCachedOnboarding());
 
   return (
     <AnimatePresence mode="wait">

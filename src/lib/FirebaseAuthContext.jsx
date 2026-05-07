@@ -134,11 +134,17 @@ export const FirebaseAuthProvider = ({ children }) => {
     setLoadingPhase('native-injected');
   };
 
+  // Called by Onboarding/Settings to update in-memory profile after completing onboarding
+  // without re-running the full auth flow.
+  const updateProfile = (updates) => {
+    setProfile(prev => prev ? { ...prev, ...updates } : updates);
+  };
+
   const isLoading = firebaseUser === undefined;
 
   return (
     <FirebaseAuthContext.Provider value={{
-      firebaseUser, profile, isLoading, logout, refreshProfile, setNativeUser,
+      firebaseUser, profile, isLoading, logout, refreshProfile, setNativeUser, updateProfile,
       loadingPhase, lastError,
     }}>
       {children}

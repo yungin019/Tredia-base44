@@ -70,6 +70,11 @@ export async function syncUserProfile(firebaseUser, overrideIdToken = null) {
   if (!merged.trading_mode) merged.trading_mode = 'practice';
   if (!merged.subscription_tier) merged.subscription_tier = 'free';
   if (!merged.referral_code) merged.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
+  // Treat undefined as false — do NOT overwrite an existing true value from cache
+  if (merged.onboarding_completed === undefined || merged.onboarding_completed === null) {
+    const cached = getCachedProfile();
+    merged.onboarding_completed = cached?.onboarding_completed === true ? true : false;
+  }
 
   try {
     if (existing?.id) {
@@ -94,6 +99,9 @@ export function getCachedProfile() {
 export async function updateUserProfile(updates) {
   const current = getCachedProfile() || {};
   const merged = { ...current, ...updates };
+  // Treat undefined onboarding_completed as false to avoid false positives
+  if (merged.onboarding_completed === undefined) merged.onboarding_completed = false;
+  // Persist immediately — this is critical for native where context may re-read from cache
   localStorage.setItem(PROFILE_KEY, JSON.stringify(merged));
   try {
     const users = await base44.entities.User.filter({ email: current.email });
