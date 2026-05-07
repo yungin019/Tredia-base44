@@ -265,7 +265,7 @@ function buildCoreResponse() {
 
 // ── POLLER ───────────────────────────────────────────────────────────────
 // Polygon grouped endpoint = 1 API call for ALL stocks → no per-symbol 429s
-const POLL_INTERVAL_MS = 60000; // refresh every 60s
+const POLL_INTERVAL_MS = 90000; // refresh every 90s — avoid Finnhub 429s
 
 async function pollCoreAssets(finnhubKey) {
   const now = Date.now();

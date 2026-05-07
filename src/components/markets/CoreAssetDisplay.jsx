@@ -168,8 +168,8 @@ export default function CoreAssetDisplay() {
   useEffect(() => {
     load();
 
-    // Refresh every 10s
-    refreshRef.current = setInterval(load, 10000);
+    // Refresh every 60s — avoid Finnhub 429 rate limits
+    refreshRef.current = setInterval(load, 60000);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);

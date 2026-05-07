@@ -19,6 +19,8 @@ export default function Admin() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [pushing, setPushing] = useState(false);
+  const [pushResult, setPushResult] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(u => {
@@ -39,6 +41,72 @@ export default function Admin() {
       console.error('Failed to load users:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePushToGitHub = async () => {
+    setPushing(true);
+    setPushResult(null);
+    try {
+      // Fetch all key source files from the base44 app
+      const filesToPush = [
+        'src/App.jsx',
+        'src/index.css',
+        'src/tailwind.config.js',
+        'src/pages/Home.jsx',
+        'src/pages/Markets.jsx',
+        'src/pages/SignIn.jsx',
+        'src/pages/Onboarding.jsx',
+        'src/pages/Settings.jsx',
+        'src/pages/Portfolio.jsx',
+        'src/pages/Trade.jsx',
+        'src/pages/AssetDetail.jsx',
+        'src/pages/Notifications.jsx',
+        'src/pages/Upgrade.jsx',
+        'src/pages/Traders.jsx',
+        'src/pages/AIInsights.jsx',
+        'src/pages/PaperTrading.jsx',
+        'src/pages/Admin.jsx',
+        'src/pages/AlpacaConnect.jsx',
+        'src/pages/AlpacaCallback.jsx',
+        'src/api/base44Client.js',
+        'src/api/marketDataClient.js',
+        'src/components/markets/CoreAssetDisplay.jsx',
+        'src/components/markets/IndexCardsSection.jsx',
+        'src/components/layout/AppShell.jsx',
+        'src/lib/FirebaseAuthContext.jsx',
+        'src/lib/userProfile.js',
+        'src/hooks/useRevenueCat.js',
+        'src/lib/revenuecat-config.js',
+      ];
+
+      // Read file contents via fetch (relative to current origin)
+      const files = {};
+      await Promise.all(
+        filesToPush.map(async (path) => {
+          const relativePath = path.replace('src/', '/src/');
+          const res = await fetch(relativePath).catch(() => null);
+          if (res && res.ok) {
+            const text = await res.text();
+            files[path] = text;
+          }
+        })
+      );
+
+      const res = await base44.functions.invoke('pushToGitHub', {
+        files,
+        message: `TREDIO — ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`,
+      });
+
+      if (res?.data?.success) {
+        setPushResult({ success: true, commit: res.data.commit, url: res.data.url, count: res.data.files?.length });
+      } else {
+        setPushResult({ success: false, error: res?.data?.error || 'Unknown error' });
+      }
+    } catch (err) {
+      setPushResult({ success: false, error: err.message });
+    } finally {
+      setPushing(false);
     }
   };
 
@@ -84,10 +152,26 @@ export default function Admin() {
             <h1 style={{ color: '#F59E0B', fontSize: '20px', fontWeight: '900', letterSpacing: '4px', margin: 0 }}>TREDIO ADMIN</h1>
             <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px', margin: '4px 0 0' }}>{users.length} total users</p>
           </div>
-          <button onClick={() => navigate('/Home')}
-            style={{ padding: '8px 16px', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '13px' }}>
-            ← Back
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              onClick={handlePushToGitHub}
+              disabled={pushing}
+              style={{ padding: '8px 16px', borderRadius: '8px', background: pushing ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#F59E0B', cursor: pushing ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '700' }}>
+              {pushing ? '⏳ Pushing...' : '⬆ Push to GitHub'}
+            </button>
+            <button onClick={() => navigate('/Home')}
+              style={{ padding: '8px 16px', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '13px' }}>
+              ← Back
+            </button>
+          </div>
+          {pushResult && (
+            <div style={{ marginTop: '8px', padding: '10px 14px', borderRadius: '8px', background: pushResult.success ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${pushResult.success ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`, fontSize: '12px', color: pushResult.success ? '#22c55e' : '#ef4444' }}>
+              {pushResult.success
+                ? `✅ Pushed ${pushResult.count} files — ${pushResult.commit?.slice(0, 7)} — `
+                : `❌ ${pushResult.error}`}
+              {pushResult.success && <a href={pushResult.url} target="_blank" rel="noreferrer" style={{ color: '#22c55e' }}>View commit ↗</a>}
+            </div>
+          )}
         </div>
 
         {/* Stats Row */}

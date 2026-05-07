@@ -70,7 +70,7 @@ export default function Home() {
     }
 
     loadCore();
-    const interval = setInterval(loadCore, 15000);
+    const interval = setInterval(loadCore, 60000);
     return () => clearInterval(interval);
   }, []);
 

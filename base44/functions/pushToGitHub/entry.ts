@@ -1,10 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-// Files to update with their new content inline
-const FILE_UPDATES = {
-  'src/index.css': null,        // will be read from GitHub then patched
-  'src/components/layout/AppShell.jsx': null,
-};
+/**
+ * pushToGitHub
+ * 
+ * Accepts a payload of { files: { "path/in/repo": "file content" } }
+ * and commits them all in one commit to yungin019/Tredia-base44 on main.
+ * 
+ * Called from Admin page with the actual file contents.
+ */
 
 Deno.serve(async (req) => {
   try {
@@ -14,12 +17,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const body = await req.json().catch(() => ({}));
+    const files = body.files; // { "src/pages/Home.jsx": "..content.." }
+    const commitMessage = body.message || `TREDIO update — ${new Date().toISOString().slice(0, 10)}`;
+
+    if (!files || typeof files !== 'object' || Object.keys(files).length === 0) {
+      return Response.json({ error: 'No files provided in payload' }, { status: 400 });
+    }
+
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('github');
 
     const owner = 'yungin019';
     const repo = 'Tredia-base44';
     const branch = 'main';
-    const commitMessage = 'TREDIO - App Store ready final';
 
     const headers = {
       'Authorization': `Bearer ${accessToken}`,
@@ -37,63 +47,28 @@ Deno.serve(async (req) => {
     const branchData = await branchRes.json();
     const latestCommitSha = branchData.object.sha;
 
-    // 2. Get commit tree SHA
+    // 2. Get base tree SHA
     const commitRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/commits/${latestCommitSha}`, { headers });
     const commitData = await commitRes.json();
     const baseTreeSha = commitData.tree.sha;
 
-    // 3. Fetch current file contents from GitHub and apply patches
-    const patches = [
-      {
-        path: 'src/index.css',
-        // Add user-select: none to buttons/nav (App Store fix)
-        patchFn: (content) => {
-          if (content.includes('-webkit-user-select: none;') && content.includes('nav, label')) return content;
-          return content.replace(
-            'button, a, [role="button"] {\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  min-height: 44px;\n  min-width: 44px;\n  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);\n}',
-            'button, a, [role="button"], nav, label, .tab-bar {\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  -webkit-user-select: none;\n  user-select: none;\n}\n\nbutton, a, [role="button"] {\n  min-height: 44px;\n  min-width: 44px;\n  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);\n}'
-          );
+    // 3. Create blobs for all files in parallel
+    const treeItems = await Promise.all(
+      Object.entries(files).map(async ([path, content]) => {
+        const blobRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/blobs`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ content, encoding: 'utf-8' }),
+        });
+        if (!blobRes.ok) {
+          const err = await blobRes.text();
+          throw new Error(`Blob creation failed for ${path}: ${err}`);
         }
-      },
-      {
-        path: 'src/components/layout/AppShell.jsx',
-        // Add safe area inset to header
-        patchFn: (content) => {
-          if (content.includes('safe-area-inset-top')) return content;
-          return content.replace(
-            '<header className="glass-dark border-b border-white/[0.06] px-4 lg:px-6 py-0 h-14 flex items-center justify-between sticky top-0 z-50">',
-            '<header className="glass-dark border-b border-white/[0.06] px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50"\n        style={{ paddingTop: \'env(safe-area-inset-top)\', minHeight: \'calc(56px + env(safe-area-inset-top))\' }}>'
-          );
-        }
-      }
-    ];
-
-    const treeItems = [];
-
-    for (const patch of patches) {
-      // Fetch current file from GitHub
-      const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${patch.path}?ref=${branch}`, { headers });
-      if (!fileRes.ok) {
-        console.log(`Skipping ${patch.path} - not found`);
-        continue;
-      }
-      const fileData = await fileRes.json();
-      const currentContent = atob(fileData.content.replace(/\n/g, ''));
-      const newContent = patch.patchFn(currentContent);
-
-      // Create blob
-      const blobRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/blobs`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ content: newContent, encoding: 'utf-8' }),
-      });
-      const blob = await blobRes.json();
-      treeItems.push({ path: patch.path, mode: '100644', type: 'blob', sha: blob.sha });
-    }
-
-    if (treeItems.length === 0) {
-      return Response.json({ success: true, message: 'No changes needed — files already patched', skipped: true });
-    }
+        const blob = await blobRes.json();
+        console.log(`[Push] Blob created for ${path}: ${blob.sha}`);
+        return { path, mode: '100644', type: 'blob', sha: blob.sha };
+      })
+    );
 
     // 4. Create new tree
     const newTreeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees`, {
@@ -101,6 +76,10 @@ Deno.serve(async (req) => {
       headers,
       body: JSON.stringify({ base_tree: baseTreeSha, tree: treeItems }),
     });
+    if (!newTreeRes.ok) {
+      const err = await newTreeRes.text();
+      return Response.json({ error: `Tree creation failed: ${err}` }, { status: 500 });
+    }
     const newTree = await newTreeRes.json();
 
     // 5. Create commit
@@ -109,14 +88,24 @@ Deno.serve(async (req) => {
       headers,
       body: JSON.stringify({ message: commitMessage, tree: newTree.sha, parents: [latestCommitSha] }),
     });
+    if (!newCommitRes.ok) {
+      const err = await newCommitRes.text();
+      return Response.json({ error: `Commit creation failed: ${err}` }, { status: 500 });
+    }
     const newCommit = await newCommitRes.json();
 
     // 6. Update branch ref
-    await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
+    const updateRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({ sha: newCommit.sha, force: false }),
     });
+    if (!updateRes.ok) {
+      const err = await updateRes.text();
+      return Response.json({ error: `Branch update failed: ${err}` }, { status: 500 });
+    }
+
+    console.log(`[Push] ✅ Committed ${treeItems.length} files: ${newCommit.sha}`);
 
     return Response.json({
       success: true,
@@ -127,6 +116,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
+    console.error('[Push] Error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

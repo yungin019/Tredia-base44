@@ -14,7 +14,7 @@ import { base44 } from '@/api/base44Client';
 
 // ── FRONTEND CACHE (avoids re-fetching on tab switch) ─────────────────────
 const clientCache = new Map();
-const CLIENT_CACHE_TTL_MS = 15000; // 15s on frontend
+const CLIENT_CACHE_TTL_MS = 60000; // 60s on frontend — reduces backend calls
 
 function getClientCached(key) {
   const entry = clientCache.get(key);
