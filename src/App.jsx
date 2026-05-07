@@ -50,12 +50,10 @@ const AppRoutes = () => {
 
   if (isLoading) return <LoadingSpinner />;
 
-  // Support page always accessible
   if (location.pathname === '/support') {
     return <Support />;
   }
 
-  // Not authenticated → only SignIn / SplashScreen
   if (!firebaseUser) {
     return (
       <AnimatePresence mode="wait">
@@ -69,7 +67,6 @@ const AppRoutes = () => {
     );
   }
 
-  // Apply language from profile
   const lang = localStorage.getItem('tredio_lang') || profile?.language || 'en';
   if (i18n.isInitialized && i18n.language !== lang) {
     i18n.changeLanguage(lang).catch(() => {});

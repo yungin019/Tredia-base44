@@ -2,10 +2,6 @@
  * userProfile.js
  * Syncs a Firebase-authenticated user into the Base44 User entity.
  * NEVER throws — always returns a profile object.
- *
- * syncUserProfile(firebaseUser, overrideIdToken)
- *   overrideIdToken: pass the idToken from the native plugin result directly
- *   to avoid calling getIdToken() on a plain data object (which would hang/throw).
  */
 import { base44 } from '@/api/base44Client';
 
@@ -28,8 +24,6 @@ export function buildMinimalProfile(firebaseUser) {
 export async function syncUserProfile(firebaseUser, overrideIdToken = null) {
   if (!firebaseUser) return null;
 
-  // Step 1: get idToken — use override (from native plugin result) or call getIdToken()
-  // On native, firebaseUser may be a plain data object without getIdToken(), so override is critical.
   let idToken = overrideIdToken || null;
   if (!idToken && typeof firebaseUser.getIdToken === 'function') {
     try {
@@ -46,7 +40,6 @@ export async function syncUserProfile(firebaseUser, overrideIdToken = null) {
     localStorage.setItem('auth_token', idToken);
   }
 
-  // Step 2: fetch existing user record (best-effort, 4s timeout)
   let existing = null;
   try {
     const email = firebaseUser.email;
@@ -99,9 +92,7 @@ export function getCachedProfile() {
 export async function updateUserProfile(updates) {
   const current = getCachedProfile() || {};
   const merged = { ...current, ...updates };
-  // Treat undefined onboarding_completed as false to avoid false positives
   if (merged.onboarding_completed === undefined) merged.onboarding_completed = false;
-  // Persist immediately — this is critical for native where context may re-read from cache
   localStorage.setItem(PROFILE_KEY, JSON.stringify(merged));
   try {
     const users = await base44.entities.User.filter({ email: current.email });

@@ -39,7 +39,6 @@ export const FirebaseAuthProvider = ({ children }) => {
       clearTimeout(hardTimeoutRef.current);
 
       if (fbUser) {
-        // Web path: JS SDK has a real session
         setLoadingPhase('syncing-profile');
         let p = null;
         try {
@@ -60,7 +59,6 @@ export const FirebaseAuthProvider = ({ children }) => {
         return;
       }
 
-      // No JS SDK session — check native session
       const nativeSession = getNativeSession();
       if (nativeSession) {
         setLoadingPhase('native-session');
@@ -90,7 +88,6 @@ export const FirebaseAuthProvider = ({ children }) => {
         return;
       }
 
-      // Truly unauthenticated
       setLoadingPhase('no-user');
       clearUserProfile();
       setProfile(null);
@@ -127,15 +124,13 @@ export const FirebaseAuthProvider = ({ children }) => {
   };
 
   // Called by SignIn.jsx on native login to immediately unblock AppRoutes
-  // without waiting for onAuthStateChanged (which never fires on native).
   const setNativeUser = (syntheticUser, p) => {
     setFirebaseUser(syntheticUser);
     setProfile(p);
     setLoadingPhase('native-injected');
   };
 
-  // Called by Onboarding/Settings to update in-memory profile after completing onboarding
-  // without re-running the full auth flow.
+  // Called by Onboarding/Settings to update in-memory profile immediately
   const updateProfile = (updates) => {
     setProfile(prev => prev ? { ...prev, ...updates } : updates);
   };
