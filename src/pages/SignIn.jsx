@@ -1,23 +1,5 @@
 /**
  * SignIn.jsx — TREDIO native-safe auth
- *
- * ARCHITECTURE:
- * - Native iOS/Android: @capacitor-firebase/authentication handles the full OAuth flow
- *   natively. The plugin sets auth.currentUser automatically. We NEVER call
- *   signInWithCredential() on native — it causes nonce/duplicate errors.
- * - Web: signInWithPopup() as normal.
- *
- * HANG FIX:
- * - syncUserProfile now accepts an overrideIdToken (idToken from plugin result)
- *   so it never calls firebaseUser.getIdToken() on a plain data object.
- * - 10-second safetyTimer prevents infinite spinner.
- * - Step-by-step debug panel shows exactly where the flow is.
- *
- * AUTH GUARD FIX (native):
- * - After native login, setNativeSession() persists the session to localStorage.
- * - setNativeUser() injects the user directly into FirebaseAuthContext so
- *   AppRoutes immediately sees an authenticated user — no waiting for
- *   onAuthStateChanged (which never fires on native).
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,14 +23,6 @@ import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
 const PLATFORM = Capacitor.getPlatform();
-
-async function waitForCurrentUser(retries = 6, delayMs = 500) {
-  for (let i = 0; i < retries; i++) {
-    if (auth.currentUser) return auth.currentUser;
-    await new Promise(r => setTimeout(r, delayMs));
-  }
-  return null;
-}
 
 function log(msg, data) {
   console.log('[TREDIO AUTH] ' + msg, data || '');
@@ -75,6 +49,7 @@ export default function SignIn() {
 
   const safetyTimer = useRef(null);
   const isMounted = useRef(true);
+  const loginCompletedRef = useRef(false);
 
   useEffect(() => {
     isMounted.current = true;
@@ -99,14 +74,17 @@ export default function SignIn() {
   const startSafetyTimer = () => {
     clearTimeout(safetyTimer.current);
     safetyTimer.current = setTimeout(() => {
-      if (isMounted.current) {
+      if (isMounted.current && !loginCompletedRef.current) {
         setLoading(false);
-        setError('TIMEOUT (10s): sign-in hung. Check debug steps above.');
+        setError('Sign-in timed out. Please try again.');
       }
     }, 10000);
   };
 
-  const stopSafetyTimer = () => clearTimeout(safetyTimer.current);
+  const stopSafetyTimer = () => {
+    loginCompletedRef.current = true;
+    clearTimeout(safetyTimer.current);
+  };
 
   const formatError = (err) => {
     const parts = [];
@@ -125,66 +103,61 @@ export default function SignIn() {
     addStep('STEP 2: handleAfterLoginNative entered');
 
     const idToken = pluginResult?.credential?.idToken || null;
-    const resultUser = pluginResult?.user || null;
+    const rawUser = pluginResult?.user || null;
 
-    addStep('STEP 3: idToken=' + (idToken ? 'YES' : 'NO') + ' result.user=' + (resultUser ? 'YES(email:' + resultUser.email + ')' : 'NO'));
+    addStep('STEP 3: idToken=' + (idToken ? 'YES' : 'NO') + ' result.user=' + (rawUser ? 'YES(email:' + rawUser.email + ')' : 'NO'));
 
-    const currentUser = await waitForCurrentUser(6, 500);
-    addStep('STEP 4: auth.currentUser after retries=' + (currentUser ? 'YES' : 'NO'));
-
-    const userForSync = currentUser || resultUser;
-
-    if (!userForSync) {
-      addStep('STEP 4-FAIL: no user object available at all');
-      setError('Native sign-in succeeded but no user data found. Try again.');
+    if (!rawUser) {
+      addStep('STEP 3-FAIL: no result.user from plugin');
+      setError('Native sign-in succeeded but no user data returned. Try again.');
       setLoading(false);
       stopSafetyTimer();
       return;
     }
 
-    addStep('STEP 5: calling syncUserProfile (idToken override=' + (idToken ? 'YES' : 'NO') + ')');
-
-    let profile;
-    try {
-      profile = await Promise.race([
-        syncUserProfile(userForSync, idToken),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('syncUserProfile timeout 8s')), 8000)),
-      ]);
-      addStep('STEP 6: syncUserProfile done, onboarding=' + profile?.onboarding_completed);
-    } catch (syncErr) {
-      addStep('STEP 6-FAIL: syncUserProfile threw: ' + syncErr.message);
-      profile = { onboarding_completed: false };
-    }
-
-    // Persist session to localStorage so FirebaseAuthContext survives reloads
-    const sessionUser = userForSync;
-    setNativeSession(sessionUser, idToken);
-    addStep('STEP 6b: native session stored in localStorage');
-
-    // Inject user into context immediately — this unblocks AppRoutes before navigate()
-    const syntheticUser = {
-      email: sessionUser.email,
-      uid: sessionUser.uid,
-      displayName: sessionUser.displayName,
-      photoURL: sessionUser.photoURL,
-      _isNativeSession: true,
+    const normalizedUser = {
+      uid: rawUser.uid,
+      email: rawUser.email,
+      displayName: rawUser.displayName || rawUser.name || '',
+      photoURL: rawUser.photoUrl || rawUser.photoURL || null,
     };
-    setNativeUser(syntheticUser, profile);
-    addStep('STEP 6c: setNativeUser injected — AppRoutes unblocked');
+    addStep('STEP 4: normalizedUser built uid=' + normalizedUser.uid);
 
-    addStep('STEP 7: calling navigate');
+    setNativeSession(normalizedUser, idToken);
+    addStep('STEP 5: native session stored');
+
+    const syntheticUser = { ...normalizedUser, _isNativeSession: true };
+    const fallbackProfile = {
+      email: normalizedUser.email,
+      uid: normalizedUser.uid,
+      full_name: normalizedUser.displayName || normalizedUser.email?.split('@')[0] || 'User',
+      photo_url: normalizedUser.photoURL || '',
+      broker_status: 'not_connected',
+      trading_mode: 'practice',
+      subscription_tier: 'free',
+      onboarding_completed: false,
+    };
+    setNativeUser(syntheticUser, fallbackProfile);
+    addStep('STEP 6: setNativeUser injected — AppRoutes unblocked');
+
     stopSafetyTimer();
-    try {
-      navigate(!profile?.onboarding_completed ? '/Onboarding' : '/Home', { replace: true });
-      addStep('STEP 8: navigate called');
-    } catch (navErr) {
-      addStep('STEP 8-FAIL: navigate threw: ' + navErr.message);
-      setError('Navigation failed: ' + navErr.message);
-    }
+    addStep('STEP 7: navigating to /Home');
+    navigate('/Home', { replace: true });
 
     if (isMounted.current) {
       setLoading(false);
-      addStep('STEP 9: setLoading(false)');
+      addStep('STEP 8: done');
+    }
+
+    try {
+      const synced = await Promise.race([
+        syncUserProfile(normalizedUser, idToken),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('bg sync timeout')), 3000)),
+      ]);
+      addStep('STEP 9: bg profile sync done, onboarding=' + synced?.onboarding_completed);
+      if (synced) setNativeUser(syntheticUser, synced);
+    } catch (syncErr) {
+      addStep('STEP 9-SKIP: bg sync failed/timeout: ' + syncErr.message);
     }
   };
 
@@ -220,7 +193,6 @@ export default function SignIn() {
     setLoading(true);
     startSafetyTimer();
     addStep('STEP 1: Google sign-in started (native=' + IS_NATIVE + ')');
-
     try {
       if (IS_NATIVE) {
         let FA;
@@ -229,28 +201,14 @@ export default function SignIn() {
           FA = mod.FirebaseAuthentication;
         } catch (err) {
           setError('Plugin import failed: ' + formatError(err));
-          setLoading(false);
-          stopSafetyTimer();
-          return;
+          setLoading(false); stopSafetyTimer(); return;
         }
-
-        if (!FA) {
-          setError('FirebaseAuthentication is null after import');
-          setLoading(false);
-          stopSafetyTimer();
-          return;
-        }
-
+        if (!FA) { setError('FirebaseAuthentication is null after import'); setLoading(false); stopSafetyTimer(); return; }
         let result;
-        try {
-          result = await FA.signInWithGoogle();
-        } catch (err) {
+        try { result = await FA.signInWithGoogle(); } catch (err) {
           setError('FA.signInWithGoogle() failed: ' + formatError(err));
-          setLoading(false);
-          stopSafetyTimer();
-          return;
+          setLoading(false); stopSafetyTimer(); return;
         }
-
         addStep('STEP 1-OK: native Google result keys=' + JSON.stringify(Object.keys(result || {})));
         await handleAfterLoginNative(result);
       } else {
@@ -262,8 +220,7 @@ export default function SignIn() {
       }
     } catch (err) {
       setError('Google error: ' + formatError(err));
-      setLoading(false);
-      stopSafetyTimer();
+      setLoading(false); stopSafetyTimer();
     }
   };
 
@@ -273,7 +230,6 @@ export default function SignIn() {
     setLoading(true);
     startSafetyTimer();
     addStep('STEP 1: Apple sign-in started (native=' + IS_NATIVE + ')');
-
     try {
       if (IS_NATIVE) {
         let FA;
@@ -282,28 +238,14 @@ export default function SignIn() {
           FA = mod.FirebaseAuthentication;
         } catch (err) {
           setError('Plugin import failed: ' + formatError(err));
-          setLoading(false);
-          stopSafetyTimer();
-          return;
+          setLoading(false); stopSafetyTimer(); return;
         }
-
-        if (!FA) {
-          setError('FirebaseAuthentication is null after import');
-          setLoading(false);
-          stopSafetyTimer();
-          return;
-        }
-
+        if (!FA) { setError('FirebaseAuthentication is null after import'); setLoading(false); stopSafetyTimer(); return; }
         let result;
-        try {
-          result = await FA.signInWithApple();
-        } catch (err) {
+        try { result = await FA.signInWithApple(); } catch (err) {
           setError('FA.signInWithApple() failed: ' + formatError(err));
-          setLoading(false);
-          stopSafetyTimer();
-          return;
+          setLoading(false); stopSafetyTimer(); return;
         }
-
         addStep('STEP 1-OK: native Apple result keys=' + JSON.stringify(Object.keys(result || {})));
         await handleAfterLoginNative(result);
       } else {
@@ -315,8 +257,7 @@ export default function SignIn() {
       }
     } catch (err) {
       setError('Apple error: ' + formatError(err));
-      setLoading(false);
-      stopSafetyTimer();
+      setLoading(false); stopSafetyTimer();
     }
   };
 
@@ -339,15 +280,18 @@ export default function SignIn() {
       <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
 
-        <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,0,0.4)', borderRadius: '8px', padding: '6px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(255,255,0,0.9)', lineHeight: '1.8' }}>
-          mode: <strong>{IS_NATIVE ? 'NATIVE' : 'web'}</strong> | platform: <strong>{PLATFORM}</strong> | plugin: <strong>{pluginAvailable === null ? 'checking...' : String(pluginAvailable)}</strong>
-        </div>
-
-        {debugSteps.length > 0 && (
-          <div style={{ background: 'rgba(0,15,5,0.9)', border: '1px solid rgba(0,255,100,0.35)', borderRadius: '8px', padding: '8px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(0,255,120,0.9)', lineHeight: '1.85' }}>
-            <div style={{ fontWeight: 'bold', color: '#fff', marginBottom: '4px' }}>Auth trace</div>
-            {debugSteps.map((s, i) => <div key={i}>{s}</div>)}
-          </div>
+        {import.meta.env.DEV && (
+          <>
+            <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,0,0.4)', borderRadius: '8px', padding: '6px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(255,255,0,0.9)', lineHeight: '1.8' }}>
+              mode: <strong>{IS_NATIVE ? 'NATIVE' : 'web'}</strong> | platform: <strong>{PLATFORM}</strong> | plugin: <strong>{pluginAvailable === null ? 'checking...' : String(pluginAvailable)}</strong>
+            </div>
+            {debugSteps.length > 0 && (
+              <div style={{ background: 'rgba(0,15,5,0.9)', border: '1px solid rgba(0,255,100,0.35)', borderRadius: '8px', padding: '8px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(0,255,120,0.9)', lineHeight: '1.85' }}>
+                <div style={{ fontWeight: 'bold', color: '#fff', marginBottom: '4px' }}>Auth trace</div>
+                {debugSteps.map((s, i) => <div key={i}>{s}</div>)}
+              </div>
+            )}
+          </>
         )}
 
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
