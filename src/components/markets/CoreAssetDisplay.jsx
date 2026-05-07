@@ -147,7 +147,7 @@ export default function CoreAssetDisplay() {
         return next;
       });
       setPhase('loaded');
-    }, 2500);
+    }, 8000);
 
     const assets = await fetchCoreAssets();
     console.log('FRONT DATA:', JSON.stringify(assets));
