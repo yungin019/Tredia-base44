@@ -17,40 +17,27 @@ export const REVENUECAT_CONFIG = {
     lifetime: '$rc_lifetime'
   },
   productIds: {
-    elite: 'tredio_elite_monthly',
-    pro: 'tredio_pro_monthly',
+    elite_monthly: 'tredio_elite_monthly',
+    elite_annual: 'tredio_elite_annual',
+    pro_monthly: 'tredio_pro_monthly',
+    pro_annual: 'tredio_pro_annual',
     yearly: 'yearly',
     lifetime: 'lifetime'
   },
-  // SDK Configuration
-  observerMode: false, // Set to true only if you're manually managing purchases
-  usesStoreKit2: true, // iOS 16.0+ uses StoreKit 2
-  logLevel: 'debug',   // Set to 'info' in production
+  observerMode: false,
+  usesStoreKit2: true,
+  logLevel: import.meta.env?.PROD ? 'info' : 'debug',
 };
 
-/**
- * Get entitlement identifier for tier
- * @param {string} tier - 'free', 'elite', 'pro', 'yearly', or 'lifetime'
- * @returns {string|null}
- */
 export function getEntitlementIdentifier(tier) {
   return REVENUECAT_CONFIG.entitlements[tier] || null;
 }
 
-/**
- * Get product ID for tier
- * @param {string} tier - 'elite', 'pro', 'yearly', or 'lifetime'
- * @returns {string|null}
- */
-export function getProductId(tier) {
-  return REVENUECAT_CONFIG.productIds[tier] || null;
+export function getProductId(tier, billingCycle = 'monthly') {
+  const key = tier + '_' + billingCycle;
+  return REVENUECAT_CONFIG.productIds[key] || REVENUECAT_CONFIG.productIds[tier] || null;
 }
 
-/**
- * Check if a given entitlement key matches a tier
- * @param {string} entitlementKey - RevenueCat entitlement identifier
- * @returns {string} - Tier name or 'free'
- */
 export function getTierFromEntitlement(entitlementKey) {
   for (const [tier, entId] of Object.entries(REVENUECAT_CONFIG.entitlements)) {
     if (entId === entitlementKey) return tier;
