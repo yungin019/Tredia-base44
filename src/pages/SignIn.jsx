@@ -219,8 +219,7 @@ export default function SignIn() {
         setLoading(false);
       }
     } catch (err) {
-      const msg = err?.code?.includes('cancel') || err?.message?.toLowerCase().includes('cancel') ? 'Sign-in cancelled.' : 'Google sign-in failed. Please try again.';
-      setError(msg);
+      setError('Google error: ' + formatError(err));
       setLoading(false); stopSafetyTimer();
     }
   };
@@ -257,8 +256,7 @@ export default function SignIn() {
         setLoading(false);
       }
     } catch (err) {
-      const msg = err?.code?.includes('cancel') || err?.message?.toLowerCase().includes('cancel') ? 'Sign-in cancelled.' : 'Apple sign-in failed. Please try again.';
-      setError(msg);
+      setError('Apple error: ' + formatError(err));
       setLoading(false); stopSafetyTimer();
     }
   };
@@ -400,7 +398,7 @@ function mapFirebaseError(err) {
   if (code.includes('invalid-email')) return 'Please enter a valid email address.';
   if (code.includes('too-many-requests')) return 'Too many attempts. Please try again later.';
   if (code.includes('network-request-failed')) return 'Network error. Please check your connection.';
-  if (code.includes('cancelled') || code.includes('canceled')) return 'Sign-in cancelled.';
+  if (code.includes('cancelled') || code.includes('canceled')) return '';
   return err?.message || 'Something went wrong. Please try again.';
 }
 const inputStyle = { width: '100%', padding: '12px 14px', borderRadius: '10px', fontSize: '16px', background: 'rgba(6,14,32,0.6)', border: '1px solid rgba(100,220,255,0.1)', color: 'rgba(255,255,255,0.88)', outline: 'none', boxSizing: 'border-box', minHeight: '44px' };

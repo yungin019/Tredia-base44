@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Check, Brain, Zap, TrendingUp, Shield, Crown, Link2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { updateUserProfile } from '@/lib/userProfile';
-import { claimFoundingMemberSlot } from '@/api/foundingMembers';
-import { useRevenueCat } from '@/hooks/useRevenueCat';
-import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
+import { claimFoundingMemberSlot, getFoundingStats } from '@/api/foundingMembers';
 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
@@ -37,13 +35,9 @@ function OptionButton({ label, selected, onClick, color = '#F59E0B' }) {
 export default function Onboarding() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { updateProfile } = useFirebaseAuth();
-  const { makePurchase, purchaseInProgress } = useRevenueCat();
-
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [ogNumber, setOgNumber] = useState(null);
-  const [ogPurchaseError, setOgPurchaseError] = useState(null);
   const [budget, setBudget] = useState('');
   const [risk, setRisk] = useState('');
   const [horizon, setHorizon] = useState('');
@@ -59,30 +53,15 @@ export default function Onboarding() {
     { icon: TrendingUp, labelKey: 'onboarding.trek.system3', fallback: 'Market Catalysts', color: '#22C55E' },
     { icon: Shield, labelKey: 'onboarding.trek.system4', fallback: 'Risk Scanner', color: '#EF4444' },
   ];
-  const BROKER_FEATURES = [
-    t('onboarding.broker.feature1','Execute trades directly from TREK signals'),
-    t('onboarding.broker.feature2','Real-time portfolio sync'),
-    t('onboarding.broker.feature3','Commission-free US stocks & crypto'),
-  ];
+  const BROKER_FEATURES = [t('onboarding.broker.feature1','Execute trades directly from TREK signals'),t('onboarding.broker.feature2','Real-time portfolio sync'),t('onboarding.broker.feature3','Commission-free US stocks & crypto')];
 
-  // FIX: JOIN OG100 must trigger a real RevenueCat purchase for Elite.
-  // Only after successful purchase → claim founding member slot and proceed.
   const handleOGClaim = async () => {
-    setOgPurchaseError(null);
-    const success = await makePurchase('elite');
-    if (!success) {
-      // User cancelled or purchase failed — show error but don't continue
-      setOgPurchaseError('Purchase not completed. Try again or skip.');
-      return;
-    }
-    // Purchase succeeded — claim the OG slot in the DB
     try {
-      const { getCachedProfile } = await import('@/lib/userProfile');
-      const cached = getCachedProfile();
+      const cached = (await import('@/lib/userProfile')).getCachedProfile();
       const userId = cached?.email || cached?.uid;
       if (userId) {
         const member = await claimFoundingMemberSlot(userId);
-        if (member) setOgNumber(member.og_number);
+        if (member) { setOgNumber(member.og_number); setStep(2); return; }
       }
     } catch (e) { console.error('OG claim error:', e); }
     setStep(2);
@@ -91,27 +70,10 @@ export default function Onboarding() {
   const handleProfileSave = async () => {
     setSaving(true);
     try {
-      await updateUserProfile({
-        onboarding_completed: true,
-        ...(budget && { budget_range: budget }),
-        ...(risk && { risk_tolerance: risk }),
-        ...(horizon && { time_horizon: horizon }),
-        ...(interests && { interests }),
-      });
-      // FIX: update in-memory context profile immediately so AppRoutes sees the change
-      updateProfile({ onboarding_completed: true });
+      await updateUserProfile({ onboarding_completed: true, ...(budget && { budget_range: budget }), ...(risk && { risk_tolerance: risk }), ...(horizon && { time_horizon: horizon }), ...(interests && { interests }) });
     } catch (e) { console.error('Profile save error:', e); }
     setSaving(false);
     setStep(3.5);
-  };
-
-  // FIX: persist onboarding completion to localStorage AND in-memory context, then navigate
-  const handleEnterApp = async () => {
-    try {
-      await updateUserProfile({ onboarding_completed: true });
-      updateProfile({ onboarding_completed: true });
-    } catch (_) {}
-    navigate('/Home', { replace: true });
   };
 
   return (
@@ -123,8 +85,6 @@ export default function Onboarding() {
           <span className="text-2xl font-black" style={{ color: '#F59E0B', letterSpacing: '-0.03em' }}>TREDIO</span>
         </motion.div>
         <AnimatePresence mode="wait">
-
-          {/* STEP 1: OG100 Offer — JOIN triggers real RevenueCat purchase */}
           {step === 1 && (
             <motion.div key="og" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="rounded-2xl border border-[#F59E0B]/25 bg-[#111118] p-8" style={{ boxShadow: '0 0 40px rgba(245,158,11,0.08)' }}>
@@ -137,12 +97,7 @@ export default function Onboarding() {
                   <p className="text-sm text-white/50">First 100 members unlock lifetime founding perks</p>
                 </div>
                 <ul className="space-y-3 mb-6">
-                  {[
-                    'Elite FREE for 30 days',
-                    'Then Elite for 89 SEK/month for life (normally 179 SEK)',
-                    'OG Founding Member badge',
-                    'Personal referral link',
-                  ].map((f, i) => (
+                  {['Elite FREE for 30 days','Then Elite for 89 SEK/month for life (normally 179 SEK)','OG Founding Member badge','Personal referral link'].map((f, i) => (
                     <li key={i} className="flex items-center gap-3">
                       <div className="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}>
                         <Check className="h-3 w-3 text-[#F59E0B]" />
@@ -151,29 +106,13 @@ export default function Onboarding() {
                     </li>
                   ))}
                 </ul>
-                {ogPurchaseError && (
-                  <p className="text-xs text-red-400 text-center mb-3">{ogPurchaseError}</p>
-                )}
                 <div className="flex flex-col gap-2">
-                  <button
-                    onClick={handleOGClaim}
-                    disabled={purchaseInProgress}
-                    className="py-3 rounded-xl font-black text-sm tracking-wider transition-all disabled:opacity-50"
-                    style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
-                    {purchaseInProgress ? 'Opening Payment...' : 'JOIN OG100'}
-                  </button>
-                  <button
-                    onClick={() => setStep(2)}
-                    disabled={purchaseInProgress}
-                    className="py-3 rounded-xl font-bold text-sm border border-white/[0.08] transition-colors text-white/40 disabled:opacity-30">
-                    SKIP
-                  </button>
+                  <button onClick={handleOGClaim} className="py-3 rounded-xl font-black text-sm tracking-wider transition-all" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>JOIN OG100</button>
+                  <button onClick={() => setStep(2)} className="py-3 rounded-xl font-bold text-sm border border-white/[0.08] transition-colors text-white/40">SKIP</button>
                 </div>
               </div>
             </motion.div>
           )}
-
-          {/* STEP 2: What is TREK */}
           {step === 2 && (
             <motion.div key="ai" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8 text-center">
@@ -200,8 +139,6 @@ export default function Onboarding() {
               </div>
             </motion.div>
           )}
-
-          {/* STEP 3: Profile questions */}
           {step === 3 && (
             <motion.div key="profile" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-6">
@@ -221,8 +158,6 @@ export default function Onboarding() {
               </div>
             </motion.div>
           )}
-
-          {/* STEP 3.5: Broker connect */}
           {step === 3.5 && (
             <motion.div key="broker" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8">
@@ -241,8 +176,6 @@ export default function Onboarding() {
               </div>
             </motion.div>
           )}
-
-          {/* STEP 4: Ready — Enter TREDIO */}
           {step === 4 && (
             <motion.div key="account" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="rounded-2xl border border-white/[0.08] bg-[#111118] p-8 text-center">
@@ -250,32 +183,28 @@ export default function Onboarding() {
                 <h1 className="text-2xl font-black text-white/90 mb-2">{t('onboarding.ready.title',"You're all set!")}</h1>
                 <p className="text-sm text-white/40 mb-2">{t('onboarding.ready.subtitle','TREK is ready to guide your trading.')}</p>
                 <p className="text-xs text-white/25 mb-8">{t('onboarding.ready.note','You can always adjust your preferences in Settings.')}</p>
-                {/* FIX: use handleEnterApp — updates localStorage + context before navigating */}
-                <button onClick={handleEnterApp} className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
+                <button onClick={async () => { try { await updateUserProfile({ onboarding_completed: true }); } catch {} window.location.href = '/Home'; }} className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
                   {t('onboarding.ready.enterBtn','Enter TREDIO')} <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </motion.div>
           )}
-
-          {/* STEP 5: OG Welcome (after successful purchase) */}
           {step === 5 && ogNumber && (
             <motion.div key="welcome" {...fadeUp} transition={{ duration: 0.4 }}>
               <div className="rounded-2xl border border-[#F59E0B]/25 bg-[#111118] p-8 text-center">
-                <div className="inline-flex items-center gap-2 bg-[#F59E0B]/15 border border-[#F59E0B]/30 rounded-full px-4 py-2 mb-4"><Crown className="h-5 w-5 text-[#F59E0B]" /><span className="text-sm font-black text-[#F59E0B]">OG #{ogNumber}</span></div>
+                <div className="inline-flex items-center gap-2 bg-[#F59E0B]/15 border border-[#F59E0B]/30 rounded-full px-4 py-2 mb-4"><Crown className="h-5 w-5 text-[#F59E0B]" /><span className="text-sm font-black text-[#F59E0B]">OG #{'{'}ogNumber{'}'}</span></div>
                 <h1 className="text-2xl font-black text-white/90 mb-2">{t('onboarding.welcome.title','Welcome to the inner circle')}</h1>
                 <p className="text-sm text-white/50 mb-8">{t('onboarding.welcome.referral','Share your link and earn rewards when friends join.')}</p>
                 <div className="rounded-xl p-4 mb-6" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                  <p className="text-xs font-mono text-white/60 mb-2">https://tredio.app/join?ref=OG{ogNumber}</p>
-                  <button onClick={() => navigator.clipboard.writeText(`https://tredio.app/join?ref=OG${ogNumber}`)} className="text-xs font-bold text-[#F59E0B] hover:text-[#F59E0B]/80 transition-colors">{t('onboarding.welcome.copyLink','Copy link')}</button>
+                  <p className="text-xs font-mono text-white/60 mb-2">https://tredio.app/join?ref=OG{'{'}ogNumber{'}'}</p>
+                  <button onClick={() => navigator.clipboard.writeText('https://tredio.app/join?ref=OG' + ogNumber)} className="text-xs font-bold text-[#F59E0B] hover:text-[#F59E0B]/80 transition-colors">{t('onboarding.welcome.copyLink','Copy link')}</button>
                 </div>
-                <button onClick={handleEnterApp} className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
+                <button onClick={async () => { try { await updateUserProfile({ onboarding_completed: true }); } catch {} window.location.href = '/Home'; }} className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F' }}>
                   {t('onboarding.ready.enterBtn','Enter TREDIO')} <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
     </div>
