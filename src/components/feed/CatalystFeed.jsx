@@ -200,7 +200,7 @@ export default function CatalystFeed({ activeRegion = 'Global' }) {
     const loadSignals = async () => {
       try {
         setLoading(true);
-        console.log('[MarketSignals] Loading news + structure signals');
+        console.log('[MarketSignals] Loading news + structure signals (auth ok)');
         
         // Fetch news catalysts
         const newsCatalysts = await base44.entities.Catalyst.list().catch(() => []);
