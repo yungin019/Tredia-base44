@@ -1,14 +1,27 @@
 /**
  * Direct HTTP function invoker — bypasses SDK auth requirement.
- * Backend functions are public-safe and don't require a platform token.
+ * Dynamically resolves the correct server URL for preview, live, and native environments.
  */
 import { appParams } from '@/lib/app-params';
 
-const BASE44_SERVER_URL = 'https://app.base44.com';
-const APP_ID = appParams.appId || import.meta.env.VITE_BASE44_APP_ID;
+function getBaseUrl() {
+  // In preview/staging the platform injects server_url as a query param and stores it in localStorage
+  const fromStorage = localStorage.getItem('base44_server_url');
+  if (fromStorage) return fromStorage.replace(/\/$/, '');
+  // Also check URL params directly (first load before storage is set)
+  try {
+    const urlParam = new URLSearchParams(window.location.search).get('server_url');
+    if (urlParam) return urlParam.replace(/\/$/, '');
+  } catch (_) {}
+  return 'https://app.base44.com';
+}
+
+function getAppId() {
+  return appParams.appId || import.meta.env.VITE_BASE44_APP_ID;
+}
 
 export async function invokeFunction(name, body = {}) {
-  const url = `${BASE44_SERVER_URL}/api/apps/${APP_ID}/functions/${name}`;
+  const url = `${getBaseUrl()}/api/apps/${getAppId()}/functions/${name}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
