@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
 export default function GlobalMarketStateBanner() {
@@ -14,16 +14,7 @@ export default function GlobalMarketStateBanner() {
       try {
         setLoading(true);
         setError(null);
-        const response = await base44.functions.invoke('globalMarketState', { lang: i18n.language || 'en' });
-
-        // Guard: if native returned HTML instead of JSON, treat as unavailable
-        const raw = response.data;
-        if (typeof raw === 'string' && raw.trim().startsWith('<')) {
-          console.warn('[GlobalMarketStateBanner] Received HTML instead of JSON — API URL misconfigured');
-          setError('unavailable');
-          return;
-        }
-
+        const raw = await invokeFunction('globalMarketState', { lang: i18n.language || 'en' });
         if (raw?.marketState) {
           setState(raw.marketState);
           setError(null);

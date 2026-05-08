@@ -1,20 +1,17 @@
 /**
  * TREDIO Market Data Client
  *
- * ALL market data flows through backend only.
- * Frontend NEVER calls Polygon, CoinGecko, or any provider directly.
- *
- * Two operations:
- *  fetchCoreAssets()          → GET core 8 assets from cache (<1s)
- *  searchAssets(query)        → search + live quotes (≤2.5s)
- *  fetchSingleAsset(symbol)   → single asset live quote (≤2.5s)
+ * Calls marketCore backend function directly via HTTP (no SDK auth required).
+ * The function is public-safe — no user auth needed on the backend.
  */
 
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
+
+const invokeMarketCore = (body) => invokeFunction('marketCore', body);
 
 // ── FRONTEND CACHE (avoids re-fetching on tab switch) ─────────────────────
 const clientCache = new Map();
-const CLIENT_CACHE_TTL_MS = 60000; // 60s on frontend — reduces backend calls
+const CLIENT_CACHE_TTL_MS = 60000; // 60s
 
 function getClientCached(key) {
   const entry = clientCache.get(key);
@@ -32,16 +29,10 @@ function setClientCached(key, data) {
 
 export async function fetchCoreAssets() {
   const cached = getClientCached('core');
-  if (cached) {
-    console.log('[marketDataClient] fetchCoreAssets → CACHE HIT, returning', cached.length, 'assets');
-    return cached;
-  }
+  if (cached) return cached;
 
-  console.log('[marketDataClient] fetchCoreAssets → calling marketCore...');
-  const res = await base44.functions.invoke('marketCore', { action: 'core' });
-  console.log('[marketDataClient] raw response:', JSON.stringify(res?.data)?.slice(0, 300));
-  const assets = res?.data?.assets || [];
-  console.log('[marketDataClient] extracted assets:', assets.length, assets.map(a => a.symbol));
+  const data = await invokeMarketCore({ action: 'core' });
+  const assets = data?.assets || [];
   if (assets.length > 0) setClientCached('core', assets);
   return assets;
 }
@@ -53,8 +44,8 @@ export async function searchAssets(query) {
   const cached = getClientCached(`search:${q}`);
   if (cached) return cached;
 
-  const res = await base44.functions.invoke('marketCore', { action: 'search', query });
-  const results = res?.data?.results || [];
+  const data = await invokeMarketCore({ action: 'search', query });
+  const results = data?.results || [];
   if (results.length > 0) setClientCached(`search:${q}`, results);
   return results;
 }
@@ -65,8 +56,8 @@ export async function fetchSingleAsset(symbol) {
   const cached = getClientCached(`asset:${symbol}`);
   if (cached) return cached;
 
-  const res = await base44.functions.invoke('marketCore', { action: 'search', query: symbol });
-  const results = res?.data?.results || [];
+  const data = await invokeMarketCore({ action: 'search', query: symbol });
+  const results = data?.results || [];
   const match = results.find(r => r.symbol === symbol.toUpperCase());
 
   if (match) {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, RefreshCw } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 import FeedReactionBlock from './FeedReactionBlock';
 import { useTranslation } from 'react-i18next';
 // ── VALIDATION: reject vague signals ─────────────────────────────────────────
@@ -118,14 +118,12 @@ export default function IntelligenceFeed({ activeRegion }) {
   const load = async (region) => {
     setLoading(true);
 
-    const structureRes = await Promise.allSettled([
-      base44.functions.invoke('generateStructureSignals', { region }),
-    ]);
-
     const rawCatalysts = [];
-    const structureSignals = structureRes[0].status === 'fulfilled'
-      ? (structureRes[0].value?.data?.signals || structureRes[0].value?.signals || [])
-      : [];
+    let structureSignals = [];
+    try {
+      const structureRes = await invokeFunction('generateStructureSignals', { region });
+      structureSignals = structureRes?.signals || [];
+    } catch (_) {}
 
     const normalizedCatalysts = rawCatalysts.map(normalizeCatalyst).filter(isValid);
     const normalizedStructure = structureSignals.map(normalizeStructure).filter(isValid);

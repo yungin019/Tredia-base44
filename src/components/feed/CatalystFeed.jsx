@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Eye, ChevronRight, Clock, Zap } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 import SignalExplanationModal from './SignalExplanationModal';
 import { useTranslation } from 'react-i18next';
 
@@ -213,9 +213,9 @@ export default function CatalystFeed({ activeRegion = 'Global' }) {
         // Fetch structure signals
         let structureSignals = [];
         try {
-          const structRes = await base44.functions.invoke('generateStructureSignals', {});
-          if (structRes.data?.signals) {
-            structureSignals = structRes.data.signals.filter(s => {
+          const structRes = await invokeFunction('generateStructureSignals', {});
+          if (structRes?.signals) {
+            structureSignals = structRes.signals.filter(s => {
               const isGlobal = s.regions?.includes('Global');
               const isRegional = s.regions?.includes(activeRegion);
               return activeRegion === 'Global' ? isGlobal : (isRegional || isGlobal);

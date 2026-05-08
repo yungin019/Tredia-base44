@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 
 
 const INDEX_SYMBOLS = [
@@ -19,12 +19,12 @@ export default function IndexCardsSection() {
     async function fetchIndices() {
       try {
         const symbols = INDEX_SYMBOLS.map(s => s.symbol);
-        const res = await base44.functions.invoke('stockPrices', { symbols });
-        if (res?.data?.prices) {
+        const res = await invokeFunction('stockPrices', { symbols });
+        if (res?.prices) {
           const liveIndices = INDEX_SYMBOLS
-            .filter(s => res.data.prices[s.symbol] && res.data.prices[s.symbol].price > 0)
+            .filter(s => res.prices[s.symbol] && res.prices[s.symbol].price > 0)
             .map(s => {
-              const data = res.data.prices[s.symbol];
+              const data = res.prices[s.symbol];
               const change = data.prevClose ? ((data.price - data.prevClose) / data.prevClose) * 100 : 0;
               const basePrice = data.price;
               const sparkline = Array.from({ length: 10 }, (_, i) => ({
