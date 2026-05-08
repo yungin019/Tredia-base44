@@ -165,7 +165,7 @@ function generateStructureSignals(marketData) {
       category: 'macro',
       confidence: Math.min(95, 65 + Math.abs(spyChangePct) * 10),
       related_assets: ['SPY', 'QQQ', 'IWM'],
-      regions: ['Global', 'US'],
+      regions: ['Global', 'US', 'EU', 'APAC', 'Africa', 'LatAm'],
       published_at: new Date().toISOString(),
       interpretation_updated_at: new Date().toISOString(),
       stage: 'confirmed_catalyst'
@@ -199,7 +199,7 @@ function generateStructureSignals(marketData) {
         category: 'macro',
         confidence: 70,
         related_assets: ['SPY', 'QQQ', 'TLT'],
-        regions: ['Global', 'US'],
+        regions: ['Global', 'US', 'EU', 'APAC', 'Africa', 'LatAm'],
         published_at: new Date().toISOString(),
         interpretation_updated_at: new Date().toISOString(),
         stage: 'confirmed_catalyst'
@@ -235,7 +235,7 @@ function generateStructureSignals(marketData) {
         category: 'macro',
         confidence: 72,
         related_assets: [sectorTicker, 'SPY', 'QQQ'],
-        regions: ['US'],
+        regions: ['Global', 'US', 'EU', 'APAC', 'Africa', 'LatAm'],
         published_at: new Date().toISOString(),
         interpretation_updated_at: new Date().toISOString(),
         stage: 'confirmed_catalyst'
@@ -277,7 +277,7 @@ function generateStructureSignals(marketData) {
         category: 'macro',
         confidence: 68,
         related_assets: ['TLT', 'IEF', 'XLK', 'SPY'],
-        regions: ['Global', 'US'],
+        regions: ['Global', 'US', 'EU', 'APAC', 'Africa', 'LatAm'],
         published_at: new Date().toISOString(),
         interpretation_updated_at: new Date().toISOString(),
         stage: 'confirmed_catalyst'
@@ -345,7 +345,7 @@ function generateStructureSignals(marketData) {
       category: 'macro',
       confidence: 65,
       related_assets: ['SPY', 'QQQ', 'TLT'],
-      regions: ['Global', 'US'],
+      regions: ['Global', 'US', 'EU', 'APAC', 'Africa', 'LatAm'],
       published_at: new Date().toISOString(),
       interpretation_updated_at: new Date().toISOString(),
       stage: 'confirmed_catalyst'
