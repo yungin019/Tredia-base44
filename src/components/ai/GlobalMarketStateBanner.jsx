@@ -2,18 +2,14 @@ import React, { useEffect, useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
-
 export default function GlobalMarketStateBanner() {
   const { t } = useTranslation();
-  const { firebaseUser } = useFirebaseAuth();
   const [state, setState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const hasFetchedOnce = React.useRef(false);
 
   useEffect(() => {
-    if (!firebaseUser) return;
     const fetchMarketState = async () => {
       try {
         setLoading(true);
@@ -48,7 +44,7 @@ export default function GlobalMarketStateBanner() {
     fetchMarketState();
     const interval = setInterval(fetchMarketState, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [firebaseUser]);
+  }, []);
 
   if (loading) {
     return (

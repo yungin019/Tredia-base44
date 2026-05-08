@@ -51,7 +51,6 @@ export default function Home() {
 
   // Core assets for Home feed
   useEffect(() => {
-    if (!firebaseUser) return;
     async function loadCore() {
       try {
         setDataStatus('loading');
@@ -75,7 +74,7 @@ export default function Home() {
     loadCore();
     const interval = setInterval(loadCore, 60000);
     return () => clearInterval(interval);
-  }, [firebaseUser]);
+  }, []);
 
   const handleRegionChange = (r) => {
     setActiveRegion(r);

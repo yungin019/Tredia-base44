@@ -4,8 +4,6 @@ import { Eye, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import FeedReactionBlock from './FeedReactionBlock';
 import { useTranslation } from 'react-i18next';
-import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
-
 // ── VALIDATION: reject vague signals ─────────────────────────────────────────
 const BANNED = ['sentiment', 'narrative', 'uncertain'];
 function isValid(r) {
@@ -112,24 +110,21 @@ function EmptyState({ region }) {
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function IntelligenceFeed({ activeRegion }) {
   const { t } = useTranslation();
-  const { firebaseUser } = useFirebaseAuth();
   const [reactions, setReactions] = useState([]);
   const [watchItems, setWatchItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const load = async (region) => {
-    if (!firebaseUser) return; // wait for auth
     setLoading(true);
 
-    const [catalystsRes, structureRes] = await Promise.allSettled([
-      base44.entities.Catalyst.list('-published_at', 30),
+    const structureRes = await Promise.allSettled([
       base44.functions.invoke('generateStructureSignals', { region }),
     ]);
 
-    const rawCatalysts = catalystsRes.status === 'fulfilled' ? catalystsRes.value : [];
-    const structureSignals = structureRes.status === 'fulfilled'
-      ? (structureRes.value?.data?.signals || structureRes.value?.signals || [])
+    const rawCatalysts = [];
+    const structureSignals = structureRes[0].status === 'fulfilled'
+      ? (structureRes[0].value?.data?.signals || structureRes[0].value?.signals || [])
       : [];
 
     const normalizedCatalysts = rawCatalysts.map(normalizeCatalyst).filter(isValid);
@@ -158,11 +153,10 @@ export default function IntelligenceFeed({ activeRegion }) {
   };
 
   useEffect(() => {
-    if (!firebaseUser) return;
     load(activeRegion);
     const interval = setInterval(() => load(activeRegion), 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [activeRegion, firebaseUser]);
+  }, [activeRegion]);
 
   if (loading) {
     return (
