@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { fetchCoreAssets } from '@/api/marketDataClient';
+import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 
 const CORE_SYMBOLS = ['AAPL', 'NVDA', 'TSLA', 'AMZN', 'SPY', 'QQQ', 'BTC', 'ETH'];
 const CORE_META = {
@@ -101,6 +102,7 @@ function AssetCardLive({ symbol, data, onClick }) {
 
 export default function CoreAssetDisplay() {
   const navigate = useNavigate();
+  const { firebaseUser } = useFirebaseAuth();
   const [assetMap, setAssetMap] = useState({});
   const [phase, setPhase] = useState('skeleton');
   const timeoutRef = useRef(null);
@@ -127,6 +129,7 @@ export default function CoreAssetDisplay() {
   }
 
   useEffect(() => {
+    if (!firebaseUser) return;
     load();
     // Refresh every 60s — avoid Finnhub 429 rate limits
     refreshRef.current = setInterval(load, 60000);
@@ -134,7 +137,7 @@ export default function CoreAssetDisplay() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (refreshRef.current) clearInterval(refreshRef.current);
     };
-  }, []);
+  }, [firebaseUser]);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
