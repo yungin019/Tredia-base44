@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { base44 } from '@/api/base44Client';
+import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 
 const INDEX_SYMBOLS = [
   { symbol: 'SPY', name: 'S&P 500 ETF' },
@@ -11,10 +12,12 @@ const INDEX_SYMBOLS = [
 ];
 
 export default function IndexCardsSection() {
+  const { firebaseUser } = useFirebaseAuth();
   const [indices, setIndices] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!firebaseUser) return;
     async function fetchIndices() {
       try {
         const symbols = INDEX_SYMBOLS.map(s => s.symbol);
@@ -43,7 +46,7 @@ export default function IndexCardsSection() {
     // Refresh every 90 seconds — avoid rate limits
     const interval = setInterval(fetchIndices, 90000);
     return () => clearInterval(interval);
-  }, []);
+  }, [firebaseUser]);
 
   if (loading || indices.length === 0) {
     return (
