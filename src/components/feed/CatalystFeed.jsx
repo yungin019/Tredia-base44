@@ -4,6 +4,7 @@ import { ExternalLink, Eye, ChevronRight, Clock, Zap } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import SignalExplanationModal from './SignalExplanationModal';
 import { useTranslation } from 'react-i18next';
+import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 
 const CATEGORY_COLORS = {
   macro: { bg: 'rgba(14,200,220,0.08)', border: 'rgba(14,200,220,0.2)', text: '#0ec8dc' },
@@ -188,12 +189,14 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
 
 export default function CatalystFeed({ activeRegion = 'Global' }) {
   const { t } = useTranslation();
+  const { firebaseUser } = useFirebaseAuth();
   const [signals, setSignals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSignal, setSelectedSignal] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
+    if (!firebaseUser) return;
     const loadSignals = async () => {
       try {
         setLoading(true);
@@ -252,7 +255,7 @@ export default function CatalystFeed({ activeRegion = 'Global' }) {
     loadSignals();
     const interval = setInterval(loadSignals, 60000);
     return () => clearInterval(interval);
-  }, [activeRegion]);
+  }, [activeRegion, firebaseUser]);
 
   if (loading) {
     return (

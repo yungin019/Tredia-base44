@@ -20,6 +20,7 @@ import TrendingAssets from '@/components/markets/TrendingAssets';
 import WatchlistQuick from '@/components/markets/WatchlistQuick';
 import { fetchCoreAssets } from '@/api/marketDataClient';
 import RegionSwitcher from '@/components/feed/RegionSwitcher';
+import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import IntelligenceFeed from '@/components/feed/IntelligenceFeed.jsx';
 import HeroSignalCard from '@/components/feed/HeroSignalCard';
 import { base44 } from '@/api/base44Client';
@@ -38,6 +39,7 @@ function detectDefaultRegion() {
 export default function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { firebaseUser } = useFirebaseAuth();
   const [fearGreed, setFearGreed] = useState(null);
   const [liveStocks, setLiveStocks] = useState([]);
   const [cryptoPrices, setCryptoPrices] = useState([]);
@@ -49,6 +51,7 @@ export default function Home() {
 
   // Core assets for Home feed
   useEffect(() => {
+    if (!firebaseUser) return;
     async function loadCore() {
       try {
         setDataStatus('loading');
@@ -72,7 +75,7 @@ export default function Home() {
     loadCore();
     const interval = setInterval(loadCore, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [firebaseUser]);
 
   const handleRegionChange = (r) => {
     setActiveRegion(r);
