@@ -36,7 +36,9 @@ export async function syncUserProfile(firebaseUser, overrideIdToken = null) {
 
   if (idToken) {
     if (base44.auth?.setToken) base44.auth.setToken(idToken);
-    localStorage.setItem('base44_access_token', idToken);
+    // Store under firebase_auth_token — do NOT overwrite base44_access_token which
+    // may be a platform preview token set by app-params.js via URL injection.
+    localStorage.setItem('firebase_auth_token', idToken);
     localStorage.setItem('auth_token', idToken);
   }
 
@@ -104,7 +106,9 @@ export async function updateUserProfile(updates) {
 
 export function clearUserProfile() {
   localStorage.removeItem(PROFILE_KEY);
-  localStorage.removeItem('base44_access_token');
+  localStorage.removeItem('firebase_auth_token');
   localStorage.removeItem('auth_token');
   localStorage.removeItem('token');
+  // NOTE: Do NOT remove base44_access_token — it may be the platform preview token
+  // injected via URL by app-params.js. The Base44 SDK manages it internally.
 }
