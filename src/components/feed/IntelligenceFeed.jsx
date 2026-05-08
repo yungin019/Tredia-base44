@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import FeedReactionBlock from './FeedReactionBlock';
 import { useTranslation } from 'react-i18next';
+import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 
 // ── VALIDATION: reject vague signals ─────────────────────────────────────────
 const BANNED = ['sentiment', 'narrative', 'uncertain'];
@@ -111,12 +112,14 @@ function EmptyState({ region }) {
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function IntelligenceFeed({ activeRegion }) {
   const { t } = useTranslation();
+  const { firebaseUser } = useFirebaseAuth();
   const [reactions, setReactions] = useState([]);
   const [watchItems, setWatchItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const load = async (region) => {
+    if (!firebaseUser) return; // wait for auth
     setLoading(true);
 
     const [catalystsRes, structureRes] = await Promise.allSettled([
@@ -155,10 +158,11 @@ export default function IntelligenceFeed({ activeRegion }) {
   };
 
   useEffect(() => {
+    if (!firebaseUser) return;
     load(activeRegion);
     const interval = setInterval(() => load(activeRegion), 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [activeRegion]);
+  }, [activeRegion, firebaseUser]);
 
   if (loading) {
     return (
