@@ -407,8 +407,8 @@ async function handleSearch(query, finnhubKey) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Market data is public-safe — no user auth required.
+    // Using asServiceRole for any entity access below.
 
     const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY');
     if (!FINNHUB_KEY) {

@@ -359,10 +359,7 @@ function generateStructureSignals(marketData) {
 // ── SERVER ────────────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-
+    // Market structure signals are public-safe — no user auth required.
     console.log('[STRUCTURE SIGNALS] Fetching live market data from Finnhub');
     const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY');
     let marketData = { indexChanges: [], volatilityMetrics: {}, sectorChanges: [], yields: {}, fearGreedIndex: null };

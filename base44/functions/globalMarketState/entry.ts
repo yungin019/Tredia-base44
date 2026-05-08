@@ -238,14 +238,12 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Market state is public-safe — no user auth required.
 
-    // Get language from request body or user profile
     let reqLang = 'en';
     try {
       const body = await req.clone().json().catch(() => ({}));
-      reqLang = body.lang || user.language || 'en';
+      reqLang = body.lang || 'en';
     } catch (_) {}
     const LANG_NAMES = {
       'en': 'English', 'fr': 'French', 'sv': 'Swedish', 'es': 'Spanish',
