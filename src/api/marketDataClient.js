@@ -32,10 +32,16 @@ function setClientCached(key, data) {
 
 export async function fetchCoreAssets() {
   const cached = getClientCached('core');
-  if (cached) return cached;
+  if (cached) {
+    console.log('[marketDataClient] fetchCoreAssets → CACHE HIT, returning', cached.length, 'assets');
+    return cached;
+  }
 
+  console.log('[marketDataClient] fetchCoreAssets → calling marketCore...');
   const res = await base44.functions.invoke('marketCore', { action: 'core' });
+  console.log('[marketDataClient] raw response:', JSON.stringify(res?.data)?.slice(0, 300));
   const assets = res?.data?.assets || [];
+  console.log('[marketDataClient] extracted assets:', assets.length, assets.map(a => a.symbol));
   if (assets.length > 0) setClientCached('core', assets);
   return assets;
 }

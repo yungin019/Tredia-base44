@@ -44,6 +44,7 @@ export default function Home() {
   const [liveStocks, setLiveStocks] = useState([]);
   const [cryptoPrices, setCryptoPrices] = useState([]);
   const [dataStatus, setDataStatus] = useState('loading');
+  const [debugInfo, setDebugInfo] = useState({ coreAssets: 0, liveStocks: 0, error: null });
   const [activeRegion, setActiveRegion] = useState(() => {
     return localStorage.getItem('tredio_region') || detectDefaultRegion();
   });
@@ -55,19 +56,24 @@ export default function Home() {
       try {
         setDataStatus('loading');
         const assets = await fetchCoreAssets();
+        console.log('[Home] fetchCoreAssets returned:', assets.length, 'assets', assets.map(a => `${a.symbol}:${a.status}`));
         const live = assets.filter(a => a.status === 'live');
+        console.log('[Home] live assets:', live.length);
         const stocks = live.filter(a => a.type !== 'crypto').map(a => ({
           ...a,
           change: a.changePct || 0,
           signal: a.changePct > 1 ? 'BUY' : a.changePct < -1 ? 'SELL' : 'HOLD'
         }));
         const crypto = live.filter(a => a.type === 'crypto');
+        console.log('[Home] stocks:', stocks.length, 'crypto:', crypto.length);
         setLiveStocks(stocks);
         setCryptoPrices(crypto);
         setDataStatus(live.length > 0 ? 'live' : 'stale');
+        setDebugInfo({ coreAssets: assets.length, liveStocks: stocks.length, error: null });
       } catch (error) {
         console.error('[Home] Core fetch failed:', error.message);
         setDataStatus('stale');
+        setDebugInfo({ coreAssets: 0, liveStocks: 0, error: error.message });
       }
     }
 
@@ -103,6 +109,11 @@ export default function Home() {
           style={{ background: 'rgba(4,8,20,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
         >
           <RegionSwitcher activeRegion={activeRegion} onChange={handleRegionChange} />
+        </div>
+
+        {/* ── DEBUG PANEL (remove after fix) ── */}
+        <div style={{ background: '#0f0', color: '#000', fontSize: 11, padding: '6px 12px', fontFamily: 'monospace', zIndex: 9999, position: 'relative' }}>
+          coreAssets: {debugInfo.coreAssets} | liveStocks: {debugInfo.liveStocks} | status: {dataStatus} | error: {debugInfo.error || 'none'}
         </div>
 
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">
