@@ -64,8 +64,8 @@ export default function TrendingAssets({ stocks = [] }) {
             </motion.div>
           );
         }) : (
-          <div className="text-center py-4 text-xs text-white/40">
-            Loading live data...
+          <div className="text-center py-6 text-xs text-white/25">
+            No live assets available right now
           </div>
         )}
       </div>

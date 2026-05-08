@@ -8,8 +8,9 @@ import { useTranslation } from 'react-i18next';
 // ── VALIDATION: reject vague signals ─────────────────────────────────────────
 const BANNED = ['sentiment', 'narrative', 'uncertain'];
 function isValid(r) {
-  const t = [r.market_state || r.marketState, r.driver, r.impact || r.impactText, r.risk || r.riskInvalidation].join(' ').toLowerCase();
-  return !BANNED.some(p => t.includes(p)) && /\d/.test(t);
+  const text = [r.market_state || r.marketState, r.driver, r.impact || r.impactText, r.risk || r.riskInvalidation].join(' ').toLowerCase();
+  if (!text || text.trim().length < 10) return false;
+  return !BANNED.some(p => text.includes(p));
 }
 
 // ── NORMALIZE: map Catalyst entity fields to FeedReactionBlock shape ─────────

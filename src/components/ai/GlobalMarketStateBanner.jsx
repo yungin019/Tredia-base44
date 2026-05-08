@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ export default function GlobalMarketStateBanner() {
   const [state, setState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const hasFetchedOnce = React.useRef(false);
 
   useEffect(() => {
     const fetchMarketState = async () => {
@@ -26,12 +27,16 @@ export default function GlobalMarketStateBanner() {
 
         if (raw?.marketState) {
           setState(raw.marketState);
+          setError(null);
         } else {
-          setError('No market state received');
+          // Only show error if we've never loaded successfully
+          if (!hasFetchedOnce.current) setError('No market state received');
         }
+        hasFetchedOnce.current = true;
       } catch (err) {
         console.error('[GlobalMarketStateBanner] Error:', err.message);
-        setError(err.message);
+        // Only show error if we've never loaded successfully
+        if (!hasFetchedOnce.current) setError(err.message);
       } finally {
         setLoading(false);
       }

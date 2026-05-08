@@ -35,8 +35,9 @@ export default function WatchlistQuick({ stocks = [] }) {
             </div>
           </motion.button>
         )) : (
-          <div className="col-span-full text-center py-4 text-xs text-white/40">
-            Loading live data...
+          <div className="col-span-full text-center py-6 text-xs text-white/25 flex flex-col gap-1">
+            <span>No live prices available right now</span>
+            <span className="text-[10px] text-white/15">Markets may be closed or data is loading</span>
           </div>
         )}
       </div>
