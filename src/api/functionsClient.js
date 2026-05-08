@@ -1,18 +1,33 @@
 /**
  * Direct HTTP function invoker — bypasses SDK auth requirement.
- * Dynamically resolves the correct server URL for preview, live, and native environments.
+ * Routes to the correct server based on environment:
+ * - Preview: uses base44_server_url from localStorage (injected by platform)
+ * - Live site (tredio.app): uses current origin (same domain)
+ * - Native / fallback: uses app.base44.com
  */
 import { appParams } from '@/lib/app-params';
 
 function getBaseUrl() {
-  // In preview/staging the platform injects server_url as a query param and stores it in localStorage
-  const fromStorage = localStorage.getItem('base44_server_url');
-  if (fromStorage) return fromStorage.replace(/\/$/, '');
-  // Also check URL params directly (first load before storage is set)
+  // 1. Platform preview injects server_url into localStorage
   try {
+    const fromStorage = localStorage.getItem('base44_server_url');
+    if (fromStorage) return fromStorage.replace(/\/$/, '');
+
     const urlParam = new URLSearchParams(window.location.search).get('server_url');
     if (urlParam) return urlParam.replace(/\/$/, '');
   } catch (_) {}
+
+  // 2. On the live site (e.g. tredio.app), use the same origin so
+  //    requests go through the same host that serves the app.
+  if (typeof window !== 'undefined') {
+    const origin = window.location.origin;
+    // Not a local dev server and not the base44 platform directly
+    if (origin && !origin.includes('localhost') && !origin.includes('base44.com')) {
+      return origin;
+    }
+  }
+
+  // 3. Fallback for native / unknown
   return 'https://app.base44.com';
 }
 
