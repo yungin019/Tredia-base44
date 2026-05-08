@@ -5,17 +5,20 @@ import { useNavigate } from 'react-router-dom';
 import { EXPANDED_ASSETS } from '@/lib/assetDatabase';
 import { deriveSignal } from '@/api/signalEngine';
 import { fetchCoreAssets } from '@/api/marketDataClient';
+import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 
 // Single source of truth: all data from marketCore
 const SIGNAL_SYMBOLS = ['NVDA', 'AMZN', 'TSLA', 'AAPL', 'BTC', 'ETH'];
 
 export default function TrekSignalsPreview() {
   const navigate = useNavigate();
+  const { firebaseUser } = useFirebaseAuth();
   const [signals, setSignals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
 
   useEffect(() => {
+    if (!firebaseUser) return;
     async function fetchSignals() {
       try {
         // ── Single source: same cache as CoreAssetDisplay ──
@@ -59,7 +62,7 @@ export default function TrekSignalsPreview() {
     fetchSignals();
     const interval = setInterval(fetchSignals, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [firebaseUser]);
 
   if (loading) {
     return (
