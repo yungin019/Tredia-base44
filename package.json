@@ -12,8 +12,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.27",
-    "@base44/vite-plugin": "^1.0.15",
+    "@base44/sdk": "^0.8.30",
+    "@base44/vite-plugin": "^1.0.20",
     "@capacitor-firebase/authentication": "^7.5.0",
     "@capacitor/browser": "^7.0.5",
     "@capacitor/core": "^8.2.0",
