@@ -1,0 +1,49 @@
+{
+  "name": "TradeLog",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Ticker symbol"
+    },
+    "name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "buy",
+        "sell"
+      ],
+      "description": "Trade action"
+    },
+    "shares": {
+      "type": "number",
+      "description": "Number of shares"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price per share at execution"
+    },
+    "total": {
+      "type": "number",
+      "description": "Total trade value"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "executed",
+        "pending",
+        "cancelled"
+      ],
+      "default": "executed"
+    }
+  },
+  "required": [
+    "symbol",
+    "action",
+    "shares",
+    "price"
+  ]
+}

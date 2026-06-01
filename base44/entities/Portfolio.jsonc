@@ -1,0 +1,36 @@
+{
+  "name": "Portfolio",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Ticker symbol"
+    },
+    "name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "shares": {
+      "type": "number",
+      "description": "Number of shares held"
+    },
+    "avg_cost": {
+      "type": "number",
+      "description": "Average cost per share"
+    },
+    "current_price": {
+      "type": "number",
+      "description": "Current price per share"
+    },
+    "sector": {
+      "type": "string",
+      "description": "Industry sector"
+    }
+  },
+  "required": [
+    "symbol",
+    "name",
+    "shares",
+    "avg_cost"
+  ]
+}

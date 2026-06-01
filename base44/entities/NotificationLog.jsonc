@@ -1,0 +1,31 @@
+{
+  "name": "NotificationLog",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User identifier"
+    },
+    "date": {
+      "type": "string",
+      "description": "Date string YYYY-MM-DD"
+    },
+    "count": {
+      "type": "number",
+      "description": "Number of notifications sent today",
+      "default": 0
+    },
+    "signal_type": {
+      "type": "string",
+      "description": "Last signal type sent"
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Asset symbol"
+    }
+  },
+  "required": [
+    "user_id",
+    "date"
+  ]
+}

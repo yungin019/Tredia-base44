@@ -1,0 +1,98 @@
+{
+  "name": "Catalyst",
+  "type": "object",
+  "properties": {
+    "headline": {
+      "type": "string",
+      "description": "Original news headline"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Link to original article"
+    },
+    "source_name": {
+      "type": "string",
+      "description": "News source (e.g., Reuters, Bloomberg)"
+    },
+    "market_state": {
+      "type": "string",
+      "description": "TREK interpretation: market context"
+    },
+    "driver": {
+      "type": "string",
+      "description": "What is driving this signal"
+    },
+    "impact": {
+      "type": "string",
+      "description": "Expected market impact"
+    },
+    "action_bias": {
+      "type": "string",
+      "description": "Recommended bias (bullish/bearish/neutral)"
+    },
+    "risk": {
+      "type": "string",
+      "description": "Key invalidation risk"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "early_warning",
+        "confirmed_catalyst",
+        "market_reaction"
+      ],
+      "default": "confirmed_catalyst",
+      "description": "Signal evolution stage"
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Affected regions (US, EU, APAC, Africa, LatAm, Global)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "macro",
+        "earnings",
+        "geopolitical",
+        "economic_data",
+        "central_bank",
+        "corporate"
+      ],
+      "description": "Catalyst category"
+    },
+    "confidence": {
+      "type": "number",
+      "description": "TREK confidence (0-100)"
+    },
+    "related_assets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Affected symbols (NVDA, SPY, etc.)"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When news was published"
+    },
+    "interpretation_updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time TREK updated the interpretation"
+    }
+  },
+  "required": [
+    "headline",
+    "source_url",
+    "market_state",
+    "driver",
+    "impact",
+    "action_bias",
+    "stage",
+    "regions"
+  ]
+}

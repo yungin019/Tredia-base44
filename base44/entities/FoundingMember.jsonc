@@ -1,0 +1,36 @@
+{
+  "name": "FoundingMember",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The user's ID (email or base44 user id)"
+    },
+    "og_number": {
+      "type": "number",
+      "description": "OG founding member number (1\u2013100)"
+    },
+    "joined_at": {
+      "type": "string",
+      "description": "ISO timestamp of when they joined"
+    },
+    "tier": {
+      "type": "string",
+      "description": "Subscription tier granted",
+      "default": "elite"
+    },
+    "tier_expires_at": {
+      "type": "string",
+      "description": "ISO timestamp when elite tier expires"
+    },
+    "badge": {
+      "type": "string",
+      "description": "Badge label",
+      "default": "OG100"
+    }
+  },
+  "required": [
+    "user_id",
+    "og_number"
+  ]
+}

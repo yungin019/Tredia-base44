@@ -1,0 +1,61 @@
+{
+  "name": "CommunityPost",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Author user ID/email"
+    },
+    "username": {
+      "type": "string",
+      "description": "Display username"
+    },
+    "ticker": {
+      "type": "string",
+      "description": "Asset ticker symbol"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "BUY",
+        "SELL",
+        "HOLD"
+      ],
+      "description": "Trade action"
+    },
+    "analysis": {
+      "type": "string",
+      "description": "Post analysis text"
+    },
+    "trek_grade": {
+      "type": "string",
+      "description": "TREK grade A/B/C/D/F"
+    },
+    "trek_agrees": {
+      "type": "boolean",
+      "description": "Whether TREK agrees with this trade"
+    },
+    "likes_count": {
+      "type": "number",
+      "default": 0
+    },
+    "comments_count": {
+      "type": "number",
+      "default": 0
+    },
+    "is_trek_post": {
+      "type": "boolean",
+      "default": false,
+      "description": "Auto-posted by TREK AI"
+    },
+    "discord_posted": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "ticker",
+    "action",
+    "analysis"
+  ]
+}

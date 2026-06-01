@@ -1,0 +1,30 @@
+{
+  "name": "Watchlist",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Ticker symbol"
+    },
+    "name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "sector": {
+      "type": "string",
+      "description": "Industry sector"
+    },
+    "alert_price": {
+      "type": "number",
+      "description": "Price alert threshold"
+    },
+    "notes": {
+      "type": "string",
+      "description": "User notes about this asset"
+    }
+  },
+  "required": [
+    "symbol",
+    "name"
+  ]
+}

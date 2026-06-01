@@ -1,0 +1,39 @@
+{
+  "name": "CopiedTrade",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "post_id": {
+      "type": "string"
+    },
+    "original_username": {
+      "type": "string"
+    },
+    "ticker": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "trek_grade": {
+      "type": "string"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "win",
+        "loss"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "user_id",
+    "post_id",
+    "ticker",
+    "action"
+  ]
+}

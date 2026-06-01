@@ -1,0 +1,142 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "enum": [
+        "free",
+        "pro",
+        "elite"
+      ],
+      "default": "free",
+      "description": "User subscription tier"
+    },
+    "broker_status": {
+      "type": "string",
+      "enum": [
+        "not_connected",
+        "pending",
+        "connected",
+        "error"
+      ],
+      "default": "not_connected",
+      "description": "Alpaca broker connection status"
+    },
+    "trading_mode": {
+      "type": "string",
+      "enum": [
+        "practice",
+        "live"
+      ],
+      "default": "practice",
+      "description": "Whether user trades live or practice"
+    },
+    "broker_path_choice": {
+      "type": "string",
+      "enum": [
+        "existing",
+        "new",
+        "practice"
+      ],
+      "description": "Onboarding broker path chosen by user"
+    },
+    "og_number": {
+      "type": "number",
+      "description": "OG founding member number (1-100), null if not a founding member"
+    },
+    "alpaca_connected": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether Alpaca broker is connected"
+    },
+    "alpaca_token": {
+      "type": "string",
+      "description": "Alpaca OAuth access token"
+    },
+    "alpaca_refresh_token": {
+      "type": "string",
+      "description": "Alpaca OAuth refresh token"
+    },
+    "alpaca_buying_power": {
+      "type": "number",
+      "description": "Alpaca account buying power"
+    },
+    "alpaca_position_count": {
+      "type": "number",
+      "description": "Number of open Alpaca positions"
+    },
+    "alpaca_daily_pnl": {
+      "type": "number",
+      "description": "Alpaca today P&L"
+    },
+    "alpaca_positions": {
+      "type": "string",
+      "description": "JSON-serialized Alpaca positions snapshot"
+    },
+    "referral_code": {
+      "type": "string",
+      "description": "User's unique referral code"
+    },
+    "onboarding_completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user has completed onboarding"
+    },
+    "budget_range": {
+      "type": "string",
+      "description": "User's investment budget range"
+    },
+    "risk_tolerance": {
+      "type": "string",
+      "description": "User's risk tolerance level"
+    },
+    "goal": {
+      "type": "string",
+      "description": "User's investment goal"
+    },
+    "experience_level": {
+      "type": "string",
+      "description": "User's trading experience level"
+    },
+    "time_horizon": {
+      "type": "string",
+      "description": "User's investment time horizon"
+    },
+    "interests": {
+      "type": "string",
+      "description": "User's market interests"
+    },
+    "notification_prefs": {
+      "type": "object",
+      "description": "User's notification preferences",
+      "properties": {
+        "priceAlerts": {
+          "type": "boolean",
+          "default": true
+        },
+        "trekSignals": {
+          "type": "boolean",
+          "default": true
+        },
+        "newsAlerts": {
+          "type": "boolean",
+          "default": true
+        },
+        "earningsCalendar": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  },
+  "required": []
+}

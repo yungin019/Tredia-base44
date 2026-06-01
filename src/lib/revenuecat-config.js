@@ -13,7 +13,11 @@ const resolveApiKey = () => {
   const ios = import.meta.env?.VITE_REVENUECAT_IOS_KEY;
   const fallback = import.meta.env?.VITE_REVENUECAT_API_KEY;
   const key = ios || fallback || '';
-  if (!key) console.warn('[RevenueCat] WARNING: No API key found. Set VITE_REVENUECAT_IOS_KEY in environment variables.');
+  if (!key) {
+    console.warn('[RevenueCat] WARNING: No API key found. Set VITE_REVENUECAT_IOS_KEY in environment variables.');
+  } else {
+    console.log('[RC] using key:', key.substring(0, 10) + '...');
+  }
   return key;
 };
 

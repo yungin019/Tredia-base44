@@ -47,15 +47,22 @@ export function useRevenueCat() {
         const { Purchases, LOG_LEVEL } = await import(/* @vite-ignore */ RC_PKG);
         const logLevel = REVENUECAT_CONFIG.logLevel === 'debug' ? LOG_LEVEL.DEBUG : LOG_LEVEL.INFO;
         await Purchases.setLogLevel({ level: logLevel });
-        await Purchases.configure({ apiKey });
-        console.log('[RevenueCat] Configured successfully');
+        try {
+          await Purchases.configure({ apiKey });
+          console.log('[RC] configured successfully');
+        } catch (e) {
+          console.error('[RC] configure error:', JSON.stringify(e));
+          setIsInitialized(false);
+          return;
+        }
         const { customerInfo: info } = await Purchases.getCustomerInfo();
         console.log('[RevenueCat] CustomerInfo loaded, active entitlements:', Object.keys(info?.entitlements?.active || {}));
         updateFromCustomerInfo(info);
         setIsInitialized(true);
+        console.log('[RC] isInitialized set to true');
       } catch (error) {
         const errMsg = error?.message || error?.code || JSON.stringify(error) || 'unknown error';
-        console.error('[RevenueCat] init failed:', errMsg, error);
+        console.error('[RC] init failed:', errMsg, JSON.stringify(error));
         setActiveEntitlements([]);
         setCustomerInfo(null);
         setIsInitialized(false);

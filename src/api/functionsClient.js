@@ -46,6 +46,11 @@ export async function invokeFunction(name, body = {}) {
   const url = `${getBaseUrl()}/api/apps/${getAppId()}/functions/${name}`;
   const token = getToken();
 
+  // On native, firebase_auth_token may not be set yet if called before login completes
+  if (!token) {
+    console.warn(`[functionsClient] No auth token available when calling ${name} — request may 403`);
+  }
+
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
