@@ -174,7 +174,8 @@ export default function SignIn() {
       if (mode === 'register') {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         if (name) await updateProfile(cred.user, { displayName: name });
-        await sendEmailVerification(cred.user);
+        try { await sendEmailVerification(cred.user); } catch (_e) {}
+        setLoading(false);
         setStep('verify');
         return;
       }
@@ -311,7 +312,7 @@ export default function SignIn() {
             {step === 'forgot' ? (
               <motion.div key='forgot' initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>&#128273;</div>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>{'🔑'}</div>
                   <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>Reset your password</p>
                   <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>{forgotSent ? 'Check your inbox for a reset link.' : "Enter your email and we'll send you a reset link."}</p>
                 </div>
@@ -329,7 +330,7 @@ export default function SignIn() {
             ) : step === 'verify' ? (
               <motion.div key='verify' initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>&#128231;</div>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>{'📧'}</div>
                   <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>{t('signin.verifyTitle', 'Check your email')}</p>
                   <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>{t('signin.verifySubtitle', 'We sent a verification link to')}<br /><span style={{ color: '#F59E0B', fontWeight: '600' }}>{email}</span></p>
                   <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px', marginTop: '8px' }}>Click the link in the email then come back to sign in.</p>
