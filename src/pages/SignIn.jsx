@@ -170,19 +170,23 @@ export default function SignIn() {
       if (password !== confirmPassword) { setError(t('signin.error.passwordMismatch', 'Passwords do not match')); return; }
     }
     setLoading(true);
+    const withTimeout = (promise, ms) => Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+    ]);
     try {
       if (mode === 'register') {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        if (name) await updateProfile(cred.user, { displayName: name });
-        try { await sendEmailVerification(cred.user); } catch (_e) {}
+        const cred = await withTimeout(createUserWithEmailAndPassword(auth, email, password), 10000);
+        if (name) await withTimeout(updateProfile(cred.user, { displayName: name }), 5000);
+        try { await withTimeout(sendEmailVerification(cred.user), 5000); } catch (_e) {}
         setLoading(false);
         setStep('verify');
         return;
       }
-      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const cred = await withTimeout(signInWithEmailAndPassword(auth, email, password), 10000);
       await handleAfterLoginWeb(cred.user);
     } catch (err) {
-      setError(mapFirebaseError(err));
+      setError(err.message === 'timeout' ? 'Request timed out. Please check your connection and try again.' : mapFirebaseError(err));
     } finally {
       setLoading(false);
     }
