@@ -6,14 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
-// FirebaseAuthentication loaded dynamically — native-only plugin not available in web build
-let _FirebaseAuthentication = null;
-async function getFA() {
-  if (_FirebaseAuthentication) return _FirebaseAuthentication;
-  const mod = await import('@capacitor-firebase/authentication');
-  _FirebaseAuthentication = mod.FirebaseAuthentication;
-  return _FirebaseAuthentication;
-}
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -62,7 +55,7 @@ export default function SignIn() {
   useEffect(() => {
     isMounted.current = true;
     if (IS_NATIVE) {
-      getFA().then(fa => { if (isMounted.current) setPluginAvailable(!!fa); }).catch(() => { if (isMounted.current) setPluginAvailable(false); });
+      setPluginAvailable(!!FirebaseAuthentication);
     } else {
       setPluginAvailable(false);
     }
@@ -207,7 +200,7 @@ export default function SignIn() {
     try {
       if (IS_NATIVE) {
         let result;
-        try { const FA = await getFA(); result = await FA.signInWithGoogle(); } catch (err) {
+        try { result = await FirebaseAuthentication.signInWithGoogle(); } catch (err) {
           setError('FA.signInWithGoogle() failed: ' + formatError(err));
           setLoading(false); stopSafetyTimer(); return;
         }
@@ -235,7 +228,7 @@ export default function SignIn() {
     try {
       if (IS_NATIVE) {
         let result;
-        try { const FA = await getFA(); result = await FA.signInWithApple(); } catch (err) {
+        try { result = await FirebaseAuthentication.signInWithApple(); } catch (err) {
           setError('FA.signInWithApple() failed: ' + formatError(err));
           setLoading(false); stopSafetyTimer(); return;
         }

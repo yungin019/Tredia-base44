@@ -9,20 +9,10 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { Purchases, LOG_LEVEL } from '@revenuecat/purchases-capacitor';
 import { REVENUECAT_CONFIG } from '@/lib/revenuecat-config';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
-
-let _Purchases = null;
-let _LOG_LEVEL = null;
-
-async function getRCModule() {
-  if (_Purchases) return { Purchases: _Purchases, LOG_LEVEL: _LOG_LEVEL };
-  const mod = await import('@revenuecat/purchases-capacitor');
-  _Purchases = mod.Purchases;
-  _LOG_LEVEL = mod.LOG_LEVEL;
-  return { Purchases: _Purchases, LOG_LEVEL: _LOG_LEVEL };
-}
 
 export function useRevenueCat() {
   const [purchaseInProgress, setPurchaseInProgress] = useState(false);
@@ -54,7 +44,6 @@ export function useRevenueCat() {
           return;
         }
         console.log('[RevenueCat] Initializing with key prefix:', apiKey.substring(0, 8) + '...');
-        const { Purchases, LOG_LEVEL } = await getRCModule();
         const logLevel = REVENUECAT_CONFIG.logLevel === 'debug' ? LOG_LEVEL.DEBUG : LOG_LEVEL.INFO;
         await Purchases.setLogLevel({ level: logLevel });
         try {
@@ -91,7 +80,6 @@ export function useRevenueCat() {
     setPurchaseError(null);
 
     try {
-      const { Purchases } = await getRCModule();
       const { offerings } = await Purchases.getOfferings();
       const current = offerings?.current;
       const allPackages = current?.availablePackages || [];
@@ -124,7 +112,6 @@ export function useRevenueCat() {
     setPurchaseInProgress(true);
     setPurchaseError(null);
     try {
-      const { Purchases } = await getRCModule();
       const { customerInfo: info } = await Purchases.restorePurchases();
       updateFromCustomerInfo(info);
       return true;
