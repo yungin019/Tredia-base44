@@ -1,20 +1,20 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
 
-/**
- * Firebase configuration.
- * For native iOS: replace with values from GoogleService-Info.plist
- * For native Android: replace with values from google-services.json
- */
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyC2yUbUi-OdU0Vp-0fHJo_rXLmh2JjaKZk",
+  apiKey: "AIzaSyDMQhF675zfVJZQ5dgL4OLbCZiiRK4d-O0",
   authDomain: "tredia-479515.firebaseapp.com",
   projectId: "tredia-479515",
   storageBucket: "tredia-479515.firebasestorage.app",
   messagingSenderId: "676892933166",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:676892933166:web:b5ab440ecd9a78c3ac73bf",
+  appId: "1:676892933166:ios:4e8a0e10a9634550ac73bf"
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+
+export const auth = initializeAuth(app, {
+  persistence: Capacitor.isNativePlatform() ? indexedDBLocalPersistence : browserLocalPersistence
+});
+
 export default app;
