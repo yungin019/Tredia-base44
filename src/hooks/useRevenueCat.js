@@ -1,18 +1,23 @@
 /**
  * useRevenueCat — Capacitor-native RevenueCat hook
  *
- * Uses @revenuecat/purchases-capacitor on iOS/Android.
- * Falls back gracefully on web (purchase buttons show Apple IAP unavailable message).
- *
- * RevenueCat is the ONLY source of truth for entitlements.
- * No localStorage fallback, no mock unlocks.
+ * Uses @revenuecat/purchases-capacitor on iOS/Android only.
+ * The import is hidden from Vite's static analyzer via new Function()
+ * so the web build never tries to resolve the native-only package.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Purchases, LOG_LEVEL } from '@revenuecat/purchases-capacitor';
 import { REVENUECAT_CONFIG } from '@/lib/revenuecat-config';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
+
+let _rcModule = null;
+async function getRCModule() {
+  if (_rcModule) return _rcModule;
+  // new Function hides this from Vite's static import resolver
+  _rcModule = await new Function('return import("@revenuecat/purchases-capacitor")')();
+  return _rcModule;
+}
 
 export function useRevenueCat() {
   const [purchaseInProgress, setPurchaseInProgress] = useState(false);
@@ -43,26 +48,21 @@ export function useRevenueCat() {
           setIsInitialized(false);
           return;
         }
-        console.log('[RevenueCat] Initializing with key prefix:', apiKey.substring(0, 8) + '...');
+        const { Purchases, LOG_LEVEL } = await getRCModule();
         const logLevel = REVENUECAT_CONFIG.logLevel === 'debug' ? LOG_LEVEL.DEBUG : LOG_LEVEL.INFO;
         await Purchases.setLogLevel({ level: logLevel });
         try {
           await Purchases.configure({ apiKey });
-          console.log('[RC] configured successfully');
-          console.log('[RC] key prefix:', apiKey?.substring(0, 12));
         } catch (e) {
           console.error('[RC] configure error:', JSON.stringify(e));
           setIsInitialized(false);
           return;
         }
         const { customerInfo: info } = await Purchases.getCustomerInfo();
-        console.log('[RevenueCat] CustomerInfo loaded, active entitlements:', Object.keys(info?.entitlements?.active || {}));
         updateFromCustomerInfo(info);
         setIsInitialized(true);
-        console.log('[RC] isInitialized set to true');
       } catch (error) {
-        const errMsg = error?.message || error?.code || JSON.stringify(error) || 'unknown error';
-        console.error('[RC] init failed:', errMsg, JSON.stringify(error));
+        console.error('[RC] init failed:', error?.message || JSON.stringify(error));
         setActiveEntitlements([]);
         setCustomerInfo(null);
         setIsInitialized(false);
@@ -80,9 +80,9 @@ export function useRevenueCat() {
     setPurchaseError(null);
 
     try {
+      const { Purchases } = await getRCModule();
       const { offerings } = await Purchases.getOfferings();
-      const current = offerings?.current;
-      const allPackages = current?.availablePackages || [];
+      const allPackages = offerings?.current?.availablePackages || [];
       const pkg = allPackages.find(p => p.product?.identifier === productId);
 
       if (!pkg) {
@@ -98,8 +98,7 @@ export function useRevenueCat() {
         setPurchaseError(null);
         return false;
       }
-      const msg = error?.message || 'Purchase failed. Please try again.';
-      setPurchaseError(msg);
+      setPurchaseError(error?.message || 'Purchase failed. Please try again.');
       console.error('[RevenueCat] purchase error:', error);
       return false;
     } finally {
@@ -112,12 +111,12 @@ export function useRevenueCat() {
     setPurchaseInProgress(true);
     setPurchaseError(null);
     try {
+      const { Purchases } = await getRCModule();
       const { customerInfo: info } = await Purchases.restorePurchases();
       updateFromCustomerInfo(info);
       return true;
     } catch (error) {
-      const msg = error?.message || 'Restore failed. Please try again.';
-      setPurchaseError(msg);
+      setPurchaseError(error?.message || 'Restore failed. Please try again.');
       console.error('[RevenueCat] restore error:', error);
       return false;
     } finally {
