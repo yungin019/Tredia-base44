@@ -6,6 +6,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
+// FirebaseAuthentication loaded dynamically — native-only plugin not available in web build
+let _FirebaseAuthentication = null;
+async function getFA() {
+  if (_FirebaseAuthentication) return _FirebaseAuthentication;
+  const mod = await import('@capacitor-firebase/authentication');
+  _FirebaseAuthentication = mod.FirebaseAuthentication;
+  return _FirebaseAuthentication;
+}
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -54,9 +62,7 @@ export default function SignIn() {
   useEffect(() => {
     isMounted.current = true;
     if (IS_NATIVE) {
-      import('@capacitor-firebase/authentication')
-        .then(m => { if (isMounted.current) setPluginAvailable(!!m?.FirebaseAuthentication); })
-        .catch(() => { if (isMounted.current) setPluginAvailable(false); });
+      getFA().then(fa => { if (isMounted.current) setPluginAvailable(!!fa); }).catch(() => { if (isMounted.current) setPluginAvailable(false); });
     } else {
       setPluginAvailable(false);
     }
@@ -200,17 +206,8 @@ export default function SignIn() {
     addStep('STEP 1: Google sign-in started (native=' + IS_NATIVE + ')');
     try {
       if (IS_NATIVE) {
-        let FA;
-        try {
-          const mod = await import('@capacitor-firebase/authentication');
-          FA = mod.FirebaseAuthentication;
-        } catch (err) {
-          setError('Plugin import failed: ' + formatError(err));
-          setLoading(false); stopSafetyTimer(); return;
-        }
-        if (!FA) { setError('FirebaseAuthentication is null after import'); setLoading(false); stopSafetyTimer(); return; }
         let result;
-        try { result = await FA.signInWithGoogle(); } catch (err) {
+        try { const FA = await getFA(); result = await FA.signInWithGoogle(); } catch (err) {
           setError('FA.signInWithGoogle() failed: ' + formatError(err));
           setLoading(false); stopSafetyTimer(); return;
         }
@@ -237,17 +234,8 @@ export default function SignIn() {
     addStep('STEP 1: Apple sign-in started (native=' + IS_NATIVE + ')');
     try {
       if (IS_NATIVE) {
-        let FA;
-        try {
-          const mod = await import('@capacitor-firebase/authentication');
-          FA = mod.FirebaseAuthentication;
-        } catch (err) {
-          setError('Plugin import failed: ' + formatError(err));
-          setLoading(false); stopSafetyTimer(); return;
-        }
-        if (!FA) { setError('FirebaseAuthentication is null after import'); setLoading(false); stopSafetyTimer(); return; }
         let result;
-        try { result = await FA.signInWithApple(); } catch (err) {
+        try { const FA = await getFA(); result = await FA.signInWithApple(); } catch (err) {
           setError('FA.signInWithApple() failed: ' + formatError(err));
           setLoading(false); stopSafetyTimer(); return;
         }
