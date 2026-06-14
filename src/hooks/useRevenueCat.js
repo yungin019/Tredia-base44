@@ -50,6 +50,7 @@ export function useRevenueCat() {
         try {
           await Purchases.configure({ apiKey });
           console.log('[RC] configured successfully');
+          console.log('[RC] key prefix:', apiKey?.substring(0, 12));
         } catch (e) {
           console.error('[RC] configure error:', JSON.stringify(e));
           setIsInitialized(false);
