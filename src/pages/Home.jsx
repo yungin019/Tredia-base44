@@ -2,18 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { fetchFearGreed } from '@/api/marketData';
-import TickerTape from '@/components/dashboard/TickerTape';
-import IndexCardsSection from '@/components/markets/IndexCardsSection';
 import PullToRefresh from '@/components/ui/PullToRefresh';
-import { NextJumpDetector } from '@/components/ai/NextJumpDetector';
-import { IntelligenceTicker } from '@/components/ai/IntelligenceTicker';
 import { OG100Card } from '@/components/ai/OG100Card';
 import DailyBrief from '@/components/ai/DailyBrief';
 import YourMovesToday from '@/components/feed/YourMovesToday';
-import WatchOut from '@/components/feed/WatchOut';
-import MarketPulse from '@/components/feed/MarketPulse';
 import CatalystFeed from '@/components/feed/CatalystFeed';
 import UpgradeCall from '@/components/feed/UpgradeCall';
 import TrendingAssets from '@/components/markets/TrendingAssets';
@@ -22,8 +14,6 @@ import { fetchCoreAssets } from '@/api/marketDataClient';
 import RegionSwitcher from '@/components/feed/RegionSwitcher';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import IntelligenceFeed from '@/components/feed/IntelligenceFeed.jsx';
-import HeroSignalCard from '@/components/feed/HeroSignalCard';
-import { base44 } from '@/api/base44Client';
 import GlobalMarketStateBanner from '@/components/ai/GlobalMarketStateBanner';
 
 // Detect region from timezone
@@ -40,56 +30,46 @@ export default function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { firebaseUser } = useFirebaseAuth();
-  const [fearGreed, setFearGreed] = useState(null);
   const [liveStocks, setLiveStocks] = useState([]);
   const [cryptoPrices, setCryptoPrices] = useState([]);
   const [dataStatus, setDataStatus] = useState('loading');
-  const [debugInfo, setDebugInfo] = useState({ coreAssets: 0, liveStocks: 0, error: null });
   const [activeRegion, setActiveRegion] = useState(() => {
     return localStorage.getItem('tredio_region') || detectDefaultRegion();
   });
   const stickyRef = useRef(null);
 
-  // Core assets for Home feed
+  // Core assets for Home feed — only after auth is confirmed (firebaseUser !== undefined)
   useEffect(() => {
+    if (!firebaseUser) return;
     async function loadCore() {
       try {
         setDataStatus('loading');
         const assets = await fetchCoreAssets();
-        console.log('[Home] fetchCoreAssets returned:', assets.length, 'assets', assets.map(a => `${a.symbol}:${a.status}`));
         const live = assets.filter(a => a.status === 'live');
-        console.log('[Home] live assets:', live.length);
         const stocks = live.filter(a => a.type !== 'crypto').map(a => ({
           ...a,
           change: a.changePct || 0,
           signal: a.changePct > 1 ? 'BUY' : a.changePct < -1 ? 'SELL' : 'HOLD'
         }));
         const crypto = live.filter(a => a.type === 'crypto');
-        console.log('[Home] stocks:', stocks.length, 'crypto:', crypto.length);
         setLiveStocks(stocks);
         setCryptoPrices(crypto);
         setDataStatus(live.length > 0 ? 'live' : 'stale');
-        setDebugInfo({ coreAssets: assets.length, liveStocks: stocks.length, error: null });
       } catch (error) {
         console.error('[Home] Core fetch failed:', error.message);
         setDataStatus('stale');
-        setDebugInfo({ coreAssets: 0, liveStocks: 0, error: error.message });
       }
     }
 
     loadCore();
     const interval = setInterval(loadCore, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [firebaseUser]);
 
   const handleRegionChange = (r) => {
     setActiveRegion(r);
     localStorage.setItem('tredio_region', r);
   };
-
-  const sentimentLabel = fearGreed
-    ? fearGreed.value >= 70 ? t('trek.greed', 'Greed') : fearGreed.value >= 50 ? t('common.neutral', 'Neutral') : fearGreed.value >= 30 ? t('trek.fear', 'Fear') : t('trek.extremeFear', 'Extreme Fear')
-    : t('common.neutral', 'Neutral');
 
   return (
     <>
@@ -109,11 +89,6 @@ export default function Home() {
           style={{ background: 'rgba(4,8,20,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
         >
           <RegionSwitcher activeRegion={activeRegion} onChange={handleRegionChange} />
-        </div>
-
-        {/* ── DEBUG PANEL (remove after fix) ── */}
-        <div style={{ background: '#0f0', color: '#000', fontSize: 11, padding: '6px 12px', fontFamily: 'monospace', zIndex: 9999, position: 'relative' }}>
-          coreAssets: {debugInfo.coreAssets} | liveStocks: {debugInfo.liveStocks} | status: {dataStatus} | error: {debugInfo.error || 'none'}
         </div>
 
         <div className="p-5 space-y-6 max-w-[900px] mx-auto pb-24">

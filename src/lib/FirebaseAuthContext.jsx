@@ -38,6 +38,12 @@ export const FirebaseAuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       clearTimeout(hardTimeoutRef.current);
       if (fbUser) {
+        // Write the ID token to localStorage immediately so functionsClient
+        // (and any other direct fetch callers) can attach it before components mount.
+        try {
+          const idToken = await fbUser.getIdToken();
+          localStorage.setItem('firebase_auth_token', idToken);
+        } catch (_) {}
         setLoadingPhase('syncing-profile');
         let p = null;
         try {
