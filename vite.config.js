@@ -23,12 +23,14 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-charts': ['recharts'],
-          'vendor-motion': ['framer-motion'],
-          'vendor-firebase': ['firebase'],
-          'vendor-i18n': ['i18next', 'react-i18next'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-router') || id.includes('react-dom') || id.includes('/react/')) return 'vendor-react';
+            if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
+            if (id.includes('framer-motion')) return 'vendor-motion';
+            if (id.includes('firebase')) return 'vendor-firebase';
+            if (id.includes('i18next') || id.includes('react-i18next')) return 'vendor-i18n';
+          }
         }
       }
     }
