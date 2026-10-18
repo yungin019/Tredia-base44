@@ -1,42 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, RefreshCw } from 'lucide-react';
-import { invokeFunction } from '@/api/functionsClient';
 import FeedReactionBlock from './FeedReactionBlock';
 import { useTranslation } from 'react-i18next';
+
 // ── VALIDATION: reject vague signals ─────────────────────────────────────────
 const BANNED = ['sentiment', 'narrative', 'uncertain'];
 function isValid(r) {
   const text = [r.market_state || r.marketState, r.driver, r.impact || r.impactText, r.risk || r.riskInvalidation].join(' ').toLowerCase();
   if (!text || text.trim().length < 10) return false;
   return !BANNED.some(p => text.includes(p));
-}
-
-// ── NORMALIZE: map Catalyst entity fields to FeedReactionBlock shape ─────────
-function normalizeCatalyst(c) {
-  return {
-    id: c.id,
-    marketState: c.market_state,
-    driver: c.driver,
-    impactText: c.impact,
-    riskInvalidation: c.risk,
-    watch_next: c.watch_next,
-    relatedAssets: (c.related_assets || []).map(s => ({ symbol: s, direction: 'up' })),
-    regions: c.regions || ['Global'],
-    timing: c.stage === 'early_warning' ? 'Live' : c.stage === 'confirmed_catalyst' ? 'Developing' : 'Follow-up',
-    source_name: c.source_name || 'Market Intelligence',
-    published_at: c.published_at || c.created_date,
-    direction: c.action_bias,
-    importance: c.confidence ? Math.round(c.confidence / 10) : 5,
-    sectors: c.category ? [c.category] : [],
-    action_bias: c.action_bias,
-    confidence: c.confidence,
-    risk: c.risk,
-    related_assets: c.related_assets || [],
-    headline: c.headline,
-    source_url: c.source_url,
-    trade_setup: c.trade_setup,
-  };
 }
 
 // ── NORMALIZE: map structure signal to FeedReactionBlock shape ───────────────
@@ -108,28 +81,15 @@ function EmptyState({ region }) {
 }
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
-export default function IntelligenceFeed({ activeRegion }) {
+export default function IntelligenceFeed({ activeRegion, signals }) {
   const { t } = useTranslation();
-  const [reactions, setReactions] = useState([]);
-  const [watchItems, setWatchItems] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  const load = async (region) => {
-    setLoading(true);
+  const { reactions, watchItems } = useMemo(() => {
+    if (!signals) return { reactions: [], watchItems: [] };
 
-    const rawCatalysts = [];
-    let structureSignals = [];
-    try {
-      const structureRes = await invokeFunction('generateStructureSignals', { region });
-      structureSignals = structureRes?.signals || [];
-    } catch (_) {}
-
-    const normalizedCatalysts = rawCatalysts.map(normalizeCatalyst).filter(isValid);
-    const normalizedStructure = structureSignals.map(normalizeStructure).filter(isValid);
-
-    const combined = [...normalizedStructure, ...normalizedCatalysts];
-    const ranked = filterAndRank(combined, region).slice(0, 5);
+    const normalizedStructure = signals.map(normalizeStructure).filter(isValid);
+    const ranked = filterAndRank(normalizedStructure, activeRegion).slice(0, 5);
 
     // Build watch items from signals' watch_next fields
     const watchSet = [];
@@ -144,19 +104,14 @@ export default function IntelligenceFeed({ activeRegion }) {
       }
     });
 
-    setReactions(ranked);
-    setWatchItems(watchSet);
-    setLastUpdated(new Date());
-    setLoading(false);
-  };
+    return { reactions: ranked, watchItems: watchSet };
+  }, [signals, activeRegion]);
 
   useEffect(() => {
-    load(activeRegion);
-    const interval = setInterval(() => load(activeRegion), 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [activeRegion]);
+    if (signals) setLastUpdated(new Date());
+  }, [signals]);
 
-  if (loading) {
+  if (signals === null) {
     return (
       <div className="space-y-3">
         {[1, 2, 3].map(i => (

@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Eye, ChevronRight, Clock, Zap } from 'lucide-react';
-import { invokeFunction } from '@/api/functionsClient';
 import SignalExplanationModal from './SignalExplanationModal';
 import { useTranslation } from 'react-i18next';
 
@@ -45,7 +44,7 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
       {isStructure && (
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
           <Zap className="h-3 w-3" style={{ color: colors.text }} />
-          <span style={{ fontSize: '8px', fontWeight: 'bold', color: colors.text, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Structure</span>
+          <span style={{ fontSize: 8, fontWeight: 'bold', color: colors.text, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Structure</span>
         </div>
       )}
 
@@ -187,73 +186,25 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
   );
 }
 
-export default function CatalystFeed({ activeRegion = 'Global' }) {
+export default function CatalystFeed({ activeRegion = 'Global', signals }) {
   const { t } = useTranslation();
-  const [signals, setSignals] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedSignal, setSelectedSignal] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
-    const loadSignals = async () => {
-      try {
-        setLoading(true);
-        // Skip entity fetch (requires user auth) — rely on structure signals only
-        const newsCatalysts = [];
-        console.log('[MarketSignals] Loading structure signals (no auth required)');
+  const displaySignals = useMemo(() => {
+    if (!signals) return null;
 
-        // Filter by region
-        const filteredNews = newsCatalysts.filter(c => {
-          const isGlobal = c.regions?.includes('Global');
-          const isRegional = c.regions?.includes(activeRegion);
-          return activeRegion === 'Global' ? isGlobal : (isRegional || isGlobal);
-        });
-        console.log(`[MarketSignals] ✓ FILTERED ${filteredNews.length} news catalysts for region: ${activeRegion}`);
+    return signals
+      .filter(s => {
+        const isGlobal = s.regions?.includes('Global');
+        const isRegional = s.regions?.includes(activeRegion);
+        return activeRegion === 'Global' ? isGlobal : (isRegional || isGlobal);
+      })
+      .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
+      .slice(0, 10);
+  }, [signals, activeRegion]);
 
-        // Fetch structure signals
-        let structureSignals = [];
-        try {
-          const structRes = await invokeFunction('generateStructureSignals', {});
-          if (structRes?.signals) {
-            structureSignals = structRes.signals.filter(s => {
-              const isGlobal = s.regions?.includes('Global');
-              const isRegional = s.regions?.includes(activeRegion);
-              return activeRegion === 'Global' ? isGlobal : (isRegional || isGlobal);
-            });
-            console.log(`[MarketSignals] ✓ GENERATED ${structureSignals.length} structure signals`);
-          }
-        } catch (err) {
-          console.warn('[MarketSignals] Structure signal generation failed, relying on news:', err.message);
-        }
-
-        // Merge: sort by published_at, take 10, guarantee minimum 3
-        const allSignals = [...filteredNews, ...structureSignals]
-          .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
-          .slice(0, 10);
-
-        // If less than 3, fetch more structure signals as fallback
-        if (allSignals.length < 3 && structureSignals.length < 3) {
-          console.log('[MarketSignals] Supplementing with additional structure signals to meet minimum');
-          // In production, could generate additional signals with different parameters
-        }
-
-        const final = allSignals.slice(0, Math.max(3, allSignals.length));
-        console.log(`[MarketSignals] ✓ FINAL FEED: ${final.length} signals (news: ${filteredNews.length}, structure: ${structureSignals.length})`);
-        setSignals(final);
-      } catch (error) {
-        console.error('[MarketSignals] ✗ ERROR:', error);
-        setSignals([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadSignals();
-    const interval = setInterval(loadSignals, 60000);
-    return () => clearInterval(interval);
-  }, [activeRegion]);
-
-  if (loading) {
+  if (displaySignals === null) {
     return (
       <div className="space-y-2">
         {[1, 2, 3].map(i => (
@@ -262,9 +213,6 @@ export default function CatalystFeed({ activeRegion = 'Global' }) {
       </div>
     );
   }
-
-  // Always show signals — never empty (minimum 3)
-  const displaySignals = signals.length > 0 ? signals : [];
 
   const handleSignalClick = (signal) => {
     setSelectedSignal(signal);

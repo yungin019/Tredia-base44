@@ -1,7 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { invokeFunction } from '@/api/functionsClient';
 import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
+import { useVisibilityAwareInterval } from '@/hooks/useVisibilityAwareInterval';
+
 export default function GlobalMarketStateBanner() {
   const { t } = useTranslation();
   const [state, setState] = useState(null);
@@ -9,33 +11,32 @@ export default function GlobalMarketStateBanner() {
   const [error, setError] = useState(null);
   const hasFetchedOnce = React.useRef(false);
 
-  useEffect(() => {
-    const fetchMarketState = async () => {
-      try {
-        setLoading(true);
+  const fetchMarketState = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const raw = await invokeFunction('globalMarketState', { lang: i18n.language || 'en' });
+      if (raw?.marketState) {
+        setState(raw.marketState);
         setError(null);
-        const raw = await invokeFunction('globalMarketState', { lang: i18n.language || 'en' });
-        if (raw?.marketState) {
-          setState(raw.marketState);
-          setError(null);
-        } else {
-          // Only show error if we've never loaded successfully
-          if (!hasFetchedOnce.current) setError('No market state received');
-        }
-        hasFetchedOnce.current = true;
-      } catch (err) {
-        console.error('[GlobalMarketStateBanner] Error:', err.message);
+      } else {
         // Only show error if we've never loaded successfully
-        if (!hasFetchedOnce.current) setError(err.message);
-      } finally {
-        setLoading(false);
+        if (!hasFetchedOnce.current) setError('No market state received');
       }
-    };
-
-    fetchMarketState();
-    const interval = setInterval(fetchMarketState, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+      hasFetchedOnce.current = true;
+    } catch (err) {
+      // Only show error if we've never loaded successfully
+      if (!hasFetchedOnce.current) setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchMarketState();
+  }, [fetchMarketState]);
+
+  useVisibilityAwareInterval(fetchMarketState, 5 * 60 * 1000);
 
   if (loading) {
     return (

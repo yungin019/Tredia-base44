@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import { OG100Card } from '@/components/ai/OG100Card';
-import DailyBrief from '@/components/ai/DailyBrief';
 import YourMovesToday from '@/components/feed/YourMovesToday';
 import CatalystFeed from '@/components/feed/CatalystFeed';
 import UpgradeCall from '@/components/feed/UpgradeCall';
 import TrendingAssets from '@/components/markets/TrendingAssets';
 import WatchlistQuick from '@/components/markets/WatchlistQuick';
 import { fetchCoreAssets } from '@/api/marketDataClient';
+import { invokeFunction } from '@/api/functionsClient';
 import RegionSwitcher from '@/components/feed/RegionSwitcher';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import IntelligenceFeed from '@/components/feed/IntelligenceFeed.jsx';
 import GlobalMarketStateBanner from '@/components/ai/GlobalMarketStateBanner';
+import { useVisibilityAwareInterval } from '@/hooks/useVisibilityAwareInterval';
 
 // Detect region from timezone
 function detectDefaultRegion() {
@@ -26,50 +26,82 @@ function detectDefaultRegion() {
   return 'US';
 }
 
+const REGION_LABELS = { Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm' };
+
 export default function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { firebaseUser } = useFirebaseAuth();
   const [liveStocks, setLiveStocks] = useState([]);
-  const [cryptoPrices, setCryptoPrices] = useState([]);
   const [dataStatus, setDataStatus] = useState('loading');
+  const [structureSignals, setStructureSignals] = useState(null);
   const [activeRegion, setActiveRegion] = useState(() => {
     return localStorage.getItem('tredio_region') || detectDefaultRegion();
   });
-  const stickyRef = useRef(null);
 
-  // Core assets for Home feed — only after auth is confirmed (firebaseUser !== undefined)
-  useEffect(() => {
+  // ── Core assets fetch (visibility-aware, 60s) ──────────────────────────────
+  const loadCore = useCallback(async () => {
     if (!firebaseUser) return;
-    async function loadCore() {
-      try {
-        setDataStatus('loading');
-        const assets = await fetchCoreAssets();
-        const live = assets.filter(a => a.status === 'live');
-        const stocks = live.filter(a => a.type !== 'crypto').map(a => ({
-          ...a,
-          change: a.changePct || 0,
-          signal: a.changePct > 1 ? 'BUY' : a.changePct < -1 ? 'SELL' : 'HOLD'
-        }));
-        const crypto = live.filter(a => a.type === 'crypto');
-        setLiveStocks(stocks);
-        setCryptoPrices(crypto);
-        setDataStatus(live.length > 0 ? 'live' : 'stale');
-      } catch (error) {
-        console.error('[Home] Core fetch failed:', error.message);
-        setDataStatus('stale');
-      }
+    try {
+      setDataStatus('loading');
+      const assets = await fetchCoreAssets();
+      const live = assets.filter(a => a.status === 'live');
+      const stocks = live.filter(a => a.type !== 'crypto').map(a => ({
+        ...a,
+        change: a.changePct || 0,
+        signal: a.changePct > 1 ? 'BUY' : a.changePct < -1 ? 'SELL' : 'HOLD'
+      }));
+      setLiveStocks(stocks);
+      setDataStatus(live.length > 0 ? 'live' : 'stale');
+    } catch (error) {
+      console.error('[Home] Core fetch failed:', error.message);
+      setDataStatus('stale');
     }
-
-    loadCore();
-    const interval = setInterval(loadCore, 60000);
-    return () => clearInterval(interval);
   }, [firebaseUser]);
+
+  // ── Structure signals fetch (visibility-aware, 5min) — single source ────────
+  const loadStructureSignals = useCallback(async () => {
+    try {
+      const res = await invokeFunction('generateStructureSignals', {});
+      setStructureSignals(res?.signals || []);
+    } catch (_) {
+      // On first failure, resolve loading state; on subsequent failures, keep existing
+      setStructureSignals(prev => prev ?? []);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCore();
+  }, [loadCore]);
+
+  useEffect(() => {
+    loadStructureSignals();
+  }, [loadStructureSignals]);
+
+  useVisibilityAwareInterval(loadCore, 60000);
+  useVisibilityAwareInterval(loadStructureSignals, 5 * 60 * 1000);
 
   const handleRegionChange = (r) => {
     setActiveRegion(r);
     localStorage.setItem('tredio_region', r);
   };
+
+  const regionLabel = useMemo(() => REGION_LABELS[activeRegion] || activeRegion, [activeRegion]);
+
+  // ── Memoized moves for YourMovesToday ───────────────────────────────────────
+  const moves = useMemo(() => {
+    return liveStocks.slice(0, 3).map(stock => ({
+      symbol: stock.symbol,
+      action: stock.signal,
+      entry: stock.signal === 'BUY' ? `Wait for pullback to $${(stock.price * 0.98).toFixed(0)}` : stock.signal === 'SELL' ? 'Stay away until reversal forms' : `Buy if it breaks above $${(stock.price * 1.02).toFixed(0)}`,
+      positionSize: stock.signal === 'BUY' ? 'Full size' : stock.signal === 'SELL' ? 'No position' : 'Quarter size',
+      timeframe: '1-2 weeks',
+      why: `${stock.symbol} up ${stock.change > 0 ? stock.change.toFixed(2) : 'and flat'}%. ${stock.change > 2 ? 'Buyers winning today' : stock.change < -2 ? 'Sellers in control' : 'No momentum either way'}.`,
+      exitTarget: stock.signal === 'BUY' ? `Take profit at $${(stock.price * 1.05).toFixed(0)}` : 'N/A',
+      risk: stock.change < -2 ? 'Could drop further' : stock.change > 2 ? 'Could pull back' : 'May stay stuck',
+      confidence: `${stock.signal === 'BUY' || stock.signal === 'SELL' ? 'High' : 'Medium'}`
+    }));
+  }, [liveStocks]);
 
   return (
     <>
@@ -84,7 +116,6 @@ export default function Home() {
 
         {/* ── STICKY REGION BAR ──────────────────────────────────────── */}
         <div
-          ref={stickyRef}
           className="sticky top-0 z-40 px-5 py-3 border-b border-white/[0.04]"
           style={{ background: 'rgba(4,8,20,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
         >
@@ -101,27 +132,17 @@ export default function Home() {
               <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
               <h2 className="text-sm font-bold text-white/80">{t('home.liveSignals', 'Live Signals')}</h2>
               <span className="text-[9px] font-bold px-2 py-0.5 rounded-full ml-1 uppercase tracking-wide" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
-                {({ Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm' })[activeRegion] || activeRegion}
+                {regionLabel}
               </span>
             </div>
-            <IntelligenceFeed activeRegion={activeRegion} onRegionChange={handleRegionChange} />
+            <IntelligenceFeed activeRegion={activeRegion} onRegionChange={handleRegionChange} signals={structureSignals} />
           </div>
 
           {/* ╔════════════════════════════════════════════════════════════════ */}
           {/* ║ EXECUTION LAYER — Your Moves Today */}
           {/* ╚════════════════════════════════════════════════════════════════ */}
           <YourMovesToday
-            moves={liveStocks.slice(0, 3).map(stock => ({
-              symbol: stock.symbol,
-              action: stock.signal,
-              entry: stock.signal === 'BUY' ? `Wait for pullback to $${(stock.price * 0.98).toFixed(0)}` : stock.signal === 'SELL' ? 'Stay away until reversal forms' : `Buy if it breaks above $${(stock.price * 1.02).toFixed(0)}`,
-              positionSize: stock.signal === 'BUY' ? 'Full size' : stock.signal === 'SELL' ? 'No position' : 'Quarter size',
-              timeframe: '1-2 weeks',
-              why: `${stock.symbol} up ${stock.change > 0 ? stock.change.toFixed(2) : 'and flat'}%. ${stock.change > 2 ? 'Buyers winning today' : stock.change < -2 ? 'Sellers in control' : 'No momentum either way'}.`,
-              exitTarget: stock.signal === 'BUY' ? `Take profit at $${(stock.price * 1.05).toFixed(0)}` : 'N/A',
-              risk: stock.change < -2 ? 'Could drop further' : stock.change > 2 ? 'Could pull back' : 'May stay stuck',
-              confidence: `${stock.signal === 'BUY' || stock.signal === 'SELL' ? 'High' : 'Medium'}`
-            }))}
+            moves={moves}
             onExplore={(move) => navigate(`/Asset/${move.symbol}`)}
           />
 
@@ -135,7 +156,7 @@ export default function Home() {
           {/* ║ CATALYST FEED — Real market catalysts interpreted by TREK */}
           {/* ╚════════════════════════════════════════════════════════════════ */}
 
-          <CatalystFeed activeRegion={activeRegion} />
+          <CatalystFeed activeRegion={activeRegion} signals={structureSignals} />
 
           {/* ╔════════════════════════════════════════════════════════════════ */}
           {/* ║ EXPLORATION LAYER — Watchlist + Assets + Offers */}

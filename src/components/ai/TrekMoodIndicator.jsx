@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { fetchFearGreed } from '@/api/marketData';
+import { useVisibilityAwareInterval } from '@/hooks/useVisibilityAwareInterval';
 
 const MOODS = {
   '😱': { label: 'EXTREME FEAR', range: [0, 25], color: 'text-destructive' },
@@ -16,24 +17,25 @@ export default function TrekMoodIndicator() {
   const [color, setColor] = useState('text-muted-foreground');
   const [value, setValue] = useState(50);
 
-  useEffect(() => {
-    const load = async () => {
-      const fg = await fetchFearGreed();
-      if (fg?.value) {
-        const v = fg.value;
-        setValue(v);
-        const entry = Object.entries(MOODS).find(([_, m]) => v >= m.range[0] && v <= m.range[1]);
-        if (entry) {
-          setMood(entry[0]);
-          setLabel(entry[1].label);
-          setColor(entry[1].color);
-        }
+  const load = useCallback(async () => {
+    const fg = await fetchFearGreed();
+    if (fg?.value) {
+      const v = fg.value;
+      setValue(v);
+      const entry = Object.entries(MOODS).find(([_, m]) => v >= m.range[0] && v <= m.range[1]);
+      if (entry) {
+        setMood(entry[0]);
+        setLabel(entry[1].label);
+        setColor(entry[1].color);
       }
-    };
-    load();
-    const interval = setInterval(load, 60000);
-    return () => clearInterval(interval);
+    }
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useVisibilityAwareInterval(load, 60000);
 
   return (
     <motion.div

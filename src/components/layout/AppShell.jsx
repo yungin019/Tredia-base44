@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +20,7 @@ const NAV_CONFIG = [
 ];
 
 const TAB_ROOTS = NAV_CONFIG.map(n => n.path);
+const NAV_FALLBACKS = { 'nav.feed': 'Feed', 'nav.markets': 'Markets', 'nav.trek': 'TREK', 'nav.portfolio': 'Portfolio', 'nav.settings': 'Settings' };
 
 export default function AppShell({ onLogout }) {
   const location = useLocation();
@@ -63,8 +64,10 @@ export default function AppShell({ onLogout }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [searchOpen]);
 
-  const FALLBACKS = { 'nav.feed': 'Feed', 'nav.markets': 'Markets', 'nav.trek': 'TREK', 'nav.portfolio': 'Portfolio', 'nav.settings': 'Settings' };
-  const NAV_ITEMS = NAV_CONFIG.map(nav => ({ ...nav, label: t(nav.translationKey, FALLBACKS[nav.translationKey] || nav.translationKey) }));
+  const NAV_ITEMS = useMemo(() =>
+    NAV_CONFIG.map(nav => ({ ...nav, label: t(nav.translationKey, NAV_FALLBACKS[nav.translationKey] || nav.translationKey) })),
+    [t]
+  );
   const isTabRoot = TAB_ROOTS.includes(location.pathname);
   const showBack = !isTabRoot && canGoBack();
 

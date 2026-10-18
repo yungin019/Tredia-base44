@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
@@ -11,27 +12,47 @@ import { FirebaseAuthProvider, useFirebaseAuth } from '@/lib/FirebaseAuthContext
 import { NavigationProvider } from '@/lib/NavigationManager';
 
 import AppShell from './components/layout/AppShell';
-import SplashScreen from './pages/SplashScreen.jsx';
-import SignIn from './pages/SignIn.jsx';
-import Onboarding from './pages/Onboarding';
-import Home from './pages/Home';
-import Markets from './pages/Markets';
-import AIInsights from './pages/AIInsights';
-import Portfolio from './pages/Portfolio';
-import Trade from './pages/Trade';
-import Settings from './pages/Settings';
-import PaperTrading from './pages/PaperTrading';
-import Upgrade from './pages/Upgrade';
-import AssetDetail from './pages/AssetDetail';
-import Notifications from './pages/Notifications';
-import Traders from './pages/Traders';
-import TradingSetup from './pages/TradingSetup';
-import Admin from './pages/Admin.jsx';
-import AlpacaConnect from './pages/AlpacaConnect';
-import AlpacaCallback from './pages/AlpacaCallback';
-import TrekPortfolioWelcome from './pages/TrekPortfolioWelcome';
-import OnboardingQuick from './pages/OnboardingQuick';
-import Support from './pages/Support';
+
+// Route-level lazy loading — each page is a separate chunk
+const SplashScreen = lazy(() => import('./pages/SplashScreen.jsx'));
+const SignIn = lazy(() => import('./pages/SignIn.jsx'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
+const OnboardingQuick = lazy(() => import('./pages/OnboardingQuick'));
+const Home = lazy(() => import('./pages/Home'));
+const Markets = lazy(() => import('./pages/Markets'));
+const AIInsights = lazy(() => import('./pages/AIInsights'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const Trade = lazy(() => import('./pages/Trade'));
+const Settings = lazy(() => import('./pages/Settings'));
+const PaperTrading = lazy(() => import('./pages/PaperTrading'));
+const Upgrade = lazy(() => import('./pages/Upgrade'));
+const AssetDetail = lazy(() => import('./pages/AssetDetail'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const Traders = lazy(() => import('./pages/Traders'));
+const TradingSetup = lazy(() => import('./pages/TradingSetup'));
+const Admin = lazy(() => import('./pages/Admin.jsx'));
+const AlpacaConnect = lazy(() => import('./pages/AlpacaConnect'));
+const AlpacaCallback = lazy(() => import('./pages/AlpacaCallback'));
+const TrekPortfolioWelcome = lazy(() => import('./pages/TrekPortfolioWelcome'));
+const Support = lazy(() => import('./pages/Support'));
+
+const LazyFallback = () => (
+  <div style={{
+    background: '#080B12', minHeight: '100vh', display: 'flex',
+    alignItems: 'center', justifyContent: 'center'
+  }}>
+    <div style={{ width: 32, height: 32, border: '3px solid #F59E0B', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+    <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+  </div>
+);
+
+const LazyPage = ({ children }) => (
+  <PageTransition>
+    <Suspense fallback={<LazyFallback />}>
+      {children}
+    </Suspense>
+  </PageTransition>
+);
 
 const LoadingSpinner = () => (
   <div style={{
@@ -51,16 +72,16 @@ const AppRoutes = () => {
   if (isLoading) return <LoadingSpinner />;
 
   if (location.pathname === '/support') {
-    return <Support />;
+    return <Suspense fallback={<LazyFallback />}><Support /></Suspense>;
   }
 
   if (!firebaseUser) {
     return (
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/SignIn" element={<PageTransition><SignIn /></PageTransition>} />
-          <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
-          <Route path="/support" element={<Support />} />
+          <Route path="/SignIn" element={<LazyPage><SignIn /></LazyPage>} />
+          <Route path="/SplashScreen" element={<LazyPage><SplashScreen /></LazyPage>} />
+          <Route path="/support" element={<Suspense fallback={<LazyFallback />}><Support /></Suspense>} />
           <Route path="*" element={<Navigate to="/SignIn" replace />} />
         </Routes>
       </AnimatePresence>
@@ -91,29 +112,29 @@ const AppRoutes = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Navigate to={needsOnboarding ? "/Onboarding" : "/Home"} replace />} />
-        <Route path="/SignIn" element={<PageTransition><SignIn /></PageTransition>} />
-        <Route path="/SplashScreen" element={<PageTransition><SplashScreen /></PageTransition>} />
-        <Route path="/Onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
-        <Route path="/OnboardingQuick" element={<PageTransition><OnboardingQuick /></PageTransition>} />
-        <Route path="/Admin" element={<PageTransition><Admin /></PageTransition>} />
-        <Route path="/alpaca-connect" element={<PageTransition><AlpacaConnect /></PageTransition>} />
-        <Route path="/alpaca-callback" element={<AlpacaCallback />} />
-        <Route path="/support" element={<Support />} />
-        <Route path="/trek-portfolio-welcome" element={<PageTransition><TrekPortfolioWelcome /></PageTransition>} />
+        <Route path="/SignIn" element={<LazyPage><SignIn /></LazyPage>} />
+        <Route path="/SplashScreen" element={<LazyPage><SplashScreen /></LazyPage>} />
+        <Route path="/Onboarding" element={<LazyPage><Onboarding /></LazyPage>} />
+        <Route path="/OnboardingQuick" element={<LazyPage><OnboardingQuick /></LazyPage>} />
+        <Route path="/Admin" element={<LazyPage><Admin /></LazyPage>} />
+        <Route path="/alpaca-connect" element={<LazyPage><AlpacaConnect /></LazyPage>} />
+        <Route path="/alpaca-callback" element={<Suspense fallback={<LazyFallback />}><AlpacaCallback /></Suspense>} />
+        <Route path="/support" element={<Suspense fallback={<LazyFallback />}><Support /></Suspense>} />
+        <Route path="/trek-portfolio-welcome" element={<LazyPage><TrekPortfolioWelcome /></LazyPage>} />
         <Route element={needsOnboarding ? <Navigate to="/Onboarding" replace /> : <AppShell onLogout={logout} />}>
-          <Route path="/Home" element={<PageTransition><Home /></PageTransition>} />
+          <Route path="/Home" element={<LazyPage><Home /></LazyPage>} />
           <Route path="/Dashboard" element={<Navigate to="/Home" replace />} />
-          <Route path="/Markets" element={<PageTransition><Markets /></PageTransition>} />
-          <Route path="/AIInsights" element={<PageTransition><AIInsights /></PageTransition>} />
-          <Route path="/Traders" element={<PageTransition><Traders /></PageTransition>} />
-          <Route path="/Portfolio" element={<PageTransition><Portfolio /></PageTransition>} />
-          <Route path="/Trade" element={<PageTransition><Trade /></PageTransition>} />
-          <Route path="/Settings" element={<PageTransition><Settings onLogout={logout} /></PageTransition>} />
-          <Route path="/Upgrade" element={<PageTransition><Upgrade /></PageTransition>} />
-          <Route path="/PaperTrading" element={<PageTransition><PaperTrading /></PageTransition>} />
-          <Route path="/Notifications" element={<PageTransition><Notifications /></PageTransition>} />
-          <Route path="/Asset/:symbol" element={<PageTransition><AssetDetail /></PageTransition>} />
-          <Route path="/TradingSetup" element={<PageTransition><TradingSetup /></PageTransition>} />
+          <Route path="/Markets" element={<LazyPage><Markets /></LazyPage>} />
+          <Route path="/AIInsights" element={<LazyPage><AIInsights /></LazyPage>} />
+          <Route path="/Traders" element={<LazyPage><Traders /></LazyPage>} />
+          <Route path="/Portfolio" element={<LazyPage><Portfolio /></LazyPage>} />
+          <Route path="/Trade" element={<LazyPage><Trade /></LazyPage>} />
+          <Route path="/Settings" element={<LazyPage><Settings onLogout={logout} /></LazyPage>} />
+          <Route path="/Upgrade" element={<LazyPage><Upgrade /></LazyPage>} />
+          <Route path="/PaperTrading" element={<LazyPage><PaperTrading /></LazyPage>} />
+          <Route path="/Notifications" element={<LazyPage><Notifications /></LazyPage>} />
+          <Route path="/Asset/:symbol" element={<LazyPage><AssetDetail /></LazyPage>} />
+          <Route path="/TradingSetup" element={<LazyPage><TradingSetup /></LazyPage>} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>
