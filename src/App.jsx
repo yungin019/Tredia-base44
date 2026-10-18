@@ -6,7 +6,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'r
 import { AnimatePresence } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
 import PageTransition from '@/components/ui/page-transition';
-import i18n from '@/i18n';
+import i18n, { loadLanguage } from '@/i18n';
 
 import { FirebaseAuthProvider, useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import { NavigationProvider } from '@/lib/NavigationManager';
@@ -90,7 +90,7 @@ const AppRoutes = () => {
 
   const lang = localStorage.getItem('tredio_lang') || profile?.language || 'en';
   if (i18n.isInitialized && i18n.language !== lang) {
-    i18n.changeLanguage(lang).catch(() => {});
+    loadLanguage(lang);
     const RTL = ['ar','he','ur','fa','yi','ji','iw','ku'];
     document.documentElement.lang = lang;
     document.documentElement.dir = RTL.some(r => lang.startsWith(r)) ? 'rtl' : 'ltr';

@@ -13,6 +13,7 @@ import { base44 } from '@/api/base44Client';
 import { getFoundingMemberInfo } from '@/api/foundingMembers';
 import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
+import { loadLanguage } from '@/i18n';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import LegalLinksSection from '@/components/settings/LegalLinksSection';
 import AlpacaConnectedAccounts from '@/components/broker/AlpacaConnectedAccounts';
@@ -453,7 +454,7 @@ export default function Settings({ onLogout }) {
                  // Persist to user profile
                  await updateUserProfile({ language: lang.code }).catch(() => {});
                  // Change language and reload
-                 await i18n.changeLanguage(lang.code).catch(() => {});
+                 await loadLanguage(lang.code).catch(() => {});
                  window.location.reload();
                }}
                className={`p-3 rounded-lg border transition-all text-sm font-semibold flex items-center gap-2 justify-center ${

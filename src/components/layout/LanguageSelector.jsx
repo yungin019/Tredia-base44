@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
 import MobileSelect from '@/components/ui/mobile-select';
+import { loadLanguage } from '@/i18n';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', flag: '🇺🇸' },
@@ -26,7 +27,7 @@ export default function LanguageSelector() {
   const current = LANGUAGES.find(l => l.code === i18n.language?.slice(0, 2)) || LANGUAGES[0];
 
   const handleChange = (code) => {
-    i18n.changeLanguage(code);
+    loadLanguage(code);
     document.documentElement.dir = code === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = code;
   };
