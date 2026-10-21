@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
+import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, browserPopupRedirectResolver } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
 
 const firebaseConfig = {
@@ -14,6 +14,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = initializeAuth(app, {
+  // browserPopupRedirectResolver is required: initializeAuth (unlike getAuth)
+  // does not auto-register it, and signInWithPopup throws auth/argument-error without it.
+  popupRedirectResolver: browserPopupRedirectResolver,
   persistence: Capacitor.isNativePlatform() ? indexedDBLocalPersistence : browserLocalPersistence
 });
 
