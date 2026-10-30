@@ -57,10 +57,12 @@ export async function syncUserProfile(firebaseUser, overrideIdToken = null) {
   if (!merged.trading_mode) merged.trading_mode = 'practice';
   if (!merged.subscription_tier) merged.subscription_tier = 'free';
   if (!merged.referral_code) merged.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
-  if (merged.onboarding_completed === undefined || merged.onboarding_completed === null) {
-    const cached = getCachedProfile();
-    merged.onboarding_completed = cached?.onboarding_completed === true ? true : false;
-  }
+  // Onboarding completion is sticky: a read straight after a write is not always
+  // consistent, so a stale server value must never bounce a finished user back
+  // into onboarding. The update below re-persists the true value.
+  const cachedOnboarded = getCachedProfile()?.onboarding_completed === true;
+  if (merged.onboarding_completed !== true && cachedOnboarded) merged.onboarding_completed = true;
+  if (merged.onboarding_completed === undefined || merged.onboarding_completed === null) merged.onboarding_completed = false;
 
   try {
     const saved = await withTimeout(profileApi.update({

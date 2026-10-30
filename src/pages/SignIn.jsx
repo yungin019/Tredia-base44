@@ -266,7 +266,7 @@ export default function SignIn() {
       <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
 
-        {import.meta.env.DEV && (
+        {import.meta.env.DEV && new URLSearchParams(window.location.search).has('debug') && (
           <>
             <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,0,0.4)', borderRadius: '8px', padding: '6px 12px', marginBottom: '8px', fontSize: '10px', fontFamily: 'monospace', color: 'rgba(255,255,0,0.9)', lineHeight: '1.8' }}>
               mode: <strong>{IS_NATIVE ? 'NATIVE' : 'web'}</strong> | platform: <strong>{PLATFORM}</strong> | plugin: <strong>{pluginAvailable === null ? 'checking...' : String(pluginAvailable)}</strong>
@@ -349,8 +349,8 @@ export default function SignIn() {
                   <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <button onClick={handleGoogle} disabled={loading} style={{ ...socialBtnStyle, opacity: loading ? 0.6 : 1 }}><GoogleIcon />{t('signin.google', 'Continue with Google')}</button>
                   <button onClick={handleApple} disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '700', background: '#fff', border: '1px solid #fff', color: '#000', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px', opacity: loading ? 0.6 : 1 }}><AppleIcon />{t('signin.apple', 'Continue with Apple')}</button>
+                  <button onClick={handleGoogle} disabled={loading} style={{ ...socialBtnStyle, opacity: loading ? 0.6 : 1 }}><GoogleIcon />{t('signin.google', 'Continue with Google')}</button>
                 </div>
                 {loading && (
                   <button type='button' onClick={() => { setLoading(false); setError('Cancelled'); stopSafetyTimer(); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '8px', marginTop: '4px' }}>
