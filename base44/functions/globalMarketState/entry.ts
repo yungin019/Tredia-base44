@@ -1,26 +1,19 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-const POLYGON_API_KEY = Deno.env.get('POLYGON_API_KEY');
+const FINNHUB_API_KEY = Deno.env.get('FINNHUB_API_KEY');
 
-// Walk back from today until Polygon returns a completed session (max 8 days).
-// Replaces the fixed 2026-03-24 date that made this banner months stale.
-async function fetchMostRecentOpenClose(symbol) {
-  const d = new Date();
-  for (let i = 0; i < 8; i++) {
-    const day = d.getUTCDay();
-    if (day === 0 || day === 6) {
-      d.setUTCDate(d.getUTCDate() - 1);
-      continue;
-    }
-    const date = d.toISOString().slice(0, 10);
-    try {
-      const res = await fetch(`https://api.polygon.io/v1/open-close/${symbol}/${date}?apikey=${POLYGON_API_KEY}`, { signal: AbortSignal.timeout(8000) });
-      const payload = await res.json();
-      if (payload.status === 'OK' && payload.close > 0) return payload;
-    } catch (_) {}
-    d.setUTCDate(d.getUTCDate() - 1);
-  }
+// Latest real quote per index from Finnhub. Polygon's free tier caps at 5
+// requests/min and was rate-limiting this path into an empty banner.
+async function fetchLatestQuote(symbol) {
+  try {
+    const res = await fetch(
+      `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    const d = await res.json();
+    if (d.c > 0) return { open: d.o, close: d.c, high: d.h, low: d.l, volume: null };
+  } catch (_) {}
   return null;
 }
 
@@ -39,7 +32,7 @@ async function fetchMarketData() {
     const symbols = ['SPY', 'QQQ', 'DIA'];
     for (const symbol of symbols) {
       try {
-        const d = await fetchMostRecentOpenClose(symbol);
+        const d = await fetchLatestQuote(symbol);
         if (d) {
           const change = ((d.close - d.open) / d.open) * 100;
           const range = d.high - d.low;

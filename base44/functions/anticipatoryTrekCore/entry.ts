@@ -7,24 +7,17 @@ const FINNHUB_API_KEY = Deno.env.get('FINNHUB_API_KEY');
 // Forbidden words that contaminate signals
 const FORBIDDEN_WORDS = ['neutral', 'positive', 'negative', 'mixed', 'uncertain', 'sentiment', 'performance', 'recovery', 'advancement'];
 
-// Walk back from today until Polygon returns a completed session (max 8 days).
-// Replaces the fixed 2026-03-24 date this used to query.
-async function fetchMostRecentOpenClose(symbol) {
-  const d = new Date();
-  for (let i = 0; i < 8; i++) {
-    const day = d.getUTCDay();
-    if (day === 0 || day === 6) {
-      d.setUTCDate(d.getUTCDate() - 1);
-      continue;
-    }
-    const date = d.toISOString().slice(0, 10);
-    try {
-      const res = await fetch(`https://api.polygon.io/v1/open-close/${symbol}/${date}?apikey=${POLYGON_API_KEY}`, { signal: AbortSignal.timeout(8000) });
-      const payload = await res.json();
-      if (payload.status === 'OK' && payload.close > 0) return payload;
-    } catch (_) {}
-    d.setUTCDate(d.getUTCDate() - 1);
-  }
+// Latest real quote per index from Finnhub. Polygon's free tier caps at 5
+// requests/min and rate-limited this path.
+async function fetchLatestQuote(symbol) {
+  try {
+    const res = await fetch(
+      `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    const d = await res.json();
+    if (d.c > 0) return { open: d.o, close: d.c, high: d.h, low: d.l, volume: null };
+  } catch (_) {}
   return null;
 }
 
@@ -55,7 +48,7 @@ async function analyzeMarketStructure() {
     const symbols = ['SPY', 'QQQ', 'DIA'];
     for (const symbol of symbols) {
       try {
-        const data = await fetchMostRecentOpenClose(symbol);
+        const data = await fetchLatestQuote(symbol);
         if (data) {
           const change = ((data.close - data.open) / data.open) * 100;
           structure.indices[symbol] = {
