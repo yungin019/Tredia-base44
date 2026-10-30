@@ -3,13 +3,33 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const POLYGON_API_KEY = Deno.env.get('POLYGON_API_KEY');
 
+// Walk back from today until Polygon returns a completed session (max 8 days).
+// Replaces the fixed 2026-03-24 date that made this banner months stale.
+async function fetchMostRecentOpenClose(symbol) {
+  const d = new Date();
+  for (let i = 0; i < 8; i++) {
+    const day = d.getUTCDay();
+    if (day === 0 || day === 6) {
+      d.setUTCDate(d.getUTCDate() - 1);
+      continue;
+    }
+    const date = d.toISOString().slice(0, 10);
+    try {
+      const res = await fetch(`https://api.polygon.io/v1/open-close/${symbol}/${date}?apikey=${POLYGON_API_KEY}`, { signal: AbortSignal.timeout(8000) });
+      const payload = await res.json();
+      if (payload.status === 'OK' && payload.close > 0) return payload;
+    } catch (_) {}
+    d.setUTCDate(d.getUTCDate() - 1);
+  }
+  return null;
+}
+
 // Fetch current market data
 async function fetchMarketData() {
   console.log('[GLOBAL STATE] Fetching market data');
   
   const data = {
     indices: {},
-    yields: null,
     volatility: null,
     timestamp: new Date().toISOString()
   };
@@ -19,9 +39,8 @@ async function fetchMarketData() {
     const symbols = ['SPY', 'QQQ', 'DIA'];
     for (const symbol of symbols) {
       try {
-        const res = await fetch(`https://api.polygon.io/v1/open-close/${symbol}/2026-03-24?apikey=${POLYGON_API_KEY}`);
-        const d = await res.json();
-        if (d.status === 'OK') {
+        const d = await fetchMostRecentOpenClose(symbol);
+        if (d) {
           const change = ((d.close - d.open) / d.open) * 100;
           const range = d.high - d.low;
           data.indices[symbol] = {
@@ -37,17 +56,12 @@ async function fetchMarketData() {
       }
     }
 
-    // Estimate yield movement (mock for demo)
-    const spyChange = parseFloat(data.indices.SPY?.change || 0);
-    if (spyChange > 1) {
-      data.yields = { direction: 'rising', level: 'elevated' };
-    } else if (spyChange < -1) {
-      data.yields = { direction: 'falling', level: 'lower' };
-    } else {
-      data.yields = { direction: 'steady', level: 'stable' };
-    }
+    // Bail out honestly if no index data came back, rather than letting the
+    // model narrate a market from empty input.
+    if (Object.keys(data.indices).length === 0) return null;
 
-    // Volatility estimate
+    // Volatility derived from the real SPY move. No invented yield figures.
+    const spyChange = parseFloat(data.indices.SPY?.change || 0);
     const avgChange = Math.abs(spyChange);
     data.volatility = avgChange > 1.5 ? 'elevated' : avgChange > 0.5 ? 'normal' : 'low';
 
@@ -82,7 +96,6 @@ Market Data:
 - SPY: ${marketData.indices.SPY?.change}% (open: ${marketData.indices.SPY?.open}, close: ${marketData.indices.SPY?.close})
 - QQQ: ${marketData.indices.QQQ?.change}% (tech trend)
 - DIA: ${marketData.indices.DIA?.change}% (large cap trend)
-- Yields: ${marketData.yields?.direction} (${marketData.yields?.level})
 - Volatility: ${marketData.volatility}
 `;
 
@@ -215,18 +228,6 @@ const FORBIDDEN_PHRASES = [
   'advancement', 'not much', 'lacking', 'no direction', 'without direction'
 ];
 
-// Fallback state for when LLM fails
-const FALLBACK_STATE = {
-  marketState: 'Market consolidating after recent moves, traders waiting for next catalyst',
-  bias: 'Hold for breakout confirmation',
-  watch: [
-    'Key support/resistance levels',
-    'Volume confirmation on directional move',
-    'Macro data releases'
-  ],
-  valid: true
-};
-
 Deno.serve(async (req) => {
   const result = {
     status: 'generating',
@@ -256,6 +257,10 @@ Deno.serve(async (req) => {
 
     // Step 1: Fetch market data
     const marketData = await fetchMarketData();
+    if (!marketData) {
+      result.status = 'unavailable';
+      return Response.json(result);
+    }
     
     // Step 2: Fetch recent catalysts
     const catalysts = await fetchRecentCatalysts(base44);
@@ -276,10 +281,11 @@ Deno.serve(async (req) => {
       retryCount++;
     }
 
-    // Use fallback if all attempts failed
+    // No canned fallback text — an unvalidated generation is reported as unavailable
     if (!state?.valid) {
-      console.log('[GLOBAL STATE] ✗ All retries failed, using fallback');
-      state = FALLBACK_STATE;
+      console.log('[GLOBAL STATE] ✗ All retries failed, reporting unavailable');
+      result.status = 'unavailable';
+      return Response.json(result);
     }
 
     result.status = 'success';
@@ -291,7 +297,6 @@ Deno.serve(async (req) => {
     console.error('[GLOBAL STATE] Fatal error:', error.message);
     result.status = 'error';
     result.error = error.message;
-    result.marketState = FALLBACK_STATE;
     return Response.json(result);
   }
 });

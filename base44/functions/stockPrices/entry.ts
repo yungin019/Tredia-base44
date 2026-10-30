@@ -5,17 +5,9 @@ const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY') || '';
 // In-memory cache (resets on deploy, but persists across function calls)
 const priceCache = new Map();
 
-// Last known good prices (hardcoded from latest successful API calls)
-const FALLBACK_PRICES = {
-  'NVDA': { price: 176.56, prevClose: 172.7, timestamp: 1774292172000 },
-  'AAPL': { price: 252.31, prevClose: 247.99, timestamp: 1774292171000 },
-  'MSFT': { price: 383.19, prevClose: 381.87, timestamp: 1774292170000 },
-  'TSLA': { price: 381.46, prevClose: 367.96, timestamp: 1774291140290000 },
-  'AMZN': { price: 211.31, prevClose: 205.37, timestamp: 1774291140210000 },
-  'SPY': { price: 658.88, prevClose: 648.57, timestamp: 1774292172000 },
-  'BTC': { price: 71045, prevClose: 68572.82, timestamp: 1774292680892000, source: 'coingecko' },
-  'ETH': { price: 2167.66, prevClose: 2065.49, timestamp: 1774292680892000, source: 'coingecko' }
-};
+// No hardcoded fallback prices. A quote that cannot be fetched from a provider
+// (or served from this process's cache of a real fetch) returns null, so the UI
+// shows "unavailable" instead of a stale fabricated price.
 
 Deno.serve(async (req) => {
   try {
@@ -59,49 +51,50 @@ Deno.serve(async (req) => {
       const cryptoSymbols = symbols.filter(s => ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'MATIC', 'AVAX', 'LINK', 'UNI', 'DOT', 'ATOM'].includes(s));
       const stockSymbols = symbols.filter(s => !cryptoSymbols.includes(s));
 
-      // Fetch stocks from CoinGecko (crypto, no rate limit issues)
+      // Crypto via TwelveData. CoinGecko now returns 403 for anonymous callers,
+      // so this path previously produced nothing and the hardcoded table covered it.
       if (cryptoSymbols.length > 0) {
-        const COIN_IDS = {
-          'BTC': 'bitcoin', 'ETH': 'ethereum', 'SOL': 'solana', 'XRP': 'ripple',
-          'ADA': 'cardano', 'DOGE': 'dogecoin', 'MATIC': 'matic-network',
-          'AVAX': 'avalanche-2', 'LINK': 'chainlink', 'UNI': 'uniswap',
-          'DOT': 'polkadot', 'ATOM': 'cosmos'
-        };
-        
-        try {
-          const ids = cryptoSymbols.map(s => COIN_IDS[s]).filter(Boolean).join(',');
-          const res = await fetch(
-            `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
-          );
-          const data = await res.json();
-          
-          cryptoSymbols.forEach(sym => {
-            const coinId = COIN_IDS[sym];
-            if (data[coinId] && data[coinId].usd) {
-              const change = data[coinId].usd_24h_change || 0;
-              const prevClose = data[coinId].usd / (1 + change / 100);
+        const TWELVE_KEY = Deno.env.get('TWELVEDATA_API_KEY') || '';
+
+        await Promise.all(cryptoSymbols.map(async (sym) => {
+          const cached = priceCache.get(sym);
+          if (cached && (Date.now() - (cached.fetchedAt || 0)) < 30000) {
+            results[sym] = cached;
+            return;
+          }
+          if (!TWELVE_KEY) {
+            results[sym] = cached || null;
+            return;
+          }
+          try {
+            const res = await fetch(
+              `https://api.twelvedata.com/quote?symbol=${sym}/USD&apikey=${TWELVE_KEY}`,
+              { signal: AbortSignal.timeout(8000) }
+            );
+            const d = await res.json();
+            const price = parseFloat(d.close);
+            if (price > 0) {
+              const change = parseFloat(d.percent_change || 0);
+              const prevClose = d.previous_close
+                ? parseFloat(d.previous_close)
+                : price / (1 + change / 100);
               const priceData = {
-                price: parseFloat(data[coinId].usd.toFixed(2)),
+                price: parseFloat(price.toFixed(2)),
                 prevClose: parseFloat(prevClose.toFixed(2)),
                 change: parseFloat(change.toFixed(2)),
                 timestamp: Date.now(),
-                source: 'coingecko'
+                fetchedAt: Date.now(),
+                source: 'twelvedata'
               };
               priceCache.set(sym, priceData);
               results[sym] = priceData;
             } else {
-              // Try cache
-              const cached = priceCache.get(sym);
               results[sym] = cached || null;
             }
-          });
-        } catch (e) {
-          // Fall back to cache
-          cryptoSymbols.forEach(sym => {
-            const cached = priceCache.get(sym);
+          } catch (e) {
             results[sym] = cached || null;
-          });
-        }
+          }
+        }));
       }
 
       // Fetch stocks via Finnhub (live), with cache + fallback
@@ -139,23 +132,17 @@ Deno.serve(async (req) => {
                 priceCache.set(sym, priceData);
                 results[sym] = priceData;
               } else {
-                // Try fallback or stale cache
-                const stale = priceCache.get(sym);
-                const fallback = FALLBACK_PRICES[sym];
-                results[sym] = stale || (fallback ? { ...fallback, source: 'cached-fallback' } : null);
+                // Cached real quote only — never a fabricated price
+                results[sym] = priceCache.get(sym) || null;
               }
             } catch (e) {
-              const stale = priceCache.get(sym);
-              const fallback = FALLBACK_PRICES[sym];
-              results[sym] = stale || (fallback ? { ...fallback, source: 'cached-fallback' } : null);
+              results[sym] = priceCache.get(sym) || null;
             }
           }));
         } else if (uncached.length > 0) {
-          // No API key — use fallback/stale cache
+          // No API key — cached real quotes only
           uncached.forEach(sym => {
-            const stale = priceCache.get(sym);
-            const fallback = FALLBACK_PRICES[sym];
-            results[sym] = stale || (fallback ? { ...fallback, source: 'cached-fallback' } : null);
+            results[sym] = priceCache.get(sym) || null;
           });
         }
       }

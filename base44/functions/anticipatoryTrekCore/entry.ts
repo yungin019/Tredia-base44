@@ -7,15 +7,26 @@ const FINNHUB_API_KEY = Deno.env.get('FINNHUB_API_KEY');
 // Forbidden words that contaminate signals
 const FORBIDDEN_WORDS = ['neutral', 'positive', 'negative', 'mixed', 'uncertain', 'sentiment', 'performance', 'recovery', 'advancement'];
 
-// Safe fallback
-const FALLBACK_SIGNAL = {
-  market_state: 'Market structure unclear — insufficient signal',
-  driver: 'No strong structural catalyst identified',
-  impact: 'Low conviction environment',
-  action_bias: 'bearish',
-  risk: 'Unexpected volatility from data gaps',
-  confidence: 40
-};
+// Walk back from today until Polygon returns a completed session (max 8 days).
+// Replaces the fixed 2026-03-24 date this used to query.
+async function fetchMostRecentOpenClose(symbol) {
+  const d = new Date();
+  for (let i = 0; i < 8; i++) {
+    const day = d.getUTCDay();
+    if (day === 0 || day === 6) {
+      d.setUTCDate(d.getUTCDate() - 1);
+      continue;
+    }
+    const date = d.toISOString().slice(0, 10);
+    try {
+      const res = await fetch(`https://api.polygon.io/v1/open-close/${symbol}/${date}?apikey=${POLYGON_API_KEY}`, { signal: AbortSignal.timeout(8000) });
+      const payload = await res.json();
+      if (payload.status === 'OK' && payload.close > 0) return payload;
+    } catch (_) {}
+    d.setUTCDate(d.getUTCDate() - 1);
+  }
+  return null;
+}
 
 function validateSignal(sig) {
   const checkText = `${sig.market_state || ''} ${sig.driver || ''} ${sig.impact || ''} ${sig.action_bias || ''}`.toLowerCase();
@@ -44,9 +55,8 @@ async function analyzeMarketStructure() {
     const symbols = ['SPY', 'QQQ', 'DIA'];
     for (const symbol of symbols) {
       try {
-        const res = await fetch(`https://api.polygon.io/v1/open-close/${symbol}/2026-03-24?apikey=${POLYGON_API_KEY}`);
-        const data = await res.json();
-        if (data.status === 'OK') {
+        const data = await fetchMostRecentOpenClose(symbol);
+        if (data) {
           const change = ((data.close - data.open) / data.open) * 100;
           structure.indices[symbol] = {
             open: data.open,
@@ -219,11 +229,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fallback if all retries failed
+    // No fallback signal: a failed generation must never be stored and shown as a
+    // real catalyst. Report the failure instead of inventing a directional call.
     if (!validationResult?.isValid) {
-      console.error(`[ANTICIPATORY TREK] ✗ All retries failed. Using fallback.`);
-      signal = FALLBACK_SIGNAL;
-      validationResult = { isValid: false, reason: 'fallback' };
+      console.error('[ANTICIPATORY TREK] ✗ All retries failed. Not inserting a signal.');
+      report.phase = 'SIGNAL_GENERATION_FAILED';
+      report.failurePoint = 'NO_VALID_SIGNAL';
+      return Response.json(report);
     }
 
     report.signalGenerated = signal;

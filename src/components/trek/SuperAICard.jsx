@@ -19,14 +19,6 @@ const MODELS = [
   { key: 'mistralResult', label: 'Mistral', dot: '#fb923c' },
 ];
 
-// Blurred fake signals for the locked preview
-const FAKE_SIGNALS = [
-  { symbol: 'NVDA', signal: 'BUY', conf: 94 },
-  { symbol: 'AAPL', signal: 'BUY', conf: 87 },
-  { symbol: 'SPX',  signal: 'SELL', conf: 81 },
-  { symbol: 'META', signal: 'WATCH', conf: 76 },
-];
-
 function ModelRow({ model, data }) {
   if (!data) return null;
   const sc = SIGNAL_COLORS[data.signal] || SIGNAL_COLORS.HOLD;
@@ -61,37 +53,11 @@ function LockedCard() {
       {/* Gold scan line */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, #F59E0B, transparent)' }} />
 
-      {/* Blurred signal preview */}
-      <div style={{ padding: '16px 16px 0', position: 'relative' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: '#F59E0B', letterSpacing: '0.15em', textTransform: 'uppercase' }}>⚡ Super AI — 4 Models Aligned</span>
-        </div>
-
-        {/* Blurred fake signals */}
-        <div style={{ filter: 'blur(4px)', userSelect: 'none', pointerEvents: 'none', marginBottom: 0 }}>
-          {FAKE_SIGNALS.map((s, i) => {
-            const sc = SIGNAL_COLORS[s.signal];
-            return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <span style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: 14, color: 'rgba(255,255,255,0.9)', width: 50 }}>{s.symbol}</span>
-                <span style={{ fontSize: 10, fontWeight: 800, color: sc.color, background: sc.bg, border: `1px solid ${sc.border}`, borderRadius: 99, padding: '2px 10px' }}>{s.signal}</span>
-                <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${s.conf}%`, background: sc.color, borderRadius: 99 }} />
-                </div>
-                <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 12, color: sc.color }}>{s.conf}%</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Lock overlay */}
+      {/* No fabricated signal preview — the card describes the feature only */}
       <div style={{
         position: 'relative',
-        background: 'linear-gradient(to bottom, rgba(10,10,15,0.7) 0%, rgba(10,10,15,0.97) 100%)',
         padding: '24px 24px 24px',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center',
-        marginTop: -30,
       }}>
         <div style={{ width: 44, height: 44, borderRadius: 13, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Lock style={{ width: 20, height: 20, color: '#F59E0B' }} />
