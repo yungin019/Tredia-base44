@@ -153,7 +153,7 @@ COPY TRADE ANALYSIS:
 📍 ENTRY: $XXX.XX — $XXX.XX
 🛡️ STOP: $XXX.XX (-X.X%)
 🎯 TARGET: $XXX.XX (+X.X%)
-💵 POSITION SIZE: X,XXX SEK (X% of capital)
+💵 POSITION SIZE: X,XXX (X% of capital, in the user's local currency)
 ━━━━━━━━━━━━━━━━━━━
 🎯 ONE MEMORABLE TREK SENTENCE
 ━━━━━━━━━━━━━━━━━━━

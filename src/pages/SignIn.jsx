@@ -177,9 +177,10 @@ export default function SignIn() {
       if (mode === 'register') {
         const cred = await withTimeout(createUserWithEmailAndPassword(auth, email, password), 10000);
         if (name) await withTimeout(updateProfile(cred.user, { displayName: name }), 5000);
-        try { await withTimeout(sendEmailVerification(cred.user), 5000); } catch (_e) {}
-        setLoading(false);
-        setStep('verify');
+        // Verification is not enforced for sign-in, so don't wall the user off:
+        // the link is sent in the background and they continue straight in.
+        sendEmailVerification(cred.user).catch(() => {});
+        await handleAfterLoginWeb(cred.user);
         return;
       }
       const cred = await withTimeout(signInWithEmailAndPassword(auth, email, password), 10000);
@@ -311,16 +312,6 @@ export default function SignIn() {
                   </form>
                 )}
                 <button onClick={() => { setStep('form'); setError(''); setForgotSent(false); setForgotEmail(''); }} style={{ width: '100%', padding: '10px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', marginTop: '8px' }}>Back to Sign In</button>
-              </motion.div>
-            ) : step === 'verify' ? (
-              <motion.div key='verify' initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>{'📧'}</div>
-                  <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>{t('signin.verifyTitle', 'Check your email')}</p>
-                  <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>{t('signin.verifySubtitle', 'We sent a verification link to')}<br /><span style={{ color: '#F59E0B', fontWeight: '600' }}>{email}</span></p>
-                  <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px', marginTop: '8px' }}>Click the link in the email then come back to sign in.</p>
-                </div>
-                <button onClick={() => { setStep('form'); setMode('login'); setLoading(false); }} style={{ ...submitBtnStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Go to Sign In</button>
               </motion.div>
             ) : (
               <motion.div key='form' initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

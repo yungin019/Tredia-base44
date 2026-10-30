@@ -8,6 +8,11 @@
 import { profileApi, clearUserCache } from '@/api/userData';
 
 const PROFILE_KEY = 'tredio_user_profile';
+const ONBOARDED_KEY = 'tredio_onboarded';
+
+function isLocallyOnboarded() {
+  try { return localStorage.getItem(ONBOARDED_KEY) === '1'; } catch (_) { return false; }
+}
 
 function withTimeout(promise, ms) {
   return Promise.race([
@@ -60,9 +65,12 @@ export async function syncUserProfile(firebaseUser, overrideIdToken = null) {
   // Onboarding completion is sticky: a read straight after a write is not always
   // consistent, so a stale server value must never bounce a finished user back
   // into onboarding. The update below re-persists the true value.
-  const cachedOnboarded = getCachedProfile()?.onboarding_completed === true;
+  const cachedOnboarded = getCachedProfile()?.onboarding_completed === true || isLocallyOnboarded();
   if (merged.onboarding_completed !== true && cachedOnboarded) merged.onboarding_completed = true;
   if (merged.onboarding_completed === undefined || merged.onboarding_completed === null) merged.onboarding_completed = false;
+  if (merged.onboarding_completed === true) {
+    try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch (_) {}
+  }
 
   try {
     const saved = await withTimeout(profileApi.update({
@@ -88,6 +96,9 @@ export async function updateUserProfile(updates) {
   const current = getCachedProfile() || {};
   const merged = { ...current, ...updates };
   if (merged.onboarding_completed === undefined) merged.onboarding_completed = false;
+  if (merged.onboarding_completed === true) {
+    try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch (_) {}
+  }
   localStorage.setItem(PROFILE_KEY, JSON.stringify(merged));
   try { await profileApi.update(updates); } catch (_) {}
   return merged;
@@ -95,6 +106,7 @@ export async function updateUserProfile(updates) {
 
 export function clearUserProfile() {
   localStorage.removeItem(PROFILE_KEY);
+  localStorage.removeItem(ONBOARDED_KEY);
   localStorage.removeItem('firebase_auth_token');
   localStorage.removeItem('auth_token');
   localStorage.removeItem('token');

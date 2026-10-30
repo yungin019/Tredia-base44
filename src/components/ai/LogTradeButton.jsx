@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { askTrek } from '@/api/trek';
 import { toast } from 'sonner';
+import { useCurrency } from '@/hooks/useCurrency';
 
 const QUICK_PICKS = ['AAPL', 'NVDA', 'BTC', 'ETH', 'TSLA', 'GOLD', 'OIL', 'AMZN', 'MSFT', 'GOOGL'];
 
@@ -16,6 +17,7 @@ export function LogTradeButton() {
   const [symbol, setSymbol] = useState('');
   const [amount, setAmount] = useState('');
   const [amountType, setAmountType] = useState('currency');
+  const { currency } = useCurrency();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleSubmit = async () => {
@@ -27,7 +29,7 @@ export function LogTradeButton() {
     setIsAnalyzing(true);
 
     try {
-      const query = `I just ${action === 'buy' ? 'bought' : 'sold'} ${symbol} for ${amount} ${amountType === 'currency' ? 'SEK' : 'shares'}. Give me your full analysis with grade, targets, risks, and specific guidance.`;
+      const query = `I just ${action === 'buy' ? 'bought' : 'sold'} ${symbol} for ${amount} ${amountType === 'currency' ? currency : 'shares'}. Give me your full analysis with grade, targets, risks, and specific guidance.`;
 
       await askTrek([{ role: 'user', content: query }], {}, null, 'pro');
 
@@ -174,7 +176,7 @@ export function LogTradeButton() {
                           variant="outline"
                           className="border-white/20 text-white hover:bg-white/5 whitespace-nowrap px-4"
                         >
-                          {amountType === 'currency' ? 'SEK' : 'shares'}
+                          {amountType === 'currency' ? currency : 'shares'}
                         </Button>
                       </div>
                     </div>

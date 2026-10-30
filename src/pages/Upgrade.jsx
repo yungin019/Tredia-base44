@@ -7,10 +7,12 @@ import { base44 } from '@/api/base44Client';
 import { getCurrentUser } from '@/api/userData';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import { getProductId } from '@/lib/revenuecat-config';
+import { useCurrency } from '@/hooks/useCurrency';
 
 export default function Upgrade() {
   const { t } = useTranslation();
   const { makePurchase, restorePurchases, purchaseInProgress, purchaseError, isInitialized } = useRevenueCat();
+  const { formatPrice } = useCurrency();
 
   const ELITE_FEATURES = [
     t('upgrade.eliteFeature1', 'Unlimited TREK AI signals'),
@@ -22,7 +24,7 @@ export default function Upgrade() {
 
   const FOUNDING_FEATURES = [
     t('upgrade.foundingFeature1', 'Elite FREE for 30 days'),
-    t('upgrade.foundingFeature2', 'Then 89 SEK/month for life (normally 179 SEK)'),
+    `Then ${formatPrice(8.99)}/month for life (normally ${formatPrice(17.99)})`,
     t('upgrade.foundingFeature3', 'OG Founding Member badge'),
     t('upgrade.foundingFeature4', 'Personal referral link'),
     t('upgrade.foundingFeature5', 'Early access to new features'),
@@ -194,7 +196,7 @@ export default function Upgrade() {
           <span className="text-[10px] font-black tracking-[0.18em] uppercase text-[#F59E0B]">{t('upgrade.elite', 'ELITE')}</span>
         </div>
         <p className="text-2xl font-black text-white/90 mb-1">
-          {billingCycle === 'monthly' ? '179 SEK' : '1790 SEK'}
+          {billingCycle === 'monthly' ? formatPrice(17.99) : formatPrice(179.9)}
           <span className="text-sm font-medium text-white/35">{billingCycle === 'monthly' ? '/mo' : '/yr'}</span>
         </p>
         <p className="text-xs text-white/30 mb-5">{t('trek.subtitle', 'AI-powered trading intelligence')}</p>
@@ -224,7 +226,7 @@ export default function Upgrade() {
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-6">
         <span className="text-[10px] font-black tracking-[0.18em] uppercase text-white/40">{t('upgrade.pro', 'PRO')}</span>
         <p className="text-2xl font-black text-white/90 mb-1 mt-1">
-          {billingCycle === 'monthly' ? '89 SEK' : '890 SEK'}
+          {billingCycle === 'monthly' ? formatPrice(8.99) : formatPrice(89.9)}
           <span className="text-sm font-medium text-white/35">{billingCycle === 'monthly' ? '/mo' : '/yr'}</span>
         </p>
         <p className="text-xs text-white/30 mb-5">{t('upgrade.unlockPower', 'Unlock the full power of TREK')}</p>

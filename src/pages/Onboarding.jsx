@@ -7,6 +7,7 @@ import { updateUserProfile } from '@/lib/userProfile';
 import { claimFoundingMemberSlot } from '@/api/foundingMembers';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
+import { useCurrency } from '@/hooks/useCurrency';
 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
@@ -36,6 +37,7 @@ function OptionButton({ label, selected, onClick, color = '#F59E0B' }) {
 
 export default function Onboarding() {
   const { t } = useTranslation();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const { updateProfile } = useFirebaseAuth();
   const { makePurchase, purchaseInProgress, purchaseError, isInitialized } = useRevenueCat();
@@ -138,7 +140,7 @@ export default function Onboarding() {
                 <ul className="space-y-3 mb-6">
                   {[
                     'Elite FREE for 30 days',
-                    'Then Elite for 89 SEK/month for life (normally 179 SEK)',
+                    `Then Elite for ${formatPrice(8.99)}/month for life (normally ${formatPrice(17.99)})`,
                     'OG Founding Member badge',
                     'Personal referral link',
                   ].map((f, i) => (

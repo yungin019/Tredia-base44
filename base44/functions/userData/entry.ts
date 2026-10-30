@@ -38,6 +38,8 @@ function publicProfile(record) {
 
 // Matches the admin gate already used by the Admin screen.
 const ADMIN_EMAIL = 'nevry95@hotmail.se';
+// In-flight profile creation per uid, so one user never gets two rows.
+const profileLocks = new Map();
 const OG_LIMIT = 100;
 
 function pick(source, allowed) {
@@ -99,23 +101,37 @@ export default async function (req) {
     // ── Profile ─────────────────────────────────────────────────────────
     // Every profile call upserts: the first sign-in and every later write must
     // land on a real row, otherwise an update silently changes nothing.
-    async function ensureProfile() {
-      const rows = itemsOf(await db.UserProfile.filter({ user_id: uid }, { limit: 50 }));
-      if (rows.length > 0) {
-        // Oldest row wins, deterministically.
-        rows.sort((a, b) => String(a.created_date).localeCompare(String(b.created_date)));
-        const keep = rows[0];
-        // Tidy any pristine duplicates left by earlier concurrent first calls.
-        for (const extra of rows.slice(1)) {
-          const pristine = extra.onboarding_completed !== true
-            && !extra.alpaca_connected
-            && extra.trading_mode === 'practice'
-            && extra.subscription_tier === 'free';
-          if (pristine) await db.UserProfile.delete(extra.id).catch(() => {});
-        }
-        return keep;
+    // Exactly one profile row per verified uid: lookups retry because the store
+    // can lag right after a write, and any duplicate that still slips through
+    // is collapsed to the oldest row.
+    function collapseProfiles(rows: any[]) {
+      rows.sort((a, b) => String(a.created_date).localeCompare(String(b.created_date)));
+      const keep = rows.find(r => r.alpaca_connected)
+        || rows.find(r => r.onboarding_completed === true)
+        || rows[0];
+      for (const extra of rows) {
+        if (extra.id === keep.id) continue;
+        const pristine = extra.onboarding_completed !== true
+          && !extra.alpaca_connected
+          && extra.trading_mode === 'practice';
+        if (pristine) db.UserProfile.delete(extra.id).catch(() => {});
       }
-      return db.UserProfile.create({
+      return keep;
+    }
+
+    async function ensureProfile() {
+      const pending = profileLocks.get(uid);
+      if (pending) return pending;
+
+      const task = (async () => {
+        // The index can lag for a second or two after the first write, so give
+        // it time before deciding the user really has no profile yet.
+        for (let attempt = 0; attempt < 4; attempt++) {
+          const rows = itemsOf(await db.UserProfile.filter({ user_id: uid }, { limit: 50 }));
+          if (rows.length > 0) return collapseProfiles(rows);
+          if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+        }
+        const created = await db.UserProfile.create({
         user_id: uid,
         email: identity.email || '',
         full_name: identity.name || (identity.email || '').split('@')[0] || 'User',
@@ -123,9 +139,17 @@ export default async function (req) {
         broker_status: 'not_connected',
         trading_mode: 'practice',
         subscription_tier: 'free',
-        referral_code: 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase(),
-        onboarding_completed: false,
-      });
+          referral_code: 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+          onboarding_completed: false,
+        });
+        // Confirm the row is visible before anyone else can create another.
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        const after = itemsOf(await db.UserProfile.filter({ user_id: uid }, { limit: 50 }));
+        return after.length > 0 ? collapseProfiles(after) : created;
+      })();
+
+      profileLocks.set(uid, task);
+      try { return await task; } finally { profileLocks.delete(uid); }
     }
 
     if (action === 'profile.get') {

@@ -14,7 +14,16 @@ export default function SPYSection() {
         const quote = res?.data?.prices?.SPY || null;
         if (quote?.price > 0) {
           const changePct = quote.prevClose > 0 ? ((quote.price - quote.prevClose) / quote.prevClose) * 100 : 0;
-          setSpy({ price: quote.price, changePct });
+          // The card below renders change/high/low/time, so store them all —
+          // a missing field here used to crash the whole Markets screen.
+          setSpy({
+            price: quote.price,
+            changePct,
+            change: quote.prevClose > 0 ? quote.price - quote.prevClose : 0,
+            high: Number.isFinite(quote.high) ? quote.high : null,
+            low: Number.isFinite(quote.low) ? quote.low : null,
+            timestamp: quote.timestamp || Date.now(),
+          });
         } else {
           setSpy(null);
         }
@@ -67,10 +76,10 @@ export default function SPYSection() {
           <div className="flex items-center gap-1.5 mt-1.5">
             <TrendIcon className="h-3.5 w-3.5" style={{ color: accentColor }} />
             <span className="text-sm font-bold" style={{ color: accentColor }}>
-              {spy.changePct >= 0 ? '+' : ''}{spy.changePct.toFixed(2)}%
+              {spy.changePct >= 0 ? '+' : ''}{Number(spy.changePct || 0).toFixed(2)}%
             </span>
             <span className="text-xs text-white/35 font-mono">
-              ({spy.change >= 0 ? '+' : ''}{spy.change.toFixed(2)})
+              ({spy.change >= 0 ? '+' : ''}{Number(spy.change || 0).toFixed(2)})
             </span>
           </div>
         </div>

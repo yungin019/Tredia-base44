@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { getCurrentUser } from '@/api/userData';
 import { toast } from 'sonner';
+import { useCurrency } from '@/hooks/useCurrency';
 
 export function OG100Card({ onClaim, onSkip }) {
   const [claiming, setClaiming] = useState(false);
+  const { formatPrice } = useCurrency();
 
   const handleClaim = async () => {
     setClaiming(true);
@@ -39,7 +41,7 @@ export function OG100Card({ onClaim, onSkip }) {
             <p className="text-sm" style={{ color: 'rgba(180,210,240,0.65)' }}>First 100 members unlock lifetime founding perks</p>
           </div>
           <ul className="space-y-2">
-            {['Elite FREE for 30 days','Then Elite for 89 SEK/month for life (normally 179 SEK)','OG Founding Member badge','Personal referral link'].map((item, i) => (
+            {['Elite FREE for 30 days',`Then Elite for ${formatPrice(8.99)}/month for life (normally ${formatPrice(17.99)})`,'OG Founding Member badge','Personal referral link'].map((item, i) => (
               <li key={i} className="flex items-start gap-2.5 text-sm" style={{ color: 'rgba(180,210,240,0.8)' }}>
                 <span className="mt-0.5 text-base leading-none" style={{ color: '#F59E0B' }}>✦</span>
                 <span>{item}</span>

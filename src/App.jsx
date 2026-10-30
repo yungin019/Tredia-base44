@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'r
 import { AnimatePresence } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
 import PageTransition from '@/components/ui/page-transition';
+import RouteErrorBoundary from '@/components/RouteErrorBoundary';
 import i18n, { loadLanguage } from '@/i18n';
 
 import { FirebaseAuthProvider, useFirebaseAuth } from '@/lib/FirebaseAuthContext';
@@ -65,7 +66,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const AppRoutes = () => {
+const AppRoutesInner = () => {
   const location = useLocation();
   const { firebaseUser, profile, isLoading, logout } = useFirebaseAuth();
 
@@ -100,6 +101,8 @@ const AppRoutes = () => {
   // behind what was already written to localStorage during onboarding completion.
   const getCachedOnboarding = () => {
     try {
+      // Local completion flag survives any stale profile read.
+      if (localStorage.getItem('tredio_onboarded') === '1') return true;
       const raw = localStorage.getItem('tredio_user_profile');
       if (!raw) return false;
       const p = JSON.parse(raw);
@@ -139,6 +142,17 @@ const AppRoutes = () => {
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </AnimatePresence>
+  );
+};
+
+// Every route renders inside the boundary: a crash shows a retry screen
+// instead of an empty page. The key resets it on navigation.
+const AppRoutes = () => {
+  const location = useLocation();
+  return (
+    <RouteErrorBoundary key={location.pathname}>
+      <AppRoutesInner />
+    </RouteErrorBoundary>
   );
 };
 
