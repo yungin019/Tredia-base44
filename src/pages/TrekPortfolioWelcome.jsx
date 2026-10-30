@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { TrendingUp, AlertTriangle, Zap } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { getIdToken } from '@/api/userData';
 
 export default function TrekPortfolioWelcome() {
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ RISK: [Specific risk with exact % or amount in one sentence. Start with the risk
 ACTION: [One specific action. Not generic. References their actual situation. One sentence.]
 IMPRESSED: [One thing that impressed TREK. One sentence.]`;
 
-        const response = await base44.functions.invoke('trekChat', { message: prompt });
+        const response = await base44.functions.invoke('trekChat', { idToken: await getIdToken(), message: prompt });
         if (response.data?.error) throw new Error(response.data.error);
         const text = response.data?.reply || response.data?.response || '';
 

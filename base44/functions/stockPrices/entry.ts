@@ -44,7 +44,8 @@ Deno.serve(async (req) => {
     }
 
     // ── BATCH PRICE FETCH ───────────────────────────────────────────────
-    if (symbols && symbols.length > 0) {
+    // An empty list is a valid "nothing to price yet" request, not a bad one.
+    if (Array.isArray(symbols)) {
       const results = {};
 
       // Crypto symbols

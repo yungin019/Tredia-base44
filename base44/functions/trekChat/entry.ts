@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { verifyFirebaseToken, tokenFromRequest } from '../../shared/firebaseAuth.ts';
 // Multi-model synthesis: Claude + OpenAI run in parallel as independent analysts,
 // then Claude synthesizes the best combined verdict with calibrated confidence %.
 
@@ -113,11 +114,20 @@ async function callOpenAI(systemPrompt, messages) {
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    createClientFromRequest(req);
+    const body = await req.json().catch(() => ({}));
 
-    const { messages, systemPrompt, marketContext, lang } = await req.json();
+    // Firebase session, verified server-side — a Base44 session never exists here.
+    const identity = await verifyFirebaseToken(body.idToken || tokenFromRequest(req));
+    if (!identity) {
+      return Response.json({
+        error: 'AUTH_REQUIRED',
+        reply: 'Your session expired — please sign in again to use TREK.',
+        retry: true,
+      }, { status: 401 });
+    }
+
+    const { messages, systemPrompt, marketContext, lang } = body;
 
     // Language instruction prepended to every system prompt
     const LANG_NAMES = {
@@ -190,6 +200,11 @@ Synthesize these two analyses into one definitive TREK verdict.`,
     return Response.json({ reply: finalReply, _debug: { claudeText, openaiText } });
 
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[trekChat] error:', error.message);
+    return Response.json({
+      error: error.message,
+      reply: 'TREK is busy right now — please try again in a moment.',
+      retry: true,
+    });
   }
 });

@@ -1,0 +1,114 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Verified Firebase uid \u2014 always set server-side, never from the client"
+    },
+    "email": {
+      "type": "string",
+      "description": "Verified account email"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "broker_status": {
+      "type": "string",
+      "default": "not_connected"
+    },
+    "trading_mode": {
+      "type": "string",
+      "default": "practice"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "default": "free"
+    },
+    "referral_code": {
+      "type": "string"
+    },
+    "onboarding_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "language": {
+      "type": "string"
+    },
+    "budget_range": {
+      "type": "string"
+    },
+    "experience_level": {
+      "type": "string"
+    },
+    "risk_tolerance": {
+      "type": "string"
+    },
+    "interests": {
+      "type": "string"
+    },
+    "trader_level": {
+      "type": "string"
+    },
+    "onboarded": {
+      "type": "boolean",
+      "default": false
+    },
+    "region": {
+      "type": "string"
+    },
+    "notification_prefs": {
+      "type": "object"
+    },
+    "alpaca_connected": {
+      "type": "boolean",
+      "default": false
+    },
+    "alpaca_token": {
+      "type": "string"
+    },
+    "alpaca_refresh_token": {
+      "type": "string"
+    },
+    "alpaca_buying_power": {
+      "type": "number"
+    },
+    "alpaca_position_count": {
+      "type": "number"
+    },
+    "alpaca_daily_pnl": {
+      "type": "number"
+    },
+    "alpaca_positions": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

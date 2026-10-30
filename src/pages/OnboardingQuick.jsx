@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { getCurrentUser, profileApi } from '@/api/userData';
 
 const TRADER_LEVELS = [
   { id: 'beginner', label: '🌱 Beginner', description: 'Just starting to trade' },
@@ -34,9 +34,9 @@ export default function OnboardingQuick() {
   const handleComplete = async () => {
     setLoading(true);
     try {
-      const user = await base44.auth.me();
+      const user = await getCurrentUser();
       if (user?.id) {
-        await base44.auth.updateMe({
+        await profileApi.update({
           trader_level: level,
           interests: interests,
           onboarded: true,

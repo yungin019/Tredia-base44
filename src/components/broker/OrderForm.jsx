@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
+import { db } from '@/api/userData';
 import { useQueryClient } from '@tanstack/react-query';
 import { getStockPrice } from '../MarketData';
 import MobileSelect from '@/components/ui/mobile-select';
@@ -83,7 +84,7 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
         const tempId = `temp-${Date.now()}`;
         const optimistic = { ...newTrade, id: tempId, created_date: new Date().toISOString() };
         queryClient.setQueryData(['tradelog'], (old) => [optimistic, ...(old || [])]);
-        base44.entities.TradeLog.create(newTrade)
+        db.tradeLog.create(newTrade)
           .then(() => queryClient.invalidateQueries({ queryKey: ['tradelog'] }))
           .catch(() => {
             queryClient.setQueryData(['tradelog'], (old) => (old || []).filter(t => t.id !== tempId));

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser, getIdToken } from '@/api/userData';
 import { toast } from 'sonner';
 import { AnimatePresence, motion } from 'framer-motion';
 import OrderForm from '@/components/broker/OrderForm';
@@ -137,7 +138,7 @@ export default function Trade() {
 
   // Check if user has Alpaca connected
   useEffect(() => {
-    base44.auth.me().then(u => {
+    getCurrentUser().then(u => {
       const connected = u?.alpaca_connected === true && !!u?.alpaca_access_token;
       setAlpacaConnected(connected);
       // Auto-switch to live if connected
@@ -207,6 +208,7 @@ export default function Trade() {
     setTrekModal({ orderData, executeCallback });
     try {
       const res = await base44.functions.invoke('trekChat', {
+        idToken: await getIdToken(),
         message: 'Pre-trade analysis for ' + orderData.qty + ' shares of ' + orderData.symbol + ' at ' + (orderData.marketPrice ? '$' + orderData.marketPrice : 'market price') + '. Provide grade (A/B+/B/C), entry quality, target price, stop loss, risk/reward ratio, and a brief motivational quote.',
         symbol: orderData.symbol,
         shares: orderData.qty,

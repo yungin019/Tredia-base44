@@ -10,8 +10,14 @@ export default function SPYSection() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await base44.functions.invoke('spyQuote', {});
-        setSpy(res?.data?.spy || null);
+        const res = await base44.functions.invoke('stockPrices', { symbols: ['SPY'] });
+        const quote = res?.data?.prices?.SPY || null;
+        if (quote?.price > 0) {
+          const changePct = quote.prevClose > 0 ? ((quote.price - quote.prevClose) / quote.prevClose) * 100 : 0;
+          setSpy({ price: quote.price, changePct });
+        } else {
+          setSpy(null);
+        }
       } catch {
         setSpy(null);
       } finally {

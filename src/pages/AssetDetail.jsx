@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, TrendingUp, TrendingDown, ShieldAlert, Target, CheckCircle2, X, Bell, BellRing, ChevronDown, ChevronUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { db, getCurrentUser } from '@/api/userData';
 import { sendPushNotification } from '@/api/notifications';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import QueryLimitModal from '@/components/ai/QueryLimitModal';
@@ -115,7 +116,7 @@ function TradeModal({ asset, action, onClose }) {
   const handleConfirm = async () => {
     if (!amount || parseFloat(amount) <= 0) return;
     const sharesNum = parseFloat((parseFloat(amount) / asset.price).toFixed(4));
-    base44.entities.TradeLog.create({
+    db.tradeLog.create({
       symbol: asset.symbol,
       name: asset.name || asset.symbol,
       action: isBuy ? 'buy' : 'sell',
@@ -232,7 +233,7 @@ export default function AssetDetail() {
   const prevPriceRef = useRef(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    getCurrentUser().then(setUser).catch(() => {});
   }, []);
 
   // Auto-trigger TREK analysis on mount — gated: free users use localStorage counter
@@ -263,6 +264,7 @@ export default function AssetDetail() {
     setTrekLoading(true);
     const currentPrice = livePrice || staticAsset.price;
     base44.functions.invoke('trekChat', {
+      idToken: localStorage.getItem('firebase_auth_token') || undefined,
       messages: [{
         role: 'user',
         content: `Analyze ${symbol} (${staticAsset.name}). Current price: $${currentPrice}. Sector: ${staticAsset.sector}. Give me a full TREK verdict: signal (BUY/SELL/HOLD/WATCH), confidence %, entry zone, target, stop loss, and the key reason. Be specific with price levels.`,
@@ -286,7 +288,7 @@ export default function AssetDetail() {
 
   // Load watchlist entry for this symbol (to get alert_price)
   useEffect(() => {
-    base44.entities.Watchlist.filter({ symbol }).then(results => {
+    db.watchlist.filter({ symbol }).then(results => {
       if (results?.length > 0) setWatchlistEntry(results[0]);
     }).catch(() => {});
   }, [symbol]);
@@ -336,7 +338,7 @@ export default function AssetDetail() {
     sessionStorage.setItem(key, '1');
     const icon = staticAsset.signal === 'BUY' ? '⚡' : '⚠️';
     showToast(`${icon} TREK ${staticAsset.signal} signal for ${symbol} — ${staticAsset.confidence}% confidence`, staticAsset.signal === 'BUY' ? 'success' : 'danger');
-    base44.auth.me().then(user => {
+    getCurrentUser().then(user => {
       sendPushNotification({ signal: staticAsset.signal, symbol, confidence: staticAsset.confidence, technicalSummary: staticAsset.whyNow }, user).catch(() => {});
     }).catch(() => {});
   }, [watchlistEntry]);
@@ -355,7 +357,7 @@ export default function AssetDetail() {
 
   const handleAddToWatchlist = async () => {
     if (watchlistEntry) return;
-    const entry = await base44.entities.Watchlist.create({ symbol, name: asset.name, alert_price: asset.price });
+    const entry = await db.watchlist.create({ symbol, name: asset.name, alert_price: asset.price });
     setWatchlistEntry(entry);
     showToast(`${symbol} added to watchlist. You'll be alerted at $${asset.price.toLocaleString()}.`, 'success');
   };

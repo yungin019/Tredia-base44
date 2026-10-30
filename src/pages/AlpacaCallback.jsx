@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
+import { profileApi } from '@/api/userData';
 
 export default function AlpacaCallback() {
   const [searchParams] = useSearchParams();
@@ -64,7 +65,7 @@ export default function AlpacaCallback() {
         const positions = Array.isArray(positionsRes.data) ? positionsRes.data : [];
 
         // Persist to user profile — never expose tokens in client state beyond this
-        await base44.auth.updateMe({
+        await profileApi.update({
           alpaca_connected: true,
           broker_status: 'connected',
           trading_mode: 'live',
@@ -87,7 +88,7 @@ export default function AlpacaCallback() {
         setStatus('error');
         setError(err.message || 'Failed to connect to Alpaca.');
         // Mark broker as error state
-        base44.auth.updateMe({ broker_status: 'error' }).catch(() => {});
+        profileApi.update({ broker_status: 'error' }).catch(() => {});
         setTimeout(() => navigate('/Settings'), 3000);
       }
     };

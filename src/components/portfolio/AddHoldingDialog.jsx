@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/userData';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -12,7 +12,7 @@ export default function AddHoldingDialog({ open, onOpenChange }) {
   const [form, setForm] = useState({ symbol: '', name: '', shares: '', avg_cost: '', current_price: '' });
 
   const addMutation = useMutation({
-    mutationFn: (newHolding) => base44.entities.Portfolio.create(newHolding),
+    mutationFn: (newHolding) => db.portfolio.create(newHolding),
     onMutate: async (newHolding) => {
       await queryClient.cancelQueries({ queryKey: ['portfolio'] });
       const previous = queryClient.getQueryData(['portfolio']);

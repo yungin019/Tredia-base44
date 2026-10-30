@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser, adminApi } from '@/api/userData';
 import { useNavigate } from 'react-router-dom';
 
 const ADMIN_EMAIL = 'nevry95@hotmail.se';
@@ -23,7 +24,7 @@ export default function Admin() {
   const [pushResult, setPushResult] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    getCurrentUser().then(u => {
       if (u?.email !== ADMIN_EMAIL) {
         navigate('/Home', { replace: true });
         return;
@@ -35,7 +36,7 @@ export default function Admin() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.User.list();
+      const list = await adminApi.users();
       setUsers(list);
     } catch (err) {
       console.error('Failed to load users:', err);
@@ -112,7 +113,7 @@ export default function Admin() {
 
   const updateTier = async (userId, tier) => {
     try {
-      await base44.entities.User.update(userId, { subscription_tier: tier });
+      await adminApi.setTier(userId, tier);
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, subscription_tier: tier } : u));
     } catch (err) {
       console.error('Failed to update tier:', err);

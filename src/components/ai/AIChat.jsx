@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { askTrek } from '@/api/trek';
 import { buildMarketContext } from '@/api/marketContext';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser } from '@/api/userData';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import QueryLimitModal from './QueryLimitModal';
 import TrekResponseRenderer from './TrekResponseRenderer';
@@ -111,7 +112,7 @@ export default function AIChat() {
 
   useEffect(() => {
     buildMarketContext().then(setMarketContext).catch(() => {});
-    base44.auth.me().then(setCurrentUser).catch(() => {});
+    getCurrentUser().then(setCurrentUser).catch(() => {});
   }, []);
 
   useEffect(() => {

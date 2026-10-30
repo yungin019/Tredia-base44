@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Target, TrendingUp, AlertTriangle, CheckCircle2, X, Eye, BookmarkPlus } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/userData';
 import { useQuery } from '@tanstack/react-query';
 
 const FOR_YOU_SIGNALS = [
@@ -151,7 +151,7 @@ function SignalDecision({ s, i }) {
 export default function ForYouSection() {
   const { data: holdings = [] } = useQuery({
     queryKey: ['portfolio'],
-    queryFn: () => base44.entities.Portfolio.list(),
+    queryFn: () => db.portfolio.list(),
   });
 
   const techHoldings = holdings.filter(h => h.sector === 'Technology' || ['AAPL','MSFT','NVDA','META','GOOGL'].includes(h.symbol));

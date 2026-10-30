@@ -4,7 +4,7 @@
   "properties": {
     "user_id": {
       "type": "string",
-      "description": "The user's ID (email or base44 user id)"
+      "description": "Verified Firebase uid \u2014 set server-side only"
     },
     "og_number": {
       "type": "number",
@@ -32,5 +32,27 @@
   "required": [
     "user_id",
     "og_number"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

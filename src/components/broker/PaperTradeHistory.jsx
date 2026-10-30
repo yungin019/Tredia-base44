@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/userData';
 import { ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -14,7 +14,7 @@ export default function PaperTradeHistory() {
   const { t } = useTranslation();
   const { data: trades = [] } = useQuery({
     queryKey: ['tradelog'],
-    queryFn: () => base44.entities.TradeLog.list('-created_date', 50),
+    queryFn: () => db.tradeLog.list('-created_date', 50),
   });
 
   const safePrice = (v) => (v == null || isNaN(v)) ? '—' : `$${Number(v).toFixed(2)}`;

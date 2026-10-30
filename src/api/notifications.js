@@ -1,4 +1,4 @@
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/userData';
 
 const MAX_PER_DAY = 3;
 
@@ -15,7 +15,7 @@ export async function shouldSendNotification(signal, user) {
   if ((signal?.confidence ?? 0) <= 75) return false;
 
   const today = todayString();
-  const logs = await base44.entities.NotificationLog.filter({ user_id: user.id, date: today });
+  const logs = await db.notificationLog.filter({ user_id: user.id, date: today });
   const count = logs?.[0]?.count ?? 0;
   return count < MAX_PER_DAY;
 }
@@ -26,14 +26,14 @@ export async function shouldSendNotification(signal, user) {
 export async function recordNotificationSent(user) {
   if (!user?.id) return;
   const today = todayString();
-  const logs = await base44.entities.NotificationLog.filter({ user_id: user.id, date: today });
+  const logs = await db.notificationLog.filter({ user_id: user.id, date: today });
 
   if (logs?.length > 0) {
-    await base44.entities.NotificationLog.update(logs[0].id, {
+    await db.notificationLog.update(logs[0].id, {
       count: (logs[0].count ?? 0) + 1,
     });
   } else {
-    await base44.entities.NotificationLog.create({
+    await db.notificationLog.create({
       user_id: user.id,
       date: today,
       count: 1,

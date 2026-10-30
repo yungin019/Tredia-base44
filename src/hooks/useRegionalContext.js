@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { getCurrentUser } from '@/api/userData';
 
 /**
  * Determine user's region from timezone or stored preference
@@ -11,7 +11,7 @@ export function useRegionalContext() {
   useEffect(() => {
     async function detectRegion() {
       try {
-        const user = await base44.auth.me();
+        const user = await getCurrentUser();
         
         // Check if user has stored region preference
         if (user && user.region) {

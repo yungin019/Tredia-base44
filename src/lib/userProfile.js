@@ -1,11 +1,20 @@
 /**
  * userProfile.js
- * Syncs a Firebase-authenticated user into the Base44 User entity.
- * NEVER throws — always returns a profile object.
+ * Profile persistence for Firebase-authenticated users.
+ *
+ * Reads and writes go through the verified userData function, which scopes
+ * them to the signed-in uid. NEVER throws — always returns a profile object.
  */
-import { base44 } from '@/api/base44Client';
+import { profileApi, clearUserCache } from '@/api/userData';
 
 const PROFILE_KEY = 'tredio_user_profile';
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ]);
+}
 
 export function buildMinimalProfile(firebaseUser) {
   return {
@@ -26,58 +35,40 @@ export async function syncUserProfile(firebaseUser, overrideIdToken = null) {
 
   let idToken = overrideIdToken || null;
   if (!idToken && typeof firebaseUser.getIdToken === 'function') {
-    try {
-      idToken = await Promise.race([
-        firebaseUser.getIdToken(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('getIdToken timeout')), 3000)),
-      ]);
-    } catch (_) {}
+    try { idToken = await withTimeout(firebaseUser.getIdToken(), 3000); } catch (_) {}
   }
-
   if (idToken) {
-    if (base44.auth?.setToken) base44.auth.setToken(idToken);
-    // Store under firebase_auth_token — do NOT overwrite base44_access_token which
-    // may be a platform preview token set by app-params.js via URL injection.
+    // Token only for the verified data function — never handed to the Base44 SDK.
     localStorage.setItem('firebase_auth_token', idToken);
     localStorage.setItem('auth_token', idToken);
   }
 
   let existing = null;
-  try {
-    const email = firebaseUser.email;
-    if (email) {
-      existing = await Promise.race([
-        base44.entities.User.filter({ email }).then(u => u?.[0] || null),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('User filter timeout')), 4000)),
-      ]);
-    }
-  } catch (_) {}
+  try { existing = await withTimeout(profileApi.get(), 5000); } catch (_) {}
 
-  const profileData = {
+  const merged = {
+    ...(existing || {}),
     email: firebaseUser.email,
     uid: firebaseUser.uid,
     full_name: firebaseUser.displayName || existing?.full_name || '',
     photo_url: firebaseUser.photoURL || existing?.photo_url || '',
   };
-
-  const merged = { ...(existing || {}), ...profileData };
   if (!merged.broker_status) merged.broker_status = 'not_connected';
   if (!merged.trading_mode) merged.trading_mode = 'practice';
   if (!merged.subscription_tier) merged.subscription_tier = 'free';
   if (!merged.referral_code) merged.referral_code = 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase();
-  // Treat undefined as false — do NOT overwrite an existing true value from cache
   if (merged.onboarding_completed === undefined || merged.onboarding_completed === null) {
     const cached = getCachedProfile();
     merged.onboarding_completed = cached?.onboarding_completed === true ? true : false;
   }
 
   try {
-    if (existing?.id) {
-      await Promise.race([
-        base44.entities.User.update(existing.id, merged),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('User update timeout')), 4000)),
-      ]);
-    }
+    const saved = await withTimeout(profileApi.update({
+      full_name: merged.full_name,
+      photo_url: merged.photo_url,
+      onboarding_completed: merged.onboarding_completed === true,
+    }), 5000);
+    if (saved) Object.assign(merged, saved);
   } catch (_) {}
 
   localStorage.setItem(PROFILE_KEY, JSON.stringify(merged));
@@ -96,11 +87,7 @@ export async function updateUserProfile(updates) {
   const merged = { ...current, ...updates };
   if (merged.onboarding_completed === undefined) merged.onboarding_completed = false;
   localStorage.setItem(PROFILE_KEY, JSON.stringify(merged));
-  try {
-    const users = await base44.entities.User.filter({ email: current.email });
-    const existing = users?.[0];
-    if (existing?.id) await base44.entities.User.update(existing.id, updates);
-  } catch (_) {}
+  try { await profileApi.update(updates); } catch (_) {}
   return merged;
 }
 
@@ -109,6 +96,7 @@ export function clearUserProfile() {
   localStorage.removeItem('firebase_auth_token');
   localStorage.removeItem('auth_token');
   localStorage.removeItem('token');
+  clearUserCache();
   // NOTE: Do NOT remove base44_access_token — it may be the platform preview token
   // injected via URL by app-params.js. The Base44 SDK manages it internally.
 }

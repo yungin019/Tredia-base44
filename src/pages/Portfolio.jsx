@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser, db } from '@/api/userData';
 import { Briefcase, Plus, Trash2, ArrowUpRight, ArrowDownRight, PieChart, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -33,7 +34,7 @@ export default function Portfolio() {
   const [livePrices, setLivePrices] = useState({});
 
   useEffect(() => {
-    base44.auth.me()
+    getCurrentUser()
       .then(u => {
         setUser(u);
         if (u?.alpaca_connected && u?.alpaca_positions) {
@@ -50,7 +51,7 @@ export default function Portfolio() {
 
   const { data: holdings = [], isLoading } = useQuery({
     queryKey: ['portfolio'],
-    queryFn: () => base44.entities.Portfolio.list(),
+    queryFn: () => db.portfolio.list(),
     enabled: !user?.alpaca_connected,
   });
 
@@ -58,7 +59,8 @@ export default function Portfolio() {
     if (!Array.isArray(holdings) || holdings.length === 0) return;
     async function loadPrices() {
       try {
-        const symbols = (Array.isArray(holdings) ? holdings : []).map(h => h.symbol);
+        const symbols = (Array.isArray(holdings) ? holdings : []).map(h => h.symbol).filter(Boolean);
+        if (symbols.length === 0) return;
         const res = await base44.functions.invoke('stockPrices', { symbols });
         if (res?.data?.prices) setLivePrices(res.data.prices);
       } catch {
@@ -69,7 +71,7 @@ export default function Portfolio() {
   }, [holdings.length]);
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Portfolio.delete(id),
+    mutationFn: (id) => db.portfolio.delete(id),
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: ['portfolio'] });
       const previous = queryClient.getQueryData(['portfolio']);

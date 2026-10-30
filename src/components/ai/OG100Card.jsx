@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { getCurrentUser } from '@/api/userData';
 import { toast } from 'sonner';
 
 export function OG100Card({ onClaim, onSkip }) {
@@ -10,7 +10,7 @@ export function OG100Card({ onClaim, onSkip }) {
   const handleClaim = async () => {
     setClaiming(true);
     try {
-      const user = await base44.auth.me();
+      const user = await getCurrentUser();
       if (!user) { toast.error('Please sign in first'); return; }
       if (onClaim) onClaim();
     } catch (error) {

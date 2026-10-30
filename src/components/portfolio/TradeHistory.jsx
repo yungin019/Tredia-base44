@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/userData';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,7 @@ export default function TradeHistory() {
   const { t } = useTranslation();
   const { data: trades = [], isLoading } = useQuery({
     queryKey: ['tradelog'],
-    queryFn: () => base44.entities.TradeLog.list('-created_date', 50),
+    queryFn: () => db.tradeLog.list('-created_date', 50),
   });
 
   if (isLoading) {

@@ -281,14 +281,14 @@ export default function Settings({ onLogout }) {
           </div>
           <div className="flex-1 space-y-2">
             <div>
-              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.name')}</label>
-              <div className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85">
+              <label className="text-[10px] font-semibold text-white/45 uppercase tracking-wider block mb-1">{t('settings.name')}</label>
+              <div className="w-full bg-white/[0.06] border border-white/[0.10] rounded-lg px-3 py-2 text-sm font-medium text-white">
                 {user?.full_name || '—'}
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-semibold text-white/30 uppercase tracking-wider block mb-1">{t('settings.email')}</label>
-              <div className="w-full bg-white/[0.04] border border-white/[0.07] rounded-lg px-3 py-2 text-sm text-white/85">
+              <label className="text-[10px] font-semibold text-white/45 uppercase tracking-wider block mb-1">{t('settings.email')}</label>
+              <div className="w-full bg-white/[0.06] border border-white/[0.10] rounded-lg px-3 py-2 text-sm font-medium text-white break-all">
                 {user?.email || '—'}
               </div>
             </div>

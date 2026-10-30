@@ -1,6 +1,7 @@
 // TREDIO - launch ready v1
 import { buildUserContext } from '@/api/userContext';
 import { base44 } from '@/api/base44Client';
+import { getIdToken } from '@/api/userData';
 import i18n from 'i18next';
 
 const LANG_NAMES = {
@@ -221,6 +222,6 @@ export async function askTrek(messages, marketContext, user = null, tier = 'free
   } : null;
 
   const resolvedLang = lang || i18n.language || 'en';
-  const res = await base44.functions.invoke('trekChat', { messages, systemPrompt, marketContext: enrichedContext, lang: resolvedLang });
+  const res = await base44.functions.invoke('trekChat', { idToken: await getIdToken(), messages, systemPrompt, marketContext: enrichedContext, lang: resolvedLang });
   return res.data?.reply || '';
 }

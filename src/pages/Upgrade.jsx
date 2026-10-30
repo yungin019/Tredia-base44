@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Zap, Check, Crown, Users, AlertCircle } from 'lucide-react';
 import { getFoundingStats, claimFoundingMemberSlot, getFoundingMemberInfo } from '@/api/foundingMembers';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser } from '@/api/userData';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import { getProductId } from '@/lib/revenuecat-config';
 
@@ -38,7 +39,7 @@ export default function Upgrade() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [statsData, user] = await Promise.all([getFoundingStats(), base44.auth.me()]);
+        const [statsData, user] = await Promise.all([getFoundingStats(), getCurrentUser()]);
         setStats(statsData);
         const userId = user?.email || user?.id;
         if (userId) {
@@ -57,7 +58,7 @@ export default function Upgrade() {
   const handleJoinFounding = async () => {
     setJoining(true);
     try {
-      const user = await base44.auth.me();
+      const user = await getCurrentUser();
       const userId = user?.email || user?.id;
       if (!userId) return;
       const member = await claimFoundingMemberSlot(userId);

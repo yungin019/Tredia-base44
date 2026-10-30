@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { db } from '@/api/userData';
 import { Plus, Trash2, Bell, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -49,11 +50,11 @@ export default function WatchlistPanel() {
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['watchlist'],
-    queryFn: () => base44.entities.Watchlist.list(),
+    queryFn: () => db.watchlist.list(),
   });
 
   const addMutation = useMutation({
-    mutationFn: (data) => base44.entities.Watchlist.create(data),
+    mutationFn: (data) => db.watchlist.create(data),
     onMutate: async (newItem) => {
       await queryClient.cancelQueries({ queryKey: ['watchlist'] });
       const previousItems = queryClient.getQueryData(['watchlist']);
@@ -69,7 +70,7 @@ export default function WatchlistPanel() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Watchlist.delete(id),
+    mutationFn: (id) => db.watchlist.delete(id),
     onMutate: async (deletedId) => {
       await queryClient.cancelQueries({ queryKey: ['watchlist'] });
       const previousItems = queryClient.getQueryData(['watchlist']);

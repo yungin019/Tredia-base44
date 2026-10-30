@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser } from '@/api/userData';
 
 /**
  * Dismissible banner shown at top of dashboard when user is in paper trading mode.
@@ -19,7 +20,7 @@ export default function AlpacaConnectBanner() {
     const dismissed = localStorage.getItem('alpaca_banner_dismissed');
     if (dismissed) return;
 
-    base44.auth.me().then(user => {
+    getCurrentUser().then(user => {
       if (user && !user.alpaca_connected) {
         setVisible(true);
       }

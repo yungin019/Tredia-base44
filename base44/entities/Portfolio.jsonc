@@ -2,6 +2,10 @@
   "name": "Portfolio",
   "type": "object",
   "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Verified Firebase uid \u2014 set server-side only"
+    },
     "symbol": {
       "type": "string",
       "description": "Ticker symbol"
@@ -32,5 +36,27 @@
     "name",
     "shares",
     "avg_cost"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
