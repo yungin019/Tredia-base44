@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Brain, TrendingUp, Shield, AlertTriangle, BarChart3, Zap, RefreshCw } from 'lucide-react';
 import { runTREKEngine } from '@/api/trekEngine';
+import { fetchFearGreed } from '@/api/marketData';
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -108,9 +109,9 @@ export default function AIInsights() {
       const signals = result.signals || [];
       setEngineSignals(signals);
       setLastUpdated(new Date());
-      // build trek insight from live data
-      const fngRes = await fetch('https://api.alternative.me/fng/').then(r => r.json()).catch(() => null);
-      const fngVal = fngRes?.data?.[0] ? parseInt(fngRes.data[0].value) : null;
+      // build trek insight from live data — same cached Fear & Greed as every other surface
+      const fng = await fetchFearGreed();
+      const fngVal = fng?.value ?? null;
       if (fngVal !== null) {
         setTrekInsight(generateTrekInsight(fngVal, signals));
         setFngValue(fngVal);
@@ -188,16 +189,13 @@ export default function AIInsights() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="xl:col-span-2 flex flex-col gap-5">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl border border-white/[0.07] bg-[#111118] flex flex-col items-center justify-center p-4 col-span-1">
-              <SentimentGauge value={fngValue ?? 50} label={t('ai.fearGreed', 'Fear & Greed')} />
-            </div>
-            <div className="rounded-xl border border-white/[0.07] bg-[#111118] flex flex-col items-center justify-center p-4 col-span-1">
-              <SentimentGauge value={engineSignals.filter(s => s.signal === 'BUY').length > engineSignals.filter(s => s.signal === 'SELL').length ? Math.min(75, (fngValue ?? 50) + 10) : Math.max(25, (fngValue ?? 50) - 10)} label={t('ai.equityBias', 'Equity Bias')} />
-            </div>
-            <div className="rounded-xl border border-white/[0.07] bg-[#111118] flex flex-col items-center justify-center p-4 col-span-1">
-              <SentimentGauge value={fngValue != null ? Math.max(10, Math.min(90, 100 - fngValue)) : 50} label={t('ai.riskOffPressure', 'Risk-Off Pressure')} />
-            </div>
+          {/* One real metric only — the Fear & Greed index, straight from the shared source */}
+          <div className="rounded-xl border border-white/[0.07] bg-[#111118] flex flex-col items-center justify-center p-4">
+            {fngValue != null ? (
+              <SentimentGauge value={fngValue} label={t('ai.fearGreed', 'Fear & Greed')} />
+            ) : (
+              <p className="text-[11px] text-white/30 py-6">{t('ai.fearGreedUnavailable', 'Fear & Greed unavailable')}</p>
+            )}
           </div>
           <MarketScanner />
         </motion.div>

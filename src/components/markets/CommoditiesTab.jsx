@@ -63,9 +63,6 @@ export default function CommoditiesTab() {
               <th className="text-right px-4 py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase">
                 Change
               </th>
-              <th className="text-right px-4 py-3 text-[10px] font-semibold tracking-[0.1em] text-white/25 uppercase">
-                Signal
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -87,20 +84,19 @@ export default function CommoditiesTab() {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="font-mono text-[12px] text-white/85 font-bold">
-                    ${commodity.price.toFixed(2)}
+                    {commodity.price != null ? `$${commodity.price.toFixed(2)}` : '—'}
                   </div>
                   <div className="text-[10px] text-white/30">{commodity.unit}</div>
                 </td>
-                <td className={`px-4 py-3 text-right font-mono text-[12px] font-bold ${commodity.change >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
-                  <div className="flex items-center justify-end gap-1">
-                    {commodity.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                    {commodity.change >= 0 ? '+' : ''}{commodity.change.toFixed(2)}%
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold border ${getSignalColor(commodity.signal)}`}>
-                    {commodity.signal}
-                  </span>
+                <td className={`px-4 py-3 text-right font-mono text-[12px] font-bold ${commodity.change == null ? 'text-white/25' : commodity.change >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
+                  {commodity.change == null ? (
+                    <span className="text-[10px] font-normal">Unavailable</span>
+                  ) : (
+                    <div className="flex items-center justify-end gap-1">
+                      {commodity.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                      {commodity.change >= 0 ? '+' : ''}{commodity.change.toFixed(2)}%
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}

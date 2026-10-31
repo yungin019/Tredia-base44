@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Newspaper, ExternalLink, AlertCircle } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 
 const SENTIMENT = {
   BULLISH: { text: 'text-[#22C55E]', bg: 'bg-[#22C55E]/10', label: 'Bullish tone' },
@@ -30,9 +30,9 @@ export default function NewsFeed() {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await base44.functions.invoke('getMarketNews', {});
+        const res = await invokeFunction('getMarketNews', {});
         if (cancelled) return;
-        const raw = res?.data?.articles || [];
+        const raw = res?.articles || [];
         setArticles(raw
           .filter(n => n.title && n.url)
           .map((n, i) => ({

@@ -274,7 +274,7 @@ export default {
   "notifications.title": "Meldingen",
   "notifications.count": "meldingen",
   "upgrade.eliteFeature1": "Onbeperkte TREK AI-signalen",
-  "upgrade.eliteFeature2": "Super AI — 4-model consensus",
+  "upgrade.eliteFeature2": "Super AI — 3-model consensus",
   "upgrade.eliteFeature3": "Realtime prijswaarschuwingen",
   "upgrade.eliteFeature4": "Geavanceerde analyses & grafieken",
   "upgrade.eliteFeature5": "Prioriteitsondersteuning 24/7",

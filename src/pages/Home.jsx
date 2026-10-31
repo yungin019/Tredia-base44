@@ -91,16 +91,13 @@ export default function Home() {
 
   // ── Memoized moves for YourMovesToday ───────────────────────────────────────
   const moves = useMemo(() => {
+    // Informational only: every field below is read from the live quote.
+    // No invented entry/target levels, position sizes or confidence grades.
     return liveStocks.slice(0, 3).map(stock => ({
       symbol: stock.symbol,
       action: stock.signal,
-      entry: stock.signal === 'BUY' ? `Wait for pullback to $${(stock.price * 0.98).toFixed(0)}` : stock.signal === 'SELL' ? 'Stay away until reversal forms' : `Buy if it breaks above $${(stock.price * 1.02).toFixed(0)}`,
-      positionSize: stock.signal === 'BUY' ? 'Full size' : stock.signal === 'SELL' ? 'No position' : 'Quarter size',
-      timeframe: '1-2 weeks',
       why: `${stock.symbol} ${stock.change > 0 ? `up ${stock.change.toFixed(2)}%` : stock.change < 0 ? `down ${Math.abs(stock.change).toFixed(2)}%` : 'flat at 0.00%'}. ${stock.change > 2 ? 'Buyers winning today' : stock.change < -2 ? 'Sellers in control' : 'No momentum either way'}.`,
-      exitTarget: stock.signal === 'BUY' ? `Take profit at $${(stock.price * 1.05).toFixed(0)}` : 'N/A',
       risk: stock.change < -2 ? 'Could drop further' : stock.change > 2 ? 'Could pull back' : 'May stay stuck',
-      confidence: `${stock.signal === 'BUY' || stock.signal === 'SELL' ? 'High' : 'Medium'}`
     }));
   }, [liveStocks]);
 

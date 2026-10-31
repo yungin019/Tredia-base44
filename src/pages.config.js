@@ -48,7 +48,6 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import AIInsights from './pages/AIInsights';
-import Dashboard from './pages/Dashboard';
 import Markets from './pages/Markets';
 import Onboarding from './pages/Onboarding';
 import PaperTrading from './pages/PaperTrading';
@@ -64,7 +63,6 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "AIInsights": AIInsights,
-    "Dashboard": Dashboard,
     "Markets": Markets,
     "Onboarding": Onboarding,
     "PaperTrading": PaperTrading,

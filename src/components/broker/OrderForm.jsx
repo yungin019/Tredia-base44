@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 import { db } from '@/api/userData';
 import { useQueryClient } from '@tanstack/react-query';
-import { getStockPrice } from '../MarketData';
+import { invokeFunction } from '@/api/functionsClient';
 import MobileSelect from '@/components/ui/mobile-select';
 import BrokerDisclosureBanner from '@/components/broker/BrokerDisclosureBanner';
 import { useTranslation } from 'react-i18next';
@@ -40,15 +40,26 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
   const [preview, setPreview] = useState(null);
   const [executing, setExecuting] = useState(false);
 
-  const handlePreview = () => {
+  const handlePreview = async () => {
     if (!symbol || !qty) { toast.error('Enter symbol and quantity'); return; }
     if (orderType === 'limit' && !limitPrice) { toast.error('Enter limit price'); return; }
     if (orderType === 'stop' && !stopPrice) { toast.error('Enter stop price'); return; }
     if (orderType === 'stop_limit' && (!limitPrice || !stopPrice)) { toast.error('Enter both limit and stop prices'); return; }
 
-    const stockData = getStockPrice(symbol.toUpperCase());
-    const marketPrice = stockData ? stockData.price : null;
-    setPreview({ symbol: symbol.toUpperCase(), qty: parseFloat(qty), orderType, tif, limitPrice, stopPrice, marketPrice });
+    const sym = symbol.toUpperCase();
+    // Real quote only — an order is never priced from a generated number.
+    let marketPrice = null;
+    try {
+      const res = await invokeFunction('stockPrices', { symbols: [sym] });
+      const price = Number(res?.prices?.[sym]?.price);
+      if (price > 0) marketPrice = price;
+    } catch { marketPrice = null; }
+
+    if (marketPrice == null && orderType === 'market') {
+      toast.error('Live price unavailable — try again in a moment');
+      return;
+    }
+    setPreview({ symbol: sym, qty: parseFloat(qty), orderType, tif, limitPrice, stopPrice, marketPrice });
   };
 
   const handleExecute = async () => {
@@ -70,7 +81,8 @@ export default function OrderForm({ isLive, onOrderSuccess }) {
         const order = res.data?.order;
         toast.success(`🚀 ${action.toUpperCase()} ${preview.qty} ${preview.symbol} — ${(order?.type || preview.orderType).toUpperCase()} order submitted to Alpaca`);
       } else {
-        const price = preview.limitPrice ? parseFloat(preview.limitPrice) : (preview.marketPrice || +(Math.random() * 200 + 50).toFixed(2));
+        const price = preview.limitPrice ? parseFloat(preview.limitPrice) : preview.marketPrice;
+        if (!price) { toast.error('Live price unavailable — order not executed'); setExecuting(false); return; }
         const newTrade = {
           symbol: preview.symbol,
           name: preview.symbol,

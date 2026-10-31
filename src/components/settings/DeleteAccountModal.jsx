@@ -29,8 +29,7 @@ export default function DeleteAccountModal({ onConfirm, onCancel, loading, error
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ alignItems: 'center' }}
-      style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
+      style={{ alignItems: 'center', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
       <AnimatePresence mode="wait">

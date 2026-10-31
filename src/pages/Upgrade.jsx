@@ -21,7 +21,6 @@ export default function Upgrade() {
     t('upgrade.eliteFeature2', 'Super AI — 3-model consensus'),
     t('upgrade.priceAlerts', 'Price alerts'),
     t('upgrade.eliteFeature4', 'Advanced analytics & charts'),
-    t('upgrade.eliteFeature5', 'Priority support 24/7'),
   ];
 
   const PRO_FEATURES = [
@@ -282,6 +281,20 @@ export default function Upgrade() {
           <br />
           {t('upgrade.fairUse', 'Fair use: AI requests are limited to 20 per minute per account so the service stays available for everyone.')}
         </p>
+        {/* Apple requires both legal links to be reachable from the paywall itself */}
+        <div className="flex items-center justify-center gap-4 pt-2">
+          <a href="https://pushy-sapphire-d17.notion.site/TREDIO-Terms-of-Use-32cbfe5c098c809b9956e2b6a6cea173"
+            target="_blank" rel="noopener noreferrer"
+            className="text-[11px] text-white/45 underline hover:text-white/70 transition-colors">
+            {t('upgrade.terms', 'Terms of Use')}
+          </a>
+          <span className="text-white/15">·</span>
+          <a href="https://pushy-sapphire-d17.notion.site/TREDIO-Privacy-Policy-329bfe5c098c807b9ddcdf735b02158e3"
+            target="_blank" rel="noopener noreferrer"
+            className="text-[11px] text-white/45 underline hover:text-white/70 transition-colors">
+            {t('upgrade.privacy', 'Privacy Policy')}
+          </a>
+        </div>
       </motion.div>
     </div>
   );

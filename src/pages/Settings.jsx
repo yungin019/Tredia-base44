@@ -10,6 +10,9 @@ import { useTranslation } from 'react-i18next';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import { getCachedProfile, updateUserProfile } from '@/lib/userProfile';
 import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
+import { deleteUser } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { getFoundingMemberInfo } from '@/api/foundingMembers';
 import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
@@ -551,8 +554,26 @@ export default function Settings({ onLogout }) {
             setDeleteLoading(true);
             setDeleteError('');
             try {
-              const result = await base44.functions.invoke('deleteUserData', {});
-              if (result?.data?.error) throw new Error(result.data.error);
+              // 1. Wipe every stored row (server verifies the Firebase ID token)
+              const result = await invokeFunction('deleteUserData', {});
+              if (result?.error) throw new Error(result.error);
+
+              // 2. Delete the Firebase Auth account itself, so the same email
+              //    can register again — otherwise the data is gone but the
+              //    login still exists.
+              if (auth.currentUser) {
+                try {
+                  await deleteUser(auth.currentUser);
+                } catch (authErr) {
+                  if (authErr?.code === 'auth/requires-recent-login') {
+                    setDeleteLoading(false);
+                    setDeleteError('Your sign-in is too old to finish this. Please sign out, sign in again, then retry — your data has already been removed.');
+                    return;
+                  }
+                  throw authErr;
+                }
+              }
+
               // Clear all local state and storage
               localStorage.clear();
               sessionStorage.clear();

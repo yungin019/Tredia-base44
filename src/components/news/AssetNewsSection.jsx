@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, X, Newspaper } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 
 const SENTIMENT_STYLE = {
   BULLISH: { color: '#22c55e', bg: 'rgba(34,197,94,0.08)', border: 'rgba(34,197,94,0.2)' },
@@ -20,8 +20,8 @@ export default function AssetNewsSection({ symbol }) {
     if (!symbol) return;
     setLoading(true);
     setArticles([]);
-    base44.functions.invoke('getMarketNews', { symbol, limit: 8 })
-      .then(res => setArticles(res?.data?.articles || []))
+    invokeFunction('getMarketNews', { symbol, limit: 8 })
+      .then(res => setArticles(res?.articles || []))
       .catch(() => setArticles([]))
       .finally(() => setLoading(false));
   }, [symbol]);

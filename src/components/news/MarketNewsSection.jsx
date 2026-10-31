@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, X, RefreshCw } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 
 const REGIONS = ['Global', 'US', 'Europe', 'Asia'];
 const ASSET_TYPES = ['All', 'Stocks', 'Crypto', 'Forex', 'Commodities'];
@@ -152,12 +152,12 @@ export default function MarketNewsSection() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await base44.functions.invoke('getMarketNews', {
+      const res = await invokeFunction('getMarketNews', {
         region: region !== 'Global' ? region : undefined,
         assetType: assetType !== 'All' ? assetType : undefined,
         limit: 20,
       });
-      setArticles(res?.data?.articles || []);
+      setArticles(res?.articles || []);
     } catch {
       setArticles([]);
     } finally {

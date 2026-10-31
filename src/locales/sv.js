@@ -357,7 +357,7 @@ export default {
   "notifications.title": "Aviseringar",
   "notifications.count": "aviseringar",
   "upgrade.eliteFeature1": "Obegränsade TREK AI-signaler",
-  "upgrade.eliteFeature2": "Super AI — 4-modellkonsensus",
+  "upgrade.eliteFeature2": "Super AI — 3-modellkonsensus",
   "upgrade.eliteFeature3": "Realtidsprisvarningar",
   "upgrade.eliteFeature4": "Avancerad analys och diagram",
   "upgrade.eliteFeature5": "Prioriterat stöd 24/7",
