@@ -136,7 +136,7 @@ export default {
   "onboarding.og.soldOut": "TÜKENDI",
   "onboarding.og.skipBtn": "ATLA",
   "onboarding.og.feature1": "Elite 30 gün ÜCRETSİZ",
-  "onboarding.og.feature2": "Sonra ömür boyu 89 SEK/ay Elite (normalde 179 SEK)",
+  "onboarding.og.feature2": "Sonra ömür boyu $8.99/ay Elite (normalde $17.99)",
   "onboarding.og.feature3": "OG Kurucu Üye rozeti",
   "onboarding.og.feature4": "Kişisel yönlendirme bağlantısı",
   "onboarding.trek.badge": "TREK'le Tanışın",

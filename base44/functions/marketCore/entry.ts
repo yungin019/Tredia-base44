@@ -170,62 +170,46 @@ async function fetchStockQuotes(symbols, finnhubKey) {
   return results;
 }
 
-async function fetchCoinGeckoQuotes(symbols) {
-  const TIMEOUT = 5000;
+// Crypto quotes come from TwelveData. CoinGecko's public endpoint now answers
+// 403 to anonymous server callers, which is why every crypto quote read
+// "Unavailable"; TwelveData is the same provider the stock pipeline already uses.
+async function fetchCryptoQuotes(symbols) {
+  const TWELVE_KEY = Deno.env.get('TWELVEDATA_API_KEY') || '';
   const results = {};
 
-  const coinIds = symbols.map(s => COIN_ID_MAP[s]).filter(Boolean);
-  if (coinIds.length === 0) {
-    symbols.forEach(s => { results[s] = { status: 'unavailable', error: 'Unknown coin' }; });
+  if (!TWELVE_KEY) {
+    symbols.forEach(s => { results[s] = { status: 'unavailable', error: 'Crypto provider not configured' }; });
     return results;
   }
 
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+  await Promise.all(symbols.map(async (symbol) => {
+    try {
+      const res = await fetch(
+        `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbol)}/USD&apikey=${TWELVE_KEY}`,
+        { signal: AbortSignal.timeout(8000) }
+      );
+      const d = await res.json();
+      const price = parseFloat(d.close);
 
-    const res = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${coinIds.join(',')}&vs_currencies=usd&include_24hr_change=true`,
-      { signal: controller.signal }
-    );
-    clearTimeout(timeoutId);
-
-    if (res.status === 429) {
-      symbols.forEach(s => { results[s] = { status: 'unavailable', error: 'CoinGecko rate limited' }; });
-      return results;
-    }
-    if (res.status !== 200) {
-      symbols.forEach(s => { results[s] = { status: 'unavailable', error: `CoinGecko HTTP ${res.status}` }; });
-      return results;
-    }
-
-    const data = await res.json();
-
-    symbols.forEach(symbol => {
-      const coinId = COIN_ID_MAP[symbol];
-      const coinData = data[coinId];
-
-      if (!coinData || !coinData.usd) {
-        results[symbol] = { status: 'unavailable', error: 'No data from CoinGecko' };
+      if (!(price > 0)) {
+        results[symbol] = { status: 'unavailable', error: d.message || 'No data from TwelveData' };
         return;
       }
 
-      const price = coinData.usd;
-      const changePct = coinData.usd_24h_change || 0;
+      const pct = parseFloat(d.percent_change);
       results[symbol] = {
         status: 'live',
         price: parseFloat(price.toFixed(2)),
-        changePct: parseFloat(changePct.toFixed(2)),
+        changePct: parseFloat((Number.isFinite(pct) ? pct : 0).toFixed(2)),
         timestamp: Date.now(),
-        provider: 'coingecko'
+        provider: 'twelvedata'
       };
-    });
+    } catch (err) {
+      results[symbol] = { status: 'unavailable', error: err.message };
+    }
+  }));
 
-    return results;
-  } catch (err) {
-    symbols.forEach(s => { results[s] = { status: 'unavailable', error: err.message }; });
-    return results;
-  }
+  return results;
 }
 
 // ── STALENESS CHECK ──────────────────────────────────────────────────────
@@ -286,8 +270,7 @@ async function pollCoreAssets(finnhubKey) {
       }
     });
 
-    // ONE CoinGecko call for all crypto
-    const cryptoResults = await fetchCoinGeckoQuotes(CORE_SYMBOLS_CRYPTO);
+    const cryptoResults = await fetchCryptoQuotes(CORE_SYMBOLS_CRYPTO);
     Object.entries(cryptoResults).forEach(([sym, data]) => {
       if (data.status === 'live') {
         coreCache.set(sym, { price: data.price, changePct: data.changePct, timestamp: data.timestamp, provider: data.provider });
@@ -363,7 +346,7 @@ async function handleSearch(query, finnhubKey) {
     console.log(`[Search] Provider fetch needed for: ${[...needsFetch.stock, ...needsFetch.crypto].join(',')}`);
     const [stockPrices, cryptoPrices] = await Promise.all([
       needsFetch.stock.length > 0 ? fetchStockQuotes(needsFetch.stock, finnhubKey) : Promise.resolve({}),
-      needsFetch.crypto.length > 0 ? fetchCoinGeckoQuotes(needsFetch.crypto) : Promise.resolve({})
+      needsFetch.crypto.length > 0 ? fetchCryptoQuotes(needsFetch.crypto) : Promise.resolve({})
     ]);
     Object.assign(priceResults, stockPrices, cryptoPrices);
   } else {
@@ -429,7 +412,7 @@ Deno.serve(async (req) => {
       console.log('FETCH RESULT: TSLA', JSON.stringify(stockResult.TSLA));
       console.log('FETCH RESULT: NVDA', JSON.stringify(stockResult.NVDA));
 
-      const cryptoResult = await fetchCoinGeckoQuotes(['BTC']);
+      const cryptoResult = await fetchCryptoQuotes(['BTC']);
       console.log('FETCH RESULT: BTC', JSON.stringify(cryptoResult.BTC));
 
       const debugPayload = {
@@ -437,7 +420,7 @@ Deno.serve(async (req) => {
         finnhub_aapl: stockResult.AAPL,
         finnhub_tsla: stockResult.TSLA,
         finnhub_nvda: stockResult.NVDA,
-        coingecko_btc: cryptoResult.BTC,
+        crypto_btc: cryptoResult.BTC,
         finnhubKeyPresent: !!FINNHUB_KEY,
         timestamp: Date.now()
       };

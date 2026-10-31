@@ -122,7 +122,7 @@ export default {
   "onboarding.og.soldOut": "HABIS",
   "onboarding.og.skipBtn": "LEWATI",
   "onboarding.og.feature1": "Elite GRATIS selama 30 hari",
-  "onboarding.og.feature2": "Kemudian Elite 89 SEK/bulan seumur hidup (biasanya 179 SEK)",
+  "onboarding.og.feature2": "Kemudian Elite $8.99/bulan seumur hidup (biasanya $17.99)",
   "onboarding.og.feature3": "Lencana Anggota Pendiri OG",
   "onboarding.og.feature4": "Tautan referral pribadi",
   "onboarding.trek.badge": "Temui TREK",

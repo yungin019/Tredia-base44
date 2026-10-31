@@ -136,7 +136,7 @@ export default {
   "onboarding.og.soldOut": "매진",
   "onboarding.og.skipBtn": "건너뛰기",
   "onboarding.og.feature1": "Elite 30일 무료",
-  "onboarding.og.feature2": "이후 평생 89 SEK/월 (일반 179 SEK)",
+  "onboarding.og.feature2": "이후 평생 $8.99/월 (일반 $17.99)",
   "onboarding.og.feature3": "OG 창립 멤버 배지",
   "onboarding.og.feature4": "개인 추천 링크",
   "onboarding.trek.badge": "TREK 소개",

@@ -136,7 +136,7 @@ export default {
   "onboarding.og.soldOut": "已售罄",
   "onboarding.og.skipBtn": "跳过",
   "onboarding.og.feature1": "Elite免费30天",
-  "onboarding.og.feature2": "之后终身89 SEK/月（通常179 SEK）",
+  "onboarding.og.feature2": "之后终身$8.99/月（通常$17.99）",
   "onboarding.og.feature3": "OG创始会员徽章",
   "onboarding.og.feature4": "个人推荐链接",
   "onboarding.trek.badge": "认识TREK",

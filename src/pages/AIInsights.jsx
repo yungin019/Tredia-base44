@@ -17,7 +17,6 @@ import SectorHeatmap from '@/components/ai/SectorHeatmap';
 import LiveIntelligenceRibbon from '@/components/ai/LiveIntelligenceRibbon';
 import TrekMoodIndicator from '@/components/ai/TrekMoodIndicator';
 import NewsFeed from '@/components/ai/NewsFeed';
-import MarketCauseEffect from '@/components/ai/MarketCauseEffect';
 import ContextBanner from '@/components/ai/ContextBanner';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 
@@ -227,9 +226,6 @@ export default function AIInsights() {
         </motion.div>
       )}
 
-      {/* Cause & Effect */}
-      <MarketCauseEffect />
-
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="xl:col-span-2">
           <div className="flex items-center justify-between mb-3">
@@ -247,7 +243,7 @@ export default function AIInsights() {
                 <div key={i} className="h-28 rounded-xl bg-white/[0.03] animate-pulse border border-white/[0.05]" />
               ))
             ) : engineSignals.length > 0 ? (
-              engineSignals.slice(0, isElite ? 10 : isPro ? 6 : 3).map((signal, i) => (
+              engineSignals.slice(0, isFree ? 5 : engineSignals.length).map((signal, i) => (
                 <SignalCard key={i} signal={toEngineSignalCardProps(signal)} />
               ))
             ) : (
@@ -261,7 +257,7 @@ export default function AIInsights() {
             {isFree && (
               <div className="lg:col-span-2 p-4 rounded-lg bg-white/[0.03] border border-primary/20 text-center">
                 <p className="text-xs text-white/40 mb-2">{t('ai.unlockSignals', 'Upgrade to unlock more signals')}</p>
-                <p className="text-[10px] text-white/25">{t('ai.signalTiers', 'Free: 3 signals · Pro: 6 signals · Elite: unlimited')}</p>
+                <p className="text-[10px] text-white/25">{t('ai.signalTiers', 'Free: 5 signals daily · Pro & Elite: unlimited')}</p>
               </div>
             )}
           </div>

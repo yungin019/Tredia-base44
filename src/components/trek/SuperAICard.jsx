@@ -12,11 +12,11 @@ const SIGNAL_COLORS = {
   WATCH: { color: '#F59E0B', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.25)' },
 };
 
+// The three models the superAI function actually calls.
 const MODELS = [
-  { key: 'claudeResult',  label: 'Claude',  dot: '#a78bfa' },
-  { key: 'gptResult',     label: 'GPT-4',   dot: '#34d399' },
-  { key: 'geminiResult',  label: 'Gemini',  dot: '#60a5fa' },
-  { key: 'mistralResult', label: 'Mistral', dot: '#fb923c' },
+  { key: 'claudeResult', label: 'Claude Sonnet 4', dot: '#a78bfa' },
+  { key: 'gptResult',    label: 'GPT-4o',          dot: '#34d399' },
+  { key: 'geminiResult', label: 'Gemini 2.0',      dot: '#60a5fa' },
 ];
 
 function ModelRow({ model, data }) {
@@ -68,7 +68,7 @@ function LockedCard() {
             Unlock Super AI
           </p>
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 2 }}>
-            4 AI models — Claude, GPT-4, Gemini, Mistral
+            3 AI models — Claude Sonnet 4, GPT-4o, Gemini 2.0
           </p>
           <p style={{ fontSize: 10, color: 'rgba(245,158,11,0.65)', fontWeight: 700, letterSpacing: '0.04em' }}>
             Cross-validates every signal for maximum accuracy

@@ -136,7 +136,7 @@ export default {
   "onboarding.og.soldOut": "満席",
   "onboarding.og.skipBtn": "スキップ",
   "onboarding.og.feature1": "Eliteが30日間無料",
-  "onboarding.og.feature2": "その後、Elite永久89 SEK/月（通常179 SEK）",
+  "onboarding.og.feature2": "その後、Elite永久$8.99/月（通常$17.99）",
   "onboarding.og.feature3": "OG創設メンバーバッジ",
   "onboarding.og.feature4": "個人紹介リンク",
   "onboarding.trek.badge": "TREKに出会う",

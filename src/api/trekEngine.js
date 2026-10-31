@@ -1,14 +1,15 @@
 import { buildMarketContext, fetchStockRSI, fetchStockPrice } from '@/api/marketContext';
 
 const SYMBOLS = ['NVDA', 'AAPL', 'TSLA', 'SPY'];
-const CRYPTO_IDS = { BTC: 'bitcoin', ETH: 'ethereum' };
 
 export function calculateSignalConfidence(rsi, change24h) {
   let score = 50;
-  if (rsi < 30) score += 20;
-  else if (rsi < 40) score += 10;
-  else if (rsi > 70) score -= 20;
-  else if (rsi > 60) score -= 5;
+  if (Number.isFinite(rsi)) {
+    if (rsi < 30) score += 20;
+    else if (rsi < 40) score += 10;
+    else if (rsi > 70) score -= 20;
+    else if (rsi > 60) score -= 5;
+  }
 
   const chg = change24h ?? 0;
   if (chg > 3) score += 15;
@@ -28,19 +29,24 @@ export function detectLoss(change24h) {
 }
 
 function deriveSignal(rsi, change24h) {
-  if (rsi < 35 || change24h > 4) return 'BUY';
-  if (rsi > 68 || change24h < -4) return 'SELL';
-  if (change24h > 1.5) return 'BUY';
-  if (change24h < -1.5) return 'SELL';
+  const chg = change24h ?? 0;
+  if (Number.isFinite(rsi) && rsi < 35) return 'BUY';
+  if (Number.isFinite(rsi) && rsi > 68) return 'SELL';
+  if (chg > 4) return 'BUY';
+  if (chg < -4) return 'SELL';
+  if (chg > 1.5) return 'BUY';
+  if (chg < -1.5) return 'SELL';
   return 'WATCH';
 }
 
 function buildOneLiner(symbol, signal, rsi, change24h) {
   const chg = change24h != null ? `${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%` : 'N/A';
-  if (signal === 'BUY') return `${symbol} showing momentum (RSI ${rsi}, ${chg}) — potential entry zone.`;
-  if (signal === 'SELL') return `${symbol} showing weakness (RSI ${rsi}, ${chg}) — consider risk management.`;
-  if (signal === 'AVOID') return `${symbol} showing weakness (RSI ${rsi}, ${chg}) — avoid entry.`;
-  return `${symbol} in consolidation (RSI ${rsi}, ${chg}) — watch for breakout direction.`;
+  // RSI is only quoted when the provider actually returned one.
+  const basis = Number.isFinite(rsi) ? `RSI ${rsi}, ${chg}` : `${chg} in 24h`;
+  if (signal === 'BUY') return `${symbol} showing momentum (${basis}) — potential entry zone.`;
+  if (signal === 'SELL') return `${symbol} showing weakness (${basis}) — consider risk management.`;
+  if (signal === 'AVOID') return `${symbol} showing weakness (${basis}) — avoid entry.`;
+  return `${symbol} in consolidation (${basis}) — watch for breakout direction.`;
 }
 
 async function buildStockSignal(symbol) {
@@ -49,35 +55,39 @@ async function buildStockSignal(symbol) {
     fetchStockPrice(symbol),
   ]);
   const price = quote?.price ?? null;
+  // No price means no signal. A placeholder card is worse than no card.
+  if (price == null) return null;
+
   const change24h = quote?.change24h ?? 0;
   const signal = deriveSignal(rsi, change24h);
-  const confidence = calculateSignalConfidence(rsi, change24h);
   return {
     symbol,
     price,
     change24h,
     rsi,
     signal,
-    confidence,
+    confidence: calculateSignalConfidence(rsi, change24h),
     jumpDetected: detectJump(change24h),
     lossDetected: detectLoss(change24h),
     oneLiner: buildOneLiner(symbol, signal, rsi, change24h),
   };
 }
 
-function buildCryptoSignal(symbol, cryptoData, id) {
-  const price = cryptoData?.[id]?.usd ?? null;
-  const change24h = cryptoData?.[id]?.usd_24h_change ?? 0;
-  const rsi = 55; // no RSI from CoinGecko free tier
+function buildCryptoSignal(symbol, marketContext, priceKey, changeKey) {
+  const price = marketContext?.[priceKey] ?? null;
+  if (price == null) return null;
+
+  const change24h = marketContext?.[changeKey] ?? 0;
+  // The crypto provider gives no RSI, so none is invented or reported.
+  const rsi = null;
   const signal = deriveSignal(rsi, change24h);
-  const confidence = calculateSignalConfidence(rsi, change24h);
   return {
     symbol,
     price,
     change24h,
     rsi,
     signal,
-    confidence,
+    confidence: calculateSignalConfidence(rsi, change24h),
     jumpDetected: detectJump(change24h),
     lossDetected: detectLoss(change24h),
     oneLiner: buildOneLiner(symbol, signal, rsi, change24h),
@@ -91,21 +101,12 @@ export async function runTREKEngine() {
   ]);
 
   const ctx = marketContext.status === 'fulfilled' ? marketContext.value : {};
-  const cryptoData = {};
-  if (ctx.btc_price) cryptoData['bitcoin'] = { usd: ctx.btc_price, usd_24h_change: ctx.btc_change_24h };
-  if (ctx.eth_price) cryptoData['ethereum'] = { usd: ctx.eth_price, usd_24h_change: ctx.eth_change_24h };
 
   const signals = [
-    ...stockSignals.map((r, i) =>
-      r.status === 'fulfilled' ? r.value : {
-        symbol: SYMBOLS[i], price: null, change24h: 0, rsi: 55,
-        signal: 'WATCH', confidence: 50, jumpDetected: false, lossDetected: false,
-        oneLiner: `${SYMBOLS[i]} data unavailable`,
-      }
-    ),
-    buildCryptoSignal('BTC', cryptoData, 'bitcoin'),
-    buildCryptoSignal('ETH', cryptoData, 'ethereum'),
-  ];
+    ...stockSignals.map(r => (r.status === 'fulfilled' ? r.value : null)),
+    buildCryptoSignal('BTC', ctx, 'btc_price', 'btc_change_24h'),
+    buildCryptoSignal('ETH', ctx, 'eth_price', 'eth_change_24h'),
+  ].filter(Boolean);
 
   return {
     signals,

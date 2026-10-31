@@ -119,7 +119,7 @@ export default function SignalCard({ signal }) {
           <div className="flex items-start gap-2">
             <span className="text-[9px] text-white/20 font-mono mt-0.5 flex-shrink-0">→</span>
             <p className="text-[10px] leading-tight" style={{ color: 'rgba(200,225,255,0.4)' }}>
-              {signal.oneLiner || (signal.technicalSummary?.split('.')[0] + '.')}
+              {signal.oneLiner || signal.technicalSummary}
             </p>
           </div>
         </div>

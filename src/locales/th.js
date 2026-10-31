@@ -122,7 +122,7 @@ export default {
   "onboarding.og.soldOut": "หมดแล้ว",
   "onboarding.og.skipBtn": "ข้าม",
   "onboarding.og.feature1": "Elite ฟรี 30 วัน",
-  "onboarding.og.feature2": "จากนั้น Elite 89 SEK/เดือนตลอดชีพ (ปกติ 179 SEK)",
+  "onboarding.og.feature2": "จากนั้น Elite $8.99/เดือนตลอดชีพ (ปกติ $17.99)",
   "onboarding.og.feature3": "ป้ายสมาชิกผู้ก่อตั้ง OG",
   "onboarding.og.feature4": "ลิงก์แนะนำส่วนตัว",
   "onboarding.trek.badge": "พบกับ TREK",

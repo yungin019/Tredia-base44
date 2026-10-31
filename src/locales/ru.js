@@ -136,7 +136,7 @@ export default {
   "onboarding.og.soldOut": "МЕСТА ЗАКОНЧИЛИСЬ",
   "onboarding.og.skipBtn": "ПРОПУСТИТЬ",
   "onboarding.og.feature1": "Elite бесплатно 30 дней",
-  "onboarding.og.feature2": "Затем Elite за 89 SEK/мес навсегда (обычно 179 SEK)",
+  "onboarding.og.feature2": "Затем Elite за $8.99/мес навсегда (обычно $17.99)",
   "onboarding.og.feature3": "Значок основателя OG",
   "onboarding.og.feature4": "Личная реферальная ссылка",
   "onboarding.trek.badge": "Знакомьтесь: TREK",

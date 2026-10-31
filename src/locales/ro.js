@@ -122,7 +122,7 @@ export default {
   "onboarding.og.soldOut": "EPUIZAT",
   "onboarding.og.skipBtn": "SĂRI PESTE",
   "onboarding.og.feature1": "Elite GRATUIT timp de 30 de zile",
-  "onboarding.og.feature2": "Apoi Elite la 89 SEK/lună pe viață (de obicei 179 SEK)",
+  "onboarding.og.feature2": "Apoi Elite la $8.99/lună pe viață (de obicei $17.99)",
   "onboarding.og.feature3": "Insignă Membru Fondator OG",
   "onboarding.og.feature4": "Link de referral personal",
   "onboarding.trek.badge": "Cunoașteți TREK",

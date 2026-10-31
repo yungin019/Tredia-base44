@@ -136,7 +136,7 @@ export default {
   "onboarding.og.soldOut": "WYPRZEDANO",
   "onboarding.og.skipBtn": "POMIŃ",
   "onboarding.og.feature1": "Elite bezpłatnie przez 30 dni",
-  "onboarding.og.feature2": "Następnie Elite za 89 SEK/miesiąc dożywotnio (normalnie 179 SEK)",
+  "onboarding.og.feature2": "Następnie Elite za $8.99/miesiąc dożywotnio (normalnie $17.99)",
   "onboarding.og.feature3": "Odznaka Członka Założyciela OG",
   "onboarding.og.feature4": "Osobisty link polecający",
   "onboarding.trek.badge": "Poznaj TREK",

@@ -122,7 +122,7 @@ export default {
   "onboarding.og.soldOut": "ΕΞΑΝΤΛΗΘΗΚΕ",
   "onboarding.og.skipBtn": "ΠΑΡΑΛΕΙΨΗ",
   "onboarding.og.feature1": "Elite ΔΩΡΕΑΝ για 30 ημέρες",
-  "onboarding.og.feature2": "Έπειτα Elite 89 SEK/μήνα ισόβια (συνήθως 179 SEK)",
+  "onboarding.og.feature2": "Έπειτα Elite $8.99/μήνα ισόβια (συνήθως $17.99)",
   "onboarding.og.feature3": "Σήμα Ιδρυτικού Μέλους OG",
   "onboarding.og.feature4": "Προσωπικός σύνδεσμος παραπομπής",
   "onboarding.trek.badge": "Γνωρίστε το TREK",
