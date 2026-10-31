@@ -130,7 +130,7 @@ function CatalystCard({ catalyst, index, onSeeWhy }) {
                 }}
               />
             </div>
-            <span className="text-[9px] text-white/50 w-8 text-right">{catalyst.confidence}%</span>
+            <span className="text-[9px] text-white/50 w-8 text-right">{Math.round(Number(catalyst.confidence) || 0)}%</span>
           </div>
         </div>
 

@@ -335,7 +335,7 @@ export default function AIChat() {
           </Button>
         </div>
         <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: 6 }}>
-          ⚡ TREK (Claude) · <span style={{ color: 'rgba(245,158,11,0.5)' }}>⚡ = Super AI (3 models)</span> · {t('trek.disclaimer', 'Not financial advice')}
+          TREK · Claude Sonnet 4 + GPT-4o · <span style={{ color: 'rgba(245,158,11,0.5)' }}>⚡ Super AI adds Gemini 2.0 (3 models)</span> · {t('trek.disclaimer', 'Not investment advice')}
         </p>
       </div>
     </div>

@@ -1,12 +1,11 @@
 import React from 'react';
 
+// Only regions with real signal coverage are offered. Regional signal engines
+// for Europe/Asia/Africa/LatAm are not live yet, so those tabs stay hidden
+// rather than showing US signals under a European label.
 const REGIONS = [
   { id: 'Global', label: 'Global' },
   { id: 'US',     label: 'US' },
-  { id: 'EU',     label: 'Europe' },
-  { id: 'APAC',   label: 'Asia' },
-  { id: 'Africa', label: 'Africa' },
-  { id: 'LatAm',  label: 'LatAm' },
 ];
 
 // Exported for use in feed header badge

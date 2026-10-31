@@ -96,7 +96,7 @@ export default function Home() {
       entry: stock.signal === 'BUY' ? `Wait for pullback to $${(stock.price * 0.98).toFixed(0)}` : stock.signal === 'SELL' ? 'Stay away until reversal forms' : `Buy if it breaks above $${(stock.price * 1.02).toFixed(0)}`,
       positionSize: stock.signal === 'BUY' ? 'Full size' : stock.signal === 'SELL' ? 'No position' : 'Quarter size',
       timeframe: '1-2 weeks',
-      why: `${stock.symbol} up ${stock.change > 0 ? stock.change.toFixed(2) : 'and flat'}%. ${stock.change > 2 ? 'Buyers winning today' : stock.change < -2 ? 'Sellers in control' : 'No momentum either way'}.`,
+      why: `${stock.symbol} ${stock.change > 0 ? `up ${stock.change.toFixed(2)}%` : stock.change < 0 ? `down ${Math.abs(stock.change).toFixed(2)}%` : 'flat at 0.00%'}. ${stock.change > 2 ? 'Buyers winning today' : stock.change < -2 ? 'Sellers in control' : 'No momentum either way'}.`,
       exitTarget: stock.signal === 'BUY' ? `Take profit at $${(stock.price * 1.05).toFixed(0)}` : 'N/A',
       risk: stock.change < -2 ? 'Could drop further' : stock.change > 2 ? 'Could pull back' : 'May stay stuck',
       confidence: `${stock.signal === 'BUY' || stock.signal === 'SELL' ? 'High' : 'Medium'}`

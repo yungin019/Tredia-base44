@@ -44,6 +44,7 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const [ogNumber, setOgNumber] = useState(null);
   const [ogPurchaseError, setOgPurchaseError] = useState(null);
   const [budget, setBudget] = useState('');
@@ -94,25 +95,32 @@ export default function Onboarding() {
 
   const handleProfileSave = async () => {
     setSaving(true);
-    try {
-      await updateUserProfile({
-        onboarding_completed: true,
-        ...(budget && { budget_range: budget }),
-        ...(risk && { risk_tolerance: risk }),
-        ...(horizon && { time_horizon: horizon }),
-        ...(interests && { interests }),
-      });
-      updateProfile({ onboarding_completed: true });
-    } catch (e) { console.error('Profile save error:', e); }
+    setSaveError(null);
+    // The profile must land in the database before we move on — a local-only
+    // flag would strand the user in onboarding on their next device.
+    const result = await updateUserProfile({
+      onboarding_completed: true,
+      ...(budget && { budget_range: budget }),
+      ...(risk && { risk_tolerance: risk }),
+      ...(horizon && { time_horizon: horizon }),
+      ...(interests && { interests }),
+    });
     setSaving(false);
+    if (!result?.ok) {
+      setSaveError('We could not save your profile. Check your connection and try again.');
+      return;
+    }
+    updateProfile({ onboarding_completed: true });
     setStep(3.5);
   };
 
   const handleEnterApp = async () => {
-    try {
-      await updateUserProfile({ onboarding_completed: true });
-      updateProfile({ onboarding_completed: true });
-    } catch (_) {}
+    const result = await updateUserProfile({ onboarding_completed: true });
+    if (!result?.ok) {
+      setSaveError('We could not save your profile. Check your connection and try again.');
+      return;
+    }
+    updateProfile({ onboarding_completed: true });
     navigate('/Home', { replace: true });
   };
 
@@ -182,7 +190,7 @@ export default function Onboarding() {
                   <span className="text-[9px] font-black tracking-[0.15em] uppercase text-[#F59E0B]">{t('onboarding.trek.badge','Meet TREK AI')}</span>
                 </div>
                 <h1 className="text-2xl font-black text-white/90 mb-2">{t('onboarding.trek.title','Your AI Trading Intelligence')}</h1>
-                <p className="text-sm text-white/45 mb-2 leading-relaxed">{t('onboarding.trek.desc','TREK reads the market 24/7 and tells you exactly what to watch, when to act, and why it matters.')}</p>
+                <p className="text-sm text-white/45 mb-2 leading-relaxed">{t('onboarding.trek.desc','TREK reads the market 24/7 and summarises what is moving, the signals behind it, and how confident the read is — for you to assess.')}</p>
                 <p className="text-xs text-white/30 mb-6">{t('onboarding.trek.noJargon','No jargon. No noise. Just signals.')}</p>
                 <div className="grid grid-cols-2 gap-4 mb-8">
                   {TREK_SYSTEMS.map((sys, i) => (
@@ -214,6 +222,9 @@ export default function Onboarding() {
                   <div><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.profile.horizonLabel','Time horizon')}</p><div className="flex flex-col gap-2">{HORIZON_OPTIONS.map(opt => <OptionButton key={opt} label={opt} selected={horizon === opt} onClick={() => setHorizon(opt)} />)}</div></div>
                   <div><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30 mb-2">{t('onboarding.profile.interestsLabel','Interests')}</p><div className="grid grid-cols-2 gap-2">{INTERESTS_OPTIONS.map(opt => <OptionButton key={opt} label={opt} selected={interests === opt} onClick={() => setInterests(opt)} />)}</div></div>
                 </div>
+                {saveError && (
+                  <p className="text-xs text-red-400 text-center mt-4 leading-relaxed">{saveError}</p>
+                )}
                 <button onClick={handleProfileSave} disabled={saving} className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mt-6" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#0A0A0F', opacity: saving ? 0.7 : 1 }}>
                   {saving ? t('common.loading','Loading...') : <><span>{t('onboarding.profile.continueBtn','Continue')}</span> <ArrowRight className="h-4 w-4" /></>}
                 </button>

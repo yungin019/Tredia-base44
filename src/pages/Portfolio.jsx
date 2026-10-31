@@ -187,9 +187,9 @@ export default function Portfolio() {
 
       {/* TREK AI Analysis Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <TrekGradeCard />
-        <RiskScoreCard />
-        <StressTestCard />
+        <TrekGradeCard holdings={Array.isArray(holdings) ? holdings : []} />
+        <RiskScoreCard holdings={Array.isArray(holdings) ? holdings : []} />
+        <StressTestCard holdings={Array.isArray(holdings) ? holdings : []} />
       </div>
 
       {/* Sector Warning */}

@@ -92,16 +92,43 @@ export function getCachedProfile() {
   } catch (_) { return null; }
 }
 
+/**
+ * Writes the profile to the database and confirms it landed by reading it back.
+ * Returns { ok, profile }. `ok` is false only when the server copy does not
+ * reflect the change after a retry — the caller must surface that, never
+ * pretend onboarding was saved.
+ */
 export async function updateUserProfile(updates) {
   const current = getCachedProfile() || {};
   const merged = { ...current, ...updates };
   if (merged.onboarding_completed === undefined) merged.onboarding_completed = false;
-  if (merged.onboarding_completed === true) {
-    try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch (_) {}
-  }
   localStorage.setItem(PROFILE_KEY, JSON.stringify(merged));
-  try { await profileApi.update(updates); } catch (_) {}
-  return merged;
+
+  let lastError = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const saved = await withTimeout(profileApi.update(updates), 6000);
+      if (saved) {
+        const confirmed = { ...merged, ...saved };
+        if (updates.onboarding_completed === true && saved.onboarding_completed !== true) {
+          // Written, but the read-back has not caught up yet — retry once.
+          throw new Error('NOT_PERSISTED');
+        }
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(confirmed));
+        if (confirmed.onboarding_completed === true) {
+          try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch (_) {}
+        }
+        clearUserCache();
+        return { ok: true, profile: confirmed };
+      }
+    } catch (err) {
+      lastError = err;
+      await new Promise(r => setTimeout(r, 600));
+    }
+  }
+
+  console.error('[userProfile] update failed:', lastError?.message);
+  return { ok: false, profile: merged };
 }
 
 export function clearUserProfile() {

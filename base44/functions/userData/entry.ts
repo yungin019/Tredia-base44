@@ -21,7 +21,7 @@ const COLLECTIONS = {
 const PROFILE_FIELDS = [
   'full_name', 'photo_url', 'broker_status', 'trading_mode', 'referral_code',
   'onboarding_completed', 'language', 'budget_range', 'experience_level',
-  'risk_tolerance', 'interests', 'trader_level', 'onboarded', 'region',
+  'risk_tolerance', 'interests', 'trader_level', 'time_horizon', 'onboarded', 'region',
   'notification_prefs', 'alpaca_connected', 'alpaca_positions',
   'alpaca_token', 'alpaca_refresh_token', 'alpaca_buying_power',
   'alpaca_position_count', 'alpaca_daily_pnl',
@@ -54,7 +54,23 @@ function pick(source, allowed) {
 function itemsOf(result) {
   if (!result) return [];
   if (Array.isArray(result)) return result;
-  return Array.isArray(result.items) ? result.items : [];
+  for (const key of ['items', 'data', 'results', 'rows']) {
+    if (Array.isArray((result as any)[key])) return (result as any)[key];
+  }
+  return [];
+}
+
+/**
+ * Profile rows for one verified uid.
+ *
+ * Read via list + in-memory match: an equality filter on user_id has proved
+ * unreliable from inside this function (it returned nothing even with rows
+ * present), which made every call create a duplicate profile and reset
+ * onboarding. Listing is a handful of rows and always sees what is stored.
+ */
+async function loadProfileRows(db: any, uid: string) {
+  const all = itemsOf(await db.UserProfile.list('-created_date', 500));
+  return all.filter((row: any) => row && row.user_id === uid);
 }
 
 function safeLimit(value, fallback = 100) {
@@ -124,12 +140,12 @@ export default async function (req) {
       if (pending) return pending;
 
       const task = (async () => {
-        // The index can lag for a second or two after the first write, so give
-        // it time before deciding the user really has no profile yet.
-        for (let attempt = 0; attempt < 4; attempt++) {
-          const rows = itemsOf(await db.UserProfile.filter({ user_id: uid }, { limit: 50 }));
+        // A fresh profile can take a moment to appear in a list read, so retry
+        // briefly before deciding this user genuinely has no profile yet.
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const rows = await loadProfileRows(db, uid);
           if (rows.length > 0) return collapseProfiles(rows);
-          if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+          if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
         }
         const created = await db.UserProfile.create({
         user_id: uid,
@@ -144,7 +160,7 @@ export default async function (req) {
         });
         // Confirm the row is visible before anyone else can create another.
         await new Promise((resolve) => setTimeout(resolve, 250));
-        const after = itemsOf(await db.UserProfile.filter({ user_id: uid }, { limit: 50 }));
+        const after = await loadProfileRows(db, uid);
         return after.length > 0 ? collapseProfiles(after) : created;
       })();
 
@@ -160,10 +176,11 @@ export default async function (req) {
     if (action === 'profile.update') {
       const updates = pick(body.data, PROFILE_FIELDS);
       if (Object.keys(updates).length === 0) return Response.json({ error: 'NOTHING_TO_UPDATE' }, { status: 400 });
-      await ensureProfile();
-      // Scope by uid in the query itself: this can never touch another user's row.
-      await db.UserProfile.updateMany({ user_id: uid }, { $set: updates });
-      const profile = itemsOf(await db.UserProfile.filter({ user_id: uid }, { limit: 1 }))[0] || null;
+      const existingRow = await ensureProfile();
+      // Write by row id, from a row that was matched on the verified uid — this
+      // can never touch another user's profile.
+      const updated = await db.UserProfile.update(existingRow.id, updates);
+      const profile = { ...existingRow, ...(updated || {}), ...updates };
       return Response.json({ profile: publicProfile(profile) });
     }
 

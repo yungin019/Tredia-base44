@@ -219,7 +219,7 @@ export default function SignalExplanationModal({ signal, isOpen, onClose }) {
                   {signal.action_bias === 'bullish' ? '↗ Bullish' : '↘ Bearish'} Bias
                 </span>
                 <span style={{ fontSize: '12px', color: biasColor.text, opacity: 0.7 }}>
-                  {t('trek.confidence', 'Confidence')}: {signal.confidence}%
+                  {t('trek.confidence', 'Confidence')}: {Math.round(Number(signal.confidence) || 0)}%
                 </span>
               </div>
             </div>

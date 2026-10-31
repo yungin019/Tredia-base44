@@ -16,7 +16,7 @@ export default function Upgrade() {
 
   const ELITE_FEATURES = [
     t('upgrade.eliteFeature1', 'Unlimited TREK AI signals'),
-    t('upgrade.eliteFeature2', 'Super AI — 4-model consensus'),
+    t('upgrade.eliteFeature2', 'Super AI — 3-model consensus'),
     t('upgrade.eliteFeature3', 'Real-time price alerts'),
     t('upgrade.eliteFeature4', 'Advanced analytics & charts'),
     t('upgrade.eliteFeature5', 'Priority support 24/7'),

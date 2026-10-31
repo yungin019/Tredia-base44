@@ -6,6 +6,16 @@ import { fetchCoreAssets } from '@/api/marketDataClient';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 
 const CORE_SYMBOLS = ['AAPL', 'NVDA', 'TSLA', 'AMZN', 'SPY', 'QQQ', 'BTC', 'ETH'];
+
+// Real provider behind each quote — stocks never get labelled with a crypto feed.
+const PROVIDER_LABELS = {
+  finnhub: 'Finnhub',
+  polygon: 'Polygon',
+  coingecko: 'CoinGecko',
+  twelvedata: 'TwelveData',
+  alphavantage: 'Alpha Vantage',
+  alpaca: 'Alpaca',
+};
 const CORE_META = {
   AAPL: { name: 'Apple', sector: 'Technology' },
   NVDA: { name: 'NVIDIA', sector: 'Technology' },
@@ -94,7 +104,7 @@ function AssetCardLive({ symbol, data, onClick }) {
       </div>
       <div className="mt-2 pt-2 text-[9px] text-white/30 flex items-center gap-1" style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
         <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
-        Live · {data.provider === 'polygon' ? 'Polygon' : 'CoinGecko'}
+        Live · {PROVIDER_LABELS[data.provider] || data.provider || 'Provider'}
       </div>
     </motion.button>
   );

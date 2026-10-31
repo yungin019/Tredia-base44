@@ -153,7 +153,7 @@ function generateStructureSignals(marketData) {
         : `SPY broke below $${(spyPrice + spyPrice * 0.005).toFixed(0)} with ${spyChangePct.toFixed(2)}% decline. Breadth >65% declining. ${spyContext}`,
       driver: isUp
         ? `SPY +${spyChangePct.toFixed(2)}%, QQQ ${qqqChangePct >= 0 ? '+' : ''}${qqqChangePct.toFixed(2)}% — QQQ outperforming SPY by ${spread}bp. Broad buying across mega-cap tech and industrials.`
-        : `SPY ${spyChangePct.toFixed(2)}%, QQQ ${qqqChangePct.toFixed(2)}% — QQQ underperforming by ${spread}bp. Volume above 30-day average. Sellers driving institutional flows.`,
+        : `SPY ${spyChangePct.toFixed(2)}%, QQQ ${qqqChangePct.toFixed(2)}% — QQQ underperforming by ${spread} percentage points. Volume above 30-day average. Sellers driving institutional flows.`,
       impact: isUp
         ? `XLK (tech) and XLY (discretionary) leading. IWM lagging — rotation into large-caps confirmed. SPY $${(spyPrice * 1.005).toFixed(0)} is first resistance.`
         : `TLT receiving defensive bid (+0.4%). XLU (utilities) outperforming. QQQ testing $${qqqData ? (qqqData.price * 0.995).toFixed(0) : '420'} 20-day MA support.`,
