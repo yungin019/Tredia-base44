@@ -8,10 +8,11 @@ const REGIONS = [
   { id: 'US',     label: 'US' },
 ];
 
-// Exported for use in feed header badge
-export const REGION_LABELS = {
-  Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm',
-};
+// The only regions this feed can show. Labels are derived from this list, so a
+// header badge can never name a region the filter does not offer.
+export const REGION_IDS = REGIONS.map(r => r.id);
+export const DEFAULT_REGION = 'Global';
+export const REGION_LABELS = Object.fromEntries(REGIONS.map(r => [r.id, r.label]));
 
 export default function RegionSwitcher({ activeRegion, onChange }) {
   return (

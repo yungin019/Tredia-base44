@@ -10,24 +10,20 @@ import TrendingAssets from '@/components/markets/TrendingAssets';
 import WatchlistQuick from '@/components/markets/WatchlistQuick';
 import { fetchCoreAssets } from '@/api/marketDataClient';
 import { invokeFunction } from '@/api/functionsClient';
-import RegionSwitcher from '@/components/feed/RegionSwitcher';
+import RegionSwitcher, { REGION_IDS, REGION_LABELS, DEFAULT_REGION } from '@/components/feed/RegionSwitcher';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import IntelligenceFeed from '@/components/feed/IntelligenceFeed.jsx';
 import GlobalMarketStateBanner from '@/components/ai/GlobalMarketStateBanner';
 import { useVisibilityAwareInterval } from '@/hooks/useVisibilityAwareInterval';
 import { PRICE_DATA_LABEL, PRICE_DATA_CADENCE } from '@/lib/dataFreshness';
 
-// Detect region from timezone
-function detectDefaultRegion() {
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-  if (tz.includes('Europe') || tz.includes('London')) return 'EU';
-  if (tz.includes('Asia') || tz.includes('Tokyo') || tz.includes('Hong_Kong') || tz.includes('Singapore')) return 'APAC';
-  if (tz.includes('Africa')) return 'Africa';
-  if (tz.includes('America/Sao_Paulo') || tz.includes('America/Mexico') || tz.includes('America/Bogota') || tz.includes('America/Santiago')) return 'LatAm';
-  return 'US';
+// The feed only covers global and US signals, so the region filter never leaves
+// those two. A value stored by an older build (e.g. 'EU') falls back to Global
+// instead of showing a label the filter cannot actually produce.
+function initialRegion() {
+  const stored = localStorage.getItem('tredio_region');
+  return REGION_IDS.includes(stored) ? stored : DEFAULT_REGION;
 }
-
-const REGION_LABELS = { Global: 'Global', US: 'US', EU: 'Europe', APAC: 'Asia', Africa: 'Africa', LatAm: 'LatAm' };
 
 export default function Home() {
   const navigate = useNavigate();
@@ -36,9 +32,7 @@ export default function Home() {
   const [liveStocks, setLiveStocks] = useState([]);
   const [dataStatus, setDataStatus] = useState('loading');
   const [structureSignals, setStructureSignals] = useState(null);
-  const [activeRegion, setActiveRegion] = useState(() => {
-    return localStorage.getItem('tredio_region') || detectDefaultRegion();
-  });
+  const [activeRegion, setActiveRegion] = useState(initialRegion);
 
   // ── Core assets fetch (visibility-aware, 60s) ──────────────────────────────
   const loadCore = useCallback(async () => {
@@ -87,7 +81,7 @@ export default function Home() {
     localStorage.setItem('tredio_region', r);
   };
 
-  const regionLabel = useMemo(() => REGION_LABELS[activeRegion] || activeRegion, [activeRegion]);
+  const regionLabel = useMemo(() => REGION_LABELS[activeRegion] || DEFAULT_REGION, [activeRegion]);
 
   // ── Memoized moves for YourMovesToday ───────────────────────────────────────
   const moves = useMemo(() => {

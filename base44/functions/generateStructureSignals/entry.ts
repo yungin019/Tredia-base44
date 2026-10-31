@@ -21,99 +21,21 @@ function validateSignal(signal) {
   return true;
 }
 
-// ── TRADE SETUP BUILDER ───────────────────────────────────────────────────────
-// Generates a max 3-line trade setup using real price levels from marketData
-function buildTradeSetup(type, spyPrice, spyChangePct, extras = {}) {
+// ── KEY LEVELS BUILDER ────────────────────────────────────────────────────────
+// Descriptive only: the price levels the index is currently trading between.
+// No entry, target or stop instructions — the reader decides what to do.
+function buildKeyLevels(type, spyPrice, spyChangePct, extras = {}) {
   if (!spyPrice) return null;
 
   const p = parseFloat(spyPrice.toFixed(2));
-  const isUp = spyChangePct > 0;
-
-  if (type === 'spy_momentum') {
-    if (isUp) {
-      const entry = (p - p * 0.002).toFixed(2); // slight pullback entry
-      const invalidation = (p - p * 0.006).toFixed(2);
-      return {
-        entry: `Above $${(p + p * 0.001).toFixed(2)} breakout continuation`,
-        invalidation: `Below $${invalidation} — intraday support breaks`,
-        timeframe: 'Intraday continuation (same session)'
-      };
-    } else {
-      const entry = (p + p * 0.002).toFixed(2);
-      const invalidation = (p + p * 0.005).toFixed(2);
-      return {
-        entry: `Short below $${(p - p * 0.001).toFixed(2)} on rejection`,
-        invalidation: `Above $${invalidation} — reclaim invalidates short`,
-        timeframe: 'Intraday to next session'
-      };
-    }
-  }
-
-  if (type === 'volatility') {
-    const vix = extras.vix || 25;
-    return {
-      entry: `Buy SPY dips near $${(p * 0.985).toFixed(2)} if VIX spikes above ${(vix + 5).toFixed(0)}`,
-      invalidation: `Below $${(p * 0.975).toFixed(2)} — panic selling accelerates`,
-      timeframe: 'Multi-day bounce setup (2-5 sessions)'
-    };
-  }
-
-  if (type === 'sector') {
-    const sector = extras.sector || 'XLK';
-    return {
-      entry: `${sector} above today's high, SPY above $${(p + p * 0.002).toFixed(2)}`,
-      invalidation: `SPY closes below $${(p - p * 0.004).toFixed(2)} — sector rotation reverses`,
-      timeframe: 'Swing (2-4 days)'
-    };
-  }
-
-  if (type === 'yields') {
-    const isRisingYields = extras.yieldChange > 0;
-    if (isRisingYields) {
-      return {
-        entry: `Short TLT below $${extras.tltPrice ? (extras.tltPrice - 0.5).toFixed(2) : '92.00'} on yield spike`,
-        invalidation: `TLT reclaims $${extras.tltPrice ? (extras.tltPrice + 1.0).toFixed(2) : '94.00'} — yield reversal`,
-        timeframe: 'Multi-day (3-7 sessions)'
-      };
-    } else {
-      return {
-        entry: `Long TLT above $${extras.tltPrice ? (extras.tltPrice + 0.5).toFixed(2) : '93.00'} on yield decline`,
-        invalidation: `TLT breaks below $${extras.tltPrice ? (extras.tltPrice - 1.5).toFixed(2) : '91.00'}`,
-        timeframe: 'Swing to multi-week'
-      };
-    }
-  }
-
-  if (type === 'fear_greed') {
-    const fg = extras.fgIndex || 50;
-    if (fg > 75) {
-      return {
-        entry: `Short SPY below $${(p - p * 0.002).toFixed(2)} after bearish daily candle`,
-        invalidation: `SPY above $${(p + p * 0.003).toFixed(2)} — overbought extends`,
-        timeframe: 'Swing (2-5 sessions)'
-      };
-    } else if (fg > 55) {
-      return {
-        entry: `Buy SPY dips to $${(p * 0.993).toFixed(2)}-$${(p * 0.997).toFixed(2)} range`,
-        invalidation: `Below $${(p * 0.987).toFixed(2)} — trend breaks`,
-        timeframe: 'Intraday to overnight'
-      };
-    } else if (fg < 30) {
-      return {
-        entry: `Speculative long SPY at $${(p * 0.985).toFixed(2)} — capitulation zone`,
-        invalidation: `Below $${(p * 0.975).toFixed(2)} — no floor yet`,
-        timeframe: 'Countertrend bounce (1-3 sessions)'
-      };
-    } else {
-      return {
-        entry: `Range trade: buy $${(p * 0.995).toFixed(2)}, sell $${(p * 1.005).toFixed(2)}`,
-        invalidation: `Break outside $${(p * 0.990).toFixed(2)}-$${(p * 1.010).toFixed(2)} range`,
-        timeframe: 'Intraday scalp'
-      };
-    }
-  }
-
-  return null;
+  const wide = type === 'volatility';
+  const support = p * (wide ? 0.975 : 0.985);
+  const resistance = p * (wide ? 1.008 : 1.012);
+  return {
+    support: `$${support.toFixed(2)}`,
+    resistance: `$${resistance.toFixed(2)}`,
+    timeframe: type === 'spy_momentum' ? 'Intraday to next session' : '2-5 sessions',
+  };
 }
 
 // ── SIGNAL GENERATION ─────────────────────────────────────────────────────────
@@ -138,7 +60,7 @@ function generateStructureSignals(marketData) {
     const qqqData = marketData.indexChanges?.find(i => i.symbol === 'QQQ');
     const qqqChangePct = qqqData?.changePct || 0;
     const spread = Math.abs(qqqChangePct - spyChangePct).toFixed(2);
-    const tradeSetup = buildTradeSetup('spy_momentum', spyPrice, spyChangePct);
+    const keyLevels = buildKeyLevels('spy_momentum', spyPrice, spyChangePct);
 
     const signal = {
       id: `struct_spy_${Date.now()}`,
@@ -161,7 +83,7 @@ function generateStructureSignals(marketData) {
       risk: isUp
         ? `SPY closes below $${(spyPrice * 0.995).toFixed(2)} — intraday breakout fails, reversal likely within session`
         : `SPY reclaims $${(spyPrice * 1.005).toFixed(2)} — short squeeze possible, oversold bounce in play`,
-      trade_setup: tradeSetup,
+      key_levels: keyLevels,
       category: 'macro',
       confidence: Math.min(95, 65 + Math.abs(spyChangePct) * 10),
       related_assets: ['SPY', 'QQQ', 'IWM'],
@@ -177,7 +99,7 @@ function generateStructureSignals(marketData) {
   if (marketData.volatilityMetrics) {
     const vix = marketData.volatilityMetrics.vix || 0;
     if (vix > 20) {
-      const tradeSetup = buildTradeSetup('volatility', spyPrice, spyChangePct, { vix });
+      const keyLevels = buildKeyLevels('volatility', spyPrice, spyChangePct, { vix });
       const signal = {
         id: `struct_vol_${Date.now()}`,
         type: 'structure',
@@ -195,7 +117,7 @@ function generateStructureSignals(marketData) {
         risk: vix > 30
           ? `VIX stays above 30 for 3+ sessions — structural downtrend, not a spike. No floor yet.`
           : `If earnings season delivers 3+ consecutive misses, VIX spikes to 28+ from here.`,
-        trade_setup: tradeSetup,
+        key_levels: keyLevels,
         category: 'macro',
         confidence: 70,
         related_assets: ['SPY', 'QQQ', 'TLT'],
@@ -213,7 +135,7 @@ function generateStructureSignals(marketData) {
     const top = marketData.sectorChanges.reduce((a, b) => (a.changePct || 0) > (b.changePct || 0) ? a : b);
     if (top && top.changePct > 2) {
       const sectorTicker = { Technology: 'XLK', Healthcare: 'XLV', Energy: 'XLE', Financials: 'XLF', 'Consumer Discretionary': 'XLY' }[top.name] || 'XLK';
-      const tradeSetup = buildTradeSetup('sector', spyPrice, spyChangePct, { sector: sectorTicker });
+      const keyLevels = buildKeyLevels('sector', spyPrice, spyChangePct, { sector: sectorTicker });
       const signal = {
         id: `struct_sector_${Date.now()}`,
         type: 'structure',
@@ -231,7 +153,7 @@ function generateStructureSignals(marketData) {
           : `${sectorTicker} outperformance creating rotation from defensives. Watch for follow-through if ${sectorTicker} holds above today's open.`,
         action_bias: 'bullish',
         risk: `${sectorTicker} reverses if sector catalyst (earnings, data) disappoints. Single-name risk high when one sector leads this aggressively.`,
-        trade_setup: tradeSetup,
+        key_levels: keyLevels,
         category: 'macro',
         confidence: 72,
         related_assets: [sectorTicker, 'SPY', 'QQQ'],
@@ -251,7 +173,7 @@ function generateStructureSignals(marketData) {
     if (Math.abs(yieldChange) > 0.05) {
       const isRising = yieldChange > 0;
       const bpMove = Math.abs(yieldChange * 100).toFixed(0);
-      const tradeSetup = buildTradeSetup('yields', spyPrice, spyChangePct, { yieldChange, tltPrice });
+      const keyLevels = buildKeyLevels('yields', spyPrice, spyChangePct, { yieldChange, tltPrice });
       const signal = {
         id: `struct_yields_${Date.now()}`,
         type: 'structure',
@@ -273,7 +195,7 @@ function generateStructureSignals(marketData) {
         risk: isRising
           ? `If yield spike is a single-session overshoot, tech snaps back +2-3% in next session.`
           : `If yields bounce from support, bond rally reverses and growth gets hit again.`,
-        trade_setup: tradeSetup,
+        key_levels: keyLevels,
         category: 'macro',
         confidence: 68,
         related_assets: ['TLT', 'IEF', 'XLK', 'SPY'],
@@ -286,44 +208,46 @@ function generateStructureSignals(marketData) {
     }
   }
 
-  // 5. FEAR/GREED PROXY SIGNAL
+  // 5. FEAR & GREED SIGNAL
+  // The value is the same index the gauges read (alternative.me), passed in as
+  // marketData.fearGreedIndex — never a locally derived number.
   if (marketData.fearGreedIndex !== null && marketData.fearGreedIndex !== undefined) {
     const fg = marketData.fearGreedIndex;
     const vix = marketData.volatilityMetrics?.vix || 18;
-    const tradeSetup = buildTradeSetup('fear_greed', spyPrice, spyChangePct, { fgIndex: fg });
+    const keyLevels = buildKeyLevels('fear_greed', spyPrice, spyChangePct, { fgIndex: fg });
 
     let headline, state, driver, impact, bias, risk;
     if (fg > 75) {
-      headline = `F&G Proxy ${fg}/100 — SPY within 1-2% of 52-week high, put/call below 0.70`;
-      state = `F&G proxy at ${fg}/100. VIX at ${vix.toFixed(1)}, below 14 threshold. ${spyContext || ''} Options call skew elevated.`;
+      headline = `Fear & Greed ${fg}/100 — SPY within 1-2% of 52-week high, put/call below 0.70`;
+      state = `Fear & Greed at ${fg}/100. VIX at ${vix.toFixed(1)}, below 14 threshold. ${spyContext || ''} Options call skew elevated.`;
       driver = `Put/call ratio at ~0.65 — dealers buying underlying to hedge short calls. Short squeeze + call feedback loop pushing SPY higher.`;
       impact = `SPY likely to stall at $${spyPrice ? (spyPrice * 1.02).toFixed(0) : '510'} and retrace 2-4%. VIX spike above 16 is the early warning signal.`;
       bias = 'bearish';
       risk = `Earnings season upside surprises can keep SPY overbought for 2-3 additional weeks.`;
     } else if (fg > 55) {
-      headline = `F&G Proxy ${fg}/100 — SPY above 20-day MA, VIX at ${vix.toFixed(1)}, dip-buyers active`;
-      state = `F&G at ${fg}/100. VIX ${vix.toFixed(1)}. ${spyContext || ''} SPY holding 20-day MA — sellers unable to break structure.`;
+      headline = `Fear & Greed ${fg}/100 — SPY above 20-day MA, VIX at ${vix.toFixed(1)}, dip-buyers active`;
+      state = `Fear & Greed at ${fg}/100. VIX ${vix.toFixed(1)}. ${spyContext || ''} SPY holding 20-day MA — sellers unable to break structure.`;
       driver = `10Y yield declining + mega-cap earnings beats sustaining bid. Both conditions historically support equity price 6-8 weeks post-signal.`;
       impact = `SPY dips to $${spyPrice ? (spyPrice * 0.993).toFixed(0) : '495'} being bought. XLY and XLI rotating higher — cyclicals leading defensives by 180bp.`;
       bias = 'bullish';
       risk = `PCE or CPI print above 3.2% flips the tape within hours. Hot inflation = rate-cut repricing = SPY -2-3% within session.`;
     } else if (fg > 45) {
-      headline = `F&G Proxy ${fg}/100 — SPY range-bound $${spyPrice ? (spyPrice * 0.98).toFixed(0) : '480'}-$${spyPrice ? (spyPrice * 1.02).toFixed(0) : '500'}, no directional edge`;
-      state = `F&G at ${fg}/100. VIX at ${vix.toFixed(1)} — stuck in 17-19 range. ${spyContext || ''} SPY oscillating in $${spyPrice ? (spyPrice * 0.04).toFixed(0) : '20'} range for 2+ weeks.`;
+      headline = `Fear & Greed ${fg}/100 — SPY range-bound $${spyPrice ? (spyPrice * 0.98).toFixed(0) : '480'}-$${spyPrice ? (spyPrice * 1.02).toFixed(0) : '500'}, no directional edge`;
+      state = `Fear & Greed at ${fg}/100. VIX at ${vix.toFixed(1)} — stuck in 17-19 range. ${spyContext || ''} SPY oscillating in $${spyPrice ? (spyPrice * 0.04).toFixed(0) : '20'} range for 2+ weeks.`;
       driver = `Earnings season mixed — 60% beat but guidance cautious. Macro data in-line with consensus. Neither bulls nor bears have a clear catalyst.`;
       impact = `Scalpers trading the range. Breakout above $${spyPrice ? (spyPrice * 1.02).toFixed(0) : '500'} or breakdown below $${spyPrice ? (spyPrice * 0.98).toFixed(0) : '480'} is the next binary.`;
       bias = 'neutral';
       risk = `Single data point (PCE, NFP, Fed speaker) breaks the range — direction unknown until catalyst.`;
     } else if (fg > 25) {
-      headline = `F&G Proxy ${fg}/100 — SPY -3-5% off highs, VIX at ${vix.toFixed(1)}, defensive rotation visible`;
-      state = `F&G at ${fg}/100. VIX broke above ${(vix - 2).toFixed(0)}. ${spyContext || ''} SPY -3-5% from recent high. Put buying accelerating.`;
+      headline = `Fear & Greed ${fg}/100 — SPY -3-5% off highs, VIX at ${vix.toFixed(1)}, defensive rotation visible`;
+      state = `Fear & Greed at ${fg}/100. VIX broke above ${(vix - 2).toFixed(0)}. ${spyContext || ''} SPY -3-5% from recent high. Put buying accelerating.`;
       driver = `Real yield rise + guidance cuts from 2-3 large-caps triggering broad sell programs. 30-day put/call above 1.0 — hedging demand elevated.`;
       impact = `XLU (utilities) and GLD outperforming SPY by 200-300bp. XLK and XLY underperforming. TLT getting +0.5-1% bid as duration demand returns.`;
       bias = 'bearish';
       risk = `SPY approaching 100-day MA — oversold bounce +2-3% in single session is likely. Covering shorts at key level is prudent.`;
     } else {
-      headline = `F&G Proxy ${fg}/100 — VIX above 30, SPY -8-12% off highs, forced selling active`;
-      state = `F&G at ${fg}/100. VIX ${vix.toFixed(1)}+. ${spyContext || ''} SPY below 50-day and 200-day moving averages. Leveraged ETF outflows record pace.`;
+      headline = `Fear & Greed ${fg}/100 — VIX above 30, SPY -8-12% off highs, forced selling active`;
+      state = `Fear & Greed at ${fg}/100. VIX ${vix.toFixed(1)}+. ${spyContext || ''} SPY below 50-day and 200-day moving averages. Leveraged ETF outflows record pace.`;
       driver = `Forced margin liquidations and stop-loss cascades. Hedge fund gross exposure -15-20% from peak. Systematic selling programs executing.`;
       impact = `All sectors declining. GLD and SHY (short-term Treasuries) only positive bids. Credit spreads widening +30-50bp from baseline.`;
       bias = 'bullish';
@@ -341,7 +265,7 @@ function generateStructureSignals(marketData) {
       impact,
       action_bias: bias,
       risk,
-      trade_setup: tradeSetup,
+      key_levels: keyLevels,
       category: 'macro',
       confidence: 65,
       related_assets: ['SPY', 'QQQ', 'TLT'],
@@ -411,15 +335,25 @@ Deno.serve(async (req) => {
         marketData.yields.tltPrice = tltData.c;
       }
 
-      // Fear/Greed proxy
+      // Fear & Greed — read from the identical index the gauges use
+      // (alternative.me) so this text can never disagree with the gauge. If the
+      // index is unavailable the signal is skipped rather than filled with a guess.
       const spyChange = marketData.indexChanges.find(i => i.symbol === 'SPY')?.changePct || 0;
       const vixLevel = marketData.volatilityMetrics.vix || 20;
-      marketData.fearGreedIndex = Math.round(Math.max(0, Math.min(100, 50 + (spyChange * 5) - ((vixLevel - 20) * 2))));
+      try {
+        const fngRes = await fetch('https://api.alternative.me/fng/', { signal: AbortSignal.timeout(5000) });
+        const fngData = await fngRes.json();
+        const fngValue = parseInt(fngData?.data?.[0]?.value, 10);
+        marketData.fearGreedIndex = Number.isFinite(fngValue) ? fngValue : null;
+      } catch (fngErr) {
+        console.warn('[STRUCTURE SIGNALS] Fear & Greed unavailable:', fngErr.message);
+        marketData.fearGreedIndex = null;
+      }
 
       console.log(`[STRUCTURE SIGNALS] SPY $${marketData.indexChanges.find(i => i.symbol === 'SPY')?.price?.toFixed(2)} ${spyChange.toFixed(2)}%, VIX ${vixLevel}, F&G ${marketData.fearGreedIndex}`);
     } catch (fetchErr) {
       console.warn('[STRUCTURE SIGNALS] Fetch failed:', fetchErr.message);
-      marketData = { indexChanges: [], volatilityMetrics: { vix: 18 }, sectorChanges: [], yields: {}, fearGreedIndex: 50 };
+      marketData = { indexChanges: [], volatilityMetrics: { vix: 18 }, sectorChanges: [], yields: {}, fearGreedIndex: null };
     }
 
     const signals = generateStructureSignals(marketData);
