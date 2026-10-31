@@ -1,5 +1,5 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-
+// Public market data only — no user data is read or written here, so the app's
+// Firebase-authenticated client can call it without a Base44 session.
 // --- Provider fetchers ---
 
 async function fetchFromAlphaVantage(symbol) {
@@ -121,10 +121,6 @@ function averagePrice(results) {
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-
     const { symbol, type } = await req.json();
     if (!symbol) return Response.json({ error: 'symbol required' }, { status: 400 });
 

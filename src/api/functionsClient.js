@@ -59,6 +59,14 @@ export async function invokeFunction(name, body = {}) {
     headers,
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`${name} HTTP ${res.status}`);
+  if (!res.ok) {
+    // Keep the server's own message and code: callers need it to tell the user
+    // what actually happened (e.g. a required re-authentication).
+    const payload = await res.json().catch(() => ({}));
+    const err = new Error(payload?.error || `${name} HTTP ${res.status}`);
+    err.status = res.status;
+    err.code = payload?.code;
+    throw err;
+  }
   return res.json();
 }

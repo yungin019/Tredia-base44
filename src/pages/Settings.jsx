@@ -11,7 +11,7 @@ import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import { getCachedProfile, updateUserProfile } from '@/lib/userProfile';
 import { base44 } from '@/api/base44Client';
 import { invokeFunction } from '@/api/functionsClient';
-import { deleteUser } from 'firebase/auth';
+import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { getFoundingMemberInfo } from '@/api/foundingMembers';
 import FoundingMemberBadge from '@/components/settings/FoundingMemberBadge';
@@ -74,6 +74,58 @@ export default function Settings({ onLogout }) {
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [needsReauth, setNeedsReauth] = useState(false);
+
+  // One irreversible action, one order: the server deletes the Firebase sign-in
+  // first and only then the rows, so a failed step never leaves the data gone
+  // while the login survives.
+  const runDeletion = async (idToken) => {
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      const token = idToken
+        || (auth.currentUser ? await auth.currentUser.getIdToken(true) : null)
+        || localStorage.getItem('firebase_auth_token');
+      const result = await invokeFunction('deleteUserData', {
+        idToken: token,
+        firebaseApiKey: auth.app?.options?.apiKey,
+      });
+      if (result?.error) throw new Error(result.error);
+      localStorage.clear();
+      sessionStorage.clear();
+      navigate('/SignIn?deleted=1', { replace: true });
+    } catch (err) {
+      if (err?.code === 'RECENT_LOGIN_REQUIRED' || err?.status === 409) {
+        setNeedsReauth(true);
+        setDeleteError('');
+      } else {
+        setDeleteError(err?.message || 'Failed to delete account. Please try again.');
+      }
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleReauth = async (password) => {
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      const user = auth.currentUser;
+      if (!user?.email) throw new Error('Please sign out, sign in again, then retry.');
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+      const fresh = await user.getIdToken(true);
+      setNeedsReauth(false);
+      await runDeletion(fresh);
+    } catch (err) {
+      setDeleteError(
+        err?.code === 'auth/wrong-password' || err?.code === 'auth/invalid-credential'
+          ? 'That password is not correct. Nothing has been deleted.'
+          : (err?.message || 'Could not confirm your password. Nothing has been deleted.')
+      );
+      setDeleteLoading(false);
+    }
+  };
 
   useEffect(() => {
     const p = getCachedProfile();
@@ -549,41 +601,10 @@ export default function Settings({ onLogout }) {
         <DeleteAccountModal
           loading={deleteLoading}
           error={deleteError}
-          onCancel={() => { setDeleteModal(false); setDeleteError(''); }}
-          onConfirm={async () => {
-            setDeleteLoading(true);
-            setDeleteError('');
-            try {
-              // 1. Wipe every stored row (server verifies the Firebase ID token)
-              const result = await invokeFunction('deleteUserData', {});
-              if (result?.error) throw new Error(result.error);
-
-              // 2. Delete the Firebase Auth account itself, so the same email
-              //    can register again — otherwise the data is gone but the
-              //    login still exists.
-              if (auth.currentUser) {
-                try {
-                  await deleteUser(auth.currentUser);
-                } catch (authErr) {
-                  if (authErr?.code === 'auth/requires-recent-login') {
-                    setDeleteLoading(false);
-                    setDeleteError('Your sign-in is too old to finish this. Please sign out, sign in again, then retry — your data has already been removed.');
-                    return;
-                  }
-                  throw authErr;
-                }
-              }
-
-              // Clear all local state and storage
-              localStorage.clear();
-              sessionStorage.clear();
-              // Use navigate so it stays in-app (Apple requirement)
-              navigate('/SignIn?deleted=1', { replace: true });
-            } catch (err) {
-              setDeleteLoading(false);
-              setDeleteError(err?.message || 'Failed to delete account. Please try again.');
-            }
-          }}
+          needsReauth={needsReauth}
+          onReauth={handleReauth}
+          onCancel={() => { setDeleteModal(false); setDeleteError(''); setNeedsReauth(false); }}
+          onConfirm={() => runDeletion()}
         />
       )}
     </div>

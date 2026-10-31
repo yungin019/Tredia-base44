@@ -4,7 +4,7 @@
  * Every call carries the Firebase ID token; the server verifies it and scopes
  * the query to that uid. No user id is ever sent from the client.
  */
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 import { auth } from '@/lib/firebase';
 import { getNativeSession } from '@/lib/nativeSession';
 
@@ -23,8 +23,9 @@ export async function getIdToken() {
 async function call(action, payload = {}) {
   const idToken = await getIdToken();
   if (!idToken) throw new Error('AUTH_REQUIRED');
-  const res = await base44.functions.invoke('userData', { action, idToken, ...payload });
-  const data = res?.data || {};
+  // Direct fetch with the Firebase token: the Base44 SDK session does not exist
+  // for Firebase users, so its invoke would never reach the function live.
+  const data = await invokeFunction('userData', { action, idToken, ...payload });
   if (data.error) {
     const error = new Error(data.error);
     error.code = data.error;
