@@ -43,6 +43,67 @@ Deno.serve(async (req) => {
       return Response.json({ results: [] });
     }
 
+    // ── OHLC / HISTORY MODE ─────────────────────────────────────────────
+    // Intraday + history bars via TwelveData. Without this branch every chart
+    // request fell through to "Invalid request", which is why the asset page
+    // always showed "Chart data unavailable".
+    if (mode === 'ohlc' || mode === 'history') {
+      const sym = String(symbol || '').toUpperCase();
+      const timeframe = String(body.timeframe || '1D').toUpperCase();
+      const TWELVE_KEY = Deno.env.get('TWELVEDATA_API_KEY') || '';
+      if (!TWELVE_KEY || !sym) return Response.json({ chartData: [], source: 'unavailable' });
+
+      const CRYPTO = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'MATIC', 'AVAX', 'LINK', 'UNI', 'DOT', 'ATOM'];
+      const INTERVALS = {
+        '1D': { interval: '15min', outputsize: 78 },
+        '1W': { interval: '1h', outputsize: 120 },
+        '1M': { interval: '1day', outputsize: 30 },
+        '3M': { interval: '1day', outputsize: 90 },
+        '1Y': { interval: '1week', outputsize: 52 },
+      };
+      const cfg = INTERVALS[timeframe] || INTERVALS['1D'];
+      const providerSymbol = CRYPTO.includes(sym) ? `${sym}/USD` : sym;
+
+      const fetchSeries = async (interval: string) => {
+        const res = await fetch(
+          `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(providerSymbol)}&interval=${interval}&outputsize=${cfg.outputsize}&apikey=${TWELVE_KEY}`,
+          { signal: AbortSignal.timeout(10000) }
+        );
+        const d = await res.json();
+        const values = Array.isArray(d?.values) ? d.values : [];
+        return values
+          .slice()
+          .reverse()
+          .map((v: any) => ({
+            date: v.datetime,
+            open: parseFloat(v.open),
+            high: parseFloat(v.high),
+            low: parseFloat(v.low),
+            close: parseFloat(v.close),
+          }))
+          .filter((c: any) => Number.isFinite(c.close));
+      };
+
+      try {
+        const chartData = await fetchSeries(cfg.interval);
+        if (chartData.length > 0) {
+          return Response.json({ chartData, source: 'twelvedata', interval: cfg.interval });
+        }
+      } catch (_) { /* fall through to daily bars */ }
+
+      try {
+        const dailyInterval = timeframe === '1Y' ? '1week' : '1day';
+        const chartData = await fetchSeries(dailyInterval);
+        return Response.json({
+          chartData,
+          source: chartData.length > 0 ? 'twelvedata' : 'unavailable',
+          interval: dailyInterval,
+        });
+      } catch (_) {
+        return Response.json({ chartData: [], source: 'unavailable' });
+      }
+    }
+
     // ── BATCH PRICE FETCH ───────────────────────────────────────────────
     // An empty list is a valid "nothing to price yet" request, not a bad one.
     if (Array.isArray(symbols)) {

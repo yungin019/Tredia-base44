@@ -14,7 +14,6 @@ import AssetNewsSection from '@/components/news/AssetNewsSection';
 import { SkeletonPrice } from '@/components/ui/SkeletonLoader';
 import { formatPrice, formatPercent, validatePrice, validatePercent, safeRender } from '@/lib/dataValidation';
 import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
-import { fetchSingleAsset } from '@/api/marketDataClient';
 import { deriveSignal } from '@/api/signalEngine';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
@@ -199,6 +198,7 @@ export default function AssetDetail() {
   };
 
   useEffect(() => {
+    if (loadingData) return; // wait for the live quote so the prompt never carries a guessed price
     if (tier === 'free') {
       const used = getTrekUsedToday();
       if (used >= FREE_TREK_LIMIT) {
@@ -230,7 +230,7 @@ export default function AssetDetail() {
         if (confMatch) setAiConfidence(parseInt(confMatch[1], 10));
       }
     }).catch(() => {}).finally(() => setTrekLoading(false));
-  }, [symbol]);
+  }, [symbol, loadingData]);
 
   const showToast = (msg, type = 'info') => {
     setToast({ msg, type });
@@ -523,7 +523,7 @@ export default function AssetDetail() {
 
       {/* Trade Modal */}
       <AnimatePresence>
-        {tradeAction && (
+        {tradeAction && asset.price && (
           <TradeModal asset={asset} action={tradeAction} onClose={() => setTradeAction(null)} />
         )}
       </AnimatePresence>
