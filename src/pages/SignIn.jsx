@@ -154,7 +154,11 @@ export default function SignIn() {
         new Promise((_, reject) => setTimeout(() => reject(new Error('bg sync timeout')), 3000)),
       ]);
       addStep('STEP 9: bg profile sync done, onboarding=' + synced?.onboarding_completed);
-      if (synced) setNativeUser(syntheticUser, synced);
+      if (synced) {
+        setNativeUser(syntheticUser, synced);
+        // Existing account → straight in; brand-new account → onboarding.
+        navigate(synced.onboarding_completed === true ? '/Home' : '/Onboarding', { replace: true });
+      }
     } catch (syncErr) {
       addStep('STEP 9-SKIP: bg sync failed/timeout: ' + syncErr.message);
     }
@@ -201,7 +205,13 @@ export default function SignIn() {
     try {
       if (IS_NATIVE) {
         let result;
-        try { result = await FirebaseAuthentication.signInWithGoogle(); } catch (err) {
+        // Always let the user pick (or add) a Google account instead of silently
+        // reusing the last one. iOS: Google's native SDK always shows its own
+        // account chooser, so no parameter is needed there.
+        const googleOptions = PLATFORM === 'ios'
+          ? undefined
+          : { customParameters: [{ key: 'prompt', value: 'select_account' }] };
+        try { result = await FirebaseAuthentication.signInWithGoogle(googleOptions); } catch (err) {
           setError('FA.signInWithGoogle() failed: ' + formatError(err));
           setLoading(false); stopSafetyTimer(); return;
         }
@@ -209,6 +219,9 @@ export default function SignIn() {
         await handleAfterLoginNative(result);
       } else {
         const provider = new GoogleAuthProvider();
+        // Always show the Google account chooser so a different account can be
+        // picked instead of being signed in silently with the last one.
+        provider.setCustomParameters({ prompt: 'select_account' });
         const cred = await signInWithPopup(auth, provider);
         stopSafetyTimer();
         await handleAfterLoginWeb(cred.user);

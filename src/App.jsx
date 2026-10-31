@@ -99,14 +99,17 @@ const AppRoutesInner = () => {
 
   // FIX: Also check localStorage directly — on native, profile in context may lag
   // behind what was already written to localStorage during onboarding completion.
+  // Cached completion only counts for the same account: after switching Google
+  // accounts on one device, a new account must still start at onboarding.
+  const sameAccount = (cachedUid) => !cachedUid || cachedUid === firebaseUser.uid;
   const getCachedOnboarding = () => {
     try {
-      // Local completion flag survives any stale profile read.
-      if (localStorage.getItem('tredio_onboarded') === '1') return true;
+      if (localStorage.getItem('tredio_onboarded') === '1'
+        && sameAccount(localStorage.getItem('tredio_onboarded_uid'))) return true;
       const raw = localStorage.getItem('tredio_user_profile');
       if (!raw) return false;
       const p = JSON.parse(raw);
-      return p?.onboarding_completed === true;
+      return p?.onboarding_completed === true && sameAccount(p?.uid);
     } catch (_) { return false; }
   };
   const needsOnboarding = !(profile?.onboarding_completed === true || getCachedOnboarding());

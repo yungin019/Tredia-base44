@@ -10,8 +10,15 @@ import { profileApi, clearUserCache } from '@/api/userData';
 const PROFILE_KEY = 'tredio_user_profile';
 const ONBOARDED_KEY = 'tredio_onboarded';
 
-function isLocallyOnboarded() {
-  try { return localStorage.getItem(ONBOARDED_KEY) === '1'; } catch (_) { return false; }
+// The local flags belong to whoever last used this device, so they only count
+// for the same account — otherwise a second (new) Google account would skip
+// onboarding on a device where the first one had already finished it.
+function isLocallyOnboarded(uid) {
+  try {
+    if (localStorage.getItem(ONBOARDED_KEY) !== '1') return false;
+    const flagUid = localStorage.getItem(ONBOARDED_KEY + '_uid');
+    return !flagUid || !uid || flagUid === uid;
+  } catch (_) { return false; }
 }
 
 function withTimeout(promise, ms) {
@@ -65,11 +72,17 @@ export async function syncUserProfile(firebaseUser, overrideIdToken = null) {
   // Onboarding completion is sticky: a read straight after a write is not always
   // consistent, so a stale server value must never bounce a finished user back
   // into onboarding. The update below re-persists the true value.
-  const cachedOnboarded = getCachedProfile()?.onboarding_completed === true || isLocallyOnboarded();
+  const cachedProfile = getCachedProfile();
+  const cachedSameAccount = cachedProfile?.onboarding_completed === true
+    && (!cachedProfile.uid || cachedProfile.uid === firebaseUser.uid);
+  const cachedOnboarded = cachedSameAccount || isLocallyOnboarded(firebaseUser.uid);
   if (merged.onboarding_completed !== true && cachedOnboarded) merged.onboarding_completed = true;
   if (merged.onboarding_completed === undefined || merged.onboarding_completed === null) merged.onboarding_completed = false;
   if (merged.onboarding_completed === true) {
-    try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch (_) {}
+    try {
+      localStorage.setItem(ONBOARDED_KEY, '1');
+      localStorage.setItem(ONBOARDED_KEY + '_uid', firebaseUser.uid);
+    } catch (_) {}
   }
 
   try {
@@ -116,7 +129,10 @@ export async function updateUserProfile(updates) {
         }
         localStorage.setItem(PROFILE_KEY, JSON.stringify(confirmed));
         if (confirmed.onboarding_completed === true) {
-          try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch (_) {}
+          try {
+            localStorage.setItem(ONBOARDED_KEY, '1');
+            if (confirmed.uid) localStorage.setItem(ONBOARDED_KEY + '_uid', confirmed.uid);
+          } catch (_) {}
         }
         clearUserCache();
         return { ok: true, profile: confirmed };
@@ -134,6 +150,7 @@ export async function updateUserProfile(updates) {
 export function clearUserProfile() {
   localStorage.removeItem(PROFILE_KEY);
   localStorage.removeItem(ONBOARDED_KEY);
+  localStorage.removeItem(ONBOARDED_KEY + '_uid');
   localStorage.removeItem('firebase_auth_token');
   localStorage.removeItem('auth_token');
   localStorage.removeItem('token');
