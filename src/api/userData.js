@@ -66,6 +66,7 @@ export const db = {
   portfolio: collection('portfolio'),
   tradeLog: collection('tradeLog'),
   notificationLog: collection('notificationLog'),
+  notifications: collection('notifications'),
 };
 
 export const profileApi = {
