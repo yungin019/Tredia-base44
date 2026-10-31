@@ -159,6 +159,26 @@ export default async function (req) {
           referral_code: 'REF' + Math.random().toString(36).slice(2, 8).toUpperCase(),
           onboarding_completed: false,
         });
+        // Brand-new account: one confirmation email. The row IS the account, so a
+        // refused send is logged and never blocks or undoes the registration.
+        try {
+          if (created?.email) {
+            const sent = await base44.asServiceRole.integrations.Core.SendEmail({
+              to: created.email,
+              template_name: 'Welcome',
+              variables: {
+                first_name: String(created.full_name || '').split(' ')[0] || 'there',
+                cta_url: 'https://tredio.app/Home',
+              },
+              category: 'transactional',
+            });
+            if (!sent?.success) {
+              console.warn('[userData] welcome email not sent:', JSON.stringify(sent || {}).slice(0, 200));
+            }
+          }
+        } catch (err) {
+          console.warn('[userData] welcome email failed:', err.message);
+        }
         // Confirm the row is visible before anyone else can create another.
         await new Promise((resolve) => setTimeout(resolve, 250));
         const after = await loadProfileRows(db, uid);

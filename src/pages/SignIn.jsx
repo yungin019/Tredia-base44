@@ -339,9 +339,14 @@ export default function SignIn() {
                   <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>OR</span>
                   <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
                 </div>
+                {mode === 'register' && (
+                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: '10px', lineHeight: 1.5 }}>
+                    {t('signin.socialSignUpHint', 'Sign up instantly with Apple or Google, no password needed. We will email you a confirmation.')}
+                  </p>
+                )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <button onClick={handleApple} disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '700', background: '#fff', border: '1px solid #fff', color: '#000', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px', opacity: loading ? 0.6 : 1 }}><AppleIcon />{t('signin.apple', 'Continue with Apple')}</button>
-                  <button onClick={handleGoogle} disabled={loading} style={{ ...socialBtnStyle, opacity: loading ? 0.6 : 1 }}><GoogleIcon />{t('signin.google', 'Continue with Google')}</button>
+                  <button onClick={handleApple} disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13px', fontWeight: '700', background: '#fff', border: '1px solid #fff', color: '#000', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '48px', opacity: loading ? 0.6 : 1 }}><AppleIcon />{mode === 'register' ? t('signin.signUpApple', 'Sign up with Apple') : t('signin.apple', 'Continue with Apple')}</button>
+                  <button onClick={handleGoogle} disabled={loading} style={{ ...socialBtnStyle, opacity: loading ? 0.6 : 1 }}><GoogleIcon />{mode === 'register' ? t('signin.signUpGoogle', 'Sign up with Google') : t('signin.google', 'Continue with Google')}</button>
                 </div>
                 {loading && (
                   <button type='button' onClick={() => { setLoading(false); setError('Cancelled'); stopSafetyTimer(); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '12px', cursor: 'pointer', textAlign: 'center', width: '100%', padding: '8px', marginTop: '4px' }}>
