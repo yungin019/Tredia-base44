@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { applySentimentGuard } from '../../shared/newsSentiment.ts';
 
 const FINNHUB_API_KEY = Deno.env.get('FINNHUB_API_KEY');
 
@@ -81,7 +82,7 @@ function inferAssets(headline, source) {
 }
 
 // Use LLM to interpret news as market signal
-async function interpretAsSignal(news) {
+async function interpretAsSignal(news, langInstruction) {
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -130,6 +131,19 @@ Output ONLY valid JSON with no markdown formatting:
 // Main handler
 Deno.serve(async (req) => {
   try {
+    const body = await req.json().catch(() => ({}));
+
+    // Diagnostics: classify headlines without calling the LLM or writing data.
+    if (body?.mode === 'classify' && Array.isArray(body.headlines)) {
+      const results = body.headlines.slice(0, 20).map((h) => {
+        const headline = String(h?.headline ?? h);
+        const raw = String(h?.bias || 'bullish').toLowerCase();
+        const confidence = Number(h?.confidence ?? 75);
+        return { headline, raw, confidence, final: applySentimentGuard(raw, confidence, headline) };
+      });
+      return Response.json({ success: true, results });
+    }
+
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
@@ -170,6 +184,13 @@ Deno.serve(async (req) => {
       const category = inferCategory(item.headline, item.source);
       const relatedAssets = inferAssets(item.headline, item.source);
 
+      // A known risk term, or a low-confidence read, is published as neutral.
+      const bias = applySentimentGuard(
+        interpretation.action_bias,
+        interpretation.confidence,
+        `${item.headline} ${interpretation.risk || ''}`
+      );
+
       const catalyst = {
         headline: item.headline,
         source_url: item.url || '',
@@ -177,7 +198,7 @@ Deno.serve(async (req) => {
         market_state: interpretation.market_state || 'Market shifting',
         driver: interpretation.driver || item.headline,
         impact: interpretation.impact || 'Potential volatility expected',
-        action_bias: (interpretation.action_bias || 'neutral').toLowerCase(),
+        action_bias: bias,
         risk: interpretation.risk || 'Unexpected developments',
         stage: 'confirmed_catalyst',
         regions,

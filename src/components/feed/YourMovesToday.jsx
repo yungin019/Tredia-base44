@@ -1,35 +1,23 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Clock, Eye, ChevronRight } from 'lucide-react';
-import { safeRender, validateSignal, validateConfidence } from '@/lib/dataValidation';
-import { useNavigate } from 'react-router-dom';
+import { TrendingUp, TrendingDown, Clock, ChevronRight } from 'lucide-react';
+import { safeRender, validateConfidence } from '@/lib/dataValidation';
 import { useTranslation } from 'react-i18next';
 
-// ── SIGNAL badge config aligned with global theme ──────────────────────────
+// ── Badge config — a directional read of the day's tape, not an instruction ──
 const ACTION_CFG = {
-  BUY:   { label: 'BULLISH', color: '#0ec8dc', bg: 'rgba(14,200,220,0.12)',   border: 'rgba(14,200,220,0.3)',   accentBg: 'rgba(14,200,220,0.06)',   Icon: TrendingUp },
-  SELL:  { label: 'BEARISH', color: '#ef4444', bg: 'rgba(239,68,68,0.12)',    border: 'rgba(239,68,68,0.3)',    accentBg: 'rgba(239,68,68,0.05)',    Icon: TrendingDown },
-  AVOID: { label: 'BEARISH', color: '#ef4444', bg: 'rgba(239,68,68,0.12)',    border: 'rgba(239,68,68,0.3)',    accentBg: 'rgba(239,68,68,0.05)',    Icon: TrendingDown },
-  WATCH: { label: 'WAIT',    color: '#6b7280', bg: 'rgba(107,114,128,0.1)',   border: 'rgba(107,114,128,0.25)', accentBg: 'rgba(107,114,128,0.04)',  Icon: Clock },
-  WAIT:  { label: 'WAIT',    color: '#6b7280', bg: 'rgba(107,114,128,0.1)',   border: 'rgba(107,114,128,0.25)', accentBg: 'rgba(107,114,128,0.04)',  Icon: Clock },
+  BUY:   { label: 'BULLISH', color: '#0ec8dc', bg: 'rgba(14,200,220,0.12)',   border: 'rgba(14,200,220,0.3)',   Icon: TrendingUp },
+  SELL:  { label: 'BEARISH', color: '#ef4444', bg: 'rgba(239,68,68,0.12)',    border: 'rgba(239,68,68,0.3)',    Icon: TrendingDown },
+  AVOID: { label: 'BEARISH', color: '#ef4444', bg: 'rgba(239,68,68,0.12)',    border: 'rgba(239,68,68,0.3)',    Icon: TrendingDown },
+  WATCH: { label: 'NEUTRAL', color: '#6b7280', bg: 'rgba(107,114,128,0.1)',   border: 'rgba(107,114,128,0.25)', Icon: Clock },
+  WAIT:  { label: 'NEUTRAL', color: '#6b7280', bg: 'rgba(107,114,128,0.1)',   border: 'rgba(107,114,128,0.25)', Icon: Clock },
 };
 
 function MoveCard({ move, index, onExplore }) {
   const { t } = useTranslation();
   const action = (move.action || 'WATCH').toUpperCase();
   const cfg = ACTION_CFG[action] || ACTION_CFG.WATCH;
-  const color = cfg.color;
-  const bg = cfg.bg;
-  const border = cfg.border;
-  const accentBg = cfg.accentBg;
-  const Icon = cfg.Icon;
-
-  // Parse entry into uppercase action command
-  const actionCmd = move.entry ? 
-    (move.entry.includes('Buy') ? 'BUY DIPS' : 
-     move.entry.includes('Do not') ? 'AVOID' :
-     move.entry.includes('Watch') ? 'WAIT BREAKOUT' : 'MONITOR')
-    : 'WATCH';
+  const { color, bg, border, Icon } = cfg;
 
   return (
     <motion.div
@@ -41,16 +29,15 @@ function MoveCard({ move, index, onExplore }) {
         background: 'rgba(8, 18, 42, 0.65)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        border: `1px solid rgba(100,220,255,0.09)`,
+        border: '1px solid rgba(100,220,255,0.09)',
       }}
     >
       {/* accent line */}
       <div style={{ height: 2, background: `linear-gradient(90deg, ${color}66 0%, ${color}18 60%, transparent 100%)` }} />
 
-      {/* ── HEADER: symbol + signal badge ─────────────────────── */}
+      {/* ── HEADER: symbol + read badge ───────────────────────── */}
       <div className="px-4 pt-3 pb-3 flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1.5">
-          {/* Signal badge */}
           <span
             className="inline-flex items-center gap-1.5 font-black tracking-widest rounded-full self-start"
             style={{ fontSize: 10, color, background: bg, border: `1px solid ${border}`, padding: '3px 10px', letterSpacing: '0.12em' }}
@@ -58,7 +45,6 @@ function MoveCard({ move, index, onExplore }) {
             <Icon style={{ width: 10, height: 10 }} />
             {cfg.label}
           </span>
-          {/* Symbol */}
           <span className="font-mono font-black text-white" style={{ fontSize: 22, letterSpacing: '-0.02em', lineHeight: 1 }}>
             {safeRender(move.symbol)}
           </span>
@@ -67,7 +53,6 @@ function MoveCard({ move, index, onExplore }) {
           )}
         </div>
 
-        {/* Confidence + arrow */}
         <button
           onClick={onExplore}
           className="flex flex-col items-end gap-1 flex-shrink-0 mt-1"
@@ -82,7 +67,7 @@ function MoveCard({ move, index, onExplore }) {
         </button>
       </div>
 
-      {/* ── WHY (1 line) ──────────────────────────────────────── */}
+      {/* ── WHAT'S HAPPENING ──────────────────────────────────── */}
       {move.why && (
         <div className="px-4 pb-3" style={{ borderTop: '1px solid rgba(100,220,255,0.06)', paddingTop: 10 }}>
           <div className="flex items-start gap-2">
@@ -92,67 +77,30 @@ function MoveCard({ move, index, onExplore }) {
         </div>
       )}
 
-      {/* ── TRADE PLAN (compact grid) ─────────────────────────── */}
-      {(move.entry || move.positionSize || move.timeframe) && (
-        <div
-          className="px-4 py-3"
-          style={{ borderTop: '1px solid rgba(100,220,255,0.06)', background: accentBg }}
-        >
-          <div className="grid grid-cols-3 gap-3">
-            {move.entry && move.entry !== 'N/A' && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>{t('asset.entry', 'Entry')}</span>
-                <span className="text-xs font-mono font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>{safeRender(move.entry)}</span>
-              </div>
-            )}
-            {move.positionSize && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>{t('moves.size', 'Size')}</span>
-                <span className="text-xs font-mono font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>{safeRender(move.positionSize)}</span>
-              </div>
-            )}
-            {move.timeframe && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>{t('moves.hold', 'Hold')}</span>
-                <span className="text-xs font-mono font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>{safeRender(move.timeframe)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── ACTION + RISK ────────────────────────────────────── */}
-      <div style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
-        {/* Action instruction — UPPERCASE, command-style */}
-        <div className="px-4 py-2.5 flex items-start gap-2" style={{ background: `${color}08` }}>
-          <span className="text-lg flex-shrink-0 mt-0.5" style={{ color }}>⚡</span>
-          <p className="text-xs font-black leading-snug uppercase" style={{ color: 'rgba(255,255,255,0.95)', letterSpacing: '0.02em' }}>
-            {move.entry === 'N/A'
-              ? 'DO NOT ENTER'
-              : actionCmd}
-          </p>
-        </div>
-        {/* Risk */}
+      {/* ── WHAT WOULD CHANGE IT ──────────────────────────────── */}
+      {move.risk && (
         <div className="px-4 py-2.5 flex items-start gap-2" style={{ borderTop: '1px solid rgba(239,68,68,0.08)', background: 'rgba(239,68,68,0.04)' }}>
           <span className="text-[10px] flex-shrink-0 mt-0.5">⚠</span>
           <p className="text-xs leading-snug" style={{ color: 'rgba(252,165,165,0.7)' }}>
-            <span className="font-bold" style={{ color: 'rgba(248,113,113,0.85)' }}>{t('moves.risk', 'Risk')}: </span>
+            <span className="font-bold" style={{ color: 'rgba(248,113,113,0.85)' }}>{t('moves.risk', 'Would change it')}: </span>
             {safeRender(move.risk)}
           </p>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 }
 
 export default function YourMovesToday({ moves = [], onExplore }) {
   const { t } = useTranslation();
+  const subtitle = t('moves.subtitle', 'Live price context — informational, not investment advice');
+
   if (!moves || moves.length === 0) {
     return (
       <div>
         <div className="mb-4">
-          <h2 className="text-base font-black text-white tracking-tight">{t('moves.title', 'Your Moves Today')}</h2>
-          <p className="text-[11px] mt-0.5" style={{ color: 'rgba(180,210,240,0.4)' }}>{t('moves.subtitle', 'Live desk instructions — not advice')}</p>
+          <h2 className="text-base font-black text-white tracking-tight">{t('moves.title', "Today's Moves")}</h2>
+          <p className="text-[11px] mt-0.5" style={{ color: 'rgba(180,210,240,0.4)' }}>{subtitle}</p>
         </div>
         <div className="text-center py-8 text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
           {t('common.loading', 'Loading...')}
@@ -164,8 +112,8 @@ export default function YourMovesToday({ moves = [], onExplore }) {
   return (
     <div>
       <div className="mb-4">
-        <h2 className="text-base font-black text-white tracking-tight">{t('moves.title', 'Your Moves Today')}</h2>
-        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(180,210,240,0.4)' }}>{t('moves.subtitle', 'Live desk instructions — not advice')}</p>
+        <h2 className="text-base font-black text-white tracking-tight">{t('moves.title', "Today's Moves")}</h2>
+        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(180,210,240,0.4)' }}>{subtitle}</p>
       </div>
       <div className="space-y-3">
         {moves.map((move, i) => (

@@ -25,7 +25,6 @@ const AIInsights = lazy(() => import('./pages/AIInsights'));
 const Portfolio = lazy(() => import('./pages/Portfolio'));
 const Trade = lazy(() => import('./pages/Trade'));
 const Settings = lazy(() => import('./pages/Settings'));
-const PaperTrading = lazy(() => import('./pages/PaperTrading'));
 const Upgrade = lazy(() => import('./pages/Upgrade'));
 const AssetDetail = lazy(() => import('./pages/AssetDetail'));
 const Notifications = lazy(() => import('./pages/Notifications'));
@@ -137,7 +136,7 @@ const AppRoutesInner = () => {
           <Route path="/Trade" element={<LazyPage><Trade /></LazyPage>} />
           <Route path="/Settings" element={<LazyPage><Settings onLogout={logout} /></LazyPage>} />
           <Route path="/Upgrade" element={<LazyPage><Upgrade /></LazyPage>} />
-          <Route path="/PaperTrading" element={<LazyPage><PaperTrading /></LazyPage>} />
+          <Route path="/PaperTrading" element={<Navigate to="/Trade?tab=paper" replace />} />
           <Route path="/Notifications" element={<LazyPage><Notifications /></LazyPage>} />
           <Route path="/Asset/:symbol" element={<LazyPage><AssetDetail /></LazyPage>} />
           <Route path="/TradingSetup" element={<LazyPage><TradingSetup /></LazyPage>} />

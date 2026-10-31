@@ -50,7 +50,6 @@
 import AIInsights from './pages/AIInsights';
 import Markets from './pages/Markets';
 import Onboarding from './pages/Onboarding';
-import PaperTrading from './pages/PaperTrading';
 import Portfolio from './pages/Portfolio';
 import Settings from './pages/Settings';
 import SignIn from './pages/SignIn';
@@ -65,7 +64,6 @@ export const PAGES = {
     "AIInsights": AIInsights,
     "Markets": Markets,
     "Onboarding": Onboarding,
-    "PaperTrading": PaperTrading,
     "Portfolio": Portfolio,
     "Settings": Settings,
     "SignIn": SignIn,

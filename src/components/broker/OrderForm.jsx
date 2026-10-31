@@ -27,11 +27,11 @@ const TIF_OPTIONS = [
   { value: 'fok', label: 'FOK' },
 ];
 
-export default function OrderForm({ isLive, onOrderSuccess }) {
+export default function OrderForm({ isLive, onOrderSuccess, initialSymbol = '' }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [action, setAction] = useState('buy');
-  const [symbol, setSymbol] = useState('');
+  const [symbol, setSymbol] = useState(initialSymbol || '');
   const [qty, setQty] = useState('');
   const [orderType, setOrderType] = useState('market');
   const [tif, setTif] = useState('day');

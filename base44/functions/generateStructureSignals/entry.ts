@@ -244,14 +244,14 @@ function generateStructureSignals(marketData) {
       driver = `Real yield rise + guidance cuts from 2-3 large-caps triggering broad sell programs. 30-day put/call above 1.0 — hedging demand elevated.`;
       impact = `XLU (utilities) and GLD outperforming SPY by 200-300bp. XLK and XLY underperforming. TLT getting +0.5-1% bid as duration demand returns.`;
       bias = 'bearish';
-      risk = `SPY approaching 100-day MA — oversold bounce +2-3% in single session is likely. Covering shorts at key level is prudent.`;
+      risk = `SPY is approaching its 100-day MA — a single-session bounce of +2-3% has been the common outcome at this level.`;
     } else {
       headline = `Fear & Greed ${fg}/100 — VIX above 30, SPY -8-12% off highs, forced selling active`;
       state = `Fear & Greed at ${fg}/100. VIX ${vix.toFixed(1)}+. ${spyContext || ''} SPY below 50-day and 200-day moving averages. Leveraged ETF outflows record pace.`;
       driver = `Forced margin liquidations and stop-loss cascades. Hedge fund gross exposure -15-20% from peak. Systematic selling programs executing.`;
       impact = `All sectors declining. GLD and SHY (short-term Treasuries) only positive bids. Credit spreads widening +30-50bp from baseline.`;
       bias = 'bullish';
-      risk = `Capitulation not confirmed until VIX spikes to 40+ OR a gap-down reversal day occurs. Entry before confirmation risks catching falling knife.`;
+      risk = `Capitulation is not confirmed until VIX spikes to 40+ or a gap-down reversal day occurs. Historically the decline continues until one of those appears.`;
     }
 
     const signal = {
