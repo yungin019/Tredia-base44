@@ -91,6 +91,18 @@ export default function Settings({ onLogout }) {
         firebaseApiKey: auth.app?.options?.apiKey,
       });
       if (result?.error) throw new Error(result.error);
+      // A 200 alone proves nothing: only an explicit success — and a sign-in
+      // that is really gone — may show the "account deleted" screen.
+      if (result?.success !== true) {
+        throw new Error('Your account was not deleted. Nothing has been changed — please try again.');
+      }
+      const stillThere = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${auth.app?.options?.apiKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken: token }) }
+      ).then(r => r.json()).then(d => Array.isArray(d?.users) && d.users.length > 0).catch(() => false);
+      if (stillThere) {
+        throw new Error('Your sign-in still exists, so nothing was deleted. Please try again.');
+      }
       localStorage.clear();
       sessionStorage.clear();
       navigate('/SignIn?deleted=1', { replace: true });

@@ -30,12 +30,14 @@ function getBaseUrl() {
 
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
-    if (origin && !origin.includes('localhost') && !origin.includes('base44.com') && !origin.includes('capacitor')) {
-      return origin;
-    }
+    // Only the app's own *.base44.app subdomain (and the builder preview) serve
+    // the functions API. A custom domain answers /api/... with a non-function
+    // response, and the platform domain refuses function calls outright — both
+    // made writes silently do nothing while looking successful.
+    if (origin.endsWith('.base44.app')) return origin;
   }
 
-  return 'https://app.base44.com';
+  return 'https://tredio.base44.app';
 }
 
 function getAppId() {
