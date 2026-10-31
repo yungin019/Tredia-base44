@@ -25,7 +25,7 @@ export default function UpgradeCall({ onUpgrade }) {
         <div className="flex-1">
           <h3 className="font-bold text-white mb-1">{t('upgrade.unlockPower', 'Unlock the full power of TREK')}</h3>
           <p className="text-sm mb-4" style={{ color: 'rgba(180,210,240,0.6)' }}>
-            {t('upgrade.eliteFeature1', 'Unlimited TREK AI signals')} · {t('upgrade.eliteFeature3', 'Real-time price alerts')} · {t('upgrade.eliteFeature4', 'Advanced analytics')}
+            {t('upgrade.eliteFeature1', 'Unlimited TREK AI signals')} · {t('upgrade.priceAlerts', 'Price alerts')} · {t('upgrade.eliteFeature4', 'Advanced analytics')}
           </p>
           <button
             onClick={onUpgrade}

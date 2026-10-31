@@ -12,8 +12,8 @@ export default function TickerTape() {
       try {
         const assets = await fetchCoreAssets();
         if (cancelled) return;
-        // Real quotes only — anything without a live price is dropped, never faked.
-        setItems(assets.filter(a => typeof a.price === 'number' && typeof a.changePct === 'number'));
+        // Real quotes only — anything without a usable price and change is dropped, never faked.
+        setItems(assets.filter(a => Number.isFinite(Number(a.price)) && Number.isFinite(Number(a.changePct))));
       } catch (_) {
         if (!cancelled) setItems([]);
       }
@@ -32,17 +32,22 @@ export default function TickerTape() {
   return (
     <div className="w-full bg-gradient-to-r from-background via-background to-background overflow-hidden border-b border-white/[0.05] py-3 sticky top-0 z-10">
       <div className="ticker-animate flex gap-8 px-4">
-        {loop.map((item, i) => (
-          <div key={`${item.symbol}-${i}`} className="flex items-center gap-3 whitespace-nowrap flex-shrink-0">
-            <span className="font-mono font-bold text-white/90 text-sm">{item.symbol}</span>
-            <span className="font-mono text-white/60 text-xs">${item.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
-            <div className={`flex items-center gap-1 text-xs font-semibold ${item.changePct >= 0 ? 'text-chart-3' : 'text-destructive'}`}>
-              {item.changePct >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              <span>{Math.abs(item.changePct).toFixed(2)}%</span>
+        {loop.map((item, i) => {
+          const pct = Number(item.changePct);
+          const isUp = pct >= 0;
+          return (
+            <div key={`${item.symbol}-${i}`} className="flex items-center gap-3 whitespace-nowrap flex-shrink-0">
+              <span className="font-mono font-bold text-white/90 text-sm">{item.symbol}</span>
+              <span className="font-mono text-white/60 text-xs">${Number(item.price).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+              <div className={`flex items-center gap-1 text-xs font-semibold ${isUp ? 'text-chart-3' : 'text-destructive'}`}>
+                {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                {/* Always signed: gains get "+", losses keep their own "-" */}
+                <span className="tabular-nums">{isUp ? '+' : ''}{pct.toFixed(2)}%</span>
+              </div>
+              <span className="text-white/30 text-xs">·</span>
             </div>
-            <span className="text-white/30 text-xs">·</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

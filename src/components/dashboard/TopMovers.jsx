@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MiniSparkline from './MiniSparkline';
+import { PRICE_DATA_BADGE } from '@/lib/dataFreshness';
 
 export default function TopMovers({ stocks }) {
   const navigate = useNavigate();
@@ -13,8 +14,7 @@ export default function TopMovers({ stocks }) {
       <div className="px-5 py-4 border-b border-white/[0.05] flex items-center justify-between">
         <h3 className="text-sm font-semibold text-white/90">Top Movers</h3>
         <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
-          <span className="text-[9px] font-mono font-semibold text-chart-3/70 tracking-widest">LIVE</span>
+          <span className="text-[9px] font-mono font-semibold text-white/35 tracking-widest">{PRICE_DATA_BADGE}</span>
         </div>
       </div>
       <div>

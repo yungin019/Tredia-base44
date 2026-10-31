@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { EXPANDED_ASSETS, searchAssets } from '@/lib/assetDatabase';
 import { fetchMarketScan, fetchCryptoPrices } from '@/api/marketDataClient';
 import { deriveSignal } from '@/api/signalEngine';
+import { PRICE_DATA_LABEL } from '@/lib/dataFreshness';
 
 export default function ExpandedAssetList() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -192,7 +193,7 @@ export default function ExpandedAssetList() {
         {lastRefresh && (
           <span className="flex items-center gap-1.5">
             <RefreshCw className="h-3 w-3 text-primary" />
-            Real-time • Updated {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {PRICE_DATA_LABEL} • Updated {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
       </div>

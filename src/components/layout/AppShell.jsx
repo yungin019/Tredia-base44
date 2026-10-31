@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search, ChevronLeft } from 'lucide-react';
+import { Home, TrendingUp, Briefcase, Zap, Settings, Bell, Search, ChevronLeft, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import TredioAssistant from '@/components/ai/TredioAssistant';
@@ -10,6 +10,7 @@ import SearchModal from '@/components/ui/SearchModal';
 import GlobalAssetSearch from '@/components/ui/GlobalAssetSearch';
 import { useNavigation } from '@/lib/NavigationManager';
 import AlpacaConnectBanner from '@/components/broker/AlpacaConnectBanner';
+import { PRICE_DATA_BADGE } from '@/lib/dataFreshness';
 
 const NAV_CONFIG = [
   { path: '/Home',       icon: Home,       translationKey: 'nav.feed',      isTrek: false },
@@ -26,7 +27,7 @@ export default function AppShell({ onLogout }) {
   const location = useLocation();
   const { t } = useTranslation();
   const { isElite } = useSubscriptionStatus();
-  const { switchTab, goBack, canGoBack, getTabForPath, syncExternalNavigation } = useNavigation();
+  const { switchTab, goBack, canGoBack, getTabForPath, getTabForHighlight, syncExternalNavigation } = useNavigation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -101,7 +102,7 @@ export default function AppShell({ onLogout }) {
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-1 ml-2">
             {NAV_ITEMS.map((item) => {
-              const isActive = getTabForPath(location.pathname) === item.path;
+              const isActive = getTabForHighlight(location.pathname) === item.path;
               return (
                 <button key={item.path}
                   onClick={() => switchTab(item.path)}
@@ -148,10 +149,10 @@ export default function AppShell({ onLogout }) {
             </div>
           )}
 
-          {/* Live indicator */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-chart-3/8 border border-chart-3/15">
-            <span className="h-1.5 w-1.5 rounded-full bg-chart-3 live-pulse" />
-            <span className="text-[10px] font-mono font-semibold text-chart-3 tracking-wider">LIVE</span>
+          {/* Data freshness — the feed is delayed, never call it live */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+            <Clock className="h-3 w-3 text-white/40" />
+            <span className="text-[10px] font-mono font-semibold text-white/45 tracking-wider">{PRICE_DATA_BADGE}</span>
           </div>
 
           {/* Notifications */}
@@ -195,7 +196,7 @@ export default function AppShell({ onLogout }) {
         style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}>
         <div className="flex items-center justify-around py-1">
           {NAV_ITEMS.map((item) => {
-            const isActive = getTabForPath(location.pathname) === item.path;
+            const isActive = getTabForHighlight(location.pathname) === item.path;
             const activeColor = item.isTrek ? '#F59E0B' : 'hsl(var(--primary))';
             return (
               <button key={item.path}

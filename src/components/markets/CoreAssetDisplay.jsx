@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { fetchCoreAssets } from '@/api/marketDataClient';
+import { PRICE_DATA_SHORT } from '@/lib/dataFreshness';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 
 const CORE_SYMBOLS = ['AAPL', 'NVDA', 'TSLA', 'AMZN', 'SPY', 'QQQ', 'BTC', 'ETH'];
@@ -104,7 +105,7 @@ function AssetCardLive({ symbol, data, onClick }) {
       </div>
       <div className="mt-2 pt-2 text-[9px] text-white/30 flex items-center gap-1" style={{ borderTop: '1px solid rgba(100,220,255,0.06)' }}>
         <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
-        Live · {PROVIDER_LABELS[data.provider] || data.provider || 'Provider'}
+        {PRICE_DATA_SHORT} · {PROVIDER_LABELS[data.provider] || data.provider || 'Provider'}
       </div>
     </motion.button>
   );

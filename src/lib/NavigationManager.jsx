@@ -3,6 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 const TAB_ROOTS = ['/Home', '/Markets', '/AIInsights', '/Portfolio', '/Settings'];
 
+// Sub-pages that belong to another tab's flow: they light up that tab in the
+// navigation instead of falling back to Feed.
+const HIGHLIGHT_TAB_OVERRIDES = [
+  { prefix: '/Asset', tab: '/Markets' },
+];
+
 const NavigationContext = createContext(null);
 
 export function NavigationProvider({ children }) {
@@ -24,6 +30,14 @@ export function NavigationProvider({ children }) {
     // Exact match first, then prefix match (for sub-pages like /Asset/:symbol)
     return TAB_ROOTS.find(root => path === root || path.startsWith(root + '/')) || '/Home';
   }, []);
+
+  // Which tab should light up for a path (Asset pages highlight Markets)
+  const getTabForHighlight = useCallback((path) => {
+    const override = HIGHLIGHT_TAB_OVERRIDES.find(
+      o => path === o.prefix || path.startsWith(o.prefix + '/')
+    );
+    return override ? override.tab : getTabForPath(path);
+  }, [getTabForPath]);
 
   // Push a new path onto the current tab's stack
   const push = useCallback((path) => {
@@ -80,7 +94,7 @@ export function NavigationProvider({ children }) {
   }, []);
 
   return (
-    <NavigationContext.Provider value={{ push, goBack, switchTab, canGoBack, getTabForPath, activeTab, syncExternalNavigation, openAIChat }}>
+    <NavigationContext.Provider value={{ push, goBack, switchTab, canGoBack, getTabForPath, getTabForHighlight, activeTab, syncExternalNavigation, openAIChat }}>
       {children}
     </NavigationContext.Provider>
   );

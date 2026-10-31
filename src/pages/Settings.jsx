@@ -43,7 +43,7 @@ function Toggle({ checked, onChange }) {
 
 const PRO_FEATURES = [
   'Unlimited TREK signals',
-  'Real-time price alerts',
+  'Price alerts',
   'Advanced analytics & charts',
   'Priority support',
 ];

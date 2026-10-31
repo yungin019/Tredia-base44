@@ -19,7 +19,7 @@ export default function Upgrade() {
     t('upgrade.eliteFeature1', 'Unlimited TREK AI signals'),
     t('upgrade.eliteFeatureChats', 'Unlimited TREK AI chats'),
     t('upgrade.eliteFeature2', 'Super AI — 3-model consensus'),
-    t('upgrade.eliteFeature3', 'Real-time price alerts'),
+    t('upgrade.priceAlerts', 'Price alerts'),
     t('upgrade.eliteFeature4', 'Advanced analytics & charts'),
     t('upgrade.eliteFeature5', 'Priority support 24/7'),
   ];
@@ -27,7 +27,7 @@ export default function Upgrade() {
   const PRO_FEATURES = [
     t('upgrade.proFeature1', 'Unlimited TREK signals'),
     t('upgrade.proFeatureChats', '{{count}} TREK chats per day', { count: PRO_CHATS_PER_DAY }),
-    t('upgrade.proFeature2', 'Real-time price alerts'),
+    t('upgrade.priceAlerts', 'Price alerts'),
     t('upgrade.proFeature3', 'Advanced charts'),
   ];
 

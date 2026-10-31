@@ -15,6 +15,7 @@ import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import IntelligenceFeed from '@/components/feed/IntelligenceFeed.jsx';
 import GlobalMarketStateBanner from '@/components/ai/GlobalMarketStateBanner';
 import { useVisibilityAwareInterval } from '@/hooks/useVisibilityAwareInterval';
+import { PRICE_DATA_LABEL, PRICE_DATA_CADENCE } from '@/lib/dataFreshness';
 
 // Detect region from timezone
 function detectDefaultRegion() {
@@ -176,7 +177,7 @@ export default function Home() {
 
           {/* Live data indicator */}
           <div className="text-center text-xs pt-4 border-t border-white/5">
-            {dataStatus === 'live' && <span className="text-primary/50">✓ {t('home.realtimeActive', 'Real-time data active')}</span>}
+            {dataStatus === 'live' && <span className="text-primary/50">✓ {PRICE_DATA_LABEL} · {PRICE_DATA_CADENCE}</span>}
             {dataStatus === 'stale' && <span className="text-warning/50">⚠ {t('home.usingCached', 'Using cached data')}</span>}
           </div>
         </div>

@@ -16,6 +16,7 @@ import { SkeletonPrice } from '@/components/ui/SkeletonLoader';
 import { formatPrice, formatPercent, validatePrice, validatePercent, safeRender } from '@/lib/dataValidation';
 import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
 import { deriveSignal } from '@/api/signalEngine';
+import { PRICE_DATA_LABEL } from '@/lib/dataFreshness';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
@@ -411,16 +412,10 @@ export default function AssetDetail() {
                   <div className="text-2xl font-black font-mono text-white/95">
                     {pricePrefix}{formatPrice(asset.price, 2)}
                   </div>
-                  {tier === 'free' && (
-                    <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                      {t('asset.delayed15min', 'Delayed 15min')}
-                    </span>
-                  )}
-                  {(tier === 'pro' || tier === 'elite') && (
-                    <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
-                      {t('asset.realtime', 'Real-time')}
-                    </span>
-                  )}
+                  {/* Same feed for every tier — never claim real-time for payers */}
+                  <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                    {PRICE_DATA_LABEL}
+                  </span>
                 </div>
                 <div className={`flex items-center justify-end gap-1 text-[13px] font-bold font-mono ${isUp ? 'text-chart-3' : 'text-destructive'}`}>
                   {isUp ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}

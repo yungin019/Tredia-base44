@@ -11,6 +11,7 @@ import TrekScreener from '@/components/markets/TrekScreener.jsx';
 import CryptoAssets from '@/components/markets/CryptoAssets.jsx';
 import CommoditiesTab from '@/components/markets/CommoditiesTab.jsx';
 import CoreAssetDisplay from '@/components/markets/CoreAssetDisplay.jsx';
+import { PRICE_DATA_BADGE, PRICE_DATA_CADENCE } from '@/lib/dataFreshness';
 import TrekSignalsPreview from '@/components/markets/TrekSignalsPreview.jsx';
 import TickerTape from '@/components/dashboard/TickerTape';
 import IndexCardsSection from '@/components/markets/IndexCardsSection';
@@ -83,10 +84,10 @@ export default function Markets() {
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'rgb(14,200,220)' }} />
               <h2 className="text-sm font-bold text-white/85">{t('markets.coreAssets', 'Core Assets')}</h2>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full ml-1" style={{ background: 'rgba(14,200,220,0.1)', color: 'rgb(100,220,240)', border: '1px solid rgba(14,200,220,0.2)' }}>
-                LIVE
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full ml-1" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                {PRICE_DATA_BADGE}
               </span>
-              <span className="text-[10px] text-white/25 ml-auto">{t('markets.refreshes60s', 'Refreshes every 60s')}</span>
+              <span className="text-[10px] text-white/25 ml-auto">{PRICE_DATA_CADENCE}</span>
             </div>
             <CoreAssetDisplay />
           </motion.div>
