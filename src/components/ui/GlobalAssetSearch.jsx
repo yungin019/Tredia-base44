@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Globe, TrendingUp, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 import { useTranslation } from 'react-i18next';
 
 const QUICK_ASSETS = {
@@ -30,14 +30,14 @@ export default function GlobalAssetSearch() {
 
     setLoading(true);
     try {
-      const res = await base44.functions.invoke('stockPrices', {
+      const res = await invokeFunction('stockPrices', {
         mode: 'search',
         query: q,
         assetType: activeTab === 'all' ? 'all' : activeTab,
       });
 
-      if (res.data?.results) {
-        setResults(res.data.results);
+      if (res.results) {
+        setResults(res.results);
       }
     } catch (e) {
       console.error('Search failed:', e);

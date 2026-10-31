@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 
 export default function SPYSection() {
   const [spy, setSpy] = useState(null);
@@ -10,8 +10,8 @@ export default function SPYSection() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await base44.functions.invoke('stockPrices', { symbols: ['SPY'] });
-        const quote = res?.data?.prices?.SPY || null;
+        const res = await invokeFunction('stockPrices', { symbols: ['SPY'] });
+        const quote = res?.prices?.SPY || null;
         if (quote?.price > 0) {
           const changePct = quote.prevClose > 0 ? ((quote.price - quote.prevClose) / quote.prevClose) * 100 : 0;
           // The card below renders change/high/low/time, so store them all —

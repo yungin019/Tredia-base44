@@ -27,14 +27,33 @@ function setClientCached(key, data) {
   clientCache.set(key, { data, ts: Date.now() });
 }
 
+// In-flight de-duplication: the ticker tape and the core-asset grid mount
+// together, so both would otherwise fire the same request on every load.
+const inflightRequests = new Map();
+
 export async function fetchCoreAssets() {
   const cached = getClientCached('core');
   if (cached) return cached;
 
-  const data = await invokeMarketCore({ action: 'core' });
-  const assets = data?.assets || [];
-  if (assets.length > 0) setClientCached('core', assets);
-  return assets;
+  const pending = inflightRequests.get('core');
+  if (pending) return pending;
+
+  const task = (async () => {
+    try {
+      const data = await invokeMarketCore({ action: 'core' });
+      const assets = data?.assets || [];
+      if (assets.length > 0) setClientCached('core', assets);
+      return assets;
+    } catch (error) {
+      console.warn('[marketDataClient] core fetch failed:', error.message);
+      return [];
+    } finally {
+      inflightRequests.delete('core');
+    }
+  })();
+
+  inflightRequests.set('core', task);
+  return task;
 }
 
 export async function searchAssets(query) {

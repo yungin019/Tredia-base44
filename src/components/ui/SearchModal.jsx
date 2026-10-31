@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, TrendingUp, Clock, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 
 const QUICK_ACTIONS = [
   { label: 'View Portfolio', path: '/Portfolio', icon: '💼' },
@@ -120,12 +120,12 @@ export default function SearchModal({ isOpen, onClose }) {
     setSearching(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await base44.functions.invoke('stockPrices', {
+        const res = await invokeFunction('stockPrices', {
           mode: 'search',
           query: query.trim(),
           assetType: activeTab, // pass tab filter to backend
         });
-        const backendResults = res?.data?.results || [];
+        const backendResults = res?.results || [];
         if (backendResults.length > 0) {
           const seen = new Set();
           const merged = [...backendResults, ...local].filter(r => {

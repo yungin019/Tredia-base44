@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 
 // A proper candlestick chart using Canvas — avoids Recharts limitations for OHLC rendering
 export default function CandlestickChart({ symbol, timeframe = '1D', initialData = [] }) {
@@ -26,10 +26,10 @@ export default function CandlestickChart({ symbol, timeframe = '1D', initialData
     setData([]);
     setDataSource(null);
 
-    base44.functions.invoke('stockPrices', { symbol, mode: 'ohlc', timeframe })
+    invokeFunction('stockPrices', { symbol, mode: 'ohlc', timeframe })
       .then(res => {
-        const cd = res?.data?.chartData;
-        const src = res?.data?.source || 'unavailable';
+        const cd = res?.chartData;
+        const src = res?.source || 'unavailable';
         setDataSource(src);
         const validData = (cd && cd.length > 0) ? cd : [];
         setData(validData);

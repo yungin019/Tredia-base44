@@ -6,7 +6,7 @@
  * TIER 3: On-demand searchable (no global refresh, fetch-only)
  */
 
-import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 import { TIER1_ASSETS, TIER3_ALL, getAsset, getAssetClass, getProviderForAsset } from '@/lib/assetUniverse';
 
 // ── CACHE LAYER ────────────────────────────────────────────────────────
@@ -50,16 +50,16 @@ export const fetchTier1Core = async () => {
   const symbols = TIER1_ASSETS.map(a => a.symbol);
   
   try {
-    const res = await base44.functions.invoke('stockPrices', { symbols });
+    const res = await invokeFunction('stockPrices', { symbols });
     
-    if (!res?.data?.prices) {
+    if (!res?.prices) {
       console.warn('[Tier1] No data from provider');
       return [];
     }
 
     const results = [];
     symbols.forEach(symbol => {
-      const priceData = res.data.prices[symbol];
+      const priceData = res.prices[symbol];
       if (priceData) {
         setCached(symbol, priceData, 1);
         results.push({ symbol, ...priceData });
@@ -92,11 +92,11 @@ export const fetchTier2Priority = async (watchlistSymbols = []) => {
       const chunk = watchlistSymbols.slice(i, i + CHUNK_SIZE);
       
       try {
-        const res = await base44.functions.invoke('stockPrices', { symbols: chunk });
+        const res = await invokeFunction('stockPrices', { symbols: chunk });
         
-        if (res?.data?.prices) {
+        if (res?.prices) {
           chunk.forEach(symbol => {
-            const priceData = res.data.prices[symbol];
+            const priceData = res.prices[symbol];
             if (priceData) {
               setCached(symbol, priceData, 2);
               results.push({ symbol, ...priceData });
@@ -143,10 +143,10 @@ export const fetchTier3OnDemand = async (symbol) => {
   }
 
   try {
-    const res = await base44.functions.invoke('stockPrices', { symbols: [symbol] });
+    const res = await invokeFunction('stockPrices', { symbols: [symbol] });
     
-    if (res?.data?.prices?.[symbol]) {
-      const priceData = res.data.prices[symbol];
+    if (res?.prices?.[symbol]) {
+      const priceData = res.prices[symbol];
       setCached(symbol, priceData, 3);
       console.log(`[Tier3] ✓ Fetched: ${symbol}`);
       return { symbol, ...priceData };
@@ -185,11 +185,11 @@ export const fetchTier3Batch = async (symbols) => {
     const chunk = toFetch.slice(i, i + CHUNK_SIZE);
     
     try {
-      const res = await base44.functions.invoke('stockPrices', { symbols: chunk });
+      const res = await invokeFunction('stockPrices', { symbols: chunk });
       
-      if (res?.data?.prices) {
+      if (res?.prices) {
         chunk.forEach(symbol => {
-          const priceData = res.data.prices[symbol];
+          const priceData = res.prices[symbol];
           if (priceData) {
             setCached(symbol, priceData, 3);
             results.push({ symbol, ...priceData });

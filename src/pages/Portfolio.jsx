@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 import { getCurrentUser, db } from '@/api/userData';
 import { Briefcase, Plus, Trash2, ArrowUpRight, ArrowDownRight, PieChart, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -61,8 +62,8 @@ export default function Portfolio() {
       try {
         const symbols = (Array.isArray(holdings) ? holdings : []).map(h => h.symbol).filter(Boolean);
         if (symbols.length === 0) return;
-        const res = await base44.functions.invoke('stockPrices', { symbols });
-        if (res?.data?.prices) setLivePrices(res.data.prices);
+        const res = await invokeFunction('stockPrices', { symbols });
+        if (res?.prices) setLivePrices(res.prices);
       } catch {
         // keep avg_cost as fallback
       }

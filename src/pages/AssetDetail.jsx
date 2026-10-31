@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, TrendingUp, TrendingDown, ShieldAlert, Target, CheckCircle2, X, Bell, BellRing, ChevronDown, ChevronUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { invokeFunction } from '@/api/functionsClient';
 import { db, getCurrentUser } from '@/api/userData';
 import { sendPushNotification } from '@/api/notifications';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
@@ -250,9 +251,9 @@ export default function AssetDetail() {
     setLoadingData(true);
     setQuote(null);
     setAiConfidence(null);
-    base44.functions.invoke('stockPrices', { symbols: [symbol] })
+    invokeFunction('stockPrices', { symbols: [symbol] })
       .then(res => {
-        const q = res?.data?.prices?.[symbol];
+        const q = res?.prices?.[symbol];
         if (cancelled) return;
         const price = Number(q?.price);
         if (!(price > 0)) { setQuote(null); return; }

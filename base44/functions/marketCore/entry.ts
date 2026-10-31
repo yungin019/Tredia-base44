@@ -1,484 +1,183 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-
 /**
- * TREDIO Market Core Engine
+ * marketCore — the Markets screen's price feed.
  *
- * Serves two endpoints via ?action= param:
- *   action=core   → returns cached prices for 8 core assets (<1s)
- *   action=search → searches metadata + fetches live quotes (2.5s timeout)
+ * action=core   → price for the 8 core assets
+ * action=search → local symbol match + live quote
+ * action=debug  → cache + provider probe
  *
- * Providers:
- *   Polygon  → stocks + ETFs
- *   CoinGecko → crypto
- *
- * No Finnhub. No AlphaVantage. No TwelveData.
- * No cache fallback. No fake data. Honest "unavailable" on failure.
+ * Pricing goes through ../../shared/marketQuotes.ts (Finnhub for stocks,
+ * TwelveData for crypto, each with the other as fallback, 60s cache,
+ * single-flight). There is no poll guard any more: the previous version
+ * returned an empty cache to any request that arrived while a cold poll was
+ * already running, which is why concurrent page loads showed all eight core
+ * assets as "Unavailable / Offline".
  */
+import { getQuote, getQuotes, isCryptoSymbol } from '../../shared/marketQuotes.ts';
 
-// ── GLOBAL CACHE (persists across requests in same isolate) ──────────────
-// Using globalThis so cache survives between requests without reset
-globalThis._marketCache = globalThis._marketCache || new Map();
-globalThis._searchCache = globalThis._searchCache || new Map();
-globalThis._pollInProgress = globalThis._pollInProgress || false;
-globalThis._lastPollTime = globalThis._lastPollTime || 0;
+const CORE_SYMBOLS = ['AAPL', 'NVDA', 'TSLA', 'AMZN', 'SPY', 'QQQ', 'BTC', 'ETH'];
+const SEARCH_MATCH_LIMIT = 10;
+const SEARCH_QUOTE_LIMIT = 5;
 
-const coreCache = globalThis._marketCache;
-const searchCache = globalThis._searchCache;
-
-const CORE_SYMBOLS_STOCK = ['AAPL', 'NVDA', 'TSLA', 'AMZN', 'SPY', 'QQQ'];
-const CORE_SYMBOLS_CRYPTO = ['BTC', 'ETH'];
-const ALL_CORE = [...CORE_SYMBOLS_STOCK, ...CORE_SYMBOLS_CRYPTO];
-
-// Staleness thresholds
-const LIVE_THRESHOLD_MS = 120000;  // <2min → "live" (crypto is slow to change)
-const STALE_THRESHOLD_MS = 300000; // <5min → serve stale rather than unavailable
-const SEARCH_CACHE_TTL_MS = 45000; // 45s search cache
-
-// ── CRYPTO COIN MAP ──────────────────────────────────────────────────────
-const COIN_ID_MAP = {
-  BTC: 'bitcoin', ETH: 'ethereum', SOL: 'solana', XRP: 'ripple',
-  ADA: 'cardano', DOGE: 'dogecoin', MATIC: 'matic-network',
-  AVAX: 'avalanche-2', LINK: 'chainlink', UNI: 'uniswap',
-  DOT: 'polkadot', ATOM: 'cosmos', LTC: 'litecoin', BCH: 'bitcoin-cash'
+const SYMBOL_META: Record<string, { name: string; type: string; sector: string }> = {
+  AAPL: { name: 'Apple', type: 'stock', sector: 'Technology' },
+  NVDA: { name: 'NVIDIA', type: 'stock', sector: 'Technology' },
+  TSLA: { name: 'Tesla', type: 'stock', sector: 'Automotive' },
+  AMZN: { name: 'Amazon', type: 'stock', sector: 'Technology' },
+  MSFT: { name: 'Microsoft', type: 'stock', sector: 'Technology' },
+  META: { name: 'Meta', type: 'stock', sector: 'Technology' },
+  GOOGL: { name: 'Google', type: 'stock', sector: 'Technology' },
+  GOOG: { name: 'Google C', type: 'stock', sector: 'Technology' },
+  NFLX: { name: 'Netflix', type: 'stock', sector: 'Media' },
+  COIN: { name: 'Coinbase', type: 'stock', sector: 'Crypto' },
+  AMD: { name: 'Advanced Micro Devices', type: 'stock', sector: 'Technology' },
+  INTC: { name: 'Intel', type: 'stock', sector: 'Technology' },
+  QCOM: { name: 'Qualcomm', type: 'stock', sector: 'Technology' },
+  CRM: { name: 'Salesforce', type: 'stock', sector: 'Software' },
+  ADBE: { name: 'Adobe', type: 'stock', sector: 'Software' },
+  SNOW: { name: 'Snowflake', type: 'stock', sector: 'Software' },
+  DDOG: { name: 'Datadog', type: 'stock', sector: 'Software' },
+  SPOT: { name: 'Spotify', type: 'stock', sector: 'Media' },
+  UBER: { name: 'Uber', type: 'stock', sector: 'Technology' },
+  LYFT: { name: 'Lyft', type: 'stock', sector: 'Technology' },
+  ABNB: { name: 'Airbnb', type: 'stock', sector: 'Travel' },
+  PLTR: { name: 'Palantir', type: 'stock', sector: 'Software' },
+  JPM: { name: 'JPMorgan Chase', type: 'stock', sector: 'Finance' },
+  BAC: { name: 'Bank of America', type: 'stock', sector: 'Finance' },
+  GS: { name: 'Goldman Sachs', type: 'stock', sector: 'Finance' },
+  BLK: { name: 'BlackRock', type: 'stock', sector: 'Finance' },
+  JNJ: { name: 'Johnson & Johnson', type: 'stock', sector: 'Healthcare' },
+  PFE: { name: 'Pfizer', type: 'stock', sector: 'Healthcare' },
+  ABBV: { name: 'AbbVie', type: 'stock', sector: 'Healthcare' },
+  MRK: { name: 'Merck', type: 'stock', sector: 'Healthcare' },
+  WMT: { name: 'Walmart', type: 'stock', sector: 'Retail' },
+  KO: { name: 'Coca-Cola', type: 'stock', sector: 'Beverages' },
+  PEP: { name: 'PepsiCo', type: 'stock', sector: 'Food & Beverage' },
+  MCD: { name: "McDonald's", type: 'stock', sector: 'Restaurant' },
+  TSM: { name: 'TSMC', type: 'stock', sector: 'Semiconductors' },
+  ARM: { name: 'Arm Holdings', type: 'stock', sector: 'Semiconductors' },
+  SMCI: { name: 'Super Micro Computer', type: 'stock', sector: 'Hardware' },
+  RBLX: { name: 'Roblox', type: 'stock', sector: 'Gaming' },
+  UPST: { name: 'Upstart', type: 'stock', sector: 'FinTech' },
+  SPY: { name: 'S&P 500 ETF', type: 'etf', sector: 'Index' },
+  QQQ: { name: 'Nasdaq 100 ETF', type: 'etf', sector: 'Index' },
+  DIA: { name: 'Dow Jones ETF', type: 'etf', sector: 'Index' },
+  VOO: { name: 'Vanguard S&P 500', type: 'etf', sector: 'Index' },
+  VTI: { name: 'Vanguard Total Stock', type: 'etf', sector: 'Index' },
+  IWM: { name: 'Russell 2000 ETF', type: 'etf', sector: 'Index' },
+  ARKK: { name: 'ARK Innovation ETF', type: 'etf', sector: 'Growth' },
+  GLD: { name: 'Gold Trust ETF', type: 'etf', sector: 'Commodities' },
+  SLV: { name: 'Silver Trust ETF', type: 'etf', sector: 'Commodities' },
+  XLK: { name: 'Tech Select Sector ETF', type: 'etf', sector: 'Technology' },
+  XLF: { name: 'Finance Select ETF', type: 'etf', sector: 'Finance' },
+  XLE: { name: 'Energy Select ETF', type: 'etf', sector: 'Energy' },
+  TLT: { name: 'Long Treasury ETF', type: 'etf', sector: 'Fixed Income' },
+  SCHD: { name: 'Schwab Dividend ETF', type: 'etf', sector: 'Dividend' },
+  BTC: { name: 'Bitcoin', type: 'crypto', sector: 'Crypto' },
+  ETH: { name: 'Ethereum', type: 'crypto', sector: 'Crypto' },
+  SOL: { name: 'Solana', type: 'crypto', sector: 'Crypto' },
+  XRP: { name: 'Ripple', type: 'crypto', sector: 'Crypto' },
+  ADA: { name: 'Cardano', type: 'crypto', sector: 'Crypto' },
+  DOGE: { name: 'Dogecoin', type: 'crypto', sector: 'Crypto' },
+  MATIC: { name: 'Polygon', type: 'crypto', sector: 'Crypto' },
+  AVAX: { name: 'Avalanche', type: 'crypto', sector: 'Crypto' },
+  LINK: { name: 'Chainlink', type: 'crypto', sector: 'Crypto' },
+  DOT: { name: 'Polkadot', type: 'crypto', sector: 'Crypto' },
+  LTC: { name: 'Litecoin', type: 'crypto', sector: 'Crypto' },
 };
 
-// ── LOCAL SYMBOL METADATA ────────────────────────────────────────────────
-const SYMBOL_META = {
-  // Stocks
-  AAPL:  { name: 'Apple',                    type: 'stock', sector: 'Technology' },
-  NVDA:  { name: 'NVIDIA',                   type: 'stock', sector: 'Technology' },
-  TSLA:  { name: 'Tesla',                    type: 'stock', sector: 'Automotive' },
-  AMZN:  { name: 'Amazon',                   type: 'stock', sector: 'Technology' },
-  MSFT:  { name: 'Microsoft',                type: 'stock', sector: 'Technology' },
-  META:  { name: 'Meta',                     type: 'stock', sector: 'Technology' },
-  GOOGL: { name: 'Google',                   type: 'stock', sector: 'Technology' },
-  GOOG:  { name: 'Google C',                 type: 'stock', sector: 'Technology' },
-  NFLX:  { name: 'Netflix',                  type: 'stock', sector: 'Media' },
-  COIN:  { name: 'Coinbase',                 type: 'stock', sector: 'Crypto' },
-  AMD:   { name: 'Advanced Micro Devices',   type: 'stock', sector: 'Technology' },
-  INTC:  { name: 'Intel',                    type: 'stock', sector: 'Technology' },
-  QCOM:  { name: 'Qualcomm',                 type: 'stock', sector: 'Technology' },
-  CRM:   { name: 'Salesforce',               type: 'stock', sector: 'Software' },
-  ADBE:  { name: 'Adobe',                    type: 'stock', sector: 'Software' },
-  SNOW:  { name: 'Snowflake',                type: 'stock', sector: 'Software' },
-  DDOG:  { name: 'Datadog',                  type: 'stock', sector: 'Software' },
-  SPOT:  { name: 'Spotify',                  type: 'stock', sector: 'Media' },
-  UBER:  { name: 'Uber',                     type: 'stock', sector: 'Technology' },
-  LYFT:  { name: 'Lyft',                     type: 'stock', sector: 'Technology' },
-  ABNB:  { name: 'Airbnb',                   type: 'stock', sector: 'Travel' },
-  PLTR:  { name: 'Palantir',                 type: 'stock', sector: 'Software' },
-  JPM:   { name: 'JPMorgan Chase',           type: 'stock', sector: 'Finance' },
-  BAC:   { name: 'Bank of America',          type: 'stock', sector: 'Finance' },
-  GS:    { name: 'Goldman Sachs',            type: 'stock', sector: 'Finance' },
-  BLK:   { name: 'BlackRock',                type: 'stock', sector: 'Finance' },
-  JNJ:   { name: 'Johnson & Johnson',        type: 'stock', sector: 'Healthcare' },
-  PFE:   { name: 'Pfizer',                   type: 'stock', sector: 'Healthcare' },
-  ABBV:  { name: 'AbbVie',                   type: 'stock', sector: 'Healthcare' },
-  MRK:   { name: 'Merck',                    type: 'stock', sector: 'Healthcare' },
-  WMT:   { name: 'Walmart',                  type: 'stock', sector: 'Retail' },
-  KO:    { name: 'Coca-Cola',                type: 'stock', sector: 'Beverages' },
-  PEP:   { name: 'PepsiCo',                  type: 'stock', sector: 'Food & Beverage' },
-  MCD:   { name: "McDonald's",               type: 'stock', sector: 'Restaurant' },
-  TSM:   { name: 'TSMC',                     type: 'stock', sector: 'Semiconductors' },
-  ARM:   { name: 'Arm Holdings',             type: 'stock', sector: 'Semiconductors' },
-  SMCI:  { name: 'Super Micro Computer',     type: 'stock', sector: 'Hardware' },
-  RBLX:  { name: 'Roblox',                   type: 'stock', sector: 'Gaming' },
-  UPST:  { name: 'Upstart',                  type: 'stock', sector: 'FinTech' },
-  // ETFs
-  SPY:   { name: 'S&P 500 ETF',             type: 'etf', sector: 'Index' },
-  QQQ:   { name: 'Nasdaq 100 ETF',          type: 'etf', sector: 'Index' },
-  DIA:   { name: 'Dow Jones ETF',           type: 'etf', sector: 'Index' },
-  VOO:   { name: 'Vanguard S&P 500',        type: 'etf', sector: 'Index' },
-  VTI:   { name: 'Vanguard Total Stock',    type: 'etf', sector: 'Index' },
-  IWM:   { name: 'Russell 2000 ETF',        type: 'etf', sector: 'Index' },
-  ARKK:  { name: 'ARK Innovation ETF',      type: 'etf', sector: 'Growth' },
-  GLD:   { name: 'Gold Trust ETF',          type: 'etf', sector: 'Commodities' },
-  SLV:   { name: 'Silver Trust ETF',        type: 'etf', sector: 'Commodities' },
-  XLK:   { name: 'Tech Select Sector ETF',  type: 'etf', sector: 'Technology' },
-  XLF:   { name: 'Finance Select ETF',      type: 'etf', sector: 'Finance' },
-  XLE:   { name: 'Energy Select ETF',       type: 'etf', sector: 'Energy' },
-  TLT:   { name: 'Long Treasury ETF',       type: 'etf', sector: 'Fixed Income' },
-  SCHD:  { name: 'Schwab Dividend ETF',     type: 'etf', sector: 'Dividend' },
-  // Crypto
-  BTC:   { name: 'Bitcoin',  type: 'crypto', sector: 'Crypto', coinId: 'bitcoin' },
-  ETH:   { name: 'Ethereum', type: 'crypto', sector: 'Crypto', coinId: 'ethereum' },
-  SOL:   { name: 'Solana',   type: 'crypto', sector: 'Crypto', coinId: 'solana' },
-  XRP:   { name: 'Ripple',   type: 'crypto', sector: 'Crypto', coinId: 'ripple' },
-  ADA:   { name: 'Cardano',  type: 'crypto', sector: 'Crypto', coinId: 'cardano' },
-  DOGE:  { name: 'Dogecoin', type: 'crypto', sector: 'Crypto', coinId: 'dogecoin' },
-  MATIC: { name: 'Polygon',  type: 'crypto', sector: 'Crypto', coinId: 'matic-network' },
-  AVAX:  { name: 'Avalanche',type: 'crypto', sector: 'Crypto', coinId: 'avalanche-2' },
-  LINK:  { name: 'Chainlink',type: 'crypto', sector: 'Crypto', coinId: 'chainlink' },
-  DOT:   { name: 'Polkadot', type: 'crypto', sector: 'Crypto', coinId: 'polkadot' },
-  LTC:   { name: 'Litecoin', type: 'crypto', sector: 'Crypto', coinId: 'litecoin' },
-};
+const metaFor = (symbol: string) => SYMBOL_META[symbol] || { name: symbol, type: 'stock', sector: 'Unknown' };
 
-// ── PROVIDER FETCH HELPERS ───────────────────────────────────────────────
-
-/**
- * Fetch stock/ETF quotes via Finnhub — sequential with 200ms gap.
- * Finnhub free tier: 60 req/min — easily handles 6 symbols.
- */
-async function fetchStockQuotes(symbols, finnhubKey) {
-  const results = {};
-  const TIMEOUT = 4000;
-
-  for (const symbol of symbols) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
-      const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${finnhubKey}`;
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeoutId);
-
-      if (res.status === 429) {
-        console.warn(`[Finnhub] ${symbol} 429`);
-        results[symbol] = { status: 'unavailable', error: 'Finnhub rate limited' };
-        continue;
-      }
-      if (res.status !== 200) {
-        results[symbol] = { status: 'unavailable', error: `Finnhub HTTP ${res.status}` };
-        continue;
-      }
-
-      const data = await res.json();
-      // Finnhub: c=current, pc=prev close, d=change, dp=change%
-      const price = data.c || 0;
-      const changePct = data.dp || 0;
-
-      if (!price) {
-        results[symbol] = { status: 'unavailable', error: 'Zero price from Finnhub' };
-        continue;
-      }
-
-      results[symbol] = {
-        status: 'live',
-        price: parseFloat(price.toFixed(2)),
-        changePct: parseFloat(changePct.toFixed(2)),
-        timestamp: Date.now(),
-        provider: 'finnhub'
-      };
-      console.log(`[Finnhub] ✓ ${symbol}: $${results[symbol].price}`);
-    } catch (err) {
-      results[symbol] = { status: 'unavailable', error: err.message };
-      console.error(`[Finnhub] ${symbol} error:`, err.message);
-    }
-    // Small gap between calls — polite, not rate-limit-driven
-    await new Promise(r => setTimeout(r, 200));
+function assetPayload(symbol: string, quote: any) {
+  const meta = metaFor(symbol);
+  if (!quote || !(quote.price > 0)) {
+    return { symbol, name: meta.name, type: meta.type, sector: meta.sector, status: 'unavailable' };
   }
-
-  return results;
+  return {
+    symbol,
+    name: meta.name,
+    type: meta.type,
+    sector: meta.sector,
+    status: 'live',
+    price: quote.price,
+    changePct: quote.changePct ?? 0,
+    timestamp: quote.fetchedAt,
+    provider: quote.source,
+    ...(quote.stale ? { stale: true } : {}),
+  };
 }
 
-// Crypto quotes come from TwelveData. CoinGecko's public endpoint now answers
-// 403 to anonymous server callers, which is why every crypto quote read
-// "Unavailable"; TwelveData is the same provider the stock pipeline already uses.
-async function fetchCryptoQuotes(symbols) {
-  const TWELVE_KEY = Deno.env.get('TWELVEDATA_API_KEY') || '';
-  const results = {};
-
-  if (!TWELVE_KEY) {
-    symbols.forEach(s => { results[s] = { status: 'unavailable', error: 'Crypto provider not configured' }; });
-    return results;
-  }
-
-  await Promise.all(symbols.map(async (symbol) => {
-    try {
-      const res = await fetch(
-        `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbol)}/USD&apikey=${TWELVE_KEY}`,
-        { signal: AbortSignal.timeout(8000) }
-      );
-      const d = await res.json();
-      const price = parseFloat(d.close);
-
-      if (!(price > 0)) {
-        results[symbol] = { status: 'unavailable', error: d.message || 'No data from TwelveData' };
-        return;
-      }
-
-      const pct = parseFloat(d.percent_change);
-      results[symbol] = {
-        status: 'live',
-        price: parseFloat(price.toFixed(2)),
-        changePct: parseFloat((Number.isFinite(pct) ? pct : 0).toFixed(2)),
-        timestamp: Date.now(),
-        provider: 'twelvedata'
-      };
-    } catch (err) {
-      results[symbol] = { status: 'unavailable', error: err.message };
-    }
-  }));
-
-  return results;
-}
-
-// ── STALENESS CHECK ──────────────────────────────────────────────────────
-function computeStatus(cached) {
-  if (!cached) return 'unavailable';
-  const age = Date.now() - cached.timestamp;
-  if (age > STALE_THRESHOLD_MS) return 'unavailable'; // truly too old
-  if (age > LIVE_THRESHOLD_MS) return 'stale';        // serve with stale label
-  return 'live';
-}
-
-function buildCoreResponse() {
-  return ALL_CORE.map(symbol => {
-    const meta = SYMBOL_META[symbol] || { name: symbol, type: 'stock', sector: 'Unknown' };
-    const cached = coreCache.get(symbol);
-    const status = computeStatus(cached);
-
-    if (status === 'unavailable' || !cached) {
-      return { symbol, name: meta.name, type: meta.type, sector: meta.sector, status: 'unavailable' };
-    }
-
-    // Return stale data as 'live' — it's real data, just slightly old (within 5 min)
-    return {
-      symbol,
-      name: meta.name,
-      type: meta.type,
-      sector: meta.sector,
-      status: 'live',
-      price: cached.price,
-      changePct: cached.changePct,
-      timestamp: cached.timestamp,
-      provider: cached.provider,
-      stale: status === 'stale' ? true : undefined
-    };
-  });
-}
-
-// ── POLLER ───────────────────────────────────────────────────────────────
-// Polygon grouped endpoint = 1 API call for ALL stocks → no per-symbol 429s
-const POLL_INTERVAL_MS = 90000; // refresh every 90s — avoid Finnhub 429s
-
-async function pollCoreAssets(finnhubKey) {
-  const now = Date.now();
-  if (now - globalThis._lastPollTime < POLL_INTERVAL_MS) return; // too soon
-  if (globalThis._pollInProgress) return; // single global lock
-  globalThis._pollInProgress = true;
-  globalThis._lastPollTime = now;
-  console.log('[Poll] START');
-
-  try {
-    // Finnhub: sequential with 200ms gap — 6 calls, well within 60 req/min
-    const stockResults = await fetchStockQuotes(CORE_SYMBOLS_STOCK, finnhubKey);
-    Object.entries(stockResults).forEach(([sym, data]) => {
-      if (data.status === 'live') {
-        coreCache.set(sym, { price: data.price, changePct: data.changePct, timestamp: data.timestamp, provider: data.provider });
-      } else {
-        console.warn(`[Poll] ✗ ${sym}: ${data.error}`);
-      }
-    });
-
-    const cryptoResults = await fetchCryptoQuotes(CORE_SYMBOLS_CRYPTO);
-    Object.entries(cryptoResults).forEach(([sym, data]) => {
-      if (data.status === 'live') {
-        coreCache.set(sym, { price: data.price, changePct: data.changePct, timestamp: data.timestamp, provider: data.provider });
-      } else {
-        console.warn(`[Poll] ✗ ${sym}: ${data.error}`);
-      }
-    });
-  } catch (err) {
-    console.error('[Poll] Error:', err.message);
-  } finally {
-    globalThis._pollInProgress = false;
-    console.log('[Poll] DONE — cache size:', coreCache.size, '| keys:', [...coreCache.keys()].join(','));
-  }
-}
-
-// ── SEARCH HANDLER ───────────────────────────────────────────────────────
-async function handleSearch(query, finnhubKey) {
-  if (!query || query.trim().length < 1) return [];
-
-  const q = query.trim().toUpperCase();
-  const cacheKey = q;
-  const cached = searchCache.get(cacheKey);
-  if (cached && (Date.now() - cached.fetchedAt) < SEARCH_CACHE_TTL_MS) {
-    console.log(`[Search] Cache hit: ${q}`);
-    return cached.results;
-  }
-
-  // 1. Match from local metadata
-  const matched = [];
-  const seen = new Set();
-
-  Object.entries(SYMBOL_META).forEach(([sym, meta]) => {
-    if (seen.size >= 10) return;
-    if (
-      sym === q ||
-      sym.startsWith(q) ||
-      meta.name.toUpperCase().includes(q)
-    ) {
-      matched.push({ symbol: sym, ...meta });
-      seen.add(sym);
-    }
-  });
-
-  if (matched.length === 0) {
-    return [];
-  }
-
-  // 2. For each matched symbol — check core cache first, only fetch if missing
-  const symbolsToFetch = matched.slice(0, 5).map(m => m.symbol);
-  const priceResults = {};
-  const needsFetch = { stock: [], crypto: [] };
-
-  for (const sym of symbolsToFetch) {
-    const cached = coreCache.get(sym);
-    const status = computeStatus(cached);
-    if (cached && status !== 'unavailable') {
-      // ✅ Core cache hit — reuse directly, no provider call
-      console.log(`[Search] Core cache hit for ${sym}: $${cached.price}`);
-      priceResults[sym] = { status: 'live', price: cached.price, changePct: cached.changePct, timestamp: cached.timestamp, provider: cached.provider };
-    } else {
-      // ❌ Not in core cache — queue for provider fetch
-      const meta = SYMBOL_META[sym];
-      if (meta && meta.type === 'crypto') {
-        needsFetch.crypto.push(sym);
-      } else {
-        needsFetch.stock.push(sym);
-      }
+function matchSymbols(query: string) {
+  const q = query.toUpperCase();
+  const matched: string[] = [];
+  for (const symbol of Object.keys(SYMBOL_META)) {
+    if (matched.length >= SEARCH_MATCH_LIMIT) break;
+    const meta = SYMBOL_META[symbol];
+    if (symbol === q || symbol.startsWith(q) || meta.name.toUpperCase().includes(q)) {
+      matched.push(symbol);
     }
   }
-
-  // Only call providers for symbols not already in core cache
-  if (needsFetch.stock.length > 0 || needsFetch.crypto.length > 0) {
-    console.log(`[Search] Provider fetch needed for: ${[...needsFetch.stock, ...needsFetch.crypto].join(',')}`);
-    const [stockPrices, cryptoPrices] = await Promise.all([
-      needsFetch.stock.length > 0 ? fetchStockQuotes(needsFetch.stock, finnhubKey) : Promise.resolve({}),
-      needsFetch.crypto.length > 0 ? fetchCryptoQuotes(needsFetch.crypto) : Promise.resolve({})
-    ]);
-    Object.assign(priceResults, stockPrices, cryptoPrices);
-  } else {
-    console.log(`[Search] All symbols served from core cache — no provider calls made`);
-  }
-
-  // 3. Build response
-  const results = matched.slice(0, 10).map(meta => {
-    const price = priceResults[meta.symbol];
-
-    if (!price || price.status !== 'live') {
-      return {
-        symbol: meta.symbol,
-        name: meta.name,
-        type: meta.type || 'stock',
-        sector: meta.sector || 'Unknown',
-        status: 'unavailable'
-      };
-    }
-
-    return {
-      symbol: meta.symbol,
-      name: meta.name,
-      type: meta.type || 'stock',
-      sector: meta.sector || 'Unknown',
-      status: 'live',
-      price: price.price,
-      changePct: price.changePct,
-      timestamp: price.timestamp,
-      provider: price.provider
-    };
-  });
-
-  // Cache results
-  searchCache.set(cacheKey, { results, fetchedAt: Date.now() });
-
-  return results;
+  return matched;
 }
 
-// ── MAIN HANDLER ─────────────────────────────────────────────────────────
+async function handleSearch(query: string) {
+  const matched = matchSymbols(query);
+  if (matched.length === 0) return [];
+
+  const quotes = await getQuotes(matched.slice(0, SEARCH_QUOTE_LIMIT));
+  return matched.map((symbol) => assetPayload(symbol, quotes[symbol]));
+}
+
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    // Market data is public-safe — no user auth required.
-    // Using asServiceRole for any entity access below.
-
-    const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY');
-    if (!FINNHUB_KEY) {
-      return Response.json({ error: 'FINNHUB_API_KEY not set' }, { status: 500 });
-    }
-
     const body = await req.json().catch(() => ({}));
     const action = body.action || 'core';
 
-    // ── ACTION: debug ─────────────────────────────────────────────────────
     if (action === 'debug') {
-      const cacheState = {};
-      coreCache.forEach((v, k) => { cacheState[k] = v; });
-      console.log('CACHE STATE:', JSON.stringify(cacheState));
-
-      const stockResult = await fetchStockQuotes(['AAPL', 'TSLA', 'NVDA'], FINNHUB_KEY);
-      console.log('FETCH RESULT: AAPL', JSON.stringify(stockResult.AAPL));
-      console.log('FETCH RESULT: TSLA', JSON.stringify(stockResult.TSLA));
-      console.log('FETCH RESULT: NVDA', JSON.stringify(stockResult.NVDA));
-
-      const cryptoResult = await fetchCryptoQuotes(['BTC']);
-      console.log('FETCH RESULT: BTC', JSON.stringify(cryptoResult.BTC));
-
-      const debugPayload = {
-        cache: cacheState,
-        finnhub_aapl: stockResult.AAPL,
-        finnhub_tsla: stockResult.TSLA,
-        finnhub_nvda: stockResult.NVDA,
-        crypto_btc: cryptoResult.BTC,
-        finnhubKeyPresent: !!FINNHUB_KEY,
-        timestamp: Date.now()
-      };
-      console.log('FINAL PAYLOAD:', JSON.stringify(debugPayload));
-      return Response.json(debugPayload);
-    }
-
-    // ── ACTION: core ──────────────────────────────────────────────────────
-    if (action === 'core') {
-      console.log('[Core] cache size:', coreCache.size, 'pollInProgress:', globalThis._pollInProgress, 'lastPollTime:', globalThis._lastPollTime);
-
-      if (coreCache.size === 0) {
-        // First request or cold boot — block until poll completes so we return real data
-        console.log('[Core] Cold cache — running sync poll');
-        await pollCoreAssets(FINNHUB_KEY);
-      } else {
-        // Cache warm — refresh in background only
-        pollCoreAssets(FINNHUB_KEY).catch(err => console.error('[BG Poll]', err.message));
-      }
-
-      const response = buildCoreResponse();
-      const liveCount = response.filter(r => r.status === 'live').length;
-      console.log('[Core] Returning', liveCount, '/', response.length, 'live assets');
-
+      const [aapl, btc] = await Promise.all([getQuote('AAPL'), getQuote('BTC')]);
       return Response.json({
-        assets: response,
-        meta: {
-          total: response.length,
-          live: liveCount,
-          unavailable: response.length - liveCount,
-          cacheAgeMs: globalThis._lastPollTime ? Date.now() - globalThis._lastPollTime : null,
-          timestamp: Date.now()
-        }
+        aapl,
+        btc,
+        finnhubKeyPresent: !!Deno.env.get('FINNHUB_API_KEY'),
+        twelveKeyPresent: !!Deno.env.get('TWELVEDATA_API_KEY'),
+        timestamp: Date.now(),
       });
     }
 
-    // ── ACTION: search ────────────────────────────────────────────────────
+    if (action === 'core') {
+      const quotes = await getQuotes(CORE_SYMBOLS);
+      const assets = CORE_SYMBOLS.map((symbol) => assetPayload(symbol, quotes[symbol]));
+      const live = assets.filter((a) => a.status === 'live').length;
+      console.log(`[Core] ${live}/${assets.length} live — ${assets.filter((a) => a.status === 'live').map((a) => `${a.symbol}:${a.provider}`).join(', ')}`);
+      return Response.json({
+        assets,
+        meta: { total: assets.length, live, unavailable: assets.length - live, timestamp: Date.now() },
+      });
+    }
+
     if (action === 'search') {
-      const query = body.query || body.q || '';
-      if (!query.trim()) {
-        return Response.json({ results: [], meta: { query: '' } });
-      }
-
-      const results = await handleSearch(query, FINNHUB_KEY);
-
+      const query = String(body.query || body.q || '').trim();
+      if (!query) return Response.json({ results: [], meta: { query: '' } });
+      const results = await handleSearch(query);
       return Response.json({
         results,
         meta: {
           query,
           count: results.length,
-          live: results.filter(r => r.status === 'live').length,
-          timestamp: Date.now()
-        }
+          live: results.filter((r) => r.status === 'live').length,
+          timestamp: Date.now(),
+        },
       });
+    }
+
+    if (action === 'crypto') {
+      // Kept for callers that still ask for the crypto pair explicitly.
+      const quote = await getQuote(String(body.symbol || 'BTC'));
+      return Response.json({ quote, isCrypto: isCryptoSymbol(String(body.symbol || '')) });
     }
 
     return Response.json({ error: `Unknown action: ${action}` }, { status: 400 });
   } catch (error) {
+    console.error('[marketCore] error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
