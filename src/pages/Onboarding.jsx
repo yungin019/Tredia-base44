@@ -8,6 +8,7 @@ import { claimFoundingMemberSlot } from '@/api/foundingMembers';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import { useCurrency } from '@/hooks/useCurrency';
+import { getProductId } from '@/lib/revenuecat-config';
 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
@@ -74,7 +75,7 @@ export default function Onboarding() {
       setOgPurchaseError('Purchases are not ready yet. Please wait a moment and try again.');
       return;
     }
-    const success = await makePurchase('tredio_elite_monthly');
+    const success = await makePurchase(getProductId('og100', 'monthly'));
     if (!success) {
       const errMsg = purchaseError || 'Purchase not completed. Try again or skip.';
       setOgPurchaseError(errMsg);

@@ -8,6 +8,7 @@ import { getCurrentUser } from '@/api/userData';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import { getProductId } from '@/lib/revenuecat-config';
 import { useCurrency } from '@/hooks/useCurrency';
+import { PLAN_PRICES, MAX_ANNUAL_SAVING, TRIAL_DAYS, PRO_CHATS_PER_DAY, FREE_TIER_LIMITS } from '@/lib/pricing';
 
 export default function Upgrade() {
   const { t } = useTranslation();
@@ -16,15 +17,23 @@ export default function Upgrade() {
 
   const ELITE_FEATURES = [
     t('upgrade.eliteFeature1', 'Unlimited TREK AI signals'),
+    t('upgrade.eliteFeatureChats', 'Unlimited TREK AI chats'),
     t('upgrade.eliteFeature2', 'Super AI — 3-model consensus'),
     t('upgrade.eliteFeature3', 'Real-time price alerts'),
     t('upgrade.eliteFeature4', 'Advanced analytics & charts'),
     t('upgrade.eliteFeature5', 'Priority support 24/7'),
   ];
 
+  const PRO_FEATURES = [
+    t('upgrade.proFeature1', 'Unlimited TREK signals'),
+    t('upgrade.proFeatureChats', '{{count}} TREK chats per day', { count: PRO_CHATS_PER_DAY }),
+    t('upgrade.proFeature2', 'Real-time price alerts'),
+    t('upgrade.proFeature3', 'Advanced charts'),
+  ];
+
   const FOUNDING_FEATURES = [
     t('upgrade.foundingFeature1', 'Elite FREE for 30 days'),
-    `Then ${formatPrice(8.99)}/month for life (normally ${formatPrice(17.99)})`,
+    `Then ${formatPrice(PLAN_PRICES.og100.monthly)}/month for life (half of Elite, normally ${formatPrice(PLAN_PRICES.elite.monthly)})`,
     t('upgrade.foundingFeature3', 'OG Founding Member badge'),
     t('upgrade.foundingFeature4', 'Personal referral link'),
     t('upgrade.foundingFeature5', 'Early access to new features'),
@@ -63,6 +72,10 @@ export default function Upgrade() {
       const user = await getCurrentUser();
       const userId = user?.email || user?.id;
       if (!userId) return;
+      const productId = getProductId('og100', 'monthly');
+      if (!productId) { setLastPurchaseError('Product configuration error'); return; }
+      const purchased = await makePurchase(productId);
+      if (!purchased) { if (purchaseError) setLastPurchaseError(purchaseError); return; }
       const member = await claimFoundingMemberSlot(userId);
       if (member) {
         setJoined(true);
@@ -128,6 +141,9 @@ export default function Upgrade() {
               </li>
             ))}
           </ul>
+          <p className="text-[10px] text-white/30 mb-5 leading-relaxed">
+            {t('upgrade.foundingTerms', 'Capped at 100 members. Your $8.99/mo for life price stays valid while your subscription remains active.')}
+          </p>
           <div className="mb-5">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">
@@ -184,9 +200,14 @@ export default function Upgrade() {
         <button onClick={() => setBillingCycle('annual')}
           className={"px-4 py-2 rounded-lg font-bold text-xs transition-all relative " + (billingCycle === 'annual' ? 'bg-[#F59E0B] text-[#0A0A0F]' : 'bg-white/[0.04] text-white/50 hover:bg-white/[0.06]')}>
           {t('upgrade.annual', 'Annual')}
-          <span className="absolute -top-5 right-0 text-[9px] text-[#F59E0B] font-black">{t('upgrade.save25', 'Save 25%')}</span>
+          <span className="absolute -top-5 right-0 text-[9px] text-[#F59E0B] font-black">Save {MAX_ANNUAL_SAVING}%</span>
         </button>
       </motion.div>
+
+      {/* Free tier limits */}
+      <p className="text-center text-[11px] text-white/30 px-4">
+        {t('upgrade.freeTierLine', 'Free: {{signals}} TREK signals/day · {{chats}} TREK chats/day · unlimited paper trading', { signals: FREE_TIER_LIMITS.signalsPerDay, chats: FREE_TIER_LIMITS.chatsPerDay })}
+      </p>
 
       {/* Elite Plan */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
@@ -196,10 +217,13 @@ export default function Upgrade() {
           <span className="text-[10px] font-black tracking-[0.18em] uppercase text-[#F59E0B]">{t('upgrade.elite', 'ELITE')}</span>
         </div>
         <p className="text-2xl font-black text-white/90 mb-1">
-          {billingCycle === 'monthly' ? formatPrice(17.99) : formatPrice(179.9)}
+          {billingCycle === 'monthly' ? formatPrice(PLAN_PRICES.elite.monthly) : formatPrice(PLAN_PRICES.elite.annual)}
           <span className="text-sm font-medium text-white/35">{billingCycle === 'monthly' ? '/mo' : '/yr'}</span>
         </p>
-        <p className="text-xs text-white/30 mb-5">{t('trek.subtitle', 'AI-powered trading intelligence')}</p>
+        <p className="text-xs text-white/30 mb-1">{t('trek.subtitle', 'AI-powered trading intelligence')}</p>
+        <p className="text-xs text-[#F59E0B]/70 mb-5">
+          {t('upgrade.trialLine', '{{days}}-day free trial, then {{price}}/{{cycle}}', { days: TRIAL_DAYS, price: billingCycle === 'monthly' ? formatPrice(PLAN_PRICES.elite.monthly) : formatPrice(PLAN_PRICES.elite.annual), cycle: billingCycle === 'monthly' ? 'mo' : 'yr' })}
+        </p>
         <ul className="space-y-2.5 mb-6">
           {ELITE_FEATURES.map(f => (
             <li key={f} className="flex items-center gap-2.5 text-sm text-white/55">
@@ -226,12 +250,15 @@ export default function Upgrade() {
         className="rounded-xl border border-white/[0.06] bg-[#111118] p-6">
         <span className="text-[10px] font-black tracking-[0.18em] uppercase text-white/40">{t('upgrade.pro', 'PRO')}</span>
         <p className="text-2xl font-black text-white/90 mb-1 mt-1">
-          {billingCycle === 'monthly' ? formatPrice(8.99) : formatPrice(89.9)}
+          {billingCycle === 'monthly' ? formatPrice(PLAN_PRICES.pro.monthly) : formatPrice(PLAN_PRICES.pro.annual)}
           <span className="text-sm font-medium text-white/35">{billingCycle === 'monthly' ? '/mo' : '/yr'}</span>
         </p>
-        <p className="text-xs text-white/30 mb-5">{t('upgrade.unlockPower', 'Unlock the full power of TREK')}</p>
+        <p className="text-xs text-white/30 mb-1">{t('upgrade.unlockPower', 'Unlock the full power of TREK')}</p>
+        <p className="text-xs text-[#F59E0B]/70 mb-5">
+          {t('upgrade.trialLine', '{{days}}-day free trial, then {{price}}/{{cycle}}', { days: TRIAL_DAYS, price: billingCycle === 'monthly' ? formatPrice(PLAN_PRICES.pro.monthly) : formatPrice(PLAN_PRICES.pro.annual), cycle: billingCycle === 'monthly' ? 'mo' : 'yr' })}
+        </p>
         <ul className="space-y-2.5 mb-6">
-          {[t('upgrade.proFeature1', 'Unlimited TREK signals'), t('upgrade.proFeature2', 'Real-time price alerts'), t('upgrade.proFeature3', 'Advanced charts')].map(f => (
+          {PRO_FEATURES.map(f => (
             <li key={f} className="flex items-center gap-2.5 text-sm text-white/55">
               <span className="text-white/30">✓</span> {f}
             </li>
@@ -252,6 +279,8 @@ export default function Upgrade() {
         </button>
         <p className="text-[10px] text-white/15 text-center max-w-xs leading-relaxed">
           {t('upgrade.legalNote', 'Subscriptions auto-renew unless cancelled. Cancel anytime in Settings → App Store.')}
+          <br />
+          {t('upgrade.fairUse', 'Fair use: AI requests are limited to 20 per minute per account so the service stays available for everyone.')}
         </p>
       </motion.div>
     </div>

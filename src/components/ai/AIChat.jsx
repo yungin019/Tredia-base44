@@ -11,6 +11,7 @@ import { buildMarketContext } from '@/api/marketContext';
 import { base44 } from '@/api/base44Client';
 import { getCurrentUser } from '@/api/userData';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
+import { FREE_TIER_LIMITS, PRO_CHATS_PER_DAY } from '@/lib/pricing';
 import QueryLimitModal from './QueryLimitModal';
 import TrekResponseRenderer from './TrekResponseRenderer';
 import SuperAIPanel from './SuperAIPanel';
@@ -44,7 +45,8 @@ const QUERY_LIMIT_KEY = 'trek_daily_queries';
 const QUERY_LIMIT_DATE_KEY = 'trek_query_date';
 const SUPER_AI_LIMIT_KEY = 'superai_daily_queries';
 const SUPER_AI_DATE_KEY = 'superai_query_date';
-const FREE_LIMIT = 5;
+const FREE_LIMIT = FREE_TIER_LIMITS.chatsPerDay;
+const PRO_LIMIT = PRO_CHATS_PER_DAY;
 const PRO_SUPER_AI_LIMIT = 10;
 
 function getQuestionsToday() {
@@ -90,6 +92,8 @@ function incrementSuperAI() {
 export default function AIChat() {
   const { t } = useTranslation();
   const { tier } = useSubscriptionStatus();
+  // Daily chat quota: 3 (free), 30 (pro), unlimited (elite).
+  const chatLimit = tier === 'free' ? FREE_LIMIT : tier === 'pro' ? PRO_LIMIT : null;
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -123,8 +127,8 @@ export default function AIChat() {
     const q = (text || input).trim();
     if (!q) return;
     
-    // Enforce FREE tier limit (5 questions/day)
-    if (tier === 'free' && questionsToday >= FREE_LIMIT) {
+    // Enforce the daily chat quota for the current tier
+    if (chatLimit !== null && questionsToday >= chatLimit) {
       setShowLimitModal(true);
       return;
     }
@@ -164,7 +168,7 @@ export default function AIChat() {
 
   return (
     <>
-      <QueryLimitModal isOpen={showLimitModal} onClose={() => setShowLimitModal(false)} />
+      <QueryLimitModal isOpen={showLimitModal} onClose={() => setShowLimitModal(false)} limit={chatLimit} tier={tier} />
 
       {/* Super AI Panel - shown above the chat when active */}
       <AnimatePresence>
@@ -288,6 +292,11 @@ export default function AIChat() {
         )}
         {tier === 'pro' && (
           <div style={{ fontSize: 10, color: 'rgba(34,197,94,0.6)', textAlign: 'center', marginBottom: 8, background: 'rgba(34,197,94,0.08)', borderRadius: 6, padding: '6px' }}>
+            {t('chat.questionsRemaining', 'TREK Chat: {{used}}/{{total}} questions today', { used: questionsToday, total: PRO_LIMIT })}
+          </div>
+        )}
+        {tier === 'elite' && (
+          <div style={{ fontSize: 10, color: 'rgba(34,197,94,0.6)', textAlign: 'center', marginBottom: 8, background: 'rgba(34,197,94,0.08)', borderRadius: 6, padding: '6px' }}>
             {t('chat.unlimited', 'TREK Chat: Unlimited')}
           </div>
         )}
@@ -297,7 +306,7 @@ export default function AIChat() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !loading && send()}
-            disabled={tier === 'free' && questionsToday >= FREE_LIMIT}
+            disabled={chatLimit !== null && questionsToday >= chatLimit}
             className="bg-white/[0.04] border-white/[0.07] h-9 text-[12px] text-white/80 placeholder:text-white/20 focus:border-primary/40 disabled:opacity-50"
           />
           {/* Super AI Button */}
@@ -327,7 +336,7 @@ export default function AIChat() {
           </button>
           <Button
             onClick={() => send()}
-            disabled={loading || !input.trim() || (tier === 'free' && questionsToday >= FREE_LIMIT)}
+            disabled={loading || !input.trim() || (chatLimit !== null && questionsToday >= chatLimit)}
             size="sm"
             className="h-9 px-3 bg-primary hover:bg-primary/90 text-primary-foreground"
           >

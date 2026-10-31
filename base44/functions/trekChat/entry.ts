@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { verifyFirebaseToken, tokenFromRequest } from '../../shared/firebaseAuth.ts';
+import { allowAiRequest, AI_RATE_LIMIT_REPLY } from '../../shared/aiRateLimit.ts';
 // Multi-model synthesis: Claude + OpenAI run in parallel as independent analysts,
 // then Claude synthesizes the best combined verdict with calibrated confidence %.
 
@@ -127,8 +128,12 @@ Deno.serve(async (req) => {
       }, { status: 401 });
     }
 
-    const { messages, systemPrompt, marketContext, lang } = body;
+    // Fair-use ceiling: 20 AI requests per minute per account
+    if (!allowAiRequest(identity.uid)) {
+      return Response.json({ error: 'RATE_LIMITED', reply: AI_RATE_LIMIT_REPLY }, { status: 429 });
+    }
 
+    const { messages, systemPrompt, marketContext, lang } = body;
     // Language instruction prepended to every system prompt
     const LANG_NAMES = {
       'en': 'English', 'fr': 'French', 'sv': 'Swedish', 'es': 'Spanish',

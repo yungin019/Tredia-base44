@@ -34,6 +34,8 @@ export const REVENUECAT_CONFIG = {
     elite_annual: 'tredio_elite_annual',
     pro_monthly: 'tredio_pro_monthly',
     pro_annual: 'tredio_pro_annual',
+    // OG100 = Elite benefits at $8.99/mo for life, attached to the elite entitlement
+    og100_monthly: 'tredio_og100_monthly',
     yearly: 'yearly',
     lifetime: 'lifetime'
   },

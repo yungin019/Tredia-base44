@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { allowAiRequest, AI_RATE_LIMIT_REPLY } from '../../shared/aiRateLimit.ts';
 
 const CLAUDE_TECHNICAL_PROMPT = `You are the technical analysis engine of TREK. Analyze the asset using: price action, moving averages (20, 50, 200 MA), RSI, MACD, volume, support/resistance levels, chart patterns. Give a clear BULLISH/BEARISH/NEUTRAL verdict with specific price levels. Be concise — max 100 words. End with: Verdict: BULLISH or BEARISH or NEUTRAL`;
 
@@ -107,6 +108,11 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Fair-use ceiling: 20 AI requests per minute per account
+    if (!allowAiRequest(user.id)) {
+      return Response.json({ error: 'RATE_LIMITED', message: AI_RATE_LIMIT_REPLY }, { status: 429 });
+    }
 
     // Tier gate: Super AI requires pro or elite
     const allowedTiers = ['pro', 'elite', 'yearly', 'lifetime'];

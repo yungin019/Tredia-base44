@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-export default function QueryLimitModal({ isOpen, onClose }) {
+export default function QueryLimitModal({ isOpen, onClose, limit = 3, tier = 'free' }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -40,8 +40,12 @@ export default function QueryLimitModal({ isOpen, onClose }) {
           <h2 className="text-lg font-black text-white/95">{t('queryLimit.title', 'Daily Limit Reached')}</h2>
         </div>
 
-        <p className="text-sm text-white/60 mb-1">{t('queryLimit.usedQueries', 'You\'ve used your 5 free TREK queries today.')}</p>
-        <p className="text-sm text-white/40 mb-6">{t('queryLimit.upgradeHint', 'Upgrade to PRO or ELITE for unlimited access and premium features.')}</p>
+        <p className="text-sm text-white/60 mb-1">{t('queryLimit.usedQueries', "You've used your {{limit}} TREK chats today.", { limit })}</p>
+        <p className="text-sm text-white/40 mb-6">
+          {tier === 'pro'
+            ? t('queryLimit.upgradeHintElite', 'Upgrade to ELITE for unlimited TREK chats.')
+            : t('queryLimit.upgradeHint', 'Upgrade to PRO or ELITE for more signals and chats.')}
+        </p>
 
         <div className="space-y-3">
           <Button
