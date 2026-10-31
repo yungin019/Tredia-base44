@@ -9,6 +9,10 @@ import { verifyFirebaseToken, tokenFromRequest } from '../../shared/firebaseAuth
  * account email so both current and legacy rows are removed. The Firebase Auth
  * record itself is deleted by the client immediately after this call succeeds
  * (firebase/auth deleteUser), which is what frees the email for a new signup.
+ *
+ * The wipe is verified before returning: if anything still belongs to the
+ * account the call fails, so the client never deletes the login while the data
+ * is still there.
  */
 Deno.serve(async (req) => {
   try {
@@ -45,20 +49,50 @@ Deno.serve(async (req) => {
     ];
 
     const deleted: Record<string, number> = {};
+    const errors: string[] = [];
+
+    // Server-side delete by owner key, then a list + in-memory pass, then a
+    // verification read.
+    const ownedRows = async (entity: string, field: string) => {
+      const page = await db[entity].list('-created_date', 1000);
+      const rows = page?.items || page || [];
+      return rows.filter((row: any) => row && keys.includes(row[field]));
+    };
 
     for (const { entity, field } of targets) {
+      const name = `${entity}.${field}`;
       for (const key of keys) {
         try {
-          const rows = await db[entity].filter({ [field]: key }, { limit: 200 });
-          for (const row of rows?.items || rows || []) {
-            await db[entity].delete(row.id);
-            const name = `${entity}.${field}`;
-            deleted[name] = (deleted[name] || 0) + 1;
-          }
+          await db[entity].deleteMany({ [field]: key });
         } catch (err) {
-          console.warn(`[deleteUserData] ${entity}.${field}=${key} failed:`, err.message);
+          errors.push(`${name}: ${err.message}`);
         }
       }
+      try {
+        for (const row of await ownedRows(entity, field)) {
+          await db[entity].delete(row.id);
+          deleted[name] = (deleted[name] || 0) + 1;
+        }
+      } catch (err) {
+        errors.push(`${name} (sweep): ${err.message}`);
+      }
+    }
+
+    // Verification: anything still owned by this account blocks the wipe.
+    const remaining: Record<string, number> = {};
+    for (const { entity, field } of targets) {
+      try {
+        const left = (await ownedRows(entity, field)).length;
+        if (left > 0) remaining[`${entity}.${field}`] = left;
+      } catch (_) { /* surfaced through errors */ }
+    }
+    if (Object.keys(remaining).length > 0) {
+      console.error('[deleteUserData] Rows remain:', JSON.stringify(remaining), JSON.stringify(errors));
+      return Response.json({
+        error: 'Your data could not be fully deleted. Nothing was removed from your login yet — please try again.',
+        remaining,
+        errors,
+      }, { status: 500 });
     }
 
     console.log('[deleteUserData] Deleted rows:', JSON.stringify(deleted));
@@ -74,7 +108,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return Response.json({ success: true, uid, deleted, message: 'App data deleted' });
+    return Response.json({ success: true, uid, deleted, errors, message: 'App data deleted' });
   } catch (error) {
     console.error('[deleteUserData] Fatal error:', error.message, error.stack);
     return Response.json({ error: error.message }, { status: 500 });
