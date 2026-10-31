@@ -16,6 +16,7 @@ const COLLECTIONS = {
   portfolio: { entity: 'Portfolio', fields: ['symbol', 'name', 'shares', 'avg_cost', 'current_price', 'sector'] },
   tradeLog: { entity: 'TradeLog', fields: ['symbol', 'name', 'action', 'shares', 'price', 'total', 'status'] },
   notificationLog: { entity: 'NotificationLog', fields: ['date', 'count', 'signal_type', 'symbol'] },
+  notifications: { entity: 'AppNotification', fields: [] },
 };
 
 const PROFILE_FIELDS = [

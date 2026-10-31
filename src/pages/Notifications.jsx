@@ -1,78 +1,51 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, TrendingUp, AlertTriangle, Newspaper, Bell, Target, Calendar } from 'lucide-react';
+import { ChevronLeft, TrendingUp, AlertTriangle, Newspaper, Bell, Target, Calendar } from 'lucide-react';
+import { db } from '@/api/userData';
 
-const ALL_NOTIFICATIONS = [
-  {
-    id: 1,
-    title: 'NVDA Buy Signal',
-    message: 'Momentum breakout confirmed. Entry $871. Strong volume support.',
-    time: '5m ago',
-    type: 'signal',
-    route: '/Asset/NVDA',
-    icon: TrendingUp,
-  },
-  {
-    id: 2,
-    title: 'Portfolio Alert',
-    message: 'Tech sector now 62% of portfolio. Consider rebalancing.',
-    time: '1h ago',
-    type: 'warning',
-    route: '/Portfolio',
-    icon: AlertTriangle,
-  },
-  {
-    id: 3,
-    title: 'Market Update',
-    message: 'Fed signals possible rate cuts in H2 2025. Markets rally.',
-    time: '3h ago',
-    type: 'news',
-    route: '/AIInsights',
-    icon: Newspaper,
-  },
-  {
-    id: 4,
-    title: 'TSLA Sell Signal',
-    message: 'Resistance at $245. Consider taking profits on recent gains.',
-    time: '5h ago',
-    type: 'signal',
-    route: '/Asset/TSLA',
-    icon: Target,
-  },
-  {
-    id: 5,
-    title: 'Earnings Alert',
-    message: 'AAPL reports earnings tomorrow after market close.',
-    time: '8h ago',
-    type: 'calendar',
-    route: '/Asset/AAPL',
-    icon: Calendar,
-  },
-  {
-    id: 6,
-    title: 'Price Alert: BTC',
-    message: 'Bitcoin crossed $67,000. Up 8.2% in 24 hours.',
-    time: '12h ago',
-    type: 'signal',
-    route: '/Asset/BTC-USD',
-    icon: TrendingUp,
-  },
-  {
-    id: 7,
-    title: 'Risk Warning',
-    message: 'Portfolio volatility increased to 18.4%. Above your risk threshold.',
-    time: '1d ago',
-    type: 'warning',
-    route: '/Portfolio',
-    icon: AlertTriangle,
-  },
-];
+// AppNotification.type → icon + colour. Anything unknown falls back to the bell.
+const TYPE_STYLE = {
+  price_alert: { icon: Target, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)' },
+  trek_signal: { icon: TrendingUp, color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.2)' },
+  community_like: { icon: TrendingUp, color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.2)' },
+  community_copy: { icon: TrendingUp, color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.2)' },
+  new_follower: { icon: Bell, color: '#a78bfa', bg: 'rgba(167,139,250,0.1)', border: 'rgba(167,139,250,0.2)' },
+  market_update: { icon: Newspaper, color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.2)' },
+};
+
+const FALLBACK_STYLE = { icon: AlertTriangle, color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.2)' };
+
+function relativeTime(value) {
+  if (!value) return '';
+  const then = new Date(value).getTime();
+  if (!Number.isFinite(then)) return '';
+  const mins = Math.floor((Date.now() - then) / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(value).toLocaleDateString();
+}
 
 export default function Notifications() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    db.notifications
+      .list('-created_date', 100)
+      .then(rows => { if (!cancelled) setItems(Array.isArray(rows) ? rows : []); })
+      .catch(() => { if (!cancelled) setItems([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,7 +62,9 @@ export default function Notifications() {
               {t('notifications.title', 'Notifications')}
             </h1>
             <p className="text-[10px] text-white/30 mt-0.5">
-              {ALL_NOTIFICATIONS.length} {t('notifications.count', 'notifications')}
+              {loading
+                ? t('common.loading', 'Loading…')
+                : `${items.length} ${t('notifications.count', 'notifications')}`}
             </p>
           </div>
           <Bell className="h-5 w-5 text-primary" />
@@ -97,70 +72,52 @@ export default function Notifications() {
       </div>
 
       <div className="max-w-2xl mx-auto p-4 space-y-2">
-        {ALL_NOTIFICATIONS.map((notif, index) => {
-          const Icon = notif.icon;
+        {loading && (
+          <div className="space-y-2">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="rounded-xl border border-white/[0.06] bg-[#111118] h-[74px] animate-pulse" />
+            ))}
+          </div>
+        )}
+
+        {!loading && items.length === 0 && (
+          <div className="rounded-xl border border-white/[0.06] bg-[#111118] p-12 text-center">
+            <Bell className="h-10 w-10 text-white/10 mx-auto mb-3" />
+            <p className="text-[13px] font-bold text-white/45">{t('notifications.empty', 'No notifications yet')}</p>
+            <p className="text-[11px] text-white/25 mt-1">
+              {t('notifications.emptyHint', 'Price alerts and TREK signals will appear here.')}
+            </p>
+          </div>
+        )}
+
+        {!loading && items.map((notif, index) => {
+          const style = TYPE_STYLE[notif.type] || FALLBACK_STYLE;
+          const Icon = style.icon;
+          const route = notif.route || (notif.symbol ? `/Asset/${notif.symbol}` : null);
           return (
             <motion.div
               key={notif.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.03 }}
-              onClick={() => navigate(notif.route)}
-              onMouseDown={(e) => {
-                e.currentTarget.style.transform = 'scale(0.98)';
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-              className="rounded-xl border border-white/[0.06] bg-[#111118] p-4 hover:bg-[#16161D] cursor-pointer transition-all"
-              style={{ transition: 'transform 0.1s, background-color 0.2s' }}
+              transition={{ delay: Math.min(index, 8) * 0.03 }}
+              onClick={() => route && navigate(route)}
+              className={`rounded-xl border border-white/[0.06] bg-[#111118] p-4 transition-colors ${route ? 'hover:bg-[#16161D] cursor-pointer' : ''}`}
             >
               <div className="flex items-start gap-3">
                 <div
                   className="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{
-                    background:
-                      notif.type === 'signal'
-                        ? 'rgba(34,197,94,0.1)'
-                        : notif.type === 'warning'
-                          ? 'rgba(245,158,11,0.1)'
-                          : notif.type === 'calendar'
-                            ? 'rgba(99,102,241,0.1)'
-                            : 'rgba(59,130,246,0.1)',
-                    border: `1px solid ${
-                      notif.type === 'signal'
-                        ? 'rgba(34,197,94,0.2)'
-                        : notif.type === 'warning'
-                          ? 'rgba(245,158,11,0.2)'
-                          : notif.type === 'calendar'
-                            ? 'rgba(99,102,241,0.2)'
-                            : 'rgba(59,130,246,0.2)'
-                    }`,
-                  }}
+                  style={{ background: style.bg, border: `1px solid ${style.border}` }}
                 >
-                  <Icon
-                    className="h-5 w-5"
-                    style={{
-                      color:
-                        notif.type === 'signal'
-                          ? '#22c55e'
-                          : notif.type === 'warning'
-                            ? '#F59E0B'
-                            : notif.type === 'calendar'
-                              ? '#6366f1'
-                              : '#3b82f6',
-                    }}
-                  />
+                  <Icon className="h-5 w-5" style={{ color: style.color }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white/90">{notif.title}</p>
                   <p className="text-xs text-white/50 leading-relaxed mt-1">{notif.message}</p>
-                  <span className="text-[10px] text-white/30 mt-2 block font-medium">{notif.time}</span>
+                  <span className="text-[10px] text-white/30 mt-2 block font-medium">
+                    {relativeTime(notif.created_date)}
+                  </span>
                 </div>
-                <ChevronRight className="h-5 w-5 text-white/20 flex-shrink-0 mt-1" />
+                {route && <Calendar className="h-4 w-4 text-white/15 flex-shrink-0 mt-1" />}
               </div>
             </motion.div>
           );
