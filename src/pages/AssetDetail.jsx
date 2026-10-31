@@ -15,6 +15,7 @@ import { SkeletonPrice } from '@/components/ui/SkeletonLoader';
 import { formatPrice, formatPercent, validatePrice, validatePercent, safeRender } from '@/lib/dataValidation';
 import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
 import { fetchSingleAsset } from '@/api/marketDataClient';
+import { deriveSignal } from '@/api/signalEngine';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
@@ -38,71 +39,21 @@ const ASSET_MAP = {
   XAGUSD:    { name: 'Silver / US Dollar',   sector: 'Commodity' },
 };
 
-// ── Static data store per symbol ─────────────────────────────────────────────
-const ASSET_DATA = {
-  AAPL: { name: 'Apple Inc.', price: 195.30, change: 1.2, signal: 'BUY', confidence: 84, sector: 'Technology',
-    entry: '195', target: '210', stop: '188', risk: '-3.6%', reward: '+7.7%',
-    whyNow: 'AI integration driving earnings beat. Strong institutional buying. Services revenue accelerating. iPhone 16 cycle ahead.',
-    conviction: 'HIGH', color: '#22c55e',
-    chart: [192,194,193,196,195,198,196,199,197,195,196,198,194,196,197,195],
-    keyMetrics: { high52w: '$199', low52w: '$164', avgVol: '58M', marketCap: '$3.1T', pe: '29x' },
-    whyBullish: ['AI integration across product lineup driving margin expansion', 'Services segment accelerating (25% growth YoY)', 'iPhone 16 super-cycle expected with AI features'],
-    nextCatalyst: 'Earnings: Jan 30 | Product event expected Q1',
-  },
-  NVDA: { name: 'NVIDIA Corp', price: 871.20, change: 5.1, signal: 'BUY', confidence: 92, sector: 'Technology',
-    entry: '871', target: '942', stop: '848', risk: '-2.6%', reward: '+8.2%',
-    whyNow: 'RSI broke 60 after 3 weeks of consolidation. Volume 2.4× avg. Institutional accumulation pattern confirmed on 4H chart.',
-    conviction: 'HIGH', color: '#22c55e',
-    chart: [870,874,869,878,882,876,884,891,886,880,887,895,871,875,882,890],
-    keyMetrics: { high52w: '$974', low52w: '$402', avgVol: '42M', marketCap: '$2.4T', pe: '68x' },
-    whyBullish: ['Blackwell GPU demand exceeding supply by 3-4 quarters', 'Cloud capex guidance raised by all hyperscalers', 'AI infrastructure buildout in early innings (2-3 year cycle)'],
-    nextCatalyst: 'Earnings: Feb 26 | GTC Conference March',
-  },
-  TSLA: { name: 'Tesla Inc.', price: 175.30, change: -2.4, signal: 'SELL', confidence: 74, sector: 'Automotive',
-    entry: '175', target: '148', stop: '186', risk: '+6.3%', reward: '-15.4%',
-    whyNow: 'Volume drying up. Bearish divergence on daily. Break below $165 opens path to $145 support.',
-    conviction: 'MEDIUM', color: '#ef4444',
-    chart: [182,179,177,180,178,174,176,173,177,175,172,175,178,173,176,175],
-    keyMetrics: { high52w: '$299', low52w: '$138', avgVol: '102M', marketCap: '$558B', pe: '71x' },
-    whyBearish: ['Delivery guidance miss risk as demand softens in China', 'Margin compression from price cuts not offset by volume', 'Technical breakdown below 200-day MA with weak RSI'],
-    nextCatalyst: 'Earnings: Jan 24 | Cybertruck production update',
-  },
-  META: { name: 'Meta Platforms', price: 520.15, change: -1.2, signal: 'AVOID', confidence: 71, sector: 'Technology',
-    entry: null, target: null, stop: null, risk: '-8%', reward: null,
-    whyNow: 'Bearish divergence on daily RSI. Weak relative strength vs sector peers. Await cleaner setup.',
-    conviction: 'MEDIUM', color: '#ef4444',
-    chart: [535,528,532,525,521,524,519,523,518,522,520,517,521,519,520,520],
-    keyMetrics: { high52w: '$602', low52w: '$279', avgVol: '16M', marketCap: '$1.3T', pe: '26x' },
-    whyBearish: ['Ad revenue uncertainty as consumer spending moderates', 'Metaverse/Reality Labs burning $4B+ per quarter', 'Three analyst downgrades in 72 hours citing valuation'],
-    nextCatalyst: 'Earnings: Feb 1 | Q1 ad guidance critical',
-  },
-  JPM: { name: 'JPMorgan Chase', price: 201.50, change: 1.5, signal: 'WATCH', confidence: 81, sector: 'Finance',
-    entry: '200', target: '216', stop: '193', risk: '-3.5%', reward: '+7.2%',
-    whyNow: 'Sector rotation into financials. Rate cut expectations boosting bank margins. Accumulation at $195–202 range.',
-    conviction: 'MEDIUM', color: '#F59E0B',
-    chart: [195,197,198,200,199,201,203,200,202,204,201,203,205,202,201,202],
-    keyMetrics: { high52w: '$218', low52w: '$135', avgVol: '11M', marketCap: '$589B', pe: '12x' },
-    whyBullish: ['Net interest income expanding as rates stay elevated', 'Credit quality stable despite macro concerns', 'Trading desk outperforming in volatile environment'],
-    nextCatalyst: 'Earnings: Jan 12 | NII guidance key metric',
-  },
-  BTC: { name: 'Bitcoin', price: 67420, change: 4.8, signal: 'BUY', confidence: 87, sector: 'Crypto',
-    entry: '67000', target: '78500', stop: '61200', risk: '-8.6%', reward: '+16.8%',
-    whyNow: 'Spot ETF inflows at record levels. On-chain data shows whale accumulation. Halving cycle momentum.',
-    conviction: 'HIGH', color: '#22c55e',
-    chart: [64200,65100,63800,66000,65400,67100,66200,68100,67300,66800,67900,68400,67100,67600,68000,67420],
-    keyMetrics: { high52w: '$73,800', low52w: '$38,500', avgVol: '24B', marketCap: '$1.3T', pe: null },
-    whyBullish: ['Spot ETF inflows hitting $1.2B daily (institutional FOMO)', 'April halving historically bullish (supply shock)', 'On-chain metrics show whale accumulation at $60-68K zone'],
-    nextCatalyst: 'Halving cycle: next major resistance $80k',
-  },
-};
+// Signal + conviction are derived from live price data only (same engine the
+// Markets screen uses). Nothing below is stored per symbol.
+function convictionFor(confidence) {
+  if (confidence == null) return 'LOW';
+  if (confidence >= 80) return 'HIGH';
+  if (confidence >= 65) return 'MEDIUM';
+  return 'LOW';
+}
 
-const DEFAULT_ASSET = {
-  name: 'Unknown Asset', price: 100.00, change: 0, signal: 'HOLD', confidence: 50, sector: 'Unknown',
-  entry: null, target: null, stop: null, risk: '—', reward: '—',
-  whyNow: 'No TREK analysis available for this asset yet.',
-  conviction: 'LOW', color: '#6b7280',
-  chart: [100,101,100,102,101,103,102,101,100,101,102,100,101,100,101,100],
-};
+function colorFor(signal) {
+  if (signal === 'BUY') return '#22c55e';
+  if (signal === 'SELL' || signal === 'AVOID') return '#ef4444';
+  if (signal === 'WATCH') return '#F59E0B';
+  return '#6b7280';
+}
 
 function TradeModal({ asset, action, onClose }) {
   const { t } = useTranslation();
@@ -215,14 +166,13 @@ export default function AssetDetail() {
   const { t } = useTranslation();
   const { symbol: routeSymbol } = useParams();
   const symbol = (routeSymbol || 'NVDA').toUpperCase();
-  const staticAsset = { ...(ASSET_DATA[symbol] || DEFAULT_ASSET), ...(ASSET_MAP[symbol] || {}), symbol };
+  const meta = ASSET_MAP[symbol] || { name: symbol, sector: '' };
   const { tier } = useSubscriptionStatus();
 
   const [user, setUser] = useState(null);
   const [tradeAction, setTradeAction] = useState(null);
-  const [showPlan, setShowPlan] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
-  const [livePrice, setLivePrice] = useState(null);
+  const [quote, setQuote] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
   const [toast, setToast] = useState(null);
   const [watchlistEntry, setWatchlistEntry] = useState(null);
@@ -262,12 +212,13 @@ export default function AssetDetail() {
     }
 
     setTrekLoading(true);
-    const currentPrice = livePrice || staticAsset.price;
+    const currentPrice = quote?.price;
+    const priceLine = currentPrice ? ` Current price: $${currentPrice}.` : '';
     base44.functions.invoke('trekChat', {
       idToken: localStorage.getItem('firebase_auth_token') || undefined,
       messages: [{
         role: 'user',
-        content: `Analyze ${symbol} (${staticAsset.name}). Current price: $${currentPrice}. Sector: ${staticAsset.sector}. Give me a full TREK verdict: signal (BUY/SELL/HOLD/WATCH), confidence %, entry zone, target, stop loss, and the key reason. Be specific with price levels.`,
+        content: `Analyze ${symbol} (${meta.name}).${priceLine} Sector: ${meta.sector || 'unknown'}. Give me a full TREK verdict: signal (BUY/SELL/HOLD/WATCH), confidence %, entry zone, target, stop loss, and the key reason. Be specific with price levels.`,
       }],
       marketContext: null,
     }).then(res => {
@@ -293,70 +244,96 @@ export default function AssetDetail() {
     }).catch(() => {});
   }, [symbol]);
 
+  // Live quote for this symbol — the only price source on the page.
   useEffect(() => {
-    async function loadPrice() {
-      setLoadingData(true);
-      try {
-        // ── Cache-first: check marketCore/search cache before hitting stockPrices ──
-        const cached = await fetchSingleAsset(symbol);
-        const price = cached?.status === 'live' ? cached.price : null;
+    let cancelled = false;
+    setLoadingData(true);
+    setQuote(null);
+    setAiConfidence(null);
+    base44.functions.invoke('stockPrices', { symbols: [symbol] })
+      .then(res => {
+        const q = res?.data?.prices?.[symbol];
+        if (cancelled) return;
+        const price = Number(q?.price);
+        if (!(price > 0)) { setQuote(null); return; }
+        const prevClose = Number(q?.prevClose) > 0 ? Number(q.prevClose) : null;
+        setQuote({
+          price,
+          prevClose,
+          high: Number(q?.high) > 0 ? Number(q.high) : null,
+          low: Number(q?.low) > 0 ? Number(q.low) : null,
+          changePct: prevClose
+            ? ((price - prevClose) / prevClose) * 100
+            : (Number.isFinite(Number(q?.change)) ? Number(q.change) : null),
+        });
+      })
+      .catch(() => { if (!cancelled) setQuote(null); })
+      .finally(() => { if (!cancelled) setLoadingData(false); });
+    return () => { cancelled = true; };
+  }, [symbol]);
 
-        if (price) {
-          if (watchlistEntry?.alert_price && prevPriceRef.current !== null) {
-            const prev = prevPriceRef.current;
-            const target = watchlistEntry.alert_price;
-            const crossed = (prev < target && price >= target) || (prev > target && price <= target);
-            if (crossed) {
-              const dir = price >= target ? '🟢 Hit target' : '🔴 Hit stop';
-              showToast(`${dir}: ${symbol} reached $${target.toLocaleString()}`, price >= target ? 'success' : 'danger');
-            }
-          }
-          prevPriceRef.current = price;
-          setLivePrice(price);
-        } else {
-          // Fallback: direct stockPrices call for symbols not in marketCore universe
-          const priceRes = await base44.functions.invoke('stockPrices', { symbols: [symbol] });
-          const fallbackPrice = priceRes?.data?.prices?.[symbol];
-          if (fallbackPrice) {
-            prevPriceRef.current = fallbackPrice;
-            setLivePrice(fallbackPrice);
-          }
-        }
-      } catch { /* keep static */ } finally {
-        setLoadingData(false);
+  // Price alert check for a watchlisted symbol.
+  useEffect(() => {
+    const price = quote?.price;
+    const target = watchlistEntry?.alert_price;
+    if (!price || !target) return;
+    const prev = prevPriceRef.current;
+    if (prev !== null) {
+      const crossed = (prev < target && price >= target) || (prev > target && price <= target);
+      if (crossed) {
+        const dir = price >= target ? '🟢 Hit target' : '🔴 Hit stop';
+        showToast(`${dir}: ${symbol} reached $${target.toLocaleString()}`, price >= target ? 'success' : 'danger');
       }
     }
-    loadPrice();
-  }, [symbol, watchlistEntry]);
+    prevPriceRef.current = price;
+  }, [quote?.price, watchlistEntry]);
 
-  // TREK signal notification: fire once on load if watchlisted and signal is BUY/SELL
-  useEffect(() => {
-    if (!watchlistEntry || !staticAsset) return;
-    if (!['BUY', 'SELL'].includes(staticAsset.signal)) return;
-    const key = `trek_notif_${symbol}_${staticAsset.signal}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, '1');
-    const icon = staticAsset.signal === 'BUY' ? '⚡' : '⚠️';
-    showToast(`${icon} TREK ${staticAsset.signal} signal for ${symbol} — ${staticAsset.confidence}% confidence`, staticAsset.signal === 'BUY' ? 'success' : 'danger');
-    getCurrentUser().then(user => {
-      sendPushNotification({ signal: staticAsset.signal, symbol, confidence: staticAsset.confidence, technicalSummary: staticAsset.whyNow }, user).catch(() => {});
-    }).catch(() => {});
-  }, [watchlistEntry]);
-
+  // Signal derived from live price data — the same engine the Markets screen uses.
+  const derived = deriveSignal(
+    { symbol, sector: meta.sector },
+    { price: quote?.price, prevClose: quote?.prevClose, high24h: quote?.high, low24h: quote?.low },
+  );
+  const displayConfidence = aiConfidence ?? derived.confidence;
+  const conviction = convictionFor(displayConfidence);
   const isForexOrCommodity = /^(EUR|GBP|XAU|XAG|USD|JPY|AUD|CAD|NZD|CHF)[A-Z]{3}$/.test(symbol);
   const pricePrefix = isForexOrCommodity ? '' : '$';
 
   const asset = {
-    ...staticAsset,
-    price: livePrice || staticAsset.price,
+    symbol,
+    name: meta.name,
+    sector: meta.sector,
+    price: quote?.price ?? null,
+    change: quote?.changePct ?? null,
+    signal: quote ? derived.signal : 'WATCH',
+    confidence: derived.confidence,
+    conviction,
+    color: colorFor(derived.signal),
+    reason: derived.reason,
   };
-  const isUp = asset.change >= 0;
-  const cvColor = asset.conviction === 'HIGH' ? '#22c55e' : asset.conviction === 'MEDIUM' ? '#F59E0B' : '#6b7280';
-  // Use AI-parsed confidence if available, otherwise fall back to static
-  const displayConfidence = aiConfidence ?? asset.confidence;
+  const isUp = (asset.change ?? 0) >= 0;
+  const cvColor = conviction === 'HIGH' ? '#22c55e' : conviction === 'MEDIUM' ? '#F59E0B' : '#6b7280';
+
+  // Page title follows the symbol.
+  useEffect(() => {
+    document.title = `${symbol} · TREDIO`;
+    return () => { document.title = 'TREDIO'; };
+  }, [symbol]);
+
+  // Notify once per session when a watchlisted symbol has a live BUY/SELL read.
+  useEffect(() => {
+    if (!watchlistEntry || !quote) return;
+    if (!['BUY', 'SELL'].includes(asset.signal)) return;
+    const key = `trek_notif_${symbol}_${asset.signal}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+    showToast(`${asset.signal === 'BUY' ? '⚡' : '⚠️'} TREK ${asset.signal} signal for ${symbol} — ${asset.confidence}% confidence`, asset.signal === 'BUY' ? 'success' : 'danger');
+    getCurrentUser().then(u => {
+      sendPushNotification({ signal: asset.signal, symbol, confidence: asset.confidence, technicalSummary: asset.reason }, u).catch(() => {});
+    }).catch(() => {});
+  }, [watchlistEntry, quote, symbol]);
 
   const handleAddToWatchlist = async () => {
-    if (watchlistEntry) return;
+    if (watchlistEntry || !asset.price) return;
     const entry = await db.watchlist.create({ symbol, name: asset.name, alert_price: asset.price });
     setWatchlistEntry(entry);
     showToast(`${symbol} added to watchlist. You'll be alerted at $${asset.price.toLocaleString()}.`, 'success');
@@ -425,13 +402,13 @@ export default function AssetDetail() {
             <p className="text-[12px] text-white/40">{safeRender(asset.name)} · {safeRender(asset.sector)}</p>
           </div>
           <div className="text-right">
-            {loadingData && !livePrice ? (
+            {loadingData && !quote ? (
               <SkeletonPrice />
-            ) : (
+            ) : quote ? (
               <>
                 <div className="flex items-center justify-end gap-2 mb-1">
                   <div className="text-2xl font-black font-mono text-white/95">
-                    {pricePrefix}{formatPrice(asset.price, 2) || safeRender(asset.price)}
+                    {pricePrefix}{formatPrice(asset.price, 2)}
                   </div>
                   {tier === 'free' && (
                     <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
@@ -446,9 +423,13 @@ export default function AssetDetail() {
                 </div>
                 <div className={`flex items-center justify-end gap-1 text-[13px] font-bold font-mono ${isUp ? 'text-chart-3' : 'text-destructive'}`}>
                   {isUp ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-                  {formatPercent(asset.change, 1) || safeRender(asset.change)}
+                  {asset.change === null ? '—' : formatPercent(asset.change, 2)}
                 </div>
               </>
+            ) : (
+              <div className="text-[12px] font-bold text-white/30">
+                {t('asset.priceUnavailable', 'Price unavailable')}
+              </div>
             )}
           </div>
         </div>
@@ -479,47 +460,6 @@ export default function AssetDetail() {
         </div>
         <CandlestickChart symbol={symbol} timeframe={timeframe} />
       </motion.div>
-
-      {/* Trade Plan — collapsible */}
-      {asset.entry && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="rounded-xl mb-4 overflow-hidden"
-          style={{ background: `${asset.color}08`, border: `1px solid ${asset.color}25` }}>
-          <button onClick={() => setShowPlan(v => !v)}
-            className="w-full flex items-center gap-2 px-4 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors"
-            style={{ color: asset.color }}>
-            <Target className="h-3.5 w-3.5" />
-            {t('asset.tradeplan')}
-            {showPlan ? <ChevronUp className="h-3.5 w-3.5 ml-auto" /> : <ChevronDown className="h-3.5 w-3.5 ml-auto" />}
-          </button>
-          <AnimatePresence>
-            {showPlan && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
-                <div className="px-4 pb-4">
-                  <div className="grid grid-cols-4 gap-3 mb-3">
-                    {[
-                      { label: t('asset.entry'), value: `$${asset.entry}`, color: 'rgba(255,255,255,0.8)' },
-                      { label: t('asset.target'), value: `$${asset.target}`, color: '#22c55e' },
-                      { label: t('asset.stop'), value: `$${asset.stop}`, color: '#ef4444' },
-                      { label: t('asset.riskReward'), value: asset.reward, color: asset.color },
-                    ].map(item => (
-                      <div key={item.label} className="text-center rounded-lg py-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                        <p className="text-[8px] text-white/25 uppercase tracking-wider mb-1">{item.label}</p>
-                        <p className="text-[13px] font-mono font-black" style={{ color: item.color }}>{item.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldAlert className="h-3 w-3 text-destructive flex-shrink-0" />
-                    <span className="text-[10px] text-white/35">{t('asset.maxDownside')} <span className="text-destructive font-bold">{asset.risk}</span> {t('asset.ifStopHit')}</span>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      )}
 
       {/* BUY / SELL buttons */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
@@ -577,70 +517,6 @@ export default function AssetDetail() {
           </div>
         ))}
       </motion.div>
-
-      {/* Key Metrics */}
-      {staticAsset.keyMetrics && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
-          className="rounded-xl p-4 mb-4" style={{ background: 'rgba(8,16,36,0.55)', border: '1px solid rgba(100,220,255,0.09)' }}>
-          <h3 className="text-[11px] font-black text-white/70 uppercase tracking-wider mb-3">{t('asset.keyMetrics', 'Key Metrics')}</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-[9px] text-white/30 mb-0.5">{t('asset.high52w', '52W High')}</p>
-              <p className="text-[12px] font-mono font-bold text-white/85">{staticAsset.keyMetrics.high52w}</p>
-            </div>
-            <div>
-              <p className="text-[9px] text-white/30 mb-0.5">{t('asset.low52w', '52W Low')}</p>
-              <p className="text-[12px] font-mono font-bold text-white/85">{staticAsset.keyMetrics.low52w}</p>
-            </div>
-            <div>
-              <p className="text-[9px] text-white/30 mb-0.5">{t('asset.avgVolume', 'Avg Volume')}</p>
-              <p className="text-[12px] font-mono font-bold text-white/85">{staticAsset.keyMetrics.avgVol}</p>
-            </div>
-            <div>
-              <p className="text-[9px] text-white/30 mb-0.5">{t('markets.marketCap', 'Market Cap')}</p>
-              <p className="text-[12px] font-mono font-bold text-white/85">{staticAsset.keyMetrics.marketCap}</p>
-            </div>
-            {staticAsset.keyMetrics.pe && (
-              <div>
-                <p className="text-[9px] text-white/30 mb-0.5">{t('asset.peRatio', 'P/E Ratio')}</p>
-                <p className="text-[12px] font-mono font-bold text-white/85">{staticAsset.keyMetrics.pe}</p>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Why TREK is Bullish/Bearish */}
-      {(staticAsset.whyBullish || staticAsset.whyBearish) && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-          className="rounded-xl p-4 mb-4"
-          style={{ background: `${asset.color}0a`, backdropFilter: 'blur(12px)', border: `1px solid ${asset.color}25` }}>
-          <h3 className="text-[11px] font-black uppercase tracking-wider mb-3" style={{ color: asset.color }}>
-            {asset.signal === 'BUY' ? t('asset.whyBullish', 'Why TREK is Bullish') : asset.signal === 'SELL' ? t('asset.whyBearish', 'Why TREK is Bearish') : t('asset.whyWatching', 'Why TREK is Watching')}
-          </h3>
-          <ul className="space-y-2">
-            {(staticAsset.whyBullish || staticAsset.whyBearish || []).map((point, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <span className="text-[10px] mt-0.5" style={{ color: asset.color }}>▸</span>
-                <span className="text-[11px] text-white/70 leading-relaxed">{point}</span>
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-      )}
-
-      {/* Next Catalyst */}
-      {staticAsset.nextCatalyst && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-          className="rounded-xl p-4 mb-4"
-          style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-          <div className="flex items-center gap-2 mb-2">
-            <Target className="h-3.5 w-3.5 text-primary" />
-            <h3 className="text-[11px] font-black text-primary uppercase tracking-wider">{t('asset.nextCatalyst', 'Next Catalyst')}</h3>
-          </div>
-          <p className="text-[12px] text-white/80 leading-relaxed">{staticAsset.nextCatalyst}</p>
-        </motion.div>
-      )}
 
       {/* Asset-specific news */}
       <AssetNewsSection symbol={symbol} />
