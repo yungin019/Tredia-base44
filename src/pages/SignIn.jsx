@@ -206,11 +206,10 @@ export default function SignIn() {
       if (IS_NATIVE) {
         let result;
         // Always let the user pick (or add) a Google account instead of silently
-        // reusing the last one. iOS: Google's native SDK always shows its own
-        // account chooser, so no parameter is needed there.
-        const googleOptions = PLATFORM === 'ios'
-          ? undefined
-          : { customParameters: [{ key: 'prompt', value: 'select_account' }] };
+        // reusing the last one. Android honours the prompt flag; iOS runs Google's
+        // own sign-in sheet, which always shows its account chooser (it ignores
+        // customParameters), so the same intent is passed on both.
+        const googleOptions = { customParameters: [{ key: 'prompt', value: 'select_account' }] };
         try { result = await FirebaseAuthentication.signInWithGoogle(googleOptions); } catch (err) {
           setError('FA.signInWithGoogle() failed: ' + formatError(err));
           setLoading(false); stopSafetyTimer(); return;
