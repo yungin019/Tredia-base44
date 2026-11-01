@@ -1,0 +1,52 @@
+{
+  "name": "DiagnosticsReport",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "description": "YYYY-MM-DD the report covers"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Plain language daily report"
+    },
+    "model": {
+      "type": "string"
+    },
+    "cost_usd": {
+      "type": "number"
+    },
+    "stats": {
+      "type": "string",
+      "description": "JSON digest the report was built from"
+    },
+    "at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "summary"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

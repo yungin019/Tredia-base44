@@ -1,0 +1,117 @@
+{
+  "name": "ErrorLog",
+  "type": "object",
+  "properties": {
+    "at": {
+      "type": "string",
+      "description": "ISO timestamp of the event"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "frontend",
+        "backend",
+        "health",
+        "manual",
+        "ai",
+        "provider",
+        "auth",
+        "purchase"
+      ],
+      "description": "Where the error came from"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "crash",
+        "unhandled",
+        "console",
+        "network",
+        "manual",
+        "warning",
+        "info"
+      ],
+      "description": "Error category"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "error",
+        "warning",
+        "manual",
+        "info"
+      ],
+      "default": "error"
+    },
+    "message": {
+      "type": "string",
+      "description": "Short sanitized error message"
+    },
+    "stack": {
+      "type": "string",
+      "description": "Sanitized stack trace (truncated)"
+    },
+    "route": {
+      "type": "string",
+      "description": "App route / page where it happened"
+    },
+    "function_name": {
+      "type": "string",
+      "description": "Backend function name, when relevant"
+    },
+    "app_version": {
+      "type": "string",
+      "description": "App build version reported by the client"
+    },
+    "device": {
+      "type": "string",
+      "description": "Device / browser summary"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Firebase uid (no email or personal data)"
+    },
+    "group_id": {
+      "type": "string",
+      "description": "ErrorGroup id this log belongs to"
+    },
+    "note": {
+      "type": "string",
+      "description": "Admin note from a manual bug report"
+    },
+    "actions": {
+      "type": "string",
+      "description": "Last 10 user actions before the error (JSON, no typed text)"
+    },
+    "network": {
+      "type": "string",
+      "description": "Recent failed network calls (JSON, no tokens)"
+    }
+  },
+  "required": [
+    "message"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

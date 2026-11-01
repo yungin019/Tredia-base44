@@ -1,0 +1,71 @@
+{
+  "name": "DiagEvent",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "provider_ok",
+        "provider_error",
+        "provider_rate_limit",
+        "news_ok",
+        "news_error",
+        "function_call",
+        "function_error",
+        "ai_request",
+        "ai_error",
+        "auth_fail",
+        "purchase_fail"
+      ],
+      "description": "Metric event type"
+    },
+    "source": {
+      "type": "string",
+      "description": "Provider, function, model or auth provider"
+    },
+    "ok": {
+      "type": "boolean",
+      "default": true
+    },
+    "duration_ms": {
+      "type": "number"
+    },
+    "detail": {
+      "type": "string",
+      "description": "Short sanitized detail"
+    },
+    "cost_usd": {
+      "type": "number",
+      "description": "Estimated AI cost for this call"
+    },
+    "at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "source"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

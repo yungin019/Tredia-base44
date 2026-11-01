@@ -1,0 +1,74 @@
+{
+  "name": "HealthCheck",
+  "type": "object",
+  "properties": {
+    "check": {
+      "type": "string",
+      "enum": [
+        "quote_spy",
+        "quote_btc",
+        "news_feed",
+        "firebase_auth",
+        "trek_ai"
+      ],
+      "description": "Which subsystem was checked"
+    },
+    "label": {
+      "type": "string",
+      "description": "Readable name"
+    },
+    "ok": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "green",
+        "yellow",
+        "red"
+      ],
+      "default": "green"
+    },
+    "latency_ms": {
+      "type": "number"
+    },
+    "detail": {
+      "type": "string",
+      "description": "Short result or error summary"
+    },
+    "at": {
+      "type": "string"
+    },
+    "alert_sent_at": {
+      "type": "string",
+      "description": "Last Discord alert for this check"
+    }
+  },
+  "required": [
+    "check",
+    "ok"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

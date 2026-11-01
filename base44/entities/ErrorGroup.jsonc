@@ -1,0 +1,99 @@
+{
+  "name": "ErrorGroup",
+  "type": "object",
+  "properties": {
+    "fingerprint": {
+      "type": "string",
+      "description": "Stable hash of message + location"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human readable group title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Sanitized error message"
+    },
+    "route": {
+      "type": "string",
+      "description": "Route or function where it happens"
+    },
+    "function_name": {
+      "type": "string",
+      "description": "Backend function name, when relevant"
+    },
+    "stack": {
+      "type": "string",
+      "description": "First sanitized stack trace seen"
+    },
+    "count": {
+      "type": "number",
+      "default": 1
+    },
+    "affected_users": {
+      "type": "number",
+      "default": 1
+    },
+    "user_ids": {
+      "type": "string",
+      "description": "Comma separated uids seen (capped)"
+    },
+    "first_seen": {
+      "type": "string"
+    },
+    "last_seen": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "fixed"
+      ],
+      "default": "open"
+    },
+    "fix_prompt": {
+      "type": "string",
+      "description": "AI generated Base44 fix prompt"
+    },
+    "fix_prompt_at": {
+      "type": "string"
+    },
+    "alert_sent_at": {
+      "type": "string"
+    },
+    "fixed_at": {
+      "type": "string"
+    },
+    "reopened_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "fingerprint",
+    "message"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
