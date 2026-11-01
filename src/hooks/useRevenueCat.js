@@ -14,6 +14,7 @@ import { REVENUECAT_CONFIG, resolveTier } from '@/lib/revenuecat-config';
 import { reportPurchaseFailure } from '@/lib/errorReporter';
 import { syncSubscriptionTier } from '@/api/subscriptionSync';
 import { auth } from '@/lib/firebase';
+import { invokeFunction } from '@/api/functionsClient';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
 
@@ -23,6 +24,22 @@ async function getRCModule() {
   // new Function hides this from Vite's static import resolver
   _rcModule = await new Function('return import("@revenuecat/purchases-capacitor")')();
   return _rcModule;
+}
+
+// The public "appl_" key identifies the app, not an account, so it is safe in
+// the client. The build never receives app secrets though, so the compiled
+// value is normally empty and the key is read from the app's own endpoint.
+let _publicKey = null;
+async function loadPublicKey() {
+  if (REVENUECAT_CONFIG.apiKey) return REVENUECAT_CONFIG.apiKey;
+  if (_publicKey) return _publicKey;
+  try {
+    const res = await invokeFunction('revenueCatPublicKey', {});
+    if (typeof res?.key === 'string' && res.key.startsWith('appl_')) _publicKey = res.key;
+  } catch (error) {
+    console.warn('[RC] public key lookup failed:', error?.message || error);
+  }
+  return _publicKey || '';
 }
 
 // The signed-in Firebase user identifies the RevenueCat customer.
@@ -66,9 +83,9 @@ export function useRevenueCat() {
         return;
       }
       try {
-        const apiKey = REVENUECAT_CONFIG.apiKey;
+        const apiKey = await loadPublicKey();
         if (!apiKey) {
-          console.error('[RevenueCat] FATAL: apiKey is empty. Set VITE_REVENUECAT_IOS_KEY in environment variables.');
+          console.error('[RevenueCat] FATAL: no appl_ SDK key available — purchases cannot start.');
           setIsInitialized(false);
           return;
         }
@@ -108,8 +125,14 @@ export function useRevenueCat() {
       const { Purchases } = await getRCModule();
       await identify(Purchases);
       const { offerings } = await Purchases.getOfferings();
-      const allPackages = offerings?.current?.availablePackages || [];
-      const pkg = allPackages.find(p => p.product?.identifier === productId);
+      const offering = offerings?.current || offerings?.all?.default || null;
+      const allPackages = offering?.availablePackages || [];
+      // Match on the App Store product id, never the package name: the Pro
+      // packages are called '$rc_monthly'/'$rc_annual', which says nothing
+      // about which product they contain.
+      const pkg = allPackages.find(
+        (p) => (p.product?.identifier || p.storeProduct?.identifier) === productId
+      );
 
       if (!pkg) {
         setPurchaseError('Product "' + productId + '" not found in current offering.');
