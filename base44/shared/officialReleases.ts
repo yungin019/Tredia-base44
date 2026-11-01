@@ -94,17 +94,24 @@ function fedDecision(text: string): OfficialRewrite | null {
   };
 }
 
-/** The ECB lists its three key rates after "…unchanged at". */
+/** The ECB states all three key rates in one line. */
 function ecbDecision(text: string): OfficialRewrite | null {
-  const sentence = firstSentenceMatching(text, /(key ECB interest rates|deposit facility|main refinancing)/i);
-  const figures = text.match(/(?:unchanged at|at)\s+(\d[\d.,]*\s*%(?:\s*(?:,|and)\s*\d[\d.,]*\s*%){0,2})/i);
-  if (!figures) return null;
-  const rates = (figures[1].match(/\d[\d.,]*/g) || []).map((n) => Number(n.replace(/,/g, '.'))).filter((n) => Number.isFinite(n));
+  // Take the sentence that carries the most rate figures: the ECB lists them
+  // together ("unchanged at 2.50%, 2.65% and 2.90%"), while the first "%" in the
+  // document is often a single rate quoted in an unrelated paragraph.
+  const ratesOf = (sentence: string) => (sentence.match(/\d[\d.,]*\s*%/g) || [])
+    .map((value) => Number(value.replace(/[%\s]/g, '').replace(',', '.')))
+    .filter((value) => Number.isFinite(value));
+  const candidates = sentences(text).filter((sentence) => ratesOf(sentence).length > 0
+    && /(interest rate|policy rate|unchanged|deposit facility|refinancing|decided)/i.test(sentence));
+  if (candidates.length === 0) return null;
+  const decision = candidates.sort((a, b) => ratesOf(b).length - ratesOf(a).length)[0];
+  const rates = ratesOf(decision);
   if (rates.length === 0) return null;
-  const action = actionOf(sentence || figures[0]);
+  const action = actionOf(decision);
   return {
     title: `ECB ${action} rates ${action === 'holds' ? 'at' : 'to'} ${rates.slice(0, 3).map(pct).join(' / ')}`,
-    summary: sentence ? `${sentence}.` : '',
+    summary: decision.replace(/\s+/g, ' ').trim(),
   };
 }
 

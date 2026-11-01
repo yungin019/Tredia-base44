@@ -16,7 +16,7 @@ import { isOfficial, isTier1 } from './newsSourceRank.ts';
 const LEXICON: Record<string, string> = {
   kryptobörs: 'crypto exchange', kryptobörsen: 'crypto exchange', kryptobörser: 'crypto exchange',
   kryptovaluta: 'crypto', krypto: 'crypto', börs: 'market', börsen: 'market',
-  stöld: 'hack', stölden: 'hack', stölderna: 'hack', stulna: 'stolen', stulet: 'stolen',
+  stöld: 'hack', stölden: 'hack stolen', stölderna: 'hack stolen', stulna: 'stolen', stulet: 'stolen',
   kupp: 'hack', kuppen: 'hack', miljardkupp: 'billion hack', hackad: 'hack', hackade: 'hack',
   hackades: 'hack', intrång: 'breach', attack: 'attack', attacken: 'attack', attacker: 'attack',
   raffinaderi: 'refinery', raffinaderiet: 'refinery', brand: 'fire', branden: 'fire', brinner: 'fire',
@@ -80,16 +80,18 @@ function canonicalTokens(title: string): Set<string> {
   return new Set(out);
 }
 
-function numbersIn(title: string): Set<string> {
+/**
+ * The figures a story is *about*: a percentage or a money amount ("90%",
+ * "39 pc", "$30,106 crore", "1.75%"). A bare number ("Q2", "18 stocks",
+ * "2026") identifies nothing, and matching on those merged unrelated stories.
+ */
+function figuresIn(title: string): Set<string> {
+  const text = lc(title);
   const out = new Set<string>();
-  for (const match of lc(title).match(/\d[\d.,]*/g) || []) {
-    const digits = match.replace(/[^\d]/g, '');
-    if (digits.length < 2) continue;
-    // A calendar year identifies nothing — two unrelated stories can both
-    // mention 2026 and must not be merged on it.
-    if (digits.length === 4 && Number(digits) >= 1990 && Number(digits) <= 2035) continue;
-    out.add(digits);
-  }
+  const percent = text.match(/\d[\d.,]*\s*(?:%|percent|per ?cent|procent|pc\b|bps|basis points)/g) || [];
+  for (const match of percent) out.add(match.replace(/[^\d.]/g, '').replace(/\.$/, ''));
+  const money = text.match(/(?:[$€£₹]|rs\.?)\s*\d[\d.,]*\s*(?:bn|billion|mn|million|trillion|crore|cr\b|lakh)?/g) || [];
+  for (const match of money) out.add(match.replace(/[^\d]/g, ''));
   return out;
 }
 
@@ -100,24 +102,34 @@ function jaccard(a: Set<string>, b: Set<string>): number {
   return intersection / (a.size + b.size - intersection);
 }
 
+/** Shared wording, measured against the shorter headline. */
+function overlap(a: Set<string>, b: Set<string>): number {
+  if (!a.size || !b.size) return 0;
+  let intersection = 0;
+  a.forEach((token) => { if (b.has(token)) intersection += 1; });
+  return intersection / Math.min(a.size, b.size);
+}
+
 function sharedEntities(a: Set<string>, b: Set<string>): number {
   let hits = 0;
   a.forEach((token) => { if (ENTITY_TOKENS.has(token) && b.has(token)) hits += 1; });
   return hits;
 }
 
-type EventShape<T> = { article: T; tokens: Set<string>; numbers: Set<string>; time: number };
+type EventShape<T> = { article: T; tokens: Set<string>; figures: Set<string>; time: number };
 
 function sameEvent<T extends MergeableArticle>(a: EventShape<T>, b: EventShape<T>): boolean {
   const similarity = jaccard(a.tokens, b.tokens);
   if (similarity >= 0.55) return true;
   if (Math.abs(a.time - b.time) > MERGE_WINDOW_MS) return false;
   if (a.article.affectSymbols.some((s) => b.article.affectSymbols.includes(s)) && similarity >= 0.2) return true;
-  // A shared distinctive figure ("90%", "$30,106 crore") is the strongest signal
-  // two reports are the same event — the amount is what the story is about — so
-  // it needs only a little shared wording to confirm it, which is what a
-  // cross-language pair can offer once the lexicon has done its work.
-  if ([...a.numbers].some((n) => b.numbers.has(n)) && similarity >= 0.1) return true;
+  // The same percentage or amount is what a story is about, so a shared figure
+  // plus either a shared entity ("Binance", "Riksbank") or half of the shorter
+  // headline's wording identifies one event. Overlap rather than Jaccard, because
+  // one report is usually much longer than the other (an English headline adds a
+  // clause the Swedish one does not have) and Jaccard punishes that length gap.
+  if ([...a.figures].some((n) => b.figures.has(n))
+    && (sharedEntities(a.tokens, b.tokens) >= 1 || overlap(a.tokens, b.tokens) >= 0.3)) return true;
   if (sharedEntities(a.tokens, b.tokens) >= 1 && similarity >= 0.3) return true;
   return false;
 }
@@ -132,7 +144,7 @@ export function dedupeEvents<T extends MergeableArticle>(articles: T[]): T[] {
     const shape: EventShape<T> = {
       article,
       tokens: canonicalTokens(article.title),
-      numbers: numbersIn(article.title),
+      figures: figuresIn(article.title),
       time: article.publishedAt ? new Date(article.publishedAt).getTime() : Date.now(),
     };
     const duplicate = kept.find((k) => sameEvent(k, shape));

@@ -682,6 +682,10 @@ const OFFICIAL_SUBSTANCE = [
   'monetary policy', 'inflation', 'cpi', 'ppi', 'payrolls', 'jobs report', 'nonfarm',
   'unemployment', 'gdp', 'retail sales', 'minutes', 'filing', '8-k', 'statement',
   'financial stability', 'stress test',
+  // A rewritten decision headline ("Fed cuts rates to 3.75%-4.00%") states the
+  // decision in the words a person would use, not the bank's document title.
+  'holds rates', 'cuts rates', 'raises rates', 'holds policy rate', 'cuts policy rate',
+  'raises policy rate', 'holds interest rate', 'cuts interest rate',
 ];
 
 function importanceFor(
