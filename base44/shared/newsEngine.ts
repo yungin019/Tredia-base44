@@ -150,6 +150,51 @@ const THEMES: Theme[] = [
   },
 ];
 
+/**
+ * Nordic business vocabulary, matched WITHOUT word boundaries: Swedish, Danish
+ * and Norwegian build compounds, so "krypto" only appears inside "kryptobörsen"
+ * and "elpris" inside "elpriserna". Each group carries its own category so a
+ * Swedish crypto story lands in Crypto, not in Stocks.
+ */
+const LOCAL_THEMES: Theme[] = [
+  {
+    id: 'local-macro',
+    category: 'Macro',
+    weight: 22,
+    terms: ['styrränta', 'räntebesked', 'riksbank', 'inflation', 'konjunktur', 'arbetslöshet', 'bnp', 'penningpolitik'],
+  },
+  {
+    id: 'local-earnings',
+    category: 'Stocks',
+    weight: 20,
+    terms: ['delårsrapport', 'kvartalsrapport', 'vinstvarning', 'omsättning', 'orderingång', 'rörelseresultat', 'vinst'],
+  },
+  {
+    id: 'local-crypto',
+    category: 'Crypto',
+    weight: 20,
+    terms: ['krypto', 'bitcoin', 'ethereum', 'stablecoin', 'blockkedja'],
+  },
+  {
+    id: 'local-markets',
+    category: 'Stocks',
+    weight: 14,
+    terms: ['börs', 'aktie', 'aktiemarknad', 'obligation', 'valuta', 'kronan', 'index'],
+  },
+  {
+    id: 'local-energy',
+    category: 'Commodities',
+    weight: 18,
+    terms: ['elpris', 'energipris', 'oljepris', 'guldpris', 'raffinaderi', 'kärnkraft', 'gaslager'],
+  },
+  {
+    id: 'local-geopolitics',
+    category: 'Geopolitics',
+    weight: 16,
+    terms: ['krig', 'sanktion', 'strejk', 'konflikt', 'attack', 'kupp'],
+  },
+];
+
 // Articles that look like market news but carry no market impact.
 const PENALTIES: { weight: number; terms: string[] }[] = [
   {
@@ -235,6 +280,7 @@ const BEARISH_WORDS = [
   'hacked', 'breach', 'outage', 'layoff', 'layoffs', 'sanction', 'sanctions',
   'recession', 'default', 'bankruptcy', 'selloff', 'sell-off',
   'faller', 'rasar', 'sänks', 'minskar', 'rekordlåg',
+  'stöld', 'kupp', 'attack',
 ];
 
 /**
@@ -314,6 +360,13 @@ const COMMODITY_LABELS: { label: string; re: RegExp }[] = [
 // ── HELPERS ────────────────────────────────────────────────────────────────
 const lc = (v: unknown) => String(v || '').toLowerCase();
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Compound-tolerant match, for languages that join words ("kryptobörsen"). */
+function looseHits(text: string, terms: string[]): number {
+  let hits = 0;
+  for (const term of terms) if (text.includes(term)) hits += 1;
+  return hits;
+}
 
 function termHits(text: string, terms: string[]): number {
   let hits = 0;
@@ -640,12 +693,14 @@ export function classifyArticle(raw: {
   const indiaIndex = isIndiaIndex(headline);
   const text = lc(`${title} ${raw.summary || ''}`);
 
-  // Themes
-  const matched: { theme: Theme; hits: number }[] = [];
-  for (const theme of THEMES) {
-    const hits = termHits(text, theme.terms);
-    if (hits > 0) matched.push({ theme, hits });
-  }
+  // Themes — English terms match on word boundaries, Nordic ones also inside
+  // compounds, so theme detection works in both languages.
+  const themeMatches = (value: string) => [
+    ...THEMES.map((theme) => ({ theme, hits: termHits(value, theme.terms) })),
+    ...LOCAL_THEMES.map((theme) => ({ theme, hits: looseHits(value, theme.terms) })),
+  ].filter((m) => m.hits > 0);
+
+  const matched = themeMatches(text);
 
   const themeScore = Math.min(58, matched.reduce((sum, m) => sum + m.theme.weight + (m.hits - 1) * 3, 0));
   const penalty = PENALTIES.reduce((sum, p) => sum + (termHits(text, p.terms) > 0 ? p.weight : 0), 0);
@@ -678,9 +733,7 @@ export function classifyArticle(raw: {
       || ranked.find((m) => m.theme.id === 'geopolitics')
       || ranked[0];
   };
-  const headlineThemes = THEMES
-    .map((theme) => ({ theme, hits: termHits(headline, theme.terms) }))
-    .filter((m) => m.hits > 0);
+  const headlineThemes = themeMatches(headline);
 
   const primary = rankThemes(headlineThemes) || rankThemes(matched);
   let category: NewsCategory = primary ? primary.theme.category : 'Stocks';
