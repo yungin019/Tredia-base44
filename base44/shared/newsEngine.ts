@@ -21,6 +21,8 @@ import { ASSET_INDEX } from './assetSymbols.ts';
 import { applySentimentGuard } from './newsSentiment.ts';
 import { dedupeEvents } from './newsDedupe.ts';
 import { isTier1, isOfficial } from './newsSourceRank.ts';
+import { describeOfficialRelease } from './officialReleases.ts';
+import { CRYPTO_SYMBOLS } from './knownSymbols.ts';
 
 const POOL_TTL_MS = 12 * 60 * 1000;      // 12 minutes
 const REGION_TTL_MS = 45 * 60 * 1000;    // a failed region keeps its last articles
@@ -274,7 +276,17 @@ const PENALTIES: { weight: number; terms: string[] }[] = [
       'comment period', 'requests comment', 'seeks comment', 'request for comment',
       'proposal to', 'technical amendment', 'approval of application',
       'announces approval', 'appoints', 'reappoints', 'nominates', 'notice of proposed',
-      'public hearing', 'rulemaking',
+      'public hearing', 'rulemaking', 'termination of', 'terminates the', 'ceases to',
+      'enforcement action', 'application by', 'survey', 'surveys', 'requests information',
+    ],
+  },
+  {
+    // Anniversary and retrospective pieces: a birthday is not an event, and the
+    // "has it grown up?" magazine essay is opinion, not market reporting.
+    weight: -45,
+    terms: [
+      'turns 18', 'turns 20', 'anniversary', 'grown up', 'white paper turns',
+      'good intentions', 'cost of regulation', 'what comes next for',
     ],
   },
   {
@@ -754,7 +766,9 @@ export function classifyArticle(raw: {
   const symbols = extractSymbols(title);
 
   // Feature, long-read, photo and video sections are not market reporting.
-  const urlPenalty = /\/features\/|\/longform\/|\/photos?\/|\/gallery\/|\/video\/|\/slideshow\//.test(lc(url)) ? -26 : 0;
+  // Opinion, magazine and feature desks publish essays about the market, not
+  // events in it — however many market words the headline borrows.
+  const urlPenalty = /\/opinion\/|\/opinions?\/|\/magazine\/|\/features?\/|\/longform\/|\/blog\/|\/photos?\/|\/gallery\/|\/video\/|\/slideshow\//.test(lc(url)) ? -45 : 0;
   // A question headline is nearly always analysis rather than news.
   const questionPenalty = /[?]$/.test(title.trim()) ? -12 : 0;
   // A weak theme with no named asset is not market-relevant enough on its own.
@@ -941,7 +955,9 @@ function parseRss(xml: string) {
  * official notice could sit at the top of the feed forever.
  */
 function dateFromUrl(url: string): string | null {
-  const match = String(url || '').match(/\/(\d{4})(\d{2})(\d{2})[^/]*\.(?:htm|html|php)$/i);
+  // Fed release slugs carry the date inside the name ("bcreg20261002a.htm"),
+  // not as a path segment, so the digits are matched anywhere before the suffix.
+  const match = String(url || '').match(/(\d{4})(\d{2})(\d{2})[a-z]*\.(?:htm|html|php)$/i);
   if (!match) return null;
   const parsed = new Date(`${match[1]}-${match[2]}-${match[3]}T12:00:00Z`);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
@@ -984,7 +1000,7 @@ async function fetchFeed(region: NewsRegion, url: string, sourceOverride?: strin
     const xml = await res.text();
     const publisher = publisherFromUrl(url);
     logDiag({ type: 'news_ok', source: publisher, ok: true, durationMs: Date.now() - startedAt });
-    return parseRss(xml).slice(0, 18).map((r) => ({
+    const rows = parseRss(xml).slice(0, 18).map((r) => ({
       title: r.title,
       summary: r.summary,
       url: r.url,
@@ -994,6 +1010,21 @@ async function fetchFeed(region: NewsRegion, url: string, sourceOverride?: strin
       regionHint: region,
       boost: sourceOverride ? 24 : 0,
     }));
+
+    // Official feeds publish document titles ("Monetary policy decisions"), so
+    // read the release itself and say what the bank did. Only first-party feeds
+    // are rewritten, and only the newest few, in parallel.
+    if (!sourceOverride) return rows;
+    const rewritten = await Promise.all(rows.slice(0, 8).map(async (row) => {
+      const decision = await describeOfficialRelease(row.url, row.source);
+      if (!decision) return row;
+      return {
+        ...row,
+        title: decision.title,
+        summary: decision.summary || row.summary,
+      };
+    }));
+    return [...rewritten, ...rows.slice(8)];
   } catch (error) {
     logDiag({ type: 'news_error', source: publisherFromUrl(url), ok: false, detail: error.message });
     return [];

@@ -50,4 +50,26 @@ export function isKnownSymbol(symbol: unknown): boolean {
   return KNOWN.has(String(symbol || '').trim().toUpperCase());
 }
 
+/**
+ * The app's crypto universe, so backend code can tell a coin from an equity
+ * without loading the frontend asset list. Mirrors the CRYPTO block of
+ * src/lib/assetUniverse.js.
+ */
+export const CRYPTO_SYMBOLS = new Set<string>([
+  'BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'TRX', 'AVAX', 'LINK', 'TON', 'SHIB',
+  'DOT', 'BCH', 'NEAR', 'LTC', 'UNI', 'ICP', 'APT', 'ATOM', 'XLM', 'ARB', 'FIL', 'VET',
+  'MKR', 'OP', 'STX', 'IMX', 'INJ', 'GRT', 'THETA', 'LDO', 'RUNE', 'ALGO', 'EGLD', 'AAVE',
+  'SAND', 'MANA', 'AXS', 'FLOW', 'XTZ', 'EOS', 'GALA', 'NEO', 'QNT', 'CHZ', 'KAVA', 'ZEC',
+  'DASH', 'COMP', 'SNX', 'CRV', 'ENJ', 'BAT', '1INCH', 'YFI', 'SUSHI', 'UMA', 'ZRX', 'BAL',
+  'KNC', 'ANKR', 'CELO', 'ICX', 'ZIL', 'KSM', 'AR', 'ROSE', 'JASMY', 'MASK', 'DYDX', 'GMX',
+  'PENDLE', 'BLUR', 'SEI', 'SUI', 'TIA', 'JUP', 'PYTH', 'WIF', 'BONK', 'FLOKI', 'PEPE',
+  'ORDI', 'ASTR', 'GLMR', 'CFG', 'PHA', 'CTSI', 'LRC', 'SKL', 'STORJ', 'SC', 'DGB', 'RVN',
+  'IOTA', 'HBAR', 'XDC', 'CSPR', 'ONE', 'QTUM', 'ONT', 'WAVES', 'OCEAN', 'REN', 'TLM',
+  'DENT', 'HOT', 'BTT', 'WIN', 'CKB', 'KAS', 'RNDR', 'TAO', 'FET', 'AGIX', 'AKT', 'NTRN',
+  'OSMO', 'AXL', 'WOO', 'MAGIC', 'ID', 'ARKM', 'WLD', 'EDU', 'ETHFI', 'ENA', 'ONDO', 'JTO',
+  'STRK', 'DYM', 'ALT', 'MANTA', 'ZK', 'ZRO', 'TNSR', 'REZ', 'BLAST', 'IO', 'ZETA', 'MEW',
+  'NOT', 'DOGS', 'HMSTR', 'NEIRO', 'GOAT', 'PNUT', 'BOME', 'MYRO', 'POPCAT', 'MOG', 'TURBO',
+  'LADYS', 'MATIC', 'SUSDE',
+]);
+
 export const KNOWN_SYMBOLS = KNOWN;
