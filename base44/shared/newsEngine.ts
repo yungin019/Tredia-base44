@@ -168,6 +168,14 @@ const PENALTIES: { weight: number; terms: string[] }[] = [
     terms: ['best ', 'top 10', 'how to ', 'ways to ', 'review:', 'guide to', 'tips for'],
   },
   {
+    weight: -34,
+    terms: [
+      'doctors', 'nurses', 'bereavement', 'trauma', 'families', 'children',
+      'wounded', 'killed', 'funeral', 'refugees', 'survivors', 'patients',
+      'teachers', 'students', 'in pictures', 'photos of', 'life and times',
+    ],
+  },
+  {
     weight: -18,
     terms: ['press release', 'appoints', 'appointment of', 'wins award', 'unveils', 'announces dividend'],
   },
@@ -265,40 +273,95 @@ function isTier1(source: string): boolean {
 
 function detectRegion(text: string, fallback: NewsRegion): NewsRegion {
   for (const [region, terms] of Object.entries(REGION_KEYWORDS)) {
-    if (terms.some((t) => text.includes(t))) return region as NewsRegion;
+    // Word boundaries, not substring: "tearing down homes" is not the Dow.
+    if (termHits(text, terms) > 0) return region as NewsRegion;
   }
   return fallback;
 }
 
+/**
+ * Company names as they actually appear in headlines, mapped to their symbol.
+ * Scanning all 600 universe names was wrong ("southern Lebanon" tagged
+ * Southern Company), so name matching runs off this curated list instead;
+ * cashtags and ALL-CAPS tickers still cover everything else.
+ */
+const NAME_ALIASES: Record<string, string> = {
+  apple: 'AAPL', microsoft: 'MSFT', nvidia: 'NVDA', alphabet: 'GOOGL', google: 'GOOGL',
+  amazon: 'AMZN', meta: 'META', facebook: 'META', tesla: 'TSLA', broadcom: 'AVGO',
+  jpmorgan: 'JPM', 'eli lilly': 'LLY', costco: 'COST', netflix: 'NFLX',
+  salesforce: 'CRM', oracle: 'ORCL', chevron: 'CVX', exxon: 'XOM', 'exxon mobil': 'XOM',
+  pfizer: 'PFE', intel: 'INTC', qualcomm: 'QCOM', micron: 'MU', 'advanced micro devices': 'AMD',
+  boeing: 'BA', caterpillar: 'CAT', walmart: 'WMT', nike: 'NKE', starbucks: 'SBUX',
+  mcdonald: 'MCD', disney: 'DIS', uber: 'UBER', airbnb: 'ABNB', palantir: 'PLTR',
+  coinbase: 'COIN', microstrategy: 'MSTR', robinhood: 'HOOD', crowdstrike: 'CRWD',
+  snowflake: 'SNOW', datadog: 'DDOG', shopify: 'SHOP', paypal: 'PYPL', spotify: 'SPOT',
+  goldman: 'GS', 'morgan stanley': 'MS', 'bank of america': 'BAC', citigroup: 'C',
+  blackrock: 'BLK', 'wells fargo': 'WFC', mastercard: 'MA', 'berkshire hathaway': 'BRK.B',
+  'johnson & johnson': 'JNJ', moderna: 'MRNA', 'ford motor': 'F', 'general motors': 'GM',
+  'general electric': 'GE', 'lockheed martin': 'LMT', 'home depot': 'HD',
+  'procter & gamble': 'PG', 'coca-cola': 'KO', pepsi: 'PEP', 'philip morris': 'PM',
+  altria: 'MO', 'delta air lines': 'DAL', 'united airlines': 'UAL',
+  'southwest airlines': 'LUV', conocophillips: 'COP', occidental: 'OXY',
+  halliburton: 'HAL', freeport: 'FCX', newmont: 'NEM', albemarle: 'ALB',
+  // Global
+  asml: 'ASML', sap: 'SAP', 'novo nordisk': 'NVO', novartis: 'NVS', astrazeneca: 'AZN',
+  gsk: 'GSK', sanofi: 'SNY', shell: 'SHEL', totalenergies: 'TTE', eni: 'E',
+  equinor: 'EQNR', hsbc: 'HSBC', ubs: 'UBS', 'deutsche bank': 'DB', allianz: 'ALIZY',
+  stellantis: 'STLA', volkswagen: 'VWAGY', bmw: 'BMWYY', mercedes: 'MBGYY',
+  lvmh: 'LVMUY', siemens: 'SIEGY', bayer: 'BAYRY', basf: 'BASFY', adidas: 'ADDYY',
+  ericsson: 'ERIC', nokia: 'NOK', philips: 'PHG', heineken: 'HEINY', diageo: 'DEO',
+  'british american tobacco': 'BTI', reckitt: 'RKT', ryanair: 'RYAAY',
+  'deutsche telekom': 'DTEGY', iberdrola: 'IBE', enel: 'ENEL', engie: 'ENGIY',
+  volvo: 'VLVLY', maersk: 'MAERSK', ferrovial: 'FER', prosus: 'PRX',
+  tsmc: 'TSM', 'taiwan semiconductor': 'TSM', toyota: 'TM', sony: 'SONY', honda: 'HMC',
+  'mitsubishi ufj': 'MUFG', 'sumitomo mitsui': 'SMFG', mizuho: 'MFG', nomura: 'NMR',
+  alibaba: 'BABA', 'pdd holdings': 'PDD', 'jd.com': 'JD', netease: 'NTES', baidu: 'BIDU',
+  tencent: 'TCEHY', bilibili: 'BILI', 'yum china': 'YUMC', 'li auto': 'LI', nio: 'NIO',
+  xpeng: 'XPEV', 'hdfc bank': 'HDB', 'icici bank': 'IBN', infosys: 'INFY', wipro: 'WIT',
+  posco: 'PKX', 'sea limited': 'SE', grab: 'GRAB', coupang: 'CPNG',
+  'ase technology': 'ASX', 'united microelectronics': 'UMC', 'saudi aramco': 'KSA',
+  'mercado libre': 'MELI', mercadolibre: 'MELI',
+  // Latin America / Africa / Middle East
+  vale: 'VALE', petrobras: 'PBR', bradesco: 'BBD', ambev: 'ABEV', 'nu holdings': 'NU',
+  nubank: 'NU', pagseguro: 'PAGS', stoneco: 'STNE', suzano: 'SUZ', femsa: 'FMX',
+  'coca-cola femsa': 'KOF', 'américa móvil': 'AMX', cemex: 'CX', globant: 'GLOB',
+  sasol: 'SSL', 'gold fields': 'GFI', 'anglogold ashanti': 'AU',
+  'sibanye-stillwater': 'SBSW', naspers: 'NPSNY', 'mtn group': 'MTNOY',
+  'standard bank': 'SBKJY', teva: 'TEVA', 'check point': 'CHKP', 'wix': 'WIX',
+  // Crypto and commodities (named assets, not tickers)
+  bitcoin: 'BTC', ethereum: 'ETH', solana: 'SOL', dogecoin: 'DOGE', cardano: 'ADA',
+  ripple: 'XRP', 'shiba inu': 'SHIB', avalanche: 'AVAX', chainlink: 'LINK',
+  polkadot: 'DOT', litecoin: 'LTC', uniswap: 'UNI', 'the sandbox': 'SAND',
+  decentraland: 'MANA', 'the graph': 'GRT', 'internet computer': 'ICP',
+};
+
+const NAME_TERMS = Object.keys(NAME_ALIASES);
+
 /** Tickers named in the text, restricted to the app's universe. */
 function extractSymbols(text: string): string[] {
   const found: string[] = [];
-  const upperText = String(text || '');
+  const body = String(text || '');
+  const lower = body.toLowerCase();
 
-  // 1. Explicit cashtags.
-  const cashtags = upperText.match(/\$([A-Z]{2,6})\b/g) || [];
+  // 1. Explicit cashtags: $BTC, $VALE.
+  const cashtags = body.match(/\$([A-Za-z]{2,6})\b/g) || [];
   for (const tag of cashtags) {
     const symbol = tag.slice(1).toUpperCase();
     if (ASSET_INDEX[symbol] && !found.includes(symbol)) found.push(symbol);
   }
 
-  // 2. ALL-CAPS tokens (2-6 chars) that exist in the universe.
-  const caps = upperText.match(/\b[A-Z]{2,6}\b/g) || [];
+  // 2. ALL-CAPS tickers that exist in the universe: NVDA, ASML, BTC.
+  const caps = body.match(/\b[A-Z]{2,6}\b/g) || [];
   for (const token of caps) {
     if (ASSET_INDEX[token] && !found.includes(token)) found.push(token);
   }
 
-  // 3. Company / asset names — only distinctive ones (5+ chars, no common word).
-  const lower = lc(upperText);
-  for (const [symbol, meta] of Object.entries(ASSET_INDEX)) {
+  // 3. Company and asset names from the curated alias list.
+  for (const term of NAME_TERMS) {
     if (found.length >= 6) break;
-    const name = lc(meta.name);
-    if (name.length < 5) continue;
-    const base = name.split(' (')[0].split(' ')[0];
-    if (base.length < 5) continue;
-    if (new RegExp(`(^|[^a-z])${escapeRe(base)}([^a-z]|$)`).test(lower) && !found.includes(symbol)) {
-      found.push(symbol);
-    }
+    const symbol = NAME_ALIASES[term];
+    if (!ASSET_INDEX[symbol] || found.includes(symbol)) continue;
+    if (new RegExp(`(^|[^a-z])${escapeRe(term)}([^a-z]|$)`).test(lower)) found.push(symbol);
   }
 
   return found.slice(0, 4);
@@ -353,7 +416,10 @@ export function classifyArticle(raw: {
   const penalty = PENALTIES.reduce((sum, p) => sum + (termHits(text, p.terms) > 0 ? p.weight : 0), 0);
   const symbols = extractSymbols(title + ' ' + (raw.summary || ''));
 
-  let score = 26 + themeScore + (symbols.length ? 14 : 0) + penalty;
+  // Feature, long-read, photo and video sections are not market reporting.
+  const urlPenalty = /\/features\/|\/longform\/|\/photos?\/|\/gallery\/|\/video\//.test(lc(url)) ? -26 : 0;
+
+  let score = 26 + themeScore + (symbols.length ? 14 : 0) + penalty + urlPenalty;
   score = Math.max(0, Math.min(100, Math.round(score)));
 
   if (score < MIN_RELEVANCE) return null;
@@ -439,23 +505,26 @@ async function finnhubCategory(category: string, key: string): Promise<any[]> {
 }
 
 /**
- * Regional editions of Google News (free, no key, one request per region).
- * GDELT stays in the mix for global events but its document API allows only
- * one request every five seconds and rejects multi-country filters, so it is
- * used for a single worldwide query rather than per-region ones.
+ * Worldwide publisher feeds — free, no key, no rate limit worth managing, and
+ * each answers in well under a second from the function runtime.
+ *
+ * Google News and GDELT were the first choice and both were rejected in
+ * testing: Google answers 503 to server-side requests, and GDELT's document
+ * API allows one request every five seconds (it timed out on every attempt).
+ * These publisher feeds are the working equivalent, one per region.
  */
-const REGION_FEEDS: { region: NewsRegion; url: string }[] = [
-  { region: 'US', url: 'hl=en-US&gl=US&ceid=US:en' },
-  { region: 'Europe', url: 'hl=en-GB&gl=GB&ceid=GB:en' },
-  { region: 'Asia', url: 'hl=en-IN&gl=IN&ceid=IN:en' },
-  { region: 'Latin America', url: 'hl=en-US&gl=BR&ceid=BR:en' },
-  { region: 'Africa', url: 'hl=en-ZA&gl=ZA&ceid=ZA:en' },
-  { region: 'Middle East', url: 'hl=en-AE&gl=AE&ceid=AE:en' },
+const FEEDS: { region: NewsRegion; url: string }[] = [
+  { region: 'US', url: 'https://www.cnbc.com/id/100003114/device/rss/rss.html' },
+  { region: 'US', url: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml' },
+  { region: 'US', url: 'https://feeds.content.dowjones.io/public/rss/mw_topstories' },
+  { region: 'Europe', url: 'https://feeds.bbci.co.uk/news/business/rss.xml' },
+  { region: 'Asia', url: 'https://www.scmp.com/rss/92/feed' },
+  { region: 'Asia', url: 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms' },
+  { region: 'Latin America', url: 'https://www.riotimesonline.com/feed/' },
+  { region: 'Africa', url: 'https://businessday.ng/feed/' },
+  { region: 'Africa', url: 'https://www.moneyweb.co.za/feed/' },
+  { region: 'Middle East', url: 'https://www.aljazeera.com/xml/rss/all.xml' },
 ];
-
-const REGION_FEED_QUERY = 'markets OR stocks OR economy OR "central bank" OR inflation';
-
-const GDELT_GLOBAL_QUERY = '(markets OR economy OR sanctions OR "interest rates") sourcelang:english';
 
 function decodeEntities(text: string): string {
   return String(text || '')
@@ -479,17 +548,19 @@ function splitHeadline(title: string): { title: string; source: string } {
 }
 
 function parseRss(xml: string) {
-  const out: { title: string; source: string; url: string; publishedAt: string | null }[] = [];
+  const out: { title: string; summary: string; source: string; url: string; publishedAt: string | null }[] = [];
   const items = String(xml || '').split('<item>').slice(1);
   for (const item of items) {
     const rawTitle = decodeEntities((item.match(/<title>([\s\S]*?)<\/title>/) || [])[1]);
     const link = decodeEntities((item.match(/<link>([\s\S]*?)<\/link>/) || [])[1]);
+    const summary = decodeEntities((item.match(/<description>([\s\S]*?)<\/description>/) || [])[1]).slice(0, 300);
     const pub = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1];
     if (!rawTitle || !link) continue;
     const { title, source } = splitHeadline(rawTitle);
     const date = pub ? new Date(pub) : null;
     out.push({
       title,
+      summary,
       source,
       url: link,
       publishedAt: date && !Number.isNaN(date.getTime()) ? date.toISOString() : null,
@@ -498,67 +569,51 @@ function parseRss(xml: string) {
   return out;
 }
 
-async function fetchRegionFeed(region: NewsRegion, params: string, query: string) {
+function publisherFromUrl(url: string): string {
   try {
-    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&${params}`;
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    const known: Record<string, string> = {
+      'cnbc.com': 'CNBC', 'feeds.a.dj.com': 'WSJ', 'feeds.content.dowjones.io': 'MarketWatch',
+      'feeds.bbci.co.uk': 'BBC', 'scmp.com': 'SCMP', 'economictimes.indiatimes.com': 'Economic Times',
+      'riotimesonline.com': 'Rio Times', 'businessday.ng': 'BusinessDay', 'moneyweb.co.za': 'Moneyweb',
+      'aljazeera.com': 'Al Jazeera',
+    };
+    for (const [domain, name] of Object.entries(known)) {
+      if (host.endsWith(domain)) return name;
+    }
+    return host;
+  } catch (_) {
+    return 'News';
+  }
+}
+
+async function fetchFeed(region: NewsRegion, url: string) {
+  try {
     const res = await fetch(url, {
-      signal: AbortSignal.timeout(7000),
+      signal: AbortSignal.timeout(6000),
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
         Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
       },
     });
-    if (!res.ok) {
-      console.warn(`[news] feed ${region} HTTP ${res.status}`);
-      return [];
-    }
+    if (!res.ok) return [];
     const xml = await res.text();
-    console.log(`[news] feed ${region}: ${(xml.match(/<item>/g) || []).length} items`);
-    return parseRss(xml).slice(0, 20).map((r) => ({
+    const publisher = publisherFromUrl(url);
+    return parseRss(xml).slice(0, 18).map((r) => ({
       title: r.title,
-      summary: '',
+      summary: r.summary,
       url: r.url,
       image: null as string | null,
-      source: r.source,
+      source: r.source || publisher,
       publishedAt: r.publishedAt,
       regionHint: region,
-    }));
-  } catch (error) {
-    console.warn(`[news] feed ${region} failed: ${error.message}`);
-    return [];
-  }
-}
-
-function parseGdeltDate(seendate: string): string | null {
-  const s = String(seendate || '');
-  const m = s.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
-  if (!m) return null;
-  const [, y, mo, d, h, mi, se] = m;
-  return `${y}-${mo}-${d}T${h}:${mi}:${se}Z`;
-}
-
-/** One worldwide GDELT query. Slow and rate-limited, so it is the only one. */
-async function gdeltGlobal(query: string) {
-  try {
-    const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}`
-      + `&mode=artlist&maxrecords=25&format=json&sort=datedesc&timespan=1d`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return [];
-    const data = await res.json().catch(() => ({}));
-    const articles = Array.isArray(data?.articles) ? data.articles : [];
-    return articles.map((a: any) => ({
-      title: a.title,
-      summary: '',
-      url: a.url,
-      image: null as string | null,
-      source: a.domain,
-      publishedAt: parseGdeltDate(a.seendate),
-      regionHint: undefined as NewsRegion | undefined,
     }));
   } catch (_) {
     return [];
   }
 }
+
+
 
 // ── CACHE ──────────────────────────────────────────────────────────────────
 const store = globalThis as any;
@@ -617,34 +672,22 @@ async function buildPool(): Promise<{ articles: ScoredArticle[]; generatedAt: nu
 
   // 2. Worldwide coverage: one Google News feed per region, plus a single global
   //    GDELT query. A region that fails keeps its last good batch.
-  // Sequential, not parallel: Google answers 503 to a burst from one IP, and a
-  // failure keeps the region's last good batch instead of emptying it.
-  const loadRegions = async (): Promise<ScoredArticle[][]> => {
-    const batches: ScoredArticle[][] = [];
-    for (const { region, url } of REGION_FEEDS) {
-      let raw = await fetchRegionFeed(region, url, REGION_FEED_QUERY);
-      if (raw.length === 0) {
-        await new Promise((r) => setTimeout(r, 1200));
-        raw = await fetchRegionFeed(region, url, REGION_FEED_QUERY);
-      }
+  // Each feed is a different host, so they run in parallel. A feed that fails
+  // keeps its own last good batch instead of emptying the region.
+  const feedBatches = await Promise.all(
+    FEEDS.map(async ({ region, url }) => {
+      const raw = await fetchFeed(region, url);
       const scored = raw.map((r) => classifyArticle(r)).filter(Boolean) as ScoredArticle[];
       if (scored.length > 0) {
-        cache.regions.set(region, { articles: scored, at: Date.now() });
-        batches.push(scored);
-      } else {
-        const previous = cache.regions.get(region);
-        batches.push(previous && Date.now() - previous.at < REGION_TTL_MS ? previous.articles : []);
-        if (!previous) cache.regions.delete(region);
+        cache.regions.set(url, { articles: scored, at: Date.now() });
+        return scored;
       }
-      await new Promise((r) => setTimeout(r, 250));
-    }
-    return batches;
-  };
+      const previous = cache.regions.get(url);
+      return previous && Date.now() - previous.at < REGION_TTL_MS ? previous.articles : [];
+    }),
+  );
 
-  const [feedBatches, gdeltBatch] = await Promise.all([loadRegions(), gdeltGlobal(GDELT_GLOBAL_QUERY)]);
-
-  const gdeltScored = gdeltBatch.map((r) => classifyArticle(r)).filter(Boolean) as ScoredArticle[];
-  const regions = [...feedBatches, gdeltScored];
+  const regions = feedBatches;
 
   // 3. Score Finnhub's batch, then merge everything.
   const scoredFinnhub = finnhubRaw.map((r) => classifyArticle(r)).filter(Boolean) as ScoredArticle[];
