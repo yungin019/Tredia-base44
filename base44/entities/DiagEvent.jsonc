@@ -15,7 +15,8 @@
         "ai_request",
         "ai_error",
         "auth_fail",
-        "purchase_fail"
+        "purchase_fail",
+        "account_deleted"
       ],
       "description": "Metric event type"
     },

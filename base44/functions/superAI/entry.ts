@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { allowAiRequest, AI_RATE_LIMIT_REPLY } from '../../shared/aiRateLimit.ts';
+import { logDiag, setDiagContext, estimateCost } from '../../shared/diagLog.ts';
 
 const CLAUDE_TECHNICAL_PROMPT = `You are the technical analysis engine of TREK. Analyze the asset using: price action, moving averages (20, 50, 200 MA), RSI, MACD, volume, support/resistance levels, chart patterns. Give a clear BULLISH/BEARISH/NEUTRAL verdict with specific price levels. Be concise — max 100 words. End with: Verdict: BULLISH or BEARISH or NEUTRAL`;
 
@@ -9,6 +10,7 @@ const GEMINI_SENTIMENT_PROMPT = `You are the sentiment analysis engine of TREK. 
 
 async function callClaude(question, marketContext, systemPrompt) {
   const contextStr = marketContext ? `\nMarket Context: ${JSON.stringify(marketContext)}` : '';
+  const startedAt = Date.now();
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -23,13 +25,25 @@ async function callClaude(question, marketContext, systemPrompt) {
       messages: [{ role: 'user', content: question }],
     }),
   });
-  if (!res.ok) throw new Error(`Claude error ${res.status}`);
+  if (!res.ok) {
+    logDiag({ type: 'ai_error', source: 'claude-sonnet-4-20250514', ok: false, durationMs: Date.now() - startedAt, detail: `HTTP ${res.status}` });
+    throw new Error(`Claude error ${res.status}`);
+  }
   const data = await res.json();
-  return data.content?.[0]?.text || '';
+  const text = data.content?.[0]?.text || '';
+  logDiag({
+    type: 'ai_request',
+    source: 'claude-sonnet-4-20250514',
+    ok: true,
+    durationMs: Date.now() - startedAt,
+    costUsd: estimateCost('claude-sonnet-4-20250514', String(question).length + contextStr.length, text.length),
+  });
+  return text;
 }
 
 async function callGPT(question, marketContext, systemPrompt) {
   const contextStr = marketContext ? `\nMarket Context: ${JSON.stringify(marketContext)}` : '';
+  const startedAt = Date.now();
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -45,9 +59,20 @@ async function callGPT(question, marketContext, systemPrompt) {
       ],
     }),
   });
-  if (!res.ok) throw new Error(`GPT error ${res.status}`);
+  if (!res.ok) {
+    logDiag({ type: 'ai_error', source: 'gpt-4o', ok: false, durationMs: Date.now() - startedAt, detail: `HTTP ${res.status}` });
+    throw new Error(`GPT error ${res.status}`);
+  }
   const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
+  const text = data.choices?.[0]?.message?.content || '';
+  logDiag({
+    type: 'ai_request',
+    source: 'gpt-4o',
+    ok: true,
+    durationMs: Date.now() - startedAt,
+    costUsd: estimateCost('gpt-4o', String(question).length + contextStr.length, text.length),
+  });
+  return text;
 }
 
 async function callGemini(question, marketContext, systemPrompt) {
@@ -105,6 +130,7 @@ function buildMasterVerdict(verdicts, rawTexts) {
 
 Deno.serve(async (req) => {
   try {
+    setDiagContext(req);
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });

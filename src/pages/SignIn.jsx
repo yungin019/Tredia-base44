@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
+import { reportAuthFailure } from '@/lib/errorReporter';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import {
   signInWithEmailAndPassword,
@@ -190,6 +191,7 @@ export default function SignIn() {
       const cred = await withTimeout(signInWithEmailAndPassword(auth, email, password), 10000);
       await handleAfterLoginWeb(cred.user);
     } catch (err) {
+      reportAuthFailure('email', err);
       setError(err.message === 'timeout' ? 'Request timed out. Please check your connection and try again.' : mapFirebaseError(err));
     } finally {
       setLoading(false);
@@ -211,6 +213,7 @@ export default function SignIn() {
         // customParameters), so the same intent is passed on both.
         const googleOptions = { customParameters: [{ key: 'prompt', value: 'select_account' }] };
         try { result = await FirebaseAuthentication.signInWithGoogle(googleOptions); } catch (err) {
+          reportAuthFailure('google', err);
           setError('FA.signInWithGoogle() failed: ' + formatError(err));
           setLoading(false); stopSafetyTimer(); return;
         }
@@ -227,6 +230,7 @@ export default function SignIn() {
         setLoading(false);
       }
     } catch (err) {
+      reportAuthFailure('google', err);
       setError('Google error: ' + formatError(err));
       setLoading(false); stopSafetyTimer();
     }
@@ -242,6 +246,7 @@ export default function SignIn() {
       if (IS_NATIVE) {
         let result;
         try { result = await FirebaseAuthentication.signInWithApple(); } catch (err) {
+          reportAuthFailure('apple', err);
           setError('FA.signInWithApple() failed: ' + formatError(err));
           setLoading(false); stopSafetyTimer(); return;
         }
@@ -255,6 +260,7 @@ export default function SignIn() {
         setLoading(false);
       }
     } catch (err) {
+      reportAuthFailure('apple', err);
       setError('Apple error: ' + formatError(err));
       setLoading(false); stopSafetyTimer();
     }

@@ -1,0 +1,45 @@
+{
+  "name": "Admin Health Check",
+  "description": "Every 10 minutes: tests SPY and BTC quotes, the news feed, Firebase auth and one cheap AI call; saves HealthCheck rows and alerts Discord on two failures in a row",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 10,
+      "interval_unit": "minutes",
+      "interval_anchor": "2026-11-01T09:00:00Z",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "admin_health_check",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_health_check": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "adminHealthCheck",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Run health check",
+            "description": "5 subsystem probes + Discord alerts"
+          }
+        }
+      }
+    ]
+  }
+}

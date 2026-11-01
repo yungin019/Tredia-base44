@@ -1,0 +1,45 @@
+{
+  "name": "Admin Daily Summary",
+  "description": "Every day at 07:00: sends the last 24h of logs and metrics to the cheap model, stores a plain-language report for /Admin and posts it to Discord",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 7 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "admin_daily_summary",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "write_daily_summary": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "adminDailySummary",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Write daily diagnostics report",
+            "description": "AI summary + Discord post"
+          }
+        }
+      }
+    ]
+  }
+}

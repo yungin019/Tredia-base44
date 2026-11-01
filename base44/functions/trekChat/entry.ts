@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { verifyFirebaseToken, tokenFromRequest } from '../../shared/firebaseAuth.ts';
 import { allowAiRequest, AI_RATE_LIMIT_REPLY } from '../../shared/aiRateLimit.ts';
+import { logDiag, setDiagContext, estimateCost } from '../../shared/diagLog.ts';
 // Multi-model synthesis: Claude + OpenAI run in parallel as independent analysts,
 // then Claude synthesizes the best combined verdict with calibrated confidence %.
 
@@ -65,6 +66,7 @@ Recent News: ${marketContext.recentNews || '—'}`;
 }
 
 async function callClaude(systemPrompt, messages) {
+  const startedAt = Date.now();
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -83,12 +85,24 @@ async function callClaude(systemPrompt, messages) {
       })),
     }),
   });
-  if (!response.ok) throw new Error(`Claude error ${response.status}`);
+  if (!response.ok) {
+    logDiag({ type: 'ai_error', source: 'claude-sonnet-4-20250514', ok: false, durationMs: Date.now() - startedAt, detail: `HTTP ${response.status}` });
+    throw new Error(`Claude error ${response.status}`);
+  }
   const data = await response.json();
-  return data.content?.[0]?.text || '';
+  const text = data.content?.[0]?.text || '';
+  logDiag({
+    type: 'ai_request',
+    source: 'claude-sonnet-4-20250514',
+    ok: true,
+    durationMs: Date.now() - startedAt,
+    costUsd: estimateCost('claude-sonnet-4-20250514', JSON.stringify(messages).length + String(systemPrompt || '').length, text.length),
+  });
+  return text;
 }
 
 async function callOpenAI(systemPrompt, messages) {
+  const startedAt = Date.now();
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -108,14 +122,26 @@ async function callOpenAI(systemPrompt, messages) {
       ],
     }),
   });
-  if (!response.ok) throw new Error(`OpenAI error ${response.status}`);
+  if (!response.ok) {
+    logDiag({ type: 'ai_error', source: 'gpt-4o', ok: false, durationMs: Date.now() - startedAt, detail: `HTTP ${response.status}` });
+    throw new Error(`OpenAI error ${response.status}`);
+  }
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
+  const text = data.choices?.[0]?.message?.content || '';
+  logDiag({
+    type: 'ai_request',
+    source: 'gpt-4o',
+    ok: true,
+    durationMs: Date.now() - startedAt,
+    costUsd: estimateCost('gpt-4o', JSON.stringify(messages).length + String(systemPrompt || '').length, text.length),
+  });
+  return text;
 }
 
 Deno.serve(async (req) => {
   try {
     createClientFromRequest(req);
+    setDiagContext(req);
     const body = await req.json().catch(() => ({}));
 
     // Firebase session, verified server-side — a Base44 session never exists here.

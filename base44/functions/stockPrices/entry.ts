@@ -35,8 +35,11 @@ async function finnhubSearch(query: string, assetType: string | undefined, key: 
     .map((r: any) => ({ symbol: r.symbol, name: r.description, type: r.type || 'Stock' }));
 }
 
+import { setDiagContext } from '../../shared/diagLog.ts';
+
 Deno.serve(async (req) => {
   try {
+    setDiagContext(req);
     const body = await req.json().catch(() => ({}));
     const { symbol, symbols, mode } = body;
 

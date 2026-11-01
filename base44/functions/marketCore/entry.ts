@@ -127,8 +127,11 @@ async function handleSearch(query: string) {
   return matched.map((symbol) => assetPayload(symbol, quotes[symbol]));
 }
 
+import { setDiagContext } from '../../shared/diagLog.ts';
+
 Deno.serve(async (req) => {
   try {
+    setDiagContext(req);
     const body = await req.json().catch(() => ({}));
     const action = body.action || 'core';
 

@@ -617,8 +617,11 @@ function publisherFromUrl(url: string): string {
   }
 }
 
+import { logDiag } from './diagLog.ts';
+
 async function fetchFeed(region: NewsRegion, url: string) {
   try {
+    const startedAt = Date.now();
     const res = await fetch(url, {
       signal: AbortSignal.timeout(6000),
       headers: {
@@ -626,9 +629,13 @@ async function fetchFeed(region: NewsRegion, url: string) {
         Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
       },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      logDiag({ type: 'news_error', source: publisherFromUrl(url), ok: false, durationMs: Date.now() - startedAt, detail: `HTTP ${res.status}` });
+      return [];
+    }
     const xml = await res.text();
     const publisher = publisherFromUrl(url);
+    logDiag({ type: 'news_ok', source: publisher, ok: true, durationMs: Date.now() - startedAt });
     return parseRss(xml).slice(0, 18).map((r) => ({
       title: r.title,
       summary: r.summary,
@@ -638,7 +645,8 @@ async function fetchFeed(region: NewsRegion, url: string) {
       publishedAt: r.publishedAt,
       regionHint: region,
     }));
-  } catch (_) {
+  } catch (error) {
+    logDiag({ type: 'news_error', source: publisherFromUrl(url), ok: false, detail: error.message });
     return [];
   }
 }

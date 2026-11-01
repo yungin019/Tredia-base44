@@ -10,6 +10,7 @@
  * confirm their password instead of leaving orphaned data behind.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { logDiag, setDiagContext } from '../../shared/diagLog.ts';
 import { verifyFirebaseToken, tokenFromRequest } from '../../shared/firebaseAuth.ts';
 
 const FIREBASE_API_KEY = Deno.env.get('VITE_FIREBASE_API_KEY') || Deno.env.get('FIREBASE_API_KEY') || '';
@@ -43,6 +44,7 @@ function itemsOf(result: any) {
 
 Deno.serve(async (req) => {
   try {
+    setDiagContext(req);
     const body = await req.json().catch(() => ({}));
     const idToken = body.idToken || tokenFromRequest(req);
     const identity = await verifyFirebaseToken(idToken);
@@ -147,6 +149,7 @@ Deno.serve(async (req) => {
     }
 
     console.log('[deleteUserData] Completed:', JSON.stringify({ uid, deleted }));
+    logDiag({ type: 'account_deleted', source: 'deleteUserData', ok: true, detail: `rows removed: ${Array.isArray(deleted) ? deleted.length : 0}` });
     return Response.json({ success: true, uid, deleted, message: 'Account deleted' });
   } catch (error) {
     console.error('[deleteUserData] Fatal error:', error.message, error.stack);

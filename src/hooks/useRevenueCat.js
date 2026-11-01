@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { REVENUECAT_CONFIG } from '@/lib/revenuecat-config';
+import { reportPurchaseFailure } from '@/lib/errorReporter';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
 
@@ -98,6 +99,7 @@ export function useRevenueCat() {
         setPurchaseError(null);
         return false;
       }
+      reportPurchaseFailure(error, 'purchase');
       setPurchaseError(error?.message || 'Purchase failed. Please try again.');
       console.error('[RevenueCat] purchase error:', error);
       return false;
@@ -116,6 +118,7 @@ export function useRevenueCat() {
       updateFromCustomerInfo(info);
       return true;
     } catch (error) {
+      reportPurchaseFailure(error, 'restore');
       setPurchaseError(error?.message || 'Restore failed. Please try again.');
       console.error('[RevenueCat] restore error:', error);
       return false;

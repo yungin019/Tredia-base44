@@ -1,4 +1,5 @@
 import { getNewsPool, getSymbolNews } from '../../shared/newsEngine.ts';
+import { setDiagContext } from '../../shared/diagLog.ts';
 
 /**
  * getMarketNews — the news feed's only endpoint.
@@ -29,6 +30,7 @@ function ageOf(publishedAt: string | null): string {
 
 Deno.serve(async (req) => {
   try {
+    setDiagContext(req);
     const body = await req.json().catch(() => ({}));
     const { symbol, region, category } = body;
     const limit = Math.min(50, Number(body.limit) || DEFAULT_LIMIT);

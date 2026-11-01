@@ -11,6 +11,9 @@ import GlobalAssetSearch from '@/components/ui/GlobalAssetSearch';
 import { useNavigation } from '@/lib/NavigationManager';
 import AlpacaConnectBanner from '@/components/broker/AlpacaConnectBanner';
 import { PRICE_DATA_BADGE } from '@/lib/dataFreshness';
+import ReportBugButton from '@/components/admin/ReportBugButton';
+import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
+import { isAdminUser } from '@/lib/adminAccess';
 
 const NAV_CONFIG = [
   { path: '/Home',       icon: Home,       translationKey: 'nav.feed',      isTrek: false },
@@ -26,6 +29,7 @@ const NAV_FALLBACKS = { 'nav.feed': 'Feed', 'nav.markets': 'Markets', 'nav.trek'
 export default function AppShell({ onLogout }) {
   const location = useLocation();
   const { t } = useTranslation();
+  const { firebaseUser } = useFirebaseAuth();
   const { isElite } = useSubscriptionStatus();
   const { switchTab, goBack, canGoBack, getTabForPath, getTabForHighlight, syncExternalNavigation } = useNavigation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -190,6 +194,9 @@ export default function AppShell({ onLogout }) {
 
       {/* Global AI Assistant */}
       <TredioAssistant />
+
+      {/* Bug reporter — admin only, server re-checks the uid */}
+      {isAdminUser(firebaseUser) && <ReportBugButton />}
 
       {/* Bottom Tab Nav (Mobile) */}
       <nav className="fixed bottom-0 left-0 right-0 glass-dark border-t border-white/[0.06] lg:hidden z-50"

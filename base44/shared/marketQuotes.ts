@@ -13,6 +13,8 @@
  *    cannot burn the remaining budget
  */
 
+import { logDiag } from './diagLog.ts';
+
 const QUOTE_TTL_MS = 60_000;
 const INTRADAY_TTL_MS = 60_000;
 const DAILY_TTL_MS = 3_600_000;
@@ -162,14 +164,23 @@ export async function getQuote(rawSymbol: string) {
 
   const task = (async () => {
     for (const provider of providers) {
+      const startedAt = Date.now();
       try {
         const quote = provider === 'finnhub'
           ? await finnhubQuote(symbol, finnhubKey)
           : await twelveQuote(symbol);
         cache.quotes.set(symbol, quote);
+        logDiag({ type: 'provider_ok', source: provider, ok: true, durationMs: Date.now() - startedAt });
         return quote;
       } catch (error) {
         console.warn(`[quotes] ${symbol} via ${provider} failed: ${error.message}`);
+        logDiag({
+          type: /429|rate limit|credits|parked/i.test(error.message) ? 'provider_rate_limit' : 'provider_error',
+          source: provider,
+          ok: false,
+          durationMs: Date.now() - startedAt,
+          detail: `${symbol}: ${error.message}`,
+        });
       }
     }
     if (cached) {
@@ -260,6 +271,7 @@ export async function getSeries(rawSymbol: string, rawTimeframe: string = '1D') 
         }
       } catch (error) {
         console.warn(`[quotes] ${symbol} ${interval} failed: ${error.message}`);
+        logDiag({ type: 'provider_error', source: 'twelvedata', ok: false, detail: `series ${symbol} ${interval}: ${error.message}` });
       }
     }
 
