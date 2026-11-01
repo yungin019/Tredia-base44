@@ -14,7 +14,15 @@
  * VITE_REVENUECAT_IOS_KEY — see NATIVE_SETUP.md.
  */
 
-const resolveApiKey = () => import.meta.env?.VITE_REVENUECAT_IOS_KEY || '';
+/**
+ * Public iOS SDK key. It is public by design (it identifies the app, not the
+ * account) and is compiled into the binary, so it can live here.
+ * Paste the key from RevenueCat → Project settings → API keys → iOS (starts
+ * with "appl_"). Setting VITE_REVENUECAT_IOS_KEY overrides this value.
+ */
+const IOS_PUBLIC_API_KEY = '';
+
+const resolveApiKey = () => import.meta.env?.VITE_REVENUECAT_IOS_KEY || IOS_PUBLIC_API_KEY;
 
 export const REVENUECAT_CONFIG = {
   apiKey: resolveApiKey(),
