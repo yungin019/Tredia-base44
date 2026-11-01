@@ -221,6 +221,7 @@ const REGION_KEYWORDS: Record<Exclude<NewsRegion, 'Global'>, string[]> = {
     'portugal', 'ireland', 'belgium', 'austria', 'denmark', 'finland', 'poland', 'greece',
     'romania', 'czech', 'hungary', 'lisbon', 'madrid', 'milan', 'amsterdam', 'stockholm'],
   Asia: ['boj', 'bank of japan', 'pboc', 'nikkei', 'hang seng', 'shanghai', 'shenzhen', 'china',
+    'nifty', 'sensex', 'dalal street', 'bse', 'nse',
     'japan', 'korea', 'hong kong', 'taiwan', 'tokyo', 'beijing', 'asia', 'india', 'singapore',
     'indonesia', 'vietnam', 'thailand', 'philippines', 'australia'],
   'Latin America': ['brazil', 'mexico', 'argentina', 'chile', 'colombia', 'peru', 'latin america',
@@ -239,17 +240,33 @@ const TIER1_SOURCES = [
   'gulf news', 'the japan times', 'korea herald', 'the straits times',
 ];
 
-// Theme → the assets an article most likely touches when it names no ticker.
-const THEME_AFFECTS: Record<string, { symbols: string[]; labels: string[] }> = {
-  macro: { symbols: ['SPY', 'TLT'], labels: [] },
-  earnings: { symbols: [], labels: [] },
-  regulation: { symbols: [], labels: [] },
-  energy: { symbols: ['USO', 'UNG'], labels: ['Crude oil', 'Natural gas'] },
-  metals: { symbols: ['GLD', 'CPER'], labels: ['Gold', 'Copper'] },
-  crypto: { symbols: ['BTC', 'ETH'], labels: [] },
-  geopolitics: { symbols: ['SPY', 'GLD'], labels: [] },
-  markets: { symbols: ['SPY'], labels: [] },
-};
+/**
+ * Indian benchmark wrap-ups ("Nifty, Sensex extend gains") are Indian equity
+ * stories. The single Indian instrument the app can trade is INDA, and the
+ * story belongs in Stocks (or Macro when the headline is about policy), never
+ * in Commodities just because the body mentions metal or oil stocks.
+ */
+const INDIA_INDEX_TERMS = [
+  'nifty', 'sensex', 'bank nifty', 'dalal street', 'bse', 'nse',
+  'indian stocks', 'indian shares', 'indian market', 'indian equities',
+];
+
+function isIndiaIndex(headline: string): boolean {
+  return termHits(headline, INDIA_INDEX_TERMS) > 0;
+}
+
+/** The commodity an article is literally about, taken from its headline. */
+const COMMODITY_LABELS: { label: string; re: RegExp }[] = [
+  { label: 'Gold', re: /\bgold\b/ },
+  { label: 'Silver', re: /\bsilver\b/ },
+  { label: 'Copper', re: /\bcopper\b/ },
+  { label: 'Crude oil', re: /\b(crude|brent|wti|oil)\b/ },
+  { label: 'Natural gas', re: /\b(natural gas|lng)\b/ },
+  { label: 'Wheat', re: /\bwheat\b/ },
+  { label: 'Corn', re: /\bcorn\b/ },
+  { label: 'Uranium', re: /\buranium\b/ },
+  { label: 'Lithium', re: /\blithium\b/ },
+];
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
 const lc = (v: unknown) => String(v || '').toLowerCase();
@@ -356,28 +373,46 @@ const NAME_ALIASES: Record<string, string> = {
 
 const NAME_TERMS = Object.keys(NAME_ALIASES);
 
-/** Tickers named in the text, restricted to the app's universe. */
+/**
+ * Alias words that are also ordinary English ("grab gains", "shell companies",
+ * "meta data"). They are never enough on their own to say an article is about
+ * that company, so they are not used for tagging.
+ */
+const AMBIGUOUS_ALIASES = new Set(['shell', 'grab', 'meta', 'sap', 'vale', 'one']);
+
+/**
+ * Tickers named in the text, restricted to the app's universe.
+ *
+ * Deliberately strict: an asset is tagged only when the text names it — a
+ * cashtag, an exchange-qualified ticker, or a full company name. Bare
+ * ALL-CAPS words are NOT tickers here ("AI", "IT", "NSE" would all tag a
+ * company that has nothing to do with the story). No match means no tag.
+ */
 function extractSymbols(text: string): string[] {
   const found: string[] = [];
   const body = String(text || '');
   const lower = body.toLowerCase();
 
   // 1. Explicit cashtags: $BTC, $VALE.
-  const cashtags = body.match(/\$([A-Za-z]{2,6})\b/g) || [];
+  const cashtags = body.match(/\$([A-Za-z]{1,7})\b/g) || [];
   for (const tag of cashtags) {
     const symbol = tag.slice(1).toUpperCase();
     if (ASSET_INDEX[symbol] && !found.includes(symbol)) found.push(symbol);
   }
 
-  // 2. ALL-CAPS tickers that exist in the universe: NVDA, ASML, BTC.
-  const caps = body.match(/\b[A-Z]{2,6}\b/g) || [];
-  for (const token of caps) {
-    if (ASSET_INDEX[token] && !found.includes(token)) found.push(token);
+  // 2. Exchange-qualified tickers only: (NASDAQ:NVDA), NYSE: C, NSE:INFY.
+  const qualified = body.match(
+    /(?:\(|\b)(?:nasdaq|nyse|amex|nse|bse|lse|tsx|asx|hkex|euronext|otc)\s*:\s*([A-Za-z][A-Za-z.\-]{0,6})\b/gi,
+  ) || [];
+  for (const raw of qualified) {
+    const symbol = raw.split(':')[1].trim().toUpperCase();
+    if (ASSET_INDEX[symbol] && !found.includes(symbol)) found.push(symbol);
   }
 
   // 3. Company and asset names from the curated alias list.
   for (const term of NAME_TERMS) {
-    if (found.length >= 6) break;
+    if (found.length >= 4) break;
+    if (AMBIGUOUS_ALIASES.has(term)) continue;
     const symbol = NAME_ALIASES[term];
     if (!ASSET_INDEX[symbol] || found.includes(symbol)) continue;
     if (new RegExp(`(^|[^a-z])${escapeRe(term)}([^a-z]|$)`).test(lower)) found.push(symbol);
@@ -394,18 +429,68 @@ function sentimentFor(text: string): 'BULLISH' | 'BEARISH' | 'NEUTRAL' {
   return applySentimentGuard(raw, confidence, text).toUpperCase() as 'BULLISH' | 'BEARISH' | 'NEUTRAL';
 }
 
-function whyLine(themeId: string, text: string): string {
-  const risk = /(shortage|record low|lowest since|crisis|conflict|strike|sanction|warn|cut)/.test(text);
-  switch (themeId) {
-    case 'macro': return 'Central-bank policy signal for rate-sensitive assets.';
-    case 'earnings': return 'Company results and guidance for the quarter.';
-    case 'regulation': return 'Regulatory action with sector-wide read-through.';
-    case 'energy': return risk ? 'Supply concern for energy prices.' : 'Energy pricing signal for the session.';
-    case 'metals': return risk ? 'Supply concern for industrial and precious metals.' : 'Commodity pricing signal for the session.';
-    case 'crypto': return 'Crypto market structure development.';
-    case 'geopolitics': return 'Geopolitical development with market spillover.';
-    default: return 'Broad market pricing signal.';
+// A hard, quotable fact: a percentage, a money amount, a ratio.
+const FIGURE_RE = new RegExp([
+  '[+\\-−]?\\d[\\d.,]*\\s?(?:%|percent|per cent|pc\\b|bps|basis points|points)',
+  '(?:\\$|₹|€|£|rs\\.?)\\s?\\d[\\d.,]*\\s?(?:bn|billion|mn|million|trillion|crore|lakh|cr\\b)?',
+  '[+\\-−]?\\d[\\d.,]*\\s?(?:bn|billion|mn|million|trillion|crore|lakh|cr\\b)',
+  '\\b\\d+\\s?:\\s?\\d+\\b',
+  '\\b\\d+\\s?(?:x|times)\\b',
+].join('|'), 'i');
+
+const WHY_METRICS = [
+  'net profit', 'profit', 'revenue', 'sales', 'margin', 'earnings', 'income', 'ebitda', 'eps',
+  'dividend', 'bonus issue', 'output', 'production', 'shipments', 'orders', 'inflation',
+  'repo rate', 'interest rate', 'rate', 'gdp', 'jobs', 'payrolls', 'unemployment', 'tariff',
+  'fine', 'penalty', 'stake', 'holdings', 'capacity', 'guidance', 'forecast', 'loss', 'losses',
+  'growth', 'volume', 'barrels', 'tonnes', 'users', 'subscribers', 'capex', 'investment',
+  'deposits', 'loans', 'deals', 'hack', 'stolen', 'outage', 'cut',
+];
+
+/**
+ * The "Why" line: the headline's own concrete fact, said as tightly as it can
+ * be said — "Profit jumps 55% as data demand drives earnings growth". A figure
+ * is required, because without one the line can only be a template ("Company
+ * results and guidance for the quarter") and a template is worse than nothing:
+ * it then returns '' and the UI hides the row.
+ */
+function specificWhy(title: string): string {
+  const clean = String(title || '').replace(/^(exclusive|breaking|update \d+|analysis)\s*[:\-]\s*/i, '');
+  // Split into clauses without cutting a number in half ("Rs 30,106 cr").
+  const guarded = clean.replace(/(\d),(\d)/g, '$1\u0000$2');
+  const clauses = guarded.split(/[,;:—–]|\s-\s/)
+    .map((c) => c.replace(/\u0000/g, ',').trim())
+    .filter(Boolean);
+
+  for (const clause of clauses) {
+    const figure = clause.match(FIGURE_RE);
+    if (!figure || figure.index === undefined) continue;
+
+    const lower = lc(clause);
+    const metricAt = WHY_METRICS
+      .map((m) => lower.indexOf(m))
+      .filter((i) => i >= 0)
+      .sort((a, b) => a - b)[0];
+    if (metricAt === undefined) continue;
+
+    // Drop the company name in front of the metric ("ITC Q2 Results: Profit …"),
+    // but only when the number survives the cut.
+    let core = metricAt > 0 ? clause.slice(metricAt) : clause;
+    if (core.split(/\s+/).length < 3 || !FIGURE_RE.test(core)) core = clause;
+
+    core = core.replace(/^[^A-Za-z0-9$₹€£+\-\d]+/, '').replace(/\s+/g, ' ').trim();
+    if (core.length > 120) continue;
+
+    // A line that only repeats the headline adds nothing — hide it.
+    const norm = (v: string) => lc(v).replace(/[^a-z0-9 %.$-]/g, '').trim();
+    const coreNorm = norm(core);
+    const titleNorm = norm(clean);
+    if (titleNorm.startsWith(coreNorm) && coreNorm.length / titleNorm.length > 0.7) continue;
+
+    const line = core.charAt(0).toUpperCase() + core.slice(1);
+    return `${line.replace(/[.,;:\s]+$/, '')}.`;
   }
+  return '';
 }
 
 /** Score, category, region, sentiment and "affects" for one raw article. */
@@ -422,6 +507,8 @@ export function classifyArticle(raw: {
   const url = String(raw.url || '').trim();
   if (!title || !url) return null;
 
+  const headline = lc(title);
+  const indiaIndex = isIndiaIndex(headline);
   const text = lc(`${title} ${raw.summary || ''}`);
 
   // Themes
@@ -433,7 +520,9 @@ export function classifyArticle(raw: {
 
   const themeScore = Math.min(58, matched.reduce((sum, m) => sum + m.theme.weight + (m.hits - 1) * 3, 0));
   const penalty = PENALTIES.reduce((sum, p) => sum + (termHits(text, p.terms) > 0 ? p.weight : 0), 0);
-  const symbols = extractSymbols(title + ' ' + (raw.summary || ''));
+  // Tagging reads the headline only: a company mentioned in passing in the body
+  // is not what the article is about.
+  const symbols = extractSymbols(title);
 
   // Feature, long-read, photo and video sections are not market reporting.
   const urlPenalty = /\/features\/|\/longform\/|\/photos?\/|\/gallery\/|\/video\/|\/slideshow\//.test(lc(url)) ? -26 : 0;
@@ -442,51 +531,54 @@ export function classifyArticle(raw: {
   // A weak theme with no named asset is not market-relevant enough on its own.
   const weakThemePenalty = themeScore < 20 && symbols.length === 0 ? -10 : 0;
 
+  // A benchmark story is market news even when the headline uses no theme word.
   let score = 26 + themeScore + (symbols.length ? 14 : 0) + penalty + urlPenalty
-    + questionPenalty + weakThemePenalty;
+    + questionPenalty + weakThemePenalty + (indiaIndex ? 12 : 0);
   score = Math.max(0, Math.min(100, Math.round(score)));
 
   if (score < MIN_RELEVANCE) return null;
 
-  // Category: the strongest theme wins; macro takes precedence, and geopolitics
-  // only leads when nothing more specific matched.
-  const ranked = matched.slice().sort((a, b) => b.theme.weight - a.theme.weight);
-  const specific = ranked.find((m) => m.theme.id !== 'geopolitics' && m.theme.id !== 'markets');
-  const primary = ranked.find((m) => m.theme.id === 'macro')
-    || specific
-    || ranked.find((m) => m.theme.id === 'geopolitics')
-    || ranked[0];
-  const category: NewsCategory = primary ? primary.theme.category : 'Stocks';
-  const primaryId = primary ? primary.theme.id : 'markets';
+  // Category comes from the HEADLINE (the subject). Words in the body must not
+  // reclassify a story: "Nifty, Sensex extend gains" is not a commodity piece
+  // just because the wrap-up lists oil stocks.
+  const rankThemes = (pool: { theme: Theme; hits: number }[]) => {
+    const ranked = pool.slice().sort((a, b) => b.theme.weight - a.theme.weight);
+    const specific = ranked.find((m) => m.theme.id !== 'geopolitics' && m.theme.id !== 'markets');
+    return ranked.find((m) => m.theme.id === 'macro')
+      || specific
+      || ranked.find((m) => m.theme.id === 'geopolitics')
+      || ranked[0];
+  };
+  const headlineThemes = THEMES
+    .map((theme) => ({ theme, hits: termHits(headline, theme.terms) }))
+    .filter((m) => m.hits > 0);
+
+  const primary = rankThemes(headlineThemes) || rankThemes(matched);
+  let category: NewsCategory = primary ? primary.theme.category : 'Stocks';
+
+  if (indiaIndex) {
+    const macroTheme = THEMES.find((t) => t.id === 'macro');
+    const macroInHeadline = macroTheme ? termHits(headline, macroTheme.terms) > 0 : false;
+    category = macroInHeadline ? 'Macro' : 'Stocks';
+  }
 
   const sentiment = sentimentFor(text);
-  const region = detectRegion(text, raw.regionHint || 'Global');
+  const region = indiaIndex ? ('Asia' as NewsRegion) : detectRegion(text, raw.regionHint || 'Global');
 
-  // Affects: named universe symbols first, then theme proxies.
+  // Affects: only assets this headline actually names. A theme proxy ("markets
+  // → SPY") produced confident nonsense, and no line beats a wrong line.
   const affects: string[] = symbols.map((s) => `$${s}`);
-  const themeAffects = THEME_AFFECTS[primaryId] || { symbols: [], labels: [] };
   const affectSymbols = new Set(symbols);
-  const commodityLabels: string[] = [];
-  if (/(gold)/.test(text)) commodityLabels.push('Gold');
-  if (/(silver)/.test(text)) commodityLabels.push('Silver');
-  if (/(copper)/.test(text)) commodityLabels.push('Copper');
-  if (/(crude|brent|wti|\boil\b)/.test(text)) commodityLabels.push('Crude oil');
-  if (/(natural gas|lng)/.test(text)) commodityLabels.push('Natural gas');
-  if (/(wheat)/.test(text)) commodityLabels.push('Wheat');
-  if (/(corn)/.test(text)) commodityLabels.push('Corn');
-  if (/(uranium)/.test(text)) commodityLabels.push('Uranium');
-  if (/(lithium)/.test(text)) commodityLabels.push('Lithium');
-
-  for (const label of commodityLabels) {
-    if (!affects.some((a) => a.replace('$', '') === label)) affects.push(label);
+  if (indiaIndex && ASSET_INDEX['INDA'] && !affects.includes('$INDA')) {
+    affects.push('$INDA');
+    affectSymbols.add('INDA');
   }
-  if (affects.length === 0) {
-    themeAffects.symbols.forEach((s) => { if (ASSET_INDEX[s]) affectSymbols.add(s); });
-    themeAffects.labels.slice(0, 2).forEach((l) => affects.push(l));
-    themeAffects.symbols.slice(0, 2).forEach((s) => affects.push(`$${s}`));
-  } else {
-    // Keep the theme proxy in the symbol set so personalisation can still match.
-    themeAffects.symbols.forEach((s) => { if (ASSET_INDEX[s]) affectSymbols.add(s); });
+  // A commodity label only when the headline names that commodity — and never
+  // on an index wrap-up, where "metal and oil stocks" means sectors, not crude.
+  if (!indiaIndex) {
+    for (const { label, re } of COMMODITY_LABELS) {
+      if (re.test(headline) && !affects.includes(label)) affects.push(label);
+    }
   }
 
   const assetType = category === 'Crypto' ? 'Crypto'
@@ -508,7 +600,7 @@ export function classifyArticle(raw: {
     tickers: symbols,
     affects: [...new Set(affects)].slice(0, 4),
     affectSymbols: [...affectSymbols].slice(0, 6),
-    why: whyLine(primaryId, text),
+    why: specificWhy(title),
     relevanceScore: score,
     assetType,
   };
