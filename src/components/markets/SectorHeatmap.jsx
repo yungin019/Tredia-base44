@@ -35,11 +35,11 @@ function getChangeColor(change) {
 }
 
 function getBias(change) {
-  if (change > 1.5)  return { label: 'STRONG BUY', color: '#0ec878' };
-  if (change > 0.3)  return { label: 'BULLISH',     color: '#0ec878' };
-  if (change > -0.3) return { label: 'NEUTRAL',     color: 'rgba(255,255,255,0.3)' };
-  if (change > -1.5) return { label: 'BEARISH',     color: '#ef4444' };
-  return               { label: 'AVOID',        color: '#ef4444' };
+  if (change > 1.5)  return { label: 'STRONG BULLISH', color: '#0ec878' };
+  if (change > 0.3)  return { label: 'BULLISH',        color: '#0ec878' };
+  if (change > -0.3) return { label: 'NEUTRAL',        color: 'rgba(255,255,255,0.3)' };
+  if (change > -1.5) return { label: 'BEARISH',        color: '#ef4444' };
+  return               { label: 'STRONG BEARISH', color: '#ef4444' };
 }
 
 function BarMini({ change }) {

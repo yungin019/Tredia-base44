@@ -16,6 +16,7 @@ import { SkeletonPrice } from '@/components/ui/SkeletonLoader';
 import { formatPrice, formatPercent, validatePrice, validatePercent, safeRender } from '@/lib/dataValidation';
 import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
 import { deriveSignal } from '@/api/signalEngine';
+import { biasLabel } from '@/lib/signalLabels';
 import { PRICE_DATA_LABEL } from '@/lib/dataFreshness';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
@@ -328,7 +329,7 @@ export default function AssetDetail() {
     const key = `trek_notif_${symbol}_${asset.signal}`;
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, '1');
-    showToast(`${asset.signal === 'BUY' ? '⚡' : '⚠️'} TREK ${asset.signal} signal for ${symbol} — ${asset.confidence}% confidence`, asset.signal === 'BUY' ? 'success' : 'danger');
+    showToast(`${asset.signal === 'BUY' ? '⚡' : '⚠️'} TREK read for ${symbol}: ${biasLabel(asset.signal)} — ${asset.confidence}% confidence`, asset.signal === 'BUY' ? 'success' : 'danger');
     getCurrentUser().then(u => {
       sendPushNotification({ signal: asset.signal, symbol, confidence: asset.confidence, technicalSummary: asset.reason }, u).catch(() => {});
     }).catch(() => {});
@@ -398,7 +399,7 @@ export default function AssetDetail() {
               <h1 className="text-3xl font-black font-mono text-white/95">{safeRender(asset.symbol)}</h1>
               <span className="text-[10px] font-black px-2.5 py-1 rounded-full"
                 style={{ color: asset.color, background: `${asset.color}15`, border: `1px solid ${asset.color}30` }}>
-                {safeRender(asset.signal, 'WATCH')}
+                {biasLabel(asset.signal)}
               </span>
             </div>
             <p className="text-[12px] text-white/40">{safeRender(asset.name)} · {safeRender(asset.sector)}</p>
@@ -488,7 +489,7 @@ export default function AssetDetail() {
                 {t('asset.connectAlpaca', 'Connect Alpaca →')}
               </button>
               <button
-                onClick={() => setTradeAction('BUY')}
+                onClick={() => navigate(`/Trade?symbol=${symbol}`)}
                 className="flex-1 py-2.5 rounded-xl font-bold text-sm border border-white/[0.1] text-white/50 hover:border-white/20 transition-colors">
                 {t('asset.tryPaperTrading', 'Try paper trading →')}
               </button>
@@ -503,7 +504,7 @@ export default function AssetDetail() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
         className="grid grid-cols-3 gap-3 mb-4">
         {[
-          { label: t('trek.signal'), value: asset.signal, color: asset.color },
+          { label: t('trek.signal'), value: biasLabel(asset.signal), color: asset.color },
           { label: t('trek.confidence'), value: `${displayConfidence}%`, color: 'rgba(255,255,255,0.7)' },
           { label: t('trek.conviction'), value: asset.conviction, color: cvColor },
         ].map((s, i) => (

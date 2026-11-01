@@ -110,6 +110,8 @@ async function generateAnticipatorySig(marketStructure, newsArticles, retryCount
 
 CRITICAL: Do NOT describe the headline. Describe the market positioning that PRECEDED it.
 
+NUMBER RULE: Only use numbers provided in the input data. Never estimate or invent statistics. The only figures supplied are the index changes, regime, sentiment level and volatility flag below — no breadth, put/call, volume ratio, yield or percentage that is not listed there.
+
 FORBIDDEN: "neutral", "positive", "negative", "mixed", "uncertain", "recovery", "advancement", "performance", "sentiment"
 
 STRUCTURE ANALYSIS:
@@ -126,6 +128,7 @@ NOT:
 Describe concrete price/structure observation, why it was building structurally, what it means for assets.`
     : `Rewrite using ONLY structural market observations. Remove any headline-dependent language.
 Use active verbs (rallying, selling, bouncing, breaking).
+NUMBER RULE: Only use numbers provided in the input data. Never estimate or invent statistics.
 action_bias must be EXACTLY "bullish" or "bearish".
 Output ONLY valid JSON.`;
 

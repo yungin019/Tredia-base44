@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { EXPANDED_ASSETS, searchAssets } from '@/lib/assetDatabase';
 import { fetchMarketScan, fetchCryptoPrices } from '@/api/marketDataClient';
 import { deriveSignal } from '@/api/signalEngine';
+import { biasLabel } from '@/lib/signalLabels';
 import { PRICE_DATA_LABEL } from '@/lib/dataFreshness';
 
 export default function ExpandedAssetList() {
@@ -228,7 +229,7 @@ export default function ExpandedAssetList() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${getSignalColor(signal.signal)}`}>
-                      {signal.signal}
+                      {biasLabel(signal.signal)}
                     </span>
                     {signal.isLiveDerived && (
                       <span className="text-[10px] text-primary/60" title="Derived from live market data">

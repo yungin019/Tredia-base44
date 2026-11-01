@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MiniSparkline from '../dashboard/MiniSparkline';
+import { biasLabel } from '@/lib/signalLabels';
 
 const SIGNAL_STYLE = {
   BUY:   { color: '#22c55e', bg: 'rgba(34,197,94,0.12)',  border: 'rgba(34,197,94,0.25)' },
@@ -39,10 +40,10 @@ export default function TrendingAssets({ stocks = [] }) {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[13px] font-black font-mono text-white/90">{asset.symbol}</span>
                 <span
-                  className="text-[8px] font-black px-1.5 py-0.5 rounded-full border uppercase tracking-wider"
+                  className="text-[8px] font-black px-1.5 py-0.5 rounded-full border tracking-wider"
                   style={{ color: sig.color, background: sig.bg, borderColor: sig.border }}
                 >
-                  {asset.signal}
+                  {biasLabel(asset.signal)}
                 </span>
               </div>
 

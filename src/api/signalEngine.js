@@ -57,8 +57,8 @@ export function deriveSignal(asset, priceData, context = {}) {
     signal = 'BUY';
     confidence = 65 + (momentumScore - 2) * 5;
     reason = dailyChange > 0
-      ? `Moderate uptick: +${dailyChange.toFixed(1)}%, watch for continuation`
-      : `Consolidating near support, potential bounce`;
+      ? `Moderate uptick: +${dailyChange.toFixed(1)}% versus the prior close`
+      : `Little net change: ${dailyChange.toFixed(1)}% versus the prior close`;
   } else if (momentumScore <= -6) {
     signal = 'SELL';
     confidence = Math.min(85 + Math.abs(momentumScore + 6) * 3, 95);
@@ -69,8 +69,8 @@ export function deriveSignal(asset, priceData, context = {}) {
     signal = 'SELL';
     confidence = 65 + Math.abs(momentumScore + 2) * 5;
     reason = dailyChange < 0
-      ? `Moderate decline: ${dailyChange.toFixed(1)}%, monitor support`
-      : `Underperforming sector, caution advised`;
+      ? `Moderate decline: ${dailyChange.toFixed(1)}% versus the prior close`
+      : `Declining: ${dailyChange.toFixed(1)}% versus the prior close`;
   } else {
     signal = 'WATCH';
     confidence = 50 + Math.abs(momentumScore) * 8;

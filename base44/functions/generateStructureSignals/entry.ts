@@ -1,7 +1,18 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// ── VALIDATION ────────────────────────────────────────────────────────────────
-// Reject signals with banned vague phrases
+// ── RULE ──────────────────────────────────────────────────────────────────────
+// Every figure in a generated signal must come from a quote this function
+// actually fetched. Nothing here is estimated, scaled or invented: if a value
+// is not in `data`, the sentence that would have used it is left out.
+//
+// Input fields (all optional — a signal is skipped when its inputs are missing):
+//   spy        { price, prevClose, high, low, changePct }
+//   qqq        { price, prevClose, high, low, changePct }
+//   vixy       { price, prevClose, high, low, changePct }   (VIXY ETF, not the VIX index)
+//   tlt        { price, prevClose, high, low, changePct }
+//   sectors[]  { symbol, name, price, prevClose, changePct }
+//   fearGreed  number 0-100 (alternative.me)
+
 const BANNED_PHRASES = ['sentiment', 'momentum intact', 'bullish narrative'];
 
 function validateSignal(signal) {
@@ -12,7 +23,6 @@ function validateSignal(signal) {
       return false;
     }
   }
-  // Must include at least one number in market_state or driver
   const hasNumber = /\d/.test(allText);
   if (!hasNumber) {
     console.warn(`[VALIDATION] Rejected signal "${signal.id}" — no numbers found`);
@@ -21,259 +31,159 @@ function validateSignal(signal) {
   return true;
 }
 
-// ── KEY LEVELS BUILDER ────────────────────────────────────────────────────────
-// Descriptive only: the price levels the index is currently trading between.
-// No entry, target or stop instructions — the reader decides what to do.
-function buildKeyLevels(type, spyPrice, spyChangePct, extras = {}) {
-  if (!spyPrice) return null;
+// ── FORMATTERS ────────────────────────────────────────────────────────────────
+const pct = (v) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
+const usd = (v) => `$${v.toFixed(2)}`;
+const pts = (v) => Math.abs(v).toFixed(2);
+const REGIONS = ['US', 'Global'];
 
-  const p = parseFloat(spyPrice.toFixed(2));
-  const wide = type === 'volatility';
-  const support = p * (wide ? 0.975 : 0.985);
-  const resistance = p * (wide ? 1.008 : 1.012);
+function makeSignal({ id, headline, market_state, driver, impact, action_bias, risk, confidence, related_assets, published_at }) {
   return {
-    support: `$${support.toFixed(2)}`,
-    resistance: `$${resistance.toFixed(2)}`,
-    timeframe: type === 'spy_momentum' ? 'Intraday to next session' : '2-5 sessions',
+    id,
+    type: 'structure',
+    headline,
+    source_name: 'Market Structure',
+    source_url: '#',
+    market_state,
+    driver,
+    impact,
+    action_bias,
+    risk,
+    category: 'macro',
+    confidence: Math.round(confidence),
+    related_assets,
+    regions: REGIONS,
+    published_at,
+    interpretation_updated_at: published_at,
+    stage: 'confirmed_catalyst',
   };
 }
 
+function sectorLine(sectors, exclude) {
+  const parts = (sectors || [])
+    .filter((s) => s && s.changePct !== null && s.changePct !== undefined && s.symbol !== exclude)
+    .map((s) => `${s.symbol} ${pct(s.changePct)}`);
+  return parts.length ? `${parts.join(', ')}.` : 'No sector ETFs were quoted for this session.';
+}
+
+function rangeLine(q) {
+  if (!q || q.high === null || q.low === null || q.high === undefined || q.low === undefined) return '';
+  return ` Session range ${usd(q.low)} to ${usd(q.high)}.`;
+}
+
 // ── SIGNAL GENERATION ─────────────────────────────────────────────────────────
-function generateStructureSignals(marketData) {
+function generateStructureSignals(data) {
+  const { spy, qqq, vixy, tlt, sectors = [], fearGreed } = data;
   const signals = [];
-  const spyData = marketData.indexChanges?.find(i => i.symbol === 'SPY');
-  const spyPrice = spyData?.price || null;
-  const spyChangePct = spyData?.changePct || 0;
+  const now = new Date().toISOString();
+  const spyChange = spy?.changePct ?? null;
 
-  // Helper: SPY context line injected into signals
-  const spyContext = spyPrice
-    ? (spyChangePct > 0
-        ? `SPY at $${spyPrice.toFixed(2)} (+${spyChangePct.toFixed(2)}%) — holding above $${(spyPrice * 0.995).toFixed(0)} keeps near-term pressure to the upside.`
-        : spyChangePct < 0
-        ? `SPY at $${spyPrice.toFixed(2)} (${spyChangePct.toFixed(2)}%) — losing $${(spyPrice * 1.005).toFixed(0)} opens downside to $${(spyPrice * 0.990).toFixed(0)}.`
-        : `SPY at $${spyPrice.toFixed(2)} — flat. Break above $${(spyPrice * 1.003).toFixed(0)} or below $${(spyPrice * 0.997).toFixed(0)} sets next direction.`)
-    : null;
-
-  // 1. SPY MOMENTUM SIGNAL
-  if (spyData && Math.abs(spyChangePct) > 1.5) {
-    const isUp = spyChangePct > 0;
-    const qqqData = marketData.indexChanges?.find(i => i.symbol === 'QQQ');
-    const qqqChangePct = qqqData?.changePct || 0;
-    const spread = Math.abs(qqqChangePct - spyChangePct).toFixed(2);
-    const keyLevels = buildKeyLevels('spy_momentum', spyPrice, spyChangePct);
-
-    const signal = {
+  // 1. SPY session move — price, prior close, range and QQQ spread only.
+  if (spy && spyChange !== null && Math.abs(spyChange) >= 1.5) {
+    const up = spyChange > 0;
+    const spread = qqq && qqq.changePct !== null ? Math.abs(qqq.changePct - spyChange) : null;
+    const signal = makeSignal({
       id: `struct_spy_${Date.now()}`,
-      type: 'structure',
-      headline: isUp
-        ? `SPY +${spyChangePct.toFixed(2)}% — broad market strength confirming above $${(spyPrice * 0.995).toFixed(0)}`
-        : `SPY ${spyChangePct.toFixed(2)}% — large-cap selling, $${(spyPrice * 1.005).toFixed(0)} now resistance`,
-      source_name: 'Market Structure',
-      source_url: '#',
-      market_state: isUp
-        ? `SPY broke above $${(spyPrice - spyPrice * 0.005).toFixed(0)} with +${spyChangePct.toFixed(2)}% move. Breadth >75% advancing stocks. ${spyContext}`
-        : `SPY broke below $${(spyPrice + spyPrice * 0.005).toFixed(0)} with ${spyChangePct.toFixed(2)}% decline. Breadth >65% declining. ${spyContext}`,
-      driver: isUp
-        ? `SPY +${spyChangePct.toFixed(2)}%, QQQ ${qqqChangePct >= 0 ? '+' : ''}${qqqChangePct.toFixed(2)}% — QQQ outperforming SPY by ${spread}bp. Broad buying across mega-cap tech and industrials.`
-        : `SPY ${spyChangePct.toFixed(2)}%, QQQ ${qqqChangePct.toFixed(2)}% — QQQ underperforming by ${spread} percentage points. Volume above 30-day average. Sellers driving institutional flows.`,
-      impact: isUp
-        ? `XLK (tech) and XLY (discretionary) leading. IWM lagging — rotation into large-caps confirmed. SPY $${(spyPrice * 1.005).toFixed(0)} is first resistance.`
-        : `TLT receiving defensive bid (+0.4%). XLU (utilities) outperforming. QQQ testing $${qqqData ? (qqqData.price * 0.995).toFixed(0) : '420'} 20-day MA support.`,
-      action_bias: isUp ? 'bullish' : 'bearish',
-      risk: isUp
-        ? `SPY closes below $${(spyPrice * 0.995).toFixed(2)} — intraday breakout fails, reversal likely within session`
-        : `SPY reclaims $${(spyPrice * 1.005).toFixed(2)} — short squeeze possible, oversold bounce in play`,
-      key_levels: keyLevels,
-      category: 'macro',
-      confidence: Math.min(95, 65 + Math.abs(spyChangePct) * 10),
-      related_assets: ['SPY', 'QQQ', 'IWM'],
-      regions: ['Global', 'US', 'EU', 'APAC', 'Africa', 'LatAm'],
-      published_at: new Date().toISOString(),
-      interpretation_updated_at: new Date().toISOString(),
-      stage: 'confirmed_catalyst'
-    };
+      headline: `SPY ${pct(spyChange)} at ${usd(spy.price)} — ${up ? 'higher' : 'lower'} on the session`,
+      market_state: `SPY closed at ${usd(spy.price)} against a prior close of ${usd(spy.prevClose)}, a move of ${pct(spyChange)}.${rangeLine(spy)}${qqq ? ` QQQ ${usd(qqq.price)} (${pct(qqq.changePct)}).` : ''}`,
+      driver: spread === null
+        ? `SPY moved ${pct(spyChange)}. QQQ was not quoted in this session's data.`
+        : `SPY ${pct(spyChange)} and QQQ ${pct(qqq.changePct)} — the two indices ended ${pts(spread)} percentage points apart.`,
+      impact: sectorLine(sectors, null),
+      action_bias: up ? 'bullish' : 'bearish',
+      risk: up
+        ? `A move back down to the ${usd(spy.low ?? spy.prevClose)} session low would reverse the session's gain.`
+        : `A move back up to the ${usd(spy.high ?? spy.prevClose)} session high would reverse the session's decline.`,
+      confidence: Math.min(90, 60 + Math.abs(spyChange) * 8),
+      related_assets: ['SPY', 'QQQ', ...(sectors || []).slice(0, 2).map((s) => s.symbol)].filter(Boolean),
+      published_at: now,
+    });
     if (validateSignal(signal)) signals.push(signal);
   }
 
-  // 2. VOLATILITY SIGNAL
-  if (marketData.volatilityMetrics) {
-    const vix = marketData.volatilityMetrics.vix || 0;
-    if (vix > 20) {
-      const keyLevels = buildKeyLevels('volatility', spyPrice, spyChangePct, { vix });
-      const signal = {
-        id: `struct_vol_${Date.now()}`,
-        type: 'structure',
-        headline: `VIX at ${vix.toFixed(1)} — options market pricing ${vix > 30 ? '±' + (vix * 0.08).toFixed(1) + '%' : '±' + (vix * 0.06).toFixed(1) + '%'} daily SPY move`,
-        source_name: 'Market Structure',
-        source_url: '#',
-        market_state: `VIX ${vix.toFixed(1)} (${vix > 30 ? 'high fear regime' : 'elevated uncertainty'}). ${spyContext || ''} Options premiums elevated — 30-day implied vol above realized.`,
-        driver: vix > 30
-          ? `VIX at ${vix.toFixed(1)} — put/call ratio likely above 1.2. Dealers hedging short gamma by selling underlying. Cascade selling feedback loop active.`
-          : `VIX above 20 — earnings + macro data uncertainty. 30-day options pricing ${(vix * 0.06).toFixed(1)}% daily SPY range. Momentum trades at risk.`,
-        impact: vix > 30
-          ? `SPY bounce likely from oversold on VIX spike. Watch for capitulation reversal day — single session +2-3% snap-back.`
-          : `Mean reversion setups forming. Breakout trades failing — range contraction until VIX drops below 18.`,
-        action_bias: vix > 30 ? 'bullish' : 'neutral',
-        risk: vix > 30
-          ? `VIX stays above 30 for 3+ sessions — structural downtrend, not a spike. No floor yet.`
-          : `If earnings season delivers 3+ consecutive misses, VIX spikes to 28+ from here.`,
-        key_levels: keyLevels,
-        category: 'macro',
-        confidence: 70,
-        related_assets: ['SPY', 'QQQ', 'TLT'],
-        regions: ['Global', 'US', 'EU', 'APAC', 'Africa', 'LatAm'],
-        published_at: new Date().toISOString(),
-        interpretation_updated_at: new Date().toISOString(),
-        stage: 'confirmed_catalyst'
-      };
-      if (validateSignal(signal)) signals.push(signal);
-    }
+  // 2. Volatility ETF move — VIXY priced and labelled as VIXY, never as "VIX at X".
+  if (vixy && vixy.changePct !== null && Math.abs(vixy.changePct) >= 3) {
+    const up = vixy.changePct > 0;
+    const signal = makeSignal({
+      id: `struct_vol_${Date.now()}`,
+      headline: `VIXY ${pct(vixy.changePct)} to ${usd(vixy.price)} — short-dated volatility ETF ${up ? 'bid up' : 'sold off'}`,
+      market_state: `VIXY, which tracks short-dated VIX futures, closed at ${usd(vixy.price)} against a prior close of ${usd(vixy.prevClose)} — ${pct(vixy.changePct)}.${spyChange !== null ? ` SPY finished ${pct(spyChange)}.` : ''}`,
+      driver: spyChange !== null
+        ? `The volatility ETF moved ${pct(vixy.changePct)} while SPY moved ${pct(spyChange)} — ${pts(vixy.changePct - spyChange)} percentage points apart.`
+        : `The volatility ETF moved ${pct(vixy.changePct)} on the session.`,
+      impact: fearGreed !== null && fearGreed !== undefined
+        ? `Fear & Greed index at ${fearGreed}/100 alongside the move. ${sectorLine(sectors, null)}`
+        : sectorLine(sectors, null),
+      action_bias: up ? 'bearish' : 'bullish',
+      risk: `A return to the ${usd(vixy.prevClose)} prior close would fully unwind the ${pct(vixy.changePct)} move.`,
+      confidence: Math.min(85, 55 + Math.abs(vixy.changePct) * 4),
+      related_assets: ['SPY', 'QQQ', 'VIXY'],
+      published_at: now,
+    });
+    if (validateSignal(signal)) signals.push(signal);
   }
 
-  // 3. SECTOR ROTATION SIGNAL
-  if (marketData.sectorChanges && marketData.sectorChanges.length > 0) {
-    const top = marketData.sectorChanges.reduce((a, b) => (a.changePct || 0) > (b.changePct || 0) ? a : b);
-    if (top && top.changePct > 2) {
-      const sectorTicker = { Technology: 'XLK', Healthcare: 'XLV', Energy: 'XLE', Financials: 'XLF', 'Consumer Discretionary': 'XLY' }[top.name] || 'XLK';
-      const keyLevels = buildKeyLevels('sector', spyPrice, spyChangePct, { sector: sectorTicker });
-      const signal = {
+  // 3. Sector rotation — the leading sector ETF's own quote against SPY.
+  const quotedSectors = (sectors || []).filter((s) => s && s.changePct !== null && s.changePct !== undefined);
+  if (quotedSectors.length > 0 && spyChange !== null) {
+    const top = quotedSectors.reduce((a, b) => (Math.abs(b.changePct) > Math.abs(a.changePct) ? b : a));
+    if (Math.abs(top.changePct) >= 2) {
+      const gap = Math.abs(top.changePct - spyChange);
+      const signal = makeSignal({
         id: `struct_sector_${Date.now()}`,
-        type: 'structure',
-        headline: `${top.name} (${sectorTicker}) +${top.changePct.toFixed(2)}% — sector outperforming SPY by ${Math.abs(top.changePct - spyChangePct).toFixed(2)}%`,
-        source_name: 'Market Structure',
-        source_url: '#',
-        market_state: `${sectorTicker} outperforming SPY by ${(top.changePct - spyChangePct).toFixed(2)}% today. ${spyContext || ''} Capital rotating into ${top.name.toLowerCase()} names.`,
-        driver: top.name === 'Technology'
-          ? `XLK +${top.changePct.toFixed(2)}% — NVDA and MSFT driving >60% of move. Hyperscaler capex and AI chip orders fueling buying in semis. Volume 1.3x 30-day average.`
-          : top.name === 'Energy'
-          ? `XLE +${top.changePct.toFixed(2)}% — Brent crude above $85 on supply cut extension. CVX and XOM leading sector. Volume above 20-day average.`
-          : `${sectorTicker} +${top.changePct.toFixed(2)}% — earnings beats and guidance raises outperforming consensus by 8-12%. Sector-specific buying programs active.`,
-        impact: top.name === 'Technology'
-          ? `QQQ outperforming SPY by ${(top.changePct * 0.4).toFixed(2)}%. Non-tech sectors (XLU, XLP) lagging by 120bp. SPY $${spyPrice ? (spyPrice * 1.005).toFixed(0) : '500'} resistance next.`
-          : `${sectorTicker} outperformance creating rotation from defensives. Watch for follow-through if ${sectorTicker} holds above today's open.`,
-        action_bias: 'bullish',
-        risk: `${sectorTicker} reverses if sector catalyst (earnings, data) disappoints. Single-name risk high when one sector leads this aggressively.`,
-        key_levels: keyLevels,
-        category: 'macro',
-        confidence: 72,
-        related_assets: [sectorTicker, 'SPY', 'QQQ'],
-        regions: ['Global', 'US', 'EU', 'APAC', 'Africa', 'LatAm'],
-        published_at: new Date().toISOString(),
-        interpretation_updated_at: new Date().toISOString(),
-        stage: 'confirmed_catalyst'
-      };
+        headline: `${top.name} (${top.symbol}) ${pct(top.changePct)} versus SPY ${pct(spyChange)}`,
+        market_state: `${top.symbol} closed at ${usd(top.price)} against a prior close of ${usd(top.prevClose)} — ${pct(top.changePct)}. SPY ${pct(spyChange)} over the same session.`,
+        driver: `${top.symbol} and SPY ended ${pts(gap)} percentage points apart.`,
+        impact: sectorLine(quotedSectors, top.symbol),
+        action_bias: top.changePct > 0 ? 'bullish' : 'bearish',
+        risk: `A close back at the ${usd(top.prevClose)} prior close would erase the session move in ${top.symbol}.`,
+        confidence: Math.min(85, 58 + Math.abs(top.changePct) * 5),
+        related_assets: [top.symbol, 'SPY', 'QQQ'],
+        published_at: now,
+      });
       if (validateSignal(signal)) signals.push(signal);
     }
   }
 
-  // 4. YIELD SIGNAL (TLT proxy)
-  if (marketData.yields) {
-    const yieldChange = marketData.yields['10Y'] || 0;
-    const tltPrice = marketData.yields.tltPrice || null;
-    if (Math.abs(yieldChange) > 0.05) {
-      const isRising = yieldChange > 0;
-      const bpMove = Math.abs(yieldChange * 100).toFixed(0);
-      const keyLevels = buildKeyLevels('yields', spyPrice, spyChangePct, { yieldChange, tltPrice });
-      const signal = {
-        id: `struct_yields_${Date.now()}`,
-        type: 'structure',
-        headline: isRising
-          ? `10Y yield +${bpMove}bp — rate spike compressing tech valuations`
-          : `10Y yield -${bpMove}bp — bond bid accelerating, equities diverging`,
-        source_name: 'Market Structure',
-        source_url: '#',
-        market_state: isRising
-          ? `Bond yields +${bpMove}bp intraday. Real rates pushing higher. ${spyContext || ''} Growth stock discount rates rising.`
-          : `Bond yields -${bpMove}bp intraday. Capital entering fixed income. ${spyContext || ''} Duration assets getting bid.`,
-        driver: isRising
-          ? `TLT -${(Math.abs(yieldChange) * 10).toFixed(2)}% — yield proxy rising. Inflation data or hawkish Fed language likely trigger. 2Y yield spread widening.`
-          : `TLT +${(Math.abs(yieldChange) * 10).toFixed(2)}% — flight to bonds. Risk-off + growth deceleration concerns driving duration demand.`,
-        impact: isRising
-          ? `High-multiple tech (NVDA, PLTR) facing 2-4% compression on +${bpMove}bp yield move. XLF (financials) +0.3-0.8% on NIM expansion. TLT testing support.`
-          : `Bond-sensitive growth names rallying. TLT gaining — long duration ETFs outperforming. Dividend yields vs bond yields spread tightening.`,
-        action_bias: isRising ? 'bearish' : 'bullish',
-        risk: isRising
-          ? `If yield spike is a single-session overshoot, tech snaps back +2-3% in next session.`
-          : `If yields bounce from support, bond rally reverses and growth gets hit again.`,
-        key_levels: keyLevels,
-        category: 'macro',
-        confidence: 68,
-        related_assets: ['TLT', 'IEF', 'XLK', 'SPY'],
-        regions: ['Global', 'US', 'EU', 'APAC', 'Africa', 'LatAm'],
-        published_at: new Date().toISOString(),
-        interpretation_updated_at: new Date().toISOString(),
-        stage: 'confirmed_catalyst'
-      };
-      if (validateSignal(signal)) signals.push(signal);
-    }
+  // 4. Long-duration Treasuries — TLT's own quote, no implied yield arithmetic.
+  if (tlt && tlt.changePct !== null && Math.abs(tlt.changePct) >= 0.5) {
+    const up = tlt.changePct > 0;
+    const signal = makeSignal({
+      id: `struct_rates_${Date.now()}`,
+      headline: `TLT ${pct(tlt.changePct)} at ${usd(tlt.price)} — long-duration Treasuries ${up ? 'bid' : 'offered'}`,
+      market_state: `TLT closed at ${usd(tlt.price)} against a prior close of ${usd(tlt.prevClose)} — ${pct(tlt.changePct)}.${spyChange !== null ? ` SPY ${pct(spyChange)}.` : ''}`,
+      driver: spyChange !== null
+        ? `The Treasury ETF moved ${pct(tlt.changePct)} while SPY moved ${pct(spyChange)}.`
+        : `The Treasury ETF moved ${pct(tlt.changePct)} on the session.`,
+      impact: qqq ? `QQQ ${pct(qqq.changePct)} over the same session.${sectorLine(sectors, null)}` : sectorLine(sectors, null),
+      action_bias: up ? 'bullish' : 'bearish',
+      risk: `A move back to the ${usd(tlt.prevClose)} prior close would reverse the session's Treasury move.`,
+      confidence: Math.min(80, 55 + Math.abs(tlt.changePct) * 6),
+      related_assets: ['TLT', 'SPY', 'QQQ'],
+      published_at: now,
+    });
+    if (validateSignal(signal)) signals.push(signal);
   }
 
-  // 5. FEAR & GREED SIGNAL
-  // The value is the same index the gauges read (alternative.me), passed in as
-  // marketData.fearGreedIndex — never a locally derived number.
-  if (marketData.fearGreedIndex !== null && marketData.fearGreedIndex !== undefined) {
-    const fg = marketData.fearGreedIndex;
-    const vix = marketData.volatilityMetrics?.vix || 18;
-    const keyLevels = buildKeyLevels('fear_greed', spyPrice, spyChangePct, { fgIndex: fg });
-
-    let headline, state, driver, impact, bias, risk;
-    if (fg > 75) {
-      headline = `Fear & Greed ${fg}/100 — SPY within 1-2% of 52-week high, put/call below 0.70`;
-      state = `Fear & Greed at ${fg}/100. VIX at ${vix.toFixed(1)}, below 14 threshold. ${spyContext || ''} Options call skew elevated.`;
-      driver = `Put/call ratio at ~0.65 — dealers buying underlying to hedge short calls. Short squeeze + call feedback loop pushing SPY higher.`;
-      impact = `SPY likely to stall at $${spyPrice ? (spyPrice * 1.02).toFixed(0) : '510'} and retrace 2-4%. VIX spike above 16 is the early warning signal.`;
-      bias = 'bearish';
-      risk = `Earnings season upside surprises can keep SPY overbought for 2-3 additional weeks.`;
-    } else if (fg > 55) {
-      headline = `Fear & Greed ${fg}/100 — SPY above 20-day MA, VIX at ${vix.toFixed(1)}, dip-buyers active`;
-      state = `Fear & Greed at ${fg}/100. VIX ${vix.toFixed(1)}. ${spyContext || ''} SPY holding 20-day MA — sellers unable to break structure.`;
-      driver = `10Y yield declining + mega-cap earnings beats sustaining bid. Both conditions historically support equity price 6-8 weeks post-signal.`;
-      impact = `SPY dips to $${spyPrice ? (spyPrice * 0.993).toFixed(0) : '495'} being bought. XLY and XLI rotating higher — cyclicals leading defensives by 180bp.`;
-      bias = 'bullish';
-      risk = `PCE or CPI print above 3.2% flips the tape within hours. Hot inflation = rate-cut repricing = SPY -2-3% within session.`;
-    } else if (fg > 45) {
-      headline = `Fear & Greed ${fg}/100 — SPY range-bound $${spyPrice ? (spyPrice * 0.98).toFixed(0) : '480'}-$${spyPrice ? (spyPrice * 1.02).toFixed(0) : '500'}, no directional edge`;
-      state = `Fear & Greed at ${fg}/100. VIX at ${vix.toFixed(1)} — stuck in 17-19 range. ${spyContext || ''} SPY oscillating in $${spyPrice ? (spyPrice * 0.04).toFixed(0) : '20'} range for 2+ weeks.`;
-      driver = `Earnings season mixed — 60% beat but guidance cautious. Macro data in-line with consensus. Neither bulls nor bears have a clear catalyst.`;
-      impact = `Scalpers trading the range. Breakout above $${spyPrice ? (spyPrice * 1.02).toFixed(0) : '500'} or breakdown below $${spyPrice ? (spyPrice * 0.98).toFixed(0) : '480'} is the next binary.`;
-      bias = 'neutral';
-      risk = `Single data point (PCE, NFP, Fed speaker) breaks the range — direction unknown until catalyst.`;
-    } else if (fg > 25) {
-      headline = `Fear & Greed ${fg}/100 — SPY -3-5% off highs, VIX at ${vix.toFixed(1)}, defensive rotation visible`;
-      state = `Fear & Greed at ${fg}/100. VIX broke above ${(vix - 2).toFixed(0)}. ${spyContext || ''} SPY -3-5% from recent high. Put buying accelerating.`;
-      driver = `Real yield rise + guidance cuts from 2-3 large-caps triggering broad sell programs. 30-day put/call above 1.0 — hedging demand elevated.`;
-      impact = `XLU (utilities) and GLD outperforming SPY by 200-300bp. XLK and XLY underperforming. TLT getting +0.5-1% bid as duration demand returns.`;
-      bias = 'bearish';
-      risk = `SPY is approaching its 100-day MA — a single-session bounce of +2-3% has been the common outcome at this level.`;
-    } else {
-      headline = `Fear & Greed ${fg}/100 — VIX above 30, SPY -8-12% off highs, forced selling active`;
-      state = `Fear & Greed at ${fg}/100. VIX ${vix.toFixed(1)}+. ${spyContext || ''} SPY below 50-day and 200-day moving averages. Leveraged ETF outflows record pace.`;
-      driver = `Forced margin liquidations and stop-loss cascades. Hedge fund gross exposure -15-20% from peak. Systematic selling programs executing.`;
-      impact = `All sectors declining. GLD and SHY (short-term Treasuries) only positive bids. Credit spreads widening +30-50bp from baseline.`;
-      bias = 'bullish';
-      risk = `Capitulation is not confirmed until VIX spikes to 40+ or a gap-down reversal day occurs. Historically the decline continues until one of those appears.`;
-    }
-
-    const signal = {
+  // 5. Fear & Greed — the index value itself, read from alternative.me.
+  if (fearGreed !== null && fearGreed !== undefined) {
+    const band = fearGreed > 75 ? 'extreme greed'
+      : fearGreed > 55 ? 'greed'
+      : fearGreed >= 45 ? 'neutral band'
+      : fearGreed > 25 ? 'fear'
+      : 'extreme fear';
+    const signal = makeSignal({
       id: `struct_fng_${Date.now()}`,
-      type: 'structure',
-      headline,
-      source_name: 'Market Structure',
-      source_url: '#',
-      market_state: state,
-      driver,
-      impact,
-      action_bias: bias,
-      risk,
-      key_levels: keyLevels,
-      category: 'macro',
-      confidence: 65,
+      headline: `Fear & Greed ${fearGreed}/100 — ${band}`,
+      market_state: `Fear & Greed index at ${fearGreed}/100.${spy ? ` SPY ${usd(spy.price)} (${pct(spy.changePct)}).` : ''}${vixy ? ` VIXY ${usd(vixy.price)} (${pct(vixy.changePct)}).` : ''}`,
+      driver: `${fearGreed}/100 on the index${spy ? ` while SPY moved ${pct(spy.changePct)}` : ''}${vixy ? ` and the volatility ETF VIXY moved ${pct(vixy.changePct)}` : ''}.`,
+      impact: sectorLine(sectors, null),
+      action_bias: fearGreed > 55 ? 'bullish' : fearGreed < 45 ? 'bearish' : 'neutral',
+      risk: `The index is recalculated daily — today's ${fearGreed}/100 does not carry into the next session.`,
+      confidence: Math.min(85, 50 + Math.abs(fearGreed - 50) * 0.7),
       related_assets: ['SPY', 'QQQ', 'TLT'],
-      regions: ['Global', 'US', 'EU', 'APAC', 'Africa', 'LatAm'],
-      published_at: new Date().toISOString(),
-      interpretation_updated_at: new Date().toISOString(),
-      stage: 'confirmed_catalyst'
-    };
+      published_at: now,
+    });
     if (validateSignal(signal)) signals.push(signal);
   }
 
@@ -281,82 +191,60 @@ function generateStructureSignals(marketData) {
 }
 
 // ── SERVER ────────────────────────────────────────────────────────────────────
+const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY');
+
+async function quote(symbol) {
+  if (!FINNHUB_KEY) return null;
+  try {
+    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const d = await res.json();
+    if (!d || !(d.c > 0)) return null;
+    return {
+      price: d.c,
+      prevClose: d.pc > 0 ? d.pc : null,
+      high: d.h > 0 ? d.h : null,
+      low: d.l > 0 ? d.l : null,
+      changePct: d.pc > 0 ? ((d.c - d.pc) / d.pc) * 100 : null,
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     // Market structure signals are public-safe — no user auth required.
-    console.log('[STRUCTURE SIGNALS] Fetching live market data from Finnhub');
-    const FINNHUB_KEY = Deno.env.get('FINNHUB_API_KEY');
-    let marketData = { indexChanges: [], volatilityMetrics: {}, sectorChanges: [], yields: {}, fearGreedIndex: null };
+    const sectorDefs = [
+      { symbol: 'XLK', name: 'Technology' },
+      { symbol: 'XLF', name: 'Financials' },
+      { symbol: 'XLE', name: 'Energy' },
+      { symbol: 'XLV', name: 'Healthcare' },
+      { symbol: 'XLY', name: 'Consumer Discretionary' },
+    ];
 
+    console.log('[STRUCTURE SIGNALS] Fetching live quotes from Finnhub');
+    const [spy, qqq, vixy, tlt, ...sectorQuotes] = await Promise.all([
+      quote('SPY'), quote('QQQ'), quote('VIXY'), quote('TLT'),
+      ...sectorDefs.map((s) => quote(s.symbol)),
+    ]);
+
+    const sectors = sectorDefs
+      .map((def, i) => (sectorQuotes[i] ? { ...def, ...sectorQuotes[i] } : null))
+      .filter(Boolean);
+
+    // Fear & Greed — the same index the gauges read (alternative.me).
+    let fearGreed = null;
     try {
-      const [spyRes, qqqRes, vixRes, tltRes] = await Promise.all([
-        fetch(`https://finnhub.io/api/v1/quote?symbol=SPY&token=${FINNHUB_KEY}`),
-        fetch(`https://finnhub.io/api/v1/quote?symbol=QQQ&token=${FINNHUB_KEY}`),
-        fetch(`https://finnhub.io/api/v1/quote?symbol=VIXY&token=${FINNHUB_KEY}`),
-        fetch(`https://finnhub.io/api/v1/quote?symbol=TLT&token=${FINNHUB_KEY}`),
-      ]);
-      const [spyData, qqqData, vixData, tltData] = await Promise.all([
-        spyRes.json(), qqqRes.json(), vixRes.json(), tltRes.json()
-      ]);
-
-      if (spyData.c && spyData.pc) {
-        marketData.indexChanges.push({
-          symbol: 'SPY',
-          changePct: ((spyData.c - spyData.pc) / spyData.pc) * 100,
-          price: spyData.c,
-          high: spyData.h,
-          low: spyData.l
-        });
-      }
-      if (qqqData.c && qqqData.pc) {
-        marketData.indexChanges.push({ symbol: 'QQQ', changePct: ((qqqData.c - qqqData.pc) / qqqData.pc) * 100, price: qqqData.c });
-      }
-      if (vixData.c) marketData.volatilityMetrics.vix = vixData.c;
-
-      // Sector ETFs
-      const sectorSymbols = [
-        { symbol: 'XLK', name: 'Technology' }, { symbol: 'XLF', name: 'Financials' },
-        { symbol: 'XLE', name: 'Energy' }, { symbol: 'XLV', name: 'Healthcare' },
-        { symbol: 'XLY', name: 'Consumer Discretionary' }
-      ];
-      const sectorResults = await Promise.all(
-        sectorSymbols.map(s =>
-          fetch(`https://finnhub.io/api/v1/quote?symbol=${s.symbol}&token=${FINNHUB_KEY}`)
-            .then(r => r.json())
-            .then(d => ({ name: s.name, symbol: s.symbol, changePct: d.c && d.pc ? ((d.c - d.pc) / d.pc) * 100 : 0 }))
-        )
-      );
-      marketData.sectorChanges = sectorResults;
-
-      // TLT yield proxy
-      if (tltData.c && tltData.pc) {
-        const tltChangePct = ((tltData.c - tltData.pc) / tltData.pc) * 100;
-        marketData.yields['10Y'] = -(tltChangePct / 100) * 10;
-        marketData.yields.tltPrice = tltData.c;
-      }
-
-      // Fear & Greed — read from the identical index the gauges use
-      // (alternative.me) so this text can never disagree with the gauge. If the
-      // index is unavailable the signal is skipped rather than filled with a guess.
-      const spyChange = marketData.indexChanges.find(i => i.symbol === 'SPY')?.changePct || 0;
-      const vixLevel = marketData.volatilityMetrics.vix || 20;
-      try {
-        const fngRes = await fetch('https://api.alternative.me/fng/', { signal: AbortSignal.timeout(5000) });
-        const fngData = await fngRes.json();
-        const fngValue = parseInt(fngData?.data?.[0]?.value, 10);
-        marketData.fearGreedIndex = Number.isFinite(fngValue) ? fngValue : null;
-      } catch (fngErr) {
-        console.warn('[STRUCTURE SIGNALS] Fear & Greed unavailable:', fngErr.message);
-        marketData.fearGreedIndex = null;
-      }
-
-      console.log(`[STRUCTURE SIGNALS] SPY $${marketData.indexChanges.find(i => i.symbol === 'SPY')?.price?.toFixed(2)} ${spyChange.toFixed(2)}%, VIX ${vixLevel}, F&G ${marketData.fearGreedIndex}`);
-    } catch (fetchErr) {
-      console.warn('[STRUCTURE SIGNALS] Fetch failed:', fetchErr.message);
-      marketData = { indexChanges: [], volatilityMetrics: { vix: 18 }, sectorChanges: [], yields: {}, fearGreedIndex: null };
+      const fngRes = await fetch('https://api.alternative.me/fng/', { signal: AbortSignal.timeout(5000) });
+      const fngData = await fngRes.json();
+      const value = parseInt(fngData?.data?.[0]?.value, 10);
+      fearGreed = Number.isFinite(value) ? value : null;
+    } catch (e) {
+      console.warn('[STRUCTURE SIGNALS] Fear & Greed unavailable:', e.message);
     }
 
-    const signals = generateStructureSignals(marketData);
+    const signals = generateStructureSignals({ spy, qqq, vixy, tlt, sectors, fearGreed });
     console.log(`[STRUCTURE SIGNALS] Generated ${signals.length} validated signals`);
 
     return Response.json({ status: 'success', signals, count: signals.length, timestamp: new Date().toISOString() });

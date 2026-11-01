@@ -2,9 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const FILTERS = [
-  { id: 'buy', label: '✓ BUY Signal', color: 'bg-chart-3/10 text-chart-3 border-chart-3/20' },
-  { id: 'hold', label: '= HOLD', color: 'bg-white/5 text-white/50 border-white/10' },
-  { id: 'sell', label: '✗ SELL Signal', color: 'bg-destructive/10 text-destructive border-destructive/20' },
+  { id: 'buy', label: 'Bullish', color: 'bg-chart-3/10 text-chart-3 border-chart-3/20' },
+  { id: 'hold', label: 'Neutral', color: 'bg-white/5 text-white/50 border-white/10' },
+  { id: 'sell', label: 'Bearish', color: 'bg-destructive/10 text-destructive border-destructive/20' },
 ];
 
 export default function TrekScreener({ activeFilter, onFilterChange }) {

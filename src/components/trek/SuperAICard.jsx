@@ -4,6 +4,7 @@ import { Zap, Lock, ChevronDown, ChevronUp, Share2, Loader2 } from 'lucide-react
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { biasLabel } from '@/lib/signalLabels';
 
 const SIGNAL_COLORS = {
   BUY:   { color: '#22c55e', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.25)' },
@@ -29,7 +30,7 @@ function ModelRow({ model, data }) {
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: model.dot, flexShrink: 0, display: 'inline-block', boxShadow: `0 0 6px ${model.dot}88` }} />
         <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.65)', flex: 1 }}>{model.label}</span>
         <span style={{ fontSize: 10, fontWeight: 700, color: sc.color, background: sc.bg, border: `1px solid ${sc.border}`, borderRadius: 99, padding: '2px 9px', letterSpacing: '0.05em' }}>
-          {data.signal}
+          {biasLabel(data.signal)}
         </span>
         <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 800, color: model.dot, width: 36, textAlign: 'right' }}>{conf}%</span>
       </div>

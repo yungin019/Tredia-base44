@@ -97,6 +97,10 @@ async function interpretAsSignal(news, langInstruction) {
             role: 'system',
             content: `${langInstruction}You are TREK, a market intelligence engine. Interpret news into market signals.
 
+NUMBER RULE: Only use numbers provided in the input data. Never estimate or invent statistics. If a figure is not in the headline or source, leave it out.
+
+A shortage, record low, conflict, strike or crisis is never bullish. An attack, hack, breach or outage is bearish.
+
 Output ONLY valid JSON with no markdown formatting:
 {
   "market_state": "brief market context (15 words max)",

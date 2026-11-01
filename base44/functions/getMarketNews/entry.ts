@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { isKnownSymbol } from '../../shared/knownSymbols.ts';
 
 // Map symbols/keywords → region + asset type
 const REGION_KEYWORDS = {
@@ -30,11 +31,13 @@ function classify(text) {
     if (kws.some(k => lc.includes(k))) { assetType = type; break; }
   }
 
-  // Simple sentiment heuristic
-  const bullishWords = ['surge', 'rally', 'record', 'beat', 'soar', 'jump', 'gain', 'rise', 'bullish', 'strong', 'breakout', 'upgrade', 'buy'];
-  const bearishWords = ['fall', 'drop', 'plunge', 'miss', 'crash', 'decline', 'warn', 'cut', 'bearish', 'sell', 'downgrade', 'loss', 'risk', 'concern'];
-  const bullScore = bullishWords.filter(w => lc.includes(w)).length;
-  const bearScore = bearishWords.filter(w => lc.includes(w)).length;
+  // Simple sentiment heuristic. "record" on its own is ambiguous — a record LOW
+  // is bearish — so phrases are matched, not single words.
+  const BULLISH = ['surge', 'rally', 'record high', 'all-time high', 'beat', 'beats', 'soar', 'jump', 'gain', 'gains', 'rise', 'rises', 'bullish', 'breakout', 'upgrade', 'profit'];
+  const BEARISH = ['fall', 'falls', 'drop', 'plunge', 'miss', 'misses', 'crash', 'decline', 'warn', 'warns', 'cut', 'cuts', 'bearish', 'downgrade', 'loss', 'losses', 'risk', 'concern', 'shortage', 'shortages', 'record low', 'lowest since', 'crisis', 'conflict', 'strike', 'strikes', 'hack', 'hacked', 'breach', 'outage', 'layoff', 'layoffs', 'sanction', 'sanctions', 'recession', 'default'];
+  const hits = (words) => words.filter(w => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(lc)).length;
+  const bullScore = hits(BULLISH);
+  const bearScore = hits(BEARISH);
   const sentiment = bullScore > bearScore ? 'BULLISH' : bearScore > bullScore ? 'BEARISH' : 'NEUTRAL';
 
   return { region, assetType, sentiment };
@@ -44,7 +47,9 @@ function classify(text) {
 function extractTickers(text) {
   const matches = (text || '').match(/\b[A-Z]{2,5}\b/g) || [];
   const STOP = new Set(['THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'CAN', 'HER', 'WAS', 'ONE', 'OUR', 'OUT', 'DAY', 'GET', 'HAS', 'HIM', 'HIS', 'HOW', 'ITS', 'NEW', 'NOW', 'OLD', 'SEE', 'TWO', 'WAY', 'WHO', 'BOY', 'DID', 'ITS', 'LET', 'PUT', 'SAY', 'SHE', 'TOO', 'USE', 'AI', 'US', 'UK', 'EU', 'US', 'FX', 'IPO', 'GDP', 'CPI', 'ECB', 'FED', 'BOE', 'CEO', 'CFO', 'ETF', 'SEC', 'IMF']);
-  return [...new Set(matches.filter(m => !STOP.has(m)))].slice(0, 4);
+  // Only a real listed symbol or crypto from our asset list may become a tag —
+  // otherwise $FBI, $UN, $NAACP-style acronyms leak into the feed.
+  return [...new Set(matches.filter(m => !STOP.has(m) && isKnownSymbol(m)))].slice(0, 4);
 }
 
 // Fetch asset-specific news from Finnhub (company news endpoint)
