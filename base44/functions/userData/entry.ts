@@ -286,7 +286,7 @@ export default async function (req) {
       const entitlements = subscriber.entitlements || {};
       const products = Object.keys(subscriber.subscriptions || {});
       let tier = 'free';
-      if (entitlements.elite) tier = products.includes('tredio_og100_monthly') ? 'og100' : 'elite';
+      if (entitlements.elite) tier = products.includes('tredia_og100_monthly') ? 'og100' : 'elite';
       else if (entitlements.pro) tier = 'pro';
 
       const row = await ensureProfile();

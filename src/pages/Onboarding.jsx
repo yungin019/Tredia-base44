@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Check, Brain, Zap, TrendingUp, Shield, Crown, Link2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { updateUserProfile } from '@/lib/userProfile';
-import { claimFoundingMemberSlot } from '@/api/foundingMembers';
+import { claimFoundingMemberSlot, getFoundingStats } from '@/api/foundingMembers';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -53,6 +53,14 @@ export default function Onboarding() {
   const [horizon, setHorizon] = useState('');
   const [interests, setInterests] = useState('');
 
+  // OG100 is capped at 100 members: once the cap is reached the offer is not
+  // shown at all, so nobody is charged for a slot that no longer exists.
+  useEffect(() => {
+    getFoundingStats()
+      .then((stats) => { if (stats?.isSoldOut) setStep(2); })
+      .catch(() => {});
+  }, []);
+
   const BUDGET_OPTIONS = [t('onboarding.budget.under500','Under $500'),t('onboarding.budget.500to5k','$500 – $5K'),t('onboarding.budget.5kto50k','$5K – $50K'),t('onboarding.budget.50kplus','$50K+')];
   const RISK_OPTIONS = [t('onboarding.risk.conservative','Conservative'),t('onboarding.risk.moderate','Moderate'),t('onboarding.risk.aggressive','Aggressive')];
   const HORIZON_OPTIONS = [t('onboarding.horizon.days','Days (swing trading)'),t('onboarding.horizon.months','Months (position trading)'),t('onboarding.horizon.years','Years (investing)')];
@@ -71,6 +79,13 @@ export default function Onboarding() {
 
   const handleOGClaim = async () => {
     setOgPurchaseError(null);
+    // Re-check the cap right before charging — the page may have been open a while.
+    const stats = await getFoundingStats().catch(() => null);
+    if (stats?.isSoldOut) {
+      setOgPurchaseError('All 100 founding spots are taken.');
+      setStep(2);
+      return;
+    }
     if (!isInitialized) {
       setOgPurchaseError('Purchases are not ready yet. Please wait a moment and try again.');
       return;

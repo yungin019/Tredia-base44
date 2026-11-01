@@ -71,6 +71,9 @@ export default function Upgrade() {
       const user = await getCurrentUser();
       const userId = user?.email || user?.id;
       if (!userId) return;
+      // The cap is 100: never start a purchase for a spot that is already gone.
+      const freshStats = await getFoundingStats();
+      if (freshStats?.isSoldOut) { setStats(freshStats); return; }
       const productId = getProductId('og100', 'monthly');
       if (!productId) { setLastPurchaseError('Product configuration error'); return; }
       const purchased = await makePurchase(productId);

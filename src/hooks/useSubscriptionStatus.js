@@ -5,8 +5,8 @@
  * No localStorage fallback. No local tier persistence.
  *
  * Two RevenueCat entitlements exist:
- * - 'elite' → tredio_elite_monthly, tredio_elite_annual, tredio_og100_monthly
- * - 'pro'   → tredio_pro_monthly, tredio_pro_annual
+ * - 'elite' → tredia_elite_monthly, tredia_elite_annual, tredia_og100_monthly
+ * - 'pro'   → tredia_pro_monthly, tredia_pro_annual
  *
  * Tiers: free | pro | elite | og100 (OG100 is elite granted by the founding
  * member product). If RevenueCat is unavailable or has no entitlements, the

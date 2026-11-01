@@ -60,10 +60,11 @@ only you can do** (Apple account, Firebase console, App Store Connect).
 
 ---
 
-## 4. Signing team (manual)
+## 4. Signing team
 
-Xcode → **App** target → **Signing & Capabilities** → set **Team** to your Apple
-Developer team (the project has `CODE_SIGN_STYLE = Automatic` but no team yet).
+Already set in the project: `DEVELOPMENT_TEAM = 78GKEP7L2H`, automatic signing.
+Check it once in Xcode → **App** target → **Signing & Capabilities** → Team shows
+team **78GKEP7L2H**.
 The bundle id `com.tredio.app` must exist under that team.
 
 ---
@@ -85,15 +86,18 @@ if the key is missing or the lookup fails. Never expose it to the app.
 
 | Entitlement | Products attached |
 | --- | --- |
-| `pro` | `tredio_pro_monthly`, `tredio_pro_annual` |
-| `elite` | `tredio_elite_monthly`, `tredio_elite_annual`, `tredio_og100_monthly` |
+| `pro` | `tredia_pro_monthly`, `tredia_pro_annual` |
+| `elite` | `tredia_elite_monthly`, `tredia_elite_annual`, `tredia_og100_monthly` |
 
-No other entitlement is read anywhere in the app. OG100 (`tredio_og100_monthly`)
+No other entitlement is read anywhere in the app. OG100 (`tredia_og100_monthly`)
 grants `elite` and is reported as its own tier so the founder badge shows.
 
 **App Store Connect:** create the five auto-renewable subscriptions with exactly
 those product ids, put them in the **current offering** (monthly + annual packages
-per tier), and add `tredio_og100_monthly` to it as well.
+per tier), and add `tredia_og100_monthly` to it as well. The prefix is
+**`tredia_`** on every product id, even though the bundle id is `com.tredio.app`.
+OG100 is capped at 100 members: both offer screens check the remaining spots
+before the button can start a purchase, and the server refuses a 101st claim.
 
 **Tier flow:** on launch, and after every purchase or restore, the app calls
 `subscription.sync`. The RevenueCat app user id is the Firebase uid, so the
@@ -153,6 +157,6 @@ experimental: { ios: { spm: { swiftToolsVersion: '6.1',
 | `[TREDIO] GoogleService-Info.plist is missing` in console | plist not added to the App target |
 | Google sheet opens, app never returns | `REVERSED_CLIENT_ID` not replaced in Info.plist |
 | Apple sign-in: `invalid_client` / `unknown` | capability not enabled on the App ID, or entitlement missing |
-| `Product "tredio_…" not found in current offering` | product id typo, missing in App Store Connect, or offering not marked *current* |
+| `Product "tredia_…" not found in current offering` | product id typo, missing in App Store Connect, or offering not marked *current* |
 | Tier stays `free` after purchase | `REVENUECAT_API_KEY` missing/invalid server-side, or the Firebase uid was never logged into RevenueCat |
 | `Missing required module 'FirebaseCore'` | firebase-ios-sdk lines above were wiped by a sync |
