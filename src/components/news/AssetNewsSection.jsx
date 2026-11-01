@@ -77,6 +77,9 @@ export default function AssetNewsSection({ symbol }) {
                       <span className="text-[9px] text-white/25">
                         {REGION_FLAGS[a.region] || ''} {a.region}
                       </span>
+                      {a.affects?.length > 0 && (
+                        <span className="text-[9px] text-white/35">Affects: {a.affects.join(', ')}</span>
+                      )}
                       <span className="text-[9px] text-white/20 font-mono ml-auto">{a.age}</span>
                     </div>
                   </div>
@@ -127,6 +130,13 @@ export default function AssetNewsSection({ symbol }) {
 
               {selected.summary && (
                 <p className="text-[13px] text-white/55 leading-relaxed">{selected.summary}</p>
+              )}
+
+              {selected.affects?.length > 0 && (
+                <p className="text-[11px] font-semibold text-white/45">Affects: {selected.affects.join(', ')}</p>
+              )}
+              {selected.why && (
+                <p className="text-[11px] text-white/35 leading-relaxed">{selected.why}</p>
               )}
 
               <a href={selected.url} target="_blank" rel="noopener noreferrer"

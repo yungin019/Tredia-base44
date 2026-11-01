@@ -6,6 +6,7 @@ import { EXPANDED_ASSETS } from '@/lib/assetDatabase';
 import { deriveSignal } from '@/api/signalEngine';
 import { fetchCoreAssets } from '@/api/marketDataClient';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
+import { biasLabel } from '@/lib/signalLabels';
 
 // Single source of truth: all data from marketCore
 const SIGNAL_SYMBOLS = ['NVDA', 'AMZN', 'TSLA', 'AAPL', 'BTC', 'ETH'];
@@ -39,9 +40,7 @@ export default function TrekSignalsPreview() {
           const signal = deriveSignal(asset, {
             price: data.price,
             prevClose: data.price / (1 + (data.changePct || 0) / 100),
-            change24h: data.changePct || 0,
-            high24h: data.price * 1.02,
-            low24h: data.price * 0.98
+            change24h: data.changePct || 0
           }, {
             marketSentiment: (data.changePct || 0) > 2 ? 'BULLISH' : (data.changePct || 0) < -2 ? 'BEARISH' : 'NEUTRAL'
           });
@@ -119,7 +118,7 @@ export default function TrekSignalsPreview() {
                     ? 'bg-destructive/20 text-destructive'
                     : 'bg-warning/20 text-warning'
                 }`}>
-                  {signal.signal}
+                  {biasLabel(signal.signal)}
                 </span>
               </div>
             </div>

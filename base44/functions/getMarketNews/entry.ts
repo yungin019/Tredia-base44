@@ -30,33 +30,6 @@ function ageOf(publishedAt: string | null): string {
 Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
-
-    // Temporary probe: which worldwide feeds answer from this runtime?
-    if (body.__probe) {
-      const urls = [
-        'https://feeds.bbci.co.uk/news/business/rss.xml',
-        'https://www.cnbc.com/id/100003114/device/rss/rss.html',
-        'https://feeds.a.dj.com/rss/RSSMarketsMain.xml',
-        'https://www.aljazeera.com/xml/rss/all.xml',
-        'https://finance.yahoo.com/news/rssindex',
-        'https://feeds.content.dowjones.io/public/rss/mw_topstories',
-        'https://api.gdeltproject.org/api/v2/doc/doc?query=markets%20sourcelang:english&mode=artlist&maxrecords=5&format=json',
-      ];
-      const results = [];
-      for (const url of urls) {
-        const started = Date.now();
-        try {
-          const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
-          const text = await res.text();
-          results.push({ url, status: res.status, ms: Date.now() - started, items: (text.match(/<item>/g) || []).length, len: text.length });
-        } catch (e) {
-          results.push({ url, error: e.message, ms: Date.now() - started });
-        }
-        await new Promise((r) => setTimeout(r, 5200));
-      }
-      return Response.json({ probe: results });
-    }
-
     const { symbol, region, category } = body;
     const limit = Math.min(50, Number(body.limit) || DEFAULT_LIMIT);
 

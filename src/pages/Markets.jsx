@@ -19,12 +19,15 @@ import WatchlistPanel from '@/components/markets/WatchlistPanel.jsx';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import DiscoverySection, { POPULAR_STOCKS, POPULAR_CRYPTO, MAJOR_ETFS, COMMODITIES_SNAPSHOT } from '@/components/markets/DiscoverySection.jsx';
 import SPYSection from '@/components/markets/SPYSection.jsx';
+import UniverseBrowser from '@/components/markets/UniverseBrowser.jsx';
+import MarketNewsSection from '@/components/news/MarketNewsSection.jsx';
 
 export default function Markets() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('stocks');
   const [cryptoData, setCryptoData] = useState(null);
+  const [universeRegion, setUniverseRegion] = useState('All');
 
   useEffect(() => {
     const load = async () => {
@@ -116,10 +119,13 @@ export default function Markets() {
             </div>
           </motion.div>
 
+          {/* Region filter + searchable global universe */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
+            <UniverseBrowser region={universeRegion} onRegionChange={setUniverseRegion} />
+          </motion.div>
+
           {/* Sector Heatmap */}
           <SectorHeatmap />
-
-
         </>
       )}
 
@@ -139,6 +145,9 @@ export default function Markets() {
 
       {/* Commodities Tab */}
       {activeTab === 'commodities' && <CommoditiesTab />}
+
+      {/* Market Intelligence — worldwide, scored, deduplicated */}
+      <MarketNewsSection />
       </div>
     </PullToRefresh>
   );

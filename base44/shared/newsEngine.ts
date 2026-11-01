@@ -168,12 +168,27 @@ const PENALTIES: { weight: number; terms: string[] }[] = [
     terms: ['best ', 'top 10', 'how to ', 'ways to ', 'review:', 'guide to', 'tips for'],
   },
   {
+    weight: -30,
+    terms: [
+      'penny stocks', 'do you own', 'slideshow', 'multibagger', 'stocks to buy',
+      'stocks to watch', 'should you buy', 'is it time to buy', 'buy or sell',
+    ],
+  },
+  {
+    weight: -20,
+    terms: ['police', 'protest camp', 'housing protest', 'squatters'],
+  },
+  {
     weight: -34,
     terms: [
       'doctors', 'nurses', 'bereavement', 'trauma', 'families', 'children',
       'wounded', 'killed', 'funeral', 'refugees', 'survivors', 'patients',
       'teachers', 'students', 'in pictures', 'photos of', 'life and times',
     ],
+  },
+  {
+    weight: -14,
+    terms: ["what would", 'what does', "here's how", "here's what", 'explained', 'why it matters', 'five things'],
   },
   {
     weight: -18,
@@ -199,8 +214,10 @@ const REGION_KEYWORDS: Record<Exclude<NewsRegion, 'Global'>, string[]> = {
   US: ['fed', 'fomc', 'federal reserve', 'nasdaq', 's&p', 'dow', 'wall street', 'nyse',
     'sec ', 'treasury', 'powell', 'congress', 'washington', 'us economy', 'u.s.', 'silicon valley'],
   Europe: ['ecb', 'euro area', 'eurozone', 'dax', 'ftse', 'cac', 'lagarde', 'bank of england',
-    'boe', 'european union', 'eu ', 'germany', 'france', 'britain', 'uk ', 'italy', 'spain',
-    'netherlands', 'sweden', 'norway', 'switzerland', 'london', 'frankfurt', 'paris', 'brussels'],
+    'boe', 'european union', 'germany', 'france', 'britain', 'italy', 'spain',
+    'netherlands', 'sweden', 'norway', 'switzerland', 'london', 'frankfurt', 'paris', 'brussels',
+    'portugal', 'ireland', 'belgium', 'austria', 'denmark', 'finland', 'poland', 'greece',
+    'romania', 'czech', 'hungary', 'lisbon', 'madrid', 'milan', 'amsterdam', 'stockholm'],
   Asia: ['boj', 'bank of japan', 'pboc', 'nikkei', 'hang seng', 'shanghai', 'shenzhen', 'china',
     'japan', 'korea', 'hong kong', 'taiwan', 'tokyo', 'beijing', 'asia', 'india', 'singapore',
     'indonesia', 'vietnam', 'thailand', 'philippines', 'australia'],
@@ -417,9 +434,14 @@ export function classifyArticle(raw: {
   const symbols = extractSymbols(title + ' ' + (raw.summary || ''));
 
   // Feature, long-read, photo and video sections are not market reporting.
-  const urlPenalty = /\/features\/|\/longform\/|\/photos?\/|\/gallery\/|\/video\//.test(lc(url)) ? -26 : 0;
+  const urlPenalty = /\/features\/|\/longform\/|\/photos?\/|\/gallery\/|\/video\/|\/slideshow\//.test(lc(url)) ? -26 : 0;
+  // A question headline is nearly always analysis rather than news.
+  const questionPenalty = /[?]$/.test(title.trim()) ? -12 : 0;
+  // A weak theme with no named asset is not market-relevant enough on its own.
+  const weakThemePenalty = themeScore < 20 && symbols.length === 0 ? -10 : 0;
 
-  let score = 26 + themeScore + (symbols.length ? 14 : 0) + penalty + urlPenalty;
+  let score = 26 + themeScore + (symbols.length ? 14 : 0) + penalty + urlPenalty
+    + questionPenalty + weakThemePenalty;
   score = Math.max(0, Math.min(100, Math.round(score)));
 
   if (score < MIN_RELEVANCE) return null;

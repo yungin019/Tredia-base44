@@ -43,8 +43,8 @@ function buildOneLiner(symbol, signal, rsi, change24h) {
   const chg = change24h != null ? `${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%` : 'N/A';
   // RSI is only quoted when the provider actually returned one.
   const basis = Number.isFinite(rsi) ? `RSI ${rsi}, ${chg}` : `${chg} in 24h`;
-  if (signal === 'BUY') return `${symbol} showing momentum (${basis}) — potential entry zone.`;
-  if (signal === 'SELL') return `${symbol} showing weakness (${basis}) — consider risk management.`;
+  if (signal === 'BUY') return `${symbol} showing strength (${basis}).`;
+  if (signal === 'SELL') return `${symbol} showing weakness (${basis}).`;
   if (signal === 'AVOID') return `${symbol} showing weakness (${basis}) — avoid entry.`;
   return `${symbol} in consolidation (${basis}) — watch for breakout direction.`;
 }
