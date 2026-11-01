@@ -131,8 +131,10 @@ const THEMES: Theme[] = [
     weight: 12,
     terms: [
       'stocks', 'shares', 'equities', 'index', 's&p', 'nasdaq', 'dow jones', 'ftse',
-      'dax', 'nikkei', 'hang seng', 'bond', 'yield', 'currency', 'dollar', 'euro',
-      'yen', 'volatility', 'selloff', 'sell-off', 'rally', 'market',
+      'dax', 'nikkei', 'hang seng', 'bond', 'bond sale', 'yield', 'currency', 'dollar',
+      'euro', 'yen', 'volatility', 'selloff', 'sell-off', 'rally', 'market',
+      'economy', 'economic', 'growth', 'debt', 'loan', 'rating', 'capital',
+      'funding', 'trade', 'exports', 'imports', 'budget', 'investment',
     ],
   },
 ];
@@ -446,9 +448,12 @@ export function classifyArticle(raw: {
 
   if (score < MIN_RELEVANCE) return null;
 
-  // Category: the strongest theme, with macro and geopolitics taking precedence.
+  // Category: the strongest theme wins; macro takes precedence, and geopolitics
+  // only leads when nothing more specific matched.
   const ranked = matched.slice().sort((a, b) => b.theme.weight - a.theme.weight);
+  const specific = ranked.find((m) => m.theme.id !== 'geopolitics' && m.theme.id !== 'markets');
   const primary = ranked.find((m) => m.theme.id === 'macro')
+    || specific
     || ranked.find((m) => m.theme.id === 'geopolitics')
     || ranked[0];
   const category: NewsCategory = primary ? primary.theme.category : 'Stocks';
@@ -543,8 +548,11 @@ const FEEDS: { region: NewsRegion; url: string }[] = [
   { region: 'Asia', url: 'https://www.scmp.com/rss/92/feed' },
   { region: 'Asia', url: 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms' },
   { region: 'Latin America', url: 'https://www.riotimesonline.com/feed/' },
+  { region: 'Latin America', url: 'https://latinfinance.com/feed/' },
   { region: 'Africa', url: 'https://businessday.ng/feed/' },
   { region: 'Africa', url: 'https://www.moneyweb.co.za/feed/' },
+  { region: 'Africa', url: 'https://african.business/feed/' },
+  { region: 'Africa', url: 'https://www.businesslive.co.za/rss/business/' },
   { region: 'Middle East', url: 'https://www.aljazeera.com/xml/rss/all.xml' },
 ];
 
