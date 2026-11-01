@@ -35,7 +35,16 @@ const SYMBOLS: string[] = [
   'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
 ];
 
-const KNOWN = new Set(SYMBOLS.map((s) => s.toUpperCase()));
+import { ASSET_INDEX } from './assetSymbols.ts';
+
+// The universe (601 symbols, generated from src/lib/assetUniverse.js) plus the
+// handful of quote proxies the signal engine uses that are not tradable assets.
+const KNOWN = new Set<string>([
+  ...Object.keys(ASSET_INDEX),
+  ...SYMBOLS.map((s) => s.toUpperCase()),
+  'VIXY', 'CPER', 'PPLT', 'LIT', 'URA', 'WEAT', 'CORN', 'DBA',
+  'USDSEK', 'EURSEK', 'USDCNH', 'USDMXN', 'USDBRL', 'USDZAR', 'USDTRY', 'USDINR',
+]);
 
 export function isKnownSymbol(symbol: unknown): boolean {
   return KNOWN.has(String(symbol || '').trim().toUpperCase());
