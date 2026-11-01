@@ -1,0 +1,45 @@
+{
+  "name": "Hourly Signal Snapshot",
+  "description": "Every hour on the hour: logs core structure signals (SPY, QQQ, XLK, XLF, XLE, VIXY, TLT, AAPL, NVDA, TSLA, AMZN) during US market hours and BTC/ETH every 4 hours around the clock, to SignalLog with source \"scheduled\"",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "5 * * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "hourly_signal_snapshot",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "snapshot_signals": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "signalSnapshot",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Snapshot core signals",
+            "description": "Equities in US hours, crypto every 4h"
+          }
+        }
+      }
+    ]
+  }
+}
