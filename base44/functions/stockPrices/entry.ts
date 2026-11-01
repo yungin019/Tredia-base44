@@ -58,7 +58,23 @@ Deno.serve(async (req) => {
 
     // ── CHART SERIES ────────────────────────────────────────────────────
     if (mode === 'ohlc' || mode === 'history') {
-      const result = await getSeries(symbol, String(body.timeframe || '1D'));
+      const timeframe = String(body.timeframe || '1D');
+      const result = await getSeries(symbol, timeframe);
+      // `probe` returns provider coverage only, without the bars themselves.
+      if (body.probe) {
+        const bars = result.chartData || [];
+        return Response.json({
+          symbol,
+          timeframe,
+          source: result.source,
+          interval: result.interval,
+          bars: bars.length,
+          first: bars[0]?.date || null,
+          last: bars[bars.length - 1]?.date || null,
+          cached: !!result.cached,
+          stale: !!result.stale,
+        });
+      }
       return Response.json(result);
     }
 

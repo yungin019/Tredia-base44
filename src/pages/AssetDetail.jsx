@@ -17,7 +17,7 @@ import { formatPrice, formatPercent, validatePrice, validatePercent, safeRender 
 import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
 import { deriveSignal } from '@/api/signalEngine';
 import { biasLabel } from '@/lib/signalLabels';
-import { PRICE_DATA_LABEL } from '@/lib/dataFreshness';
+import { PRICE_DATA_LABEL, freshnessLabel, isCryptoFeed } from '@/lib/dataFreshness';
 import { getAssetClass } from '@/lib/assetUniverse';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
@@ -414,10 +414,16 @@ export default function AssetDetail() {
                   <div className="text-2xl font-black font-mono text-white/95">
                     {pricePrefix}{formatPrice(asset.price, 2)}
                   </div>
-                  {/* Same feed for every tier — never claim real-time for payers */}
-                  <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                    {PRICE_DATA_LABEL}
-                  </span>
+                  {/* Stocks read as delayed; crypto reports its real CoinGecko freshness */}
+                  {isCryptoFeed(quote.source) ? (
+                    <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                      {freshnessLabel(quote)}
+                    </span>
+                  ) : (
+                    <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                      {PRICE_DATA_LABEL}
+                    </span>
+                  )}
                 </div>
                 <div className={`flex items-center justify-end gap-1 text-[13px] font-bold font-mono ${isUp ? 'text-chart-3' : 'text-destructive'}`}>
                   {isUp ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}

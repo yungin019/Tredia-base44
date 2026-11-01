@@ -72,7 +72,9 @@ Deno.serve(async (req) => {
     const { symbol, region, category } = body;
     const limit = Math.min(50, Number(body.limit) || DEFAULT_LIMIT);
 
-    const pool = symbol ? { articles: await getSymbolNews(symbol), generatedAt: Date.now() } : await getNewsPool();
+    const pool = symbol
+      ? { articles: await getSymbolNews(symbol), generatedAt: Date.now() }
+      : await getNewsPool(body.refresh === true);
     let articles = pool.articles;
 
     if (region && region !== 'All') {
@@ -80,6 +82,22 @@ Deno.serve(async (req) => {
     }
     if (category && category !== 'All') {
       articles = articles.filter((a) => a.category === category);
+    }
+
+    // A 24-hour feed. A top-importance event keeps its slot for up to three
+    // days (a Friday decision is still the story on Sunday); nothing routine
+    // survives the day it happened. Symbol feeds are exempt: a company's own
+    // news stays its news.
+    if (!symbol) {
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const GRACE_MS = 3 * DAY_MS;
+      articles = articles.filter((a) => {
+        if (!a.publishedAt) return true;
+        const age = Date.now() - new Date(a.publishedAt).getTime();
+        if (!Number.isFinite(age)) return true;
+        if (age <= DAY_MS) return true;
+        return age <= GRACE_MS && (a.importance || 0) >= 70;
+      });
     }
 
     // A symbol feed is inherently one subject, so it is not re-balanced.
@@ -91,18 +109,28 @@ Deno.serve(async (req) => {
     const RECENT_MS = 12 * 60 * 60 * 1000;
     const timeOf = (a: { publishedAt?: string | null }) => (a.publishedAt ? new Date(a.publishedAt).getTime() : 0);
     const ageMs = (a: { publishedAt?: string | null }) => (a.publishedAt ? Date.now() - timeOf(a) : Infinity);
-    const recent = selected
-      .filter((a) => ageMs(a) <= RECENT_MS)
+    // Exactly one "Top story": the highest-impact article available, even when
+    // it is a decision from two days ago — an official rate decision outranks
+    // this morning's preview of the same week's data. It is pulled into the feed
+    // if recency-based balancing had left it out.
+    const topStory = articles
+      .filter((a) => a.publishedAt && (a.importance || 0) >= 45)
+      .sort((a, b) => (b.importance || 0) - (a.importance || 0) || timeOf(b) - timeOf(a))[0] || null;
+
+    const feed = topStory && !selected.some((a) => a.id === topStory.id)
+      ? [topStory, ...selected].slice(0, limit)
+      : selected;
+
+    const recent = feed
+      .filter((a) => a !== topStory && ageMs(a) <= RECENT_MS)
       .sort((a, b) => (b.importance || 0) - (a.importance || 0) || timeOf(b) - timeOf(a));
-    const older = selected
-      .filter((a) => ageMs(a) > RECENT_MS)
+    const older = feed
+      .filter((a) => a !== topStory && ageMs(a) > RECENT_MS)
       .sort((a, b) => timeOf(b) - timeOf(a));
 
-    // Exactly one "Top story": the most important article of the last 12 hours.
-    const topStory = recent[0] && (recent[0].importance || 0) >= 55 ? recent[0] : null;
     const ordered = [
       ...(topStory ? [topStory] : []),
-      ...recent.filter((a) => a !== topStory),
+      ...recent,
       ...older,
     ];
 

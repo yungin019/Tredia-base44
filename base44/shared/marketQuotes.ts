@@ -263,6 +263,54 @@ export async function getQuotes(symbols: string[]) {
   return out;
 }
 
+/** CoinGecko candle windows: 1D is 30-min bars, 1W onwards 4-hour bars. */
+const COINGECKO_OHLC_DAYS: Record<string, string> = {
+  '1D': '1', '1W': '7', '1M': '30', '3M': '90', '1Y': '365',
+};
+
+/**
+ * Crypto candles from CoinGecko — the same provider that prices crypto here, so
+ * the chart and the quote can never disagree. OHLC endpoint, not a synthesized
+ * series: real open/high/low/close for the candlestick view.
+ */
+async function coinGeckoSeries(symbol: string, timeframe: string) {
+  const id = COINGECKO_IDS[symbol];
+  if (!id) throw new Error(`coingecko has no id for ${symbol}`);
+  if (parked('coingecko')) throw new Error('coingecko parked after a rate limit');
+
+  const key = Deno.env.get('COINGECKO_API_KEY') || '';
+  const headers: Record<string, string> = { accept: 'application/json' };
+  if (key) headers['x-cg-demo-api-key'] = key;
+
+  const days = COINGECKO_OHLC_DAYS[timeframe] || '1';
+  const res = await fetch(
+    `https://api.coingecko.com/api/v3/coins/${id}/ohlc?vs_currency=usd&days=${days}`,
+    { headers, signal: AbortSignal.timeout(9000) },
+  );
+  if (res.status === 429) {
+    park('coingecko', 'HTTP 429');
+    throw new Error('coingecko HTTP 429');
+  }
+  if (!res.ok) throw new Error(`coingecko ohlc HTTP ${res.status}`);
+
+  const rows = await res.json().catch(() => []);
+  const intraday = timeframe === '1D' || timeframe === '1W';
+  const bars = (Array.isArray(rows) ? rows : [])
+    .map((r: any[]) => {
+      const stamp = new Date(Number(r[0]));
+      const date = Number.isNaN(stamp.getTime())
+        ? ''
+        : intraday
+          ? stamp.toISOString().slice(0, 16).replace('T', ' ')
+          : stamp.toISOString().slice(0, 10);
+      return { date, open: Number(r[1]), high: Number(r[2]), low: Number(r[3]), close: Number(r[4]) };
+    })
+    .filter((b) => b.date && Number.isFinite(b.close) && b.close > 0 && Number.isFinite(b.high));
+
+  if (bars.length === 0) throw new Error('coingecko ohlc returned no bars');
+  return bars;
+}
+
 async function twelveSeries(symbol: string, interval: string, outputsize: number) {
   const key = Deno.env.get('TWELVEDATA_API_KEY') || '';
   if (!key) throw new Error('TWELVEDATA_API_KEY not set');
@@ -312,21 +360,30 @@ export async function getSeries(rawSymbol: string, rawTimeframe: string = '1D') 
   if (pending) return pending;
 
   const task = (async () => {
-    const attempts = [cfg.interval];
+    // Crypto candles come from CoinGecko first (the app's crypto price source),
+    // then TwelveData; equities only ever come from TwelveData.
+    const attempts: { provider: 'coingecko' | 'twelvedata'; interval: string }[] =
+      isCryptoSymbol(symbol) && COINGECKO_IDS[symbol]
+        ? [{ provider: 'coingecko', interval: cfg.interval }, { provider: 'twelvedata', interval: cfg.interval }]
+        : [{ provider: 'twelvedata', interval: cfg.interval }];
     const coarser = timeframe === '1Y' ? '1week' : '1day';
-    if (coarser !== cfg.interval) attempts.push(coarser);
+    if (!attempts.some((a) => a.interval === coarser)) {
+      attempts.push({ provider: 'twelvedata', interval: coarser });
+    }
 
-    for (const interval of attempts) {
+    for (const { provider, interval } of attempts) {
       try {
-        const chartData = await twelveSeries(symbol, interval, cfg.outputsize);
+        const chartData = provider === 'coingecko'
+          ? await coinGeckoSeries(symbol, timeframe)
+          : await twelveSeries(symbol, interval, cfg.outputsize);
         if (chartData.length > 0) {
-          const result = { chartData, source: 'twelvedata', interval, cached: false };
+          const result = { chartData, source: provider, interval, cached: false };
           cache.series.set(key, { ...result, fetchedAt: Date.now() });
           return result;
         }
       } catch (error) {
-        console.warn(`[quotes] ${symbol} ${interval} failed: ${error.message}`);
-        logDiag({ type: 'provider_error', source: 'twelvedata', ok: false, detail: `series ${symbol} ${interval}: ${error.message}` });
+        console.warn(`[quotes] ${symbol} ${timeframe} via ${provider} failed: ${error.message}`);
+        logDiag({ type: 'provider_error', source: provider, ok: false, detail: `series ${symbol} ${timeframe}: ${error.message}` });
       }
     }
 

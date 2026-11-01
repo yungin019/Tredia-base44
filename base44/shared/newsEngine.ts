@@ -19,6 +19,8 @@
 
 import { ASSET_INDEX } from './assetSymbols.ts';
 import { applySentimentGuard } from './newsSentiment.ts';
+import { dedupeEvents } from './newsDedupe.ts';
+import { isTier1, isOfficial } from './newsSourceRank.ts';
 
 const POOL_TTL_MS = 12 * 60 * 1000;      // 12 minutes
 const REGION_TTL_MS = 45 * 60 * 1000;    // a failed region keeps its last articles
@@ -264,6 +266,28 @@ const PENALTIES: { weight: number; terms: string[] }[] = [
       'preview', 'preview:', 'outlook:', 'a look ahead', 'street watch',
     ],
   },
+  {
+    // Procedural filings and notices — a comment period, a technical amendment,
+    // an application approval. Official, dated and not a market event.
+    weight: -50,
+    terms: [
+      'comment period', 'requests comment', 'seeks comment', 'request for comment',
+      'proposal to', 'technical amendment', 'approval of application',
+      'announces approval', 'appoints', 'reappoints', 'nominates', 'notice of proposed',
+      'public hearing', 'rulemaking',
+    ],
+  },
+  {
+    // Personal finance and retirement content: advice for an individual's
+    // savings, not an event that moves a market. Never earns a feed slot.
+    weight: -60,
+    terms: [
+      'i bond', 'i bonds', 'social security', 'cola', 'cola increase', 'annuity', 'annuities',
+      'retirement', 'retiree', 'retirees', 'how to save', 'how much to save', 'savings account',
+      'personal finance', '401(k)', 'roth ira', '529 plan', 'emergency fund', 'budgeting',
+      'dividend snowball', 'pension advice', 'how to retire',
+    ],
+  },
 ];
 
 const BULLISH_WORDS = [
@@ -321,13 +345,7 @@ const REGION_MENTION: Record<Exclude<NewsRegion, 'Global'>, string[]> = {
     'kuwait', 'middle east'],
 };
 
-const TIER1_SOURCES = [
-  'reuters', 'bloomberg', 'financial times', 'wsj', 'wall street journal', 'associated press',
-  'ap news', 'cnbc', 'barron', 'nikkei', 'handelsblatt', 'les echos', 'il sole', 'economist',
-  'south china morning post', 'the globe and mail', 'marketwatch', 'business day', 'businessday',
-  'moneyweb', 'valor', 'business standard', 'economic times', 'the hindu', 'arab news',
-  'gulf news', 'the japan times', 'korea herald', 'the straits times',
-];
+
 
 /**
  * Indian benchmark wrap-ups ("Nifty, Sensex extend gains") are Indian equity
@@ -344,17 +362,21 @@ function isIndiaIndex(headline: string): boolean {
   return termHits(headline, INDIA_INDEX_TERMS) > 0;
 }
 
-/** The commodity an article is literally about, taken from its headline. */
-const COMMODITY_LABELS: { label: string; re: RegExp }[] = [
-  { label: 'Gold', re: /\bgold\b/ },
-  { label: 'Silver', re: /\bsilver\b/ },
-  { label: 'Copper', re: /\bcopper\b/ },
-  { label: 'Crude oil', re: /\b(crude|brent|wti|oil)\b/ },
-  { label: 'Natural gas', re: /\b(natural gas|lng)\b/ },
-  { label: 'Wheat', re: /\bwheat\b/ },
-  { label: 'Corn', re: /\bcorn\b/ },
-  { label: 'Uranium', re: /\buranium\b/ },
-  { label: 'Lithium', re: /\blithium\b/ },
+/**
+ * The commodity an article is literally about, taken from its headline, and
+ * the tradeable proxy the app can show for it — "gas reserves hit record low"
+ * tags Natural gas and $UNG, never a bare label nobody can act on.
+ */
+const COMMODITY_LABELS: { label: string; symbol: string; re: RegExp }[] = [
+  { label: 'Gold', symbol: 'GLD', re: /\bgold\b/ },
+  { label: 'Silver', symbol: 'SLV', re: /\bsilver\b/ },
+  { label: 'Copper', symbol: 'CPER', re: /\bcopper\b/ },
+  { label: 'Crude oil', symbol: 'USO', re: /\b(crude|brent|wti|oil)\b/ },
+  { label: 'Natural gas', symbol: 'UNG', re: /\b(natural gas|lng|gas reserves|gas storage|gas supply|gas prices|gas price)\b/ },
+  { label: 'Wheat', symbol: 'WEAT', re: /\bwheat\b/ },
+  { label: 'Corn', symbol: 'CORN', re: /\bcorn\b/ },
+  { label: 'Uranium', symbol: 'URA', re: /\buranium\b/ },
+  { label: 'Lithium', symbol: 'LIT', re: /\blithium\b/ },
 ];
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
@@ -398,10 +420,7 @@ function jaccard(a: Set<string>, b: Set<string>): number {
   return inter / (a.size + b.size - inter);
 }
 
-function isTier1(source: string): boolean {
-  const s = lc(source);
-  return TIER1_SOURCES.some((t) => s.includes(t));
-}
+
 
 function detectRegion(text: string, fallback: NewsRegion, category: NewsCategory): NewsRegion {
   // A token hack, a depeg or a bitcoin move is a global market event, wherever
@@ -641,6 +660,18 @@ const IMPORTANCE_MARKERS: { weight: number; terms: string[] }[] = [
   },
 ];
 
+/**
+ * What makes an official release important is its substance, not its sender:
+ * a decision, a data point or a filing. The institution's own name in the byline
+ * is not enough to lift a routine notice to the top of the feed.
+ */
+const OFFICIAL_SUBSTANCE = [
+  'rate decision', 'rate cut', 'rate hike', 'policy rate', 'interest rate decision',
+  'monetary policy', 'inflation', 'cpi', 'ppi', 'payrolls', 'jobs report', 'nonfarm',
+  'unemployment', 'gdp', 'retail sales', 'minutes', 'filing', '8-k', 'statement',
+  'financial stability', 'stress test',
+];
+
 function importanceFor(
   title: string,
   summary: string | undefined,
@@ -651,9 +682,13 @@ function importanceFor(
 ): number {
   const text = lc(`${title} ${summary || ''}`);
   let importance = Math.round(score * 0.35);
+  let markers = 0;
 
   for (const marker of IMPORTANCE_MARKERS) {
-    if (termHits(text, marker.terms) > 0) importance += marker.weight;
+    if (termHits(text, marker.terms) > 0) {
+      importance += marker.weight;
+      markers += 1;
+    }
   }
 
   // A war or a sanction set matters most when it touches energy supply.
@@ -667,6 +702,16 @@ function importanceFor(
   if (mega && termHits(text, ['earnings', 'results', 'revenue', 'profit', 'guidance', 'forecast']) > 0) {
     importance += 24;
   }
+
+  // First-party official sources outrank a rewrite of the same news — but only
+  // when the release is itself a decision or a data point. A banknote notice
+  // from a central bank is official and still not the most important story.
+  if (isOfficial(source || '')) {
+    importance += termHits(text, OFFICIAL_SUBSTANCE) > 0 ? 24 : 8;
+  }
+
+  // A mega-cap's own 8-K is a material event for the index it sits in.
+  if (lc(source || '').includes('sec edgar') && symbols.some((s) => MEGA_CAPS.has(s))) importance += 26;
 
   if (isTier1(source || '')) importance += 6;
   return Math.max(0, Math.min(100, Math.round(importance)));
@@ -760,8 +805,13 @@ export function classifyArticle(raw: {
   // A commodity label only when the headline names that commodity — and never
   // on an index wrap-up, where "metal and oil stocks" means sectors, not crude.
   if (!indiaIndex) {
-    for (const { label, re } of COMMODITY_LABELS) {
-      if (re.test(headline) && !affects.includes(label)) affects.push(label);
+    for (const { label, symbol, re } of COMMODITY_LABELS) {
+      if (!re.test(headline)) continue;
+      if (!affects.includes(label)) affects.push(label);
+      if (ASSET_INDEX[symbol]) {
+        affectSymbols.add(symbol);
+        if (!affects.includes(`$${symbol}`)) affects.push(`$${symbol}`);
+      }
     }
   }
 
@@ -885,6 +935,18 @@ function parseRss(xml: string) {
   return out;
 }
 
+/**
+ * The Fed's press feed carries no date element at all; the release URL does
+ * (/newsevents/pressreleases/orders20261029a.htm). Without it an undated
+ * official notice could sit at the top of the feed forever.
+ */
+function dateFromUrl(url: string): string | null {
+  const match = String(url || '').match(/\/(\d{4})(\d{2})(\d{2})[^/]*\.(?:htm|html|php)$/i);
+  if (!match) return null;
+  const parsed = new Date(`${match[1]}-${match[2]}-${match[3]}T12:00:00Z`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
 function publisherFromUrl(url: string): string {
   try {
     const host = new URL(url).hostname.replace(/^www\./, '');
@@ -928,7 +990,7 @@ async function fetchFeed(region: NewsRegion, url: string, sourceOverride?: strin
       url: r.url,
       image: null as string | null,
       source: sourceOverride || r.source || publisher,
-      publishedAt: r.publishedAt,
+      publishedAt: r.publishedAt || dateFromUrl(r.url),
       regionHint: region,
       boost: sourceOverride ? 24 : 0,
     }));
@@ -1048,27 +1110,7 @@ store.__tredioNews = store.__tredioNews || {
 };
 const cache = store.__tredioNews;
 
-/** Drop duplicate events — keep the best-regarded source for each one. */
-function dedupeEvents(articles: ScoredArticle[]): ScoredArticle[] {
-  const kept: { article: ScoredArticle; tokens: Set<string> }[] = [];
 
-  const rank = (a: ScoredArticle) => a.relevanceScore + (isTier1(a.source) ? 12 : 0);
-
-  for (const article of articles) {
-    const tokens = headlineTokens(article.title);
-    const duplicate = kept.find((k) => jaccard(k.tokens, tokens) >= 0.55);
-    if (!duplicate) {
-      kept.push({ article, tokens });
-      continue;
-    }
-    if (rank(article) > rank(duplicate.article)) {
-      duplicate.article = article;
-      duplicate.tokens = tokens;
-    }
-  }
-
-  return kept.map((k) => k.article);
-}
 
 async function buildPool(): Promise<{ articles: ScoredArticle[]; generatedAt: number }> {
   const finnhubKey = Deno.env.get('FINNHUB_API_KEY') || '';
@@ -1124,6 +1166,7 @@ async function buildPool(): Promise<{ articles: ScoredArticle[]; generatedAt: nu
   deduped.sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
 
   console.log(`[news] pool built: ${deduped.length} relevant articles `
+    + `(${all.length - deduped.length} duplicate events merged) `
     + `(finnhub ${scoredFinnhub.length}, sec ${scoredFilings.length}, `
     + `gdelt ${scoredGdelt.length}, feeds ${regions.flat().length}); `
     + `regions ${regions.map((r) => r.length).join('/')}`);
@@ -1132,8 +1175,8 @@ async function buildPool(): Promise<{ articles: ScoredArticle[]; generatedAt: nu
 }
 
 /** The shared, already-scored pool. Refreshed every 12 minutes, once. */
-export async function getNewsPool(): Promise<{ articles: ScoredArticle[]; generatedAt: number }> {
-  if (cache.pool && Date.now() - cache.pool.generatedAt < POOL_TTL_MS) return cache.pool;
+export async function getNewsPool(force = false): Promise<{ articles: ScoredArticle[]; generatedAt: number }> {
+  if (!force && cache.pool && Date.now() - cache.pool.generatedAt < POOL_TTL_MS) return cache.pool;
   if (cache.inflight) return cache.inflight;
 
   cache.inflight = (async () => {
