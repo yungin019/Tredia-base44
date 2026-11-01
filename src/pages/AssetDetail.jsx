@@ -16,6 +16,7 @@ import { SkeletonPrice } from '@/components/ui/SkeletonLoader';
 import { formatPrice, formatPercent, validatePrice, validatePercent, safeRender } from '@/lib/dataValidation';
 import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
 import { deriveSignal } from '@/api/signalEngine';
+import { logSignals } from '@/api/signalLog';
 import { biasLabel } from '@/lib/signalLabels';
 import { PRICE_DATA_LABEL, freshnessLabel, isCryptoFeed } from '@/lib/dataFreshness';
 import { getAssetClass } from '@/lib/assetUniverse';
@@ -295,6 +296,19 @@ export default function AssetDetail() {
     }
     prevPriceRef.current = price;
   }, [quote?.price, watchlistEntry]);
+
+  // Silent tracking: record this page's signal once per hour so it can be graded.
+  useEffect(() => {
+    if (!(quote?.price > 0)) return;
+    const tracked = deriveSignal(
+      { symbol, sector: meta.sector },
+      { price: quote.price, prevClose: quote.prevClose, high24h: quote.high, low24h: quote.low },
+    );
+    logSignals(
+      [{ symbol, direction: tracked.signal, confidence: tracked.confidence, price: quote.price, source: 'signalEngine' }],
+      'Asset',
+    );
+  }, [symbol, quote?.price, quote?.prevClose, quote?.high, quote?.low, meta.sector]);
 
   // Signal derived from live price data — the same engine the Markets screen uses.
   const derived = deriveSignal(

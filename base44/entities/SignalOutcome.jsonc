@@ -1,0 +1,101 @@
+{
+  "name": "SignalOutcome",
+  "type": "object",
+  "properties": {
+    "log_id": {
+      "type": "string",
+      "description": "SignalLog record this checkpoint grades"
+    },
+    "signal_at": {
+      "type": "string",
+      "description": "When the graded signal was generated"
+    },
+    "checked_at": {
+      "type": "string",
+      "description": "When this checkpoint was measured"
+    },
+    "symbol": {
+      "type": "string"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "Bullish",
+        "Bearish",
+        "Neutral"
+      ]
+    },
+    "confidence": {
+      "type": "number"
+    },
+    "conf_band": {
+      "type": "string",
+      "enum": [
+        "75+",
+        "50-74",
+        "under 50"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "description": "Generating engine or model"
+    },
+    "surface": {
+      "type": "string"
+    },
+    "horizon": {
+      "type": "string",
+      "enum": [
+        "1d",
+        "1w",
+        "1m"
+      ],
+      "description": "Checkpoint after 1 day, 1 week or 1 month"
+    },
+    "price_then": {
+      "type": "number",
+      "description": "Price when the signal was made"
+    },
+    "price_now": {
+      "type": "number",
+      "description": "Price at the checkpoint"
+    },
+    "change_pct": {
+      "type": "number",
+      "description": "Percent change between the two prices"
+    },
+    "correct": {
+      "type": "boolean",
+      "description": "Direction was right at this checkpoint"
+    },
+    "hit": {
+      "type": "number",
+      "description": "1 when correct, 0 when not \u2014 numeric for aggregation"
+    }
+  },
+  "required": [
+    "log_id",
+    "symbol",
+    "direction",
+    "horizon",
+    "correct"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

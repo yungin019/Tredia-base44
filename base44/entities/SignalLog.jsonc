@@ -1,0 +1,80 @@
+{
+  "name": "SignalLog",
+  "type": "object",
+  "properties": {
+    "at": {
+      "type": "string",
+      "description": "ISO timestamp the signal was generated"
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Ticker the signal is about"
+    },
+    "name": {
+      "type": "string",
+      "description": "Asset name, when known"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "Bullish",
+        "Bearish",
+        "Neutral"
+      ],
+      "description": "Normalized direction of the signal"
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Confidence 0-100 as the generator reported it"
+    },
+    "conf_band": {
+      "type": "string",
+      "enum": [
+        "75+",
+        "50-74",
+        "under 50"
+      ],
+      "description": "Confidence band, for grouping the track record"
+    },
+    "price": {
+      "type": "number",
+      "description": "Live price at the moment the signal was generated"
+    },
+    "source": {
+      "type": "string",
+      "description": "Generator or model that produced the signal"
+    },
+    "surface": {
+      "type": "string",
+      "description": "Where the signal was shown: Home, Markets, Asset, TREK"
+    },
+    "fingerprint": {
+      "type": "string",
+      "description": "symbol|source|hour bucket \u2014 one row per symbol per generator per hour"
+    }
+  },
+  "required": [
+    "at",
+    "symbol",
+    "direction",
+    "source"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

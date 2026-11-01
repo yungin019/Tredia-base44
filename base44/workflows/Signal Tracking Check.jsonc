@@ -1,0 +1,47 @@
+{
+  "name": "Signal Tracking Check",
+  "description": "Every 6 hours: grades logged signals at the 1 day, 1 week and 1 month checkpoints and stores the outcome per signal",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 6,
+      "interval_unit": "hours",
+      "interval_anchor": "2026-11-01T12:00:00Z",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "signal_tracking_check",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "grade_signals": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "signalTracker",
+            "args": {
+              "action": "evaluate"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Grade logged signals",
+            "description": "1 day / 1 week / 1 month checkpoints"
+          }
+        }
+      }
+    ]
+  }
+}

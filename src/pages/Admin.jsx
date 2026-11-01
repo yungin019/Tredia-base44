@@ -9,6 +9,7 @@ import LiveFeed from '@/components/admin/LiveFeed';
 import CrashesSection from '@/components/admin/CrashesSection';
 import AskDiagnostics from '@/components/admin/AskDiagnostics';
 import UsersPanel from '@/components/admin/UsersPanel';
+import TrackRecordCard from '@/components/admin/TrackRecordCard';
 
 const TABS = [
   { id: 'status', label: 'Status' },
@@ -129,7 +130,12 @@ export default function Admin() {
 
         {loading && !digest && <p className="text-[11px] text-white/30">Loading…</p>}
 
-        {tab === 'status' && <StatusCards digest={digest} />}
+        {tab === 'status' && (
+          <>
+            <StatusCards digest={digest} />
+            <TrackRecordCard />
+          </>
+        )}
         {tab === 'live' && <LiveFeed lines={digest?.live} />}
         {tab === 'crashes' && (
           <CrashesSection crashes={digest?.crashes} onStatusChange={setStatus} busyId={busyId} />

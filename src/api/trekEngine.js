@@ -1,4 +1,5 @@
 import { buildMarketContext, fetchStockRSI, fetchStockPrice } from '@/api/marketContext';
+import { logSignals } from '@/api/signalLog';
 
 const SYMBOLS = ['NVDA', 'AAPL', 'TSLA', 'SPY'];
 
@@ -107,6 +108,18 @@ export async function runTREKEngine() {
     buildCryptoSignal('BTC', ctx, 'btc_price', 'btc_change_24h'),
     buildCryptoSignal('ETH', ctx, 'eth_price', 'eth_change_24h'),
   ].filter(Boolean);
+
+  // Silent tracking: what TREK said, at what price, so it can be graded later.
+  logSignals(
+    signals.map((s) => ({
+      symbol: s.symbol,
+      direction: s.signal,
+      confidence: s.confidence,
+      price: s.price,
+      source: 'trekEngine',
+    })),
+    'TREK',
+  );
 
   return {
     signals,

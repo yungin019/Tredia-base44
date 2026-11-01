@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { logSignals } from '../../shared/signalLog.ts';
 
 // ── RULE ──────────────────────────────────────────────────────────────────────
 // Every figure in a generated signal must come from a quote this function
@@ -246,6 +247,30 @@ Deno.serve(async (req) => {
 
     const signals = generateStructureSignals({ spy, qqq, vixy, tlt, sectors, fearGreed });
     console.log(`[STRUCTURE SIGNALS] Generated ${signals.length} validated signals`);
+
+    // Silent tracking: one row per affected asset, at the price just quoted.
+    // A signal whose price was not quoted is skipped — no invented baseline.
+    try {
+      const priceBySymbol = {};
+      for (const [sym, q] of Object.entries({ SPY: spy, QQQ: qqq, VIXY: vixy, TLT: tlt })) {
+        if (q && q.price > 0) priceBySymbol[sym] = q.price;
+      }
+      for (const sector of sectors) {
+        if (sector?.price > 0) priceBySymbol[sector.symbol] = sector.price;
+      }
+      const rows = signals.flatMap((signal) => (signal.related_assets || []).map((sym) => ({
+        at: signal.published_at,
+        symbol: sym,
+        direction: signal.action_bias,
+        confidence: signal.confidence,
+        price: priceBySymbol[sym] ?? null,
+        source: 'structureSignals',
+      })));
+      const tracked = await logSignals(createClientFromRequest(req).asServiceRole, rows, 'Home');
+      console.log(`[STRUCTURE SIGNALS] tracked ${tracked.logged} new signal row(s)`);
+    } catch (trackingError) {
+      console.warn('[STRUCTURE SIGNALS] tracking skipped:', trackingError.message);
+    }
 
     return Response.json({ status: 'success', signals, count: signals.length, timestamp: new Date().toISOString() });
   } catch (error) {

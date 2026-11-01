@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { EXPANDED_ASSETS } from '@/lib/assetDatabase';
 import { deriveSignal } from '@/api/signalEngine';
 import { fetchCoreAssets } from '@/api/marketDataClient';
+import { logSignals } from '@/api/signalLog';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import { biasLabel } from '@/lib/signalLabels';
 
@@ -46,6 +47,10 @@ export default function TrekSignalsPreview() {
           });
 
           derivedSignals.push({ symbol, ...signal });
+          logSignals(
+            [{ symbol, direction: signal.signal, confidence: signal.confidence, price: data.price, source: 'signalEngine' }],
+            'Markets',
+          );
         }
 
         derivedSignals.sort((a, b) => b.confidence - a.confidence);
