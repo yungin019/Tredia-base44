@@ -9,15 +9,17 @@
 export const NEWS_CATEGORIES = ['Macro', 'Stocks', 'Crypto', 'Commodities', 'Geopolitics'];
 
 // The feed's region chips. 'All' is the default and sends no filter.
-export const NEWS_REGIONS = ['US', 'Europe', 'Asia', 'Latin America', 'Africa', 'Middle East'];
+export const NEWS_REGIONS = ['US', 'Nordics', 'Europe', 'Asia', 'Latin America', 'Africa', 'Middle East'];
 
 export const NEWS_REGION_SHORT = {
   'Latin America': 'LatAm',
   'Middle East': 'Mid East',
+  Nordics: 'Nordics',
 };
 
 export const NEWS_REGION_FLAGS = {
   US: '🇺🇸',
+  Nordics: '🇸🇪',
   Europe: '🇪🇺',
   Asia: '🌏',
   'Latin America': '🌎',
@@ -46,7 +48,9 @@ export function orderForUser(articles, mySymbols) {
     isYours: (a.affectSymbols || []).some((s) => mine.has(String(s).toUpperCase())),
   }));
   const time = (a) => (a.publishedAt ? new Date(a.publishedAt).getTime() : 0);
-  const yours = decorated.filter((a) => a.isYours).sort((a, b) => time(b) - time(a));
-  const rest = decorated.filter((a) => !a.isYours).sort((a, b) => time(b) - time(a));
-  return [...yours, ...rest];
+  // The backend pins one top story; it stays pinned above everything.
+  const top = decorated.filter((a) => a.isTopStory);
+  const yours = decorated.filter((a) => !a.isTopStory && a.isYours).sort((a, b) => time(b) - time(a));
+  const rest = decorated.filter((a) => !a.isTopStory && !a.isYours).sort((a, b) => time(b) - time(a));
+  return [...top, ...yours, ...rest];
 }

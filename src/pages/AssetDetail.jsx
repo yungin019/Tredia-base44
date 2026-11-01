@@ -18,6 +18,7 @@ import { useLoadingState, useLastKnownValue } from '@/hooks/useLoadingState';
 import { deriveSignal } from '@/api/signalEngine';
 import { biasLabel } from '@/lib/signalLabels';
 import { PRICE_DATA_LABEL } from '@/lib/dataFreshness';
+import { getAssetClass } from '@/lib/assetUniverse';
 
 // ── Name/sector map for known symbols ────────────────────────────────────────
 const ASSET_MAP = {
@@ -497,6 +498,19 @@ export default function AssetDetail() {
           </div>
         )}
       </motion.div>
+
+      {getAssetClass(symbol) === 'crypto' && (
+        <p className="text-[10px] text-white/20 text-center mb-2">
+          <a
+            href="https://www.coingecko.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white/45 transition-colors"
+          >
+            Crypto data by CoinGecko
+          </a>
+        </p>
+      )}
 
       <p className="text-[10px] text-white/20 text-center mb-6">{t('paperTrading.noRealMoney')}</p>
 

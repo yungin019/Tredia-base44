@@ -23,9 +23,10 @@ import { applySentimentGuard } from './newsSentiment.ts';
 const POOL_TTL_MS = 12 * 60 * 1000;      // 12 minutes
 const REGION_TTL_MS = 45 * 60 * 1000;    // a failed region keeps its last articles
 const SYMBOL_TTL_MS = 10 * 60 * 1000;
-const MIN_RELEVANCE = 40;
+const MIN_RELEVANCE = 50;
 
-export type NewsRegion = 'US' | 'Europe' | 'Asia' | 'Latin America' | 'Africa' | 'Middle East' | 'Global';
+export type NewsRegion =
+  | 'US' | 'Nordics' | 'Europe' | 'Asia' | 'Latin America' | 'Africa' | 'Middle East' | 'Global';
 export type NewsCategory = 'Macro' | 'Stocks' | 'Crypto' | 'Commodities' | 'Geopolitics';
 
 export type ScoredArticle = {
@@ -44,6 +45,8 @@ export type ScoredArticle = {
   affectSymbols: string[];
   why: string;
   relevanceScore: number;
+  importance: number;
+  via?: string;
   assetType: string;
 };
 
@@ -61,6 +64,7 @@ const THEMES: Theme[] = [
       'inflation', 'cpi', 'ppi', 'payrolls', 'jobs report', 'unemployment', 'gdp',
       'treasury yield', 'bond yield', 'monetary policy', 'stimulus', 'quantitative',
       'recession', 'deflation', 'fiscal', 'budget deficit', 'debt ceiling',
+      'styrränta', 'räntebesked', 'konjunktur', 'arbetslöshet', 'riksbanken',
     ],
   },
   {
@@ -72,6 +76,7 @@ const THEMES: Theme[] = [
       'guidance', 'beats estimates', 'misses estimates', 'profit warning', 'forecast',
       'outlook', 'ipo', 'merger', 'acquisition', 'takeover', 'buyback', 'stake',
       'spin-off', 'restructuring', 'profit', 'sales', 'margin',
+      'delårsrapport', 'vinstvarning', 'orderingång', 'omsättning', 'vinst',
     ],
   },
   {
@@ -83,6 +88,7 @@ const THEMES: Theme[] = [
       'lawsuit', 'fine', 'penalty', 'tariff', 'sanctions', 'sanction', 'ban ',
       'approval', 'licence', 'license', 'compliance', 'class action', 'settlement',
       'policy', 'regulation', 'bill ', 'subsidy', 'tax',
+      'finansinspektionen', 'myndighet', 'tillsyn', 'böter',
     ],
   },
   {
@@ -93,7 +99,7 @@ const THEMES: Theme[] = [
       'oil', 'brent', 'wti', 'opec', 'crude', 'natural gas', 'lng', 'refinery',
       'pipeline', 'gas prices', 'gas supply', 'gas reserves', 'gas storage',
       'storage levels', 'gas', 'fuel', 'diesel', 'energy prices', 'power prices',
-      'electricity', 'uranium', 'heating',
+      'electricity', 'uranium', 'heating', 'elpris', 'elpriser', 'energipriser',
     ],
   },
   {
@@ -104,6 +110,7 @@ const THEMES: Theme[] = [
       'gold', 'silver', 'copper', 'lithium', 'platinum', 'iron ore', 'coal',
       'aluminium', 'aluminum', 'nickel', 'zinc', 'wheat', 'corn', 'cocoa',
       'commodity', 'commodities', 'precious metal', 'rare earth',
+      'guld', 'koppar', 'stål', 'malm',
     ],
   },
   {
@@ -113,6 +120,7 @@ const THEMES: Theme[] = [
     terms: [
       'bitcoin', 'ethereum', 'crypto', 'cryptocurrency', 'stablecoin', 'blockchain',
       'defi', 'token', 'binance', 'coinbase', 'etf inflow', 'digital asset', 'mining',
+      'krypto', 'kryptovaluta',
     ],
   },
   {
@@ -123,6 +131,7 @@ const THEMES: Theme[] = [
       'war', 'conflict', 'invasion', 'military', 'ceasefire', 'sanctions', 'election',
       'coup', 'unrest', 'protest', 'terror', 'shipping lane', 'red sea', 'strait',
       'embargo', 'export ban', 'border', 'strike action', 'blockade',
+      'krig', 'sanktioner', 'strejk',
     ],
   },
   {
@@ -135,6 +144,8 @@ const THEMES: Theme[] = [
       'euro', 'yen', 'volatility', 'selloff', 'sell-off', 'rally', 'market',
       'economy', 'economic', 'growth', 'debt', 'loan', 'rating', 'capital',
       'funding', 'trade', 'exports', 'imports', 'budget', 'investment',
+      // Swedish / Nordic business vocabulary (the Nordic feeds publish in Swedish)
+      'börsen', 'börs', 'aktier', 'aktiemarknad', 'obligationer', 'valuta',
     ],
   },
 ];
@@ -196,12 +207,25 @@ const PENALTIES: { weight: number; terms: string[] }[] = [
     weight: -18,
     terms: ['press release', 'appoints', 'appointment of', 'wins award', 'unveils', 'announces dividend'],
   },
+  {
+    // Scheduling and listicles: a calendar, a preview or a "stocks to buy" list
+    // carries no event, so it never earns a slot in the feed.
+    weight: -45,
+    terms: [
+      'factors to watch', 'things to watch', 'what to watch', 'to watch this week', 'week ahead',
+      'day ahead', 'month ahead', 'economic calendar', 'earnings calendar', 'dividend calendar',
+      'ipo calendar', 'calendar', 'ex-date', 'ex date', 'ex-dividend', 'record date',
+      'stocks to buy', 'top picks', 'top stocks', 'best stocks', 'shares to buy',
+      'preview', 'preview:', 'outlook:', 'a look ahead', 'street watch',
+    ],
+  },
 ];
 
 const BULLISH_WORDS = [
   'surge', 'surges', 'soar', 'soars', 'rally', 'rallies', 'record high', 'all-time high',
   'beats', 'beat estimates', 'jump', 'jumps', 'gain', 'gains', 'rise', 'rises', 'climb',
   'upgrade', 'upgrades', 'profit', 'profits', 'strong', 'growth', 'expands', 'approval',
+  'stiger', 'rusar', 'höjs', 'ökar', 'rekordhög',
 ];
 const BEARISH_WORDS = [
   'fall', 'falls', 'fell', 'drop', 'drops', 'plunge', 'plunges', 'slump', 'crash',
@@ -210,26 +234,45 @@ const BEARISH_WORDS = [
   'record low', 'lowest since', 'crisis', 'conflict', 'strike', 'strikes', 'hack',
   'hacked', 'breach', 'outage', 'layoff', 'layoffs', 'sanction', 'sanctions',
   'recession', 'default', 'bankruptcy', 'selloff', 'sell-off',
+  'faller', 'rasar', 'sänks', 'minskar', 'rekordlåg',
 ];
 
-const REGION_KEYWORDS: Record<Exclude<NewsRegion, 'Global'>, string[]> = {
-  US: ['fed', 'fomc', 'federal reserve', 'nasdaq', 's&p', 'dow', 'wall street', 'nyse',
-    'sec ', 'treasury', 'powell', 'congress', 'washington', 'us economy', 'u.s.', 'silicon valley'],
-  Europe: ['ecb', 'euro area', 'eurozone', 'dax', 'ftse', 'cac', 'lagarde', 'bank of england',
-    'boe', 'european union', 'germany', 'france', 'britain', 'italy', 'spain',
-    'netherlands', 'sweden', 'norway', 'switzerland', 'london', 'frankfurt', 'paris', 'brussels',
-    'portugal', 'ireland', 'belgium', 'austria', 'denmark', 'finland', 'poland', 'greece',
-    'romania', 'czech', 'hungary', 'lisbon', 'madrid', 'milan', 'amsterdam', 'stockholm'],
-  Asia: ['boj', 'bank of japan', 'pboc', 'nikkei', 'hang seng', 'shanghai', 'shenzhen', 'china',
-    'nifty', 'sensex', 'dalal street', 'bse', 'nse',
-    'japan', 'korea', 'hong kong', 'taiwan', 'tokyo', 'beijing', 'asia', 'india', 'singapore',
-    'indonesia', 'vietnam', 'thailand', 'philippines', 'australia'],
-  'Latin America': ['brazil', 'mexico', 'argentina', 'chile', 'colombia', 'peru', 'latin america',
-    'latam', 'sao paulo', 'bovespa', 'banxico', 'real ', 'peso'],
+/**
+ * Region is where the market impact lands, not where a country happens to be
+ * named. Impact markers (a central bank, a benchmark index, a policy body)
+ * decide the region at double weight; a country mentioned in passing counts
+ * for one. Two impact markers, or two mentions, is the threshold.
+ */
+const REGION_IMPACT: Record<Exclude<NewsRegion, 'Global'>, string[]> = {
+  US: ['fomc', 'federal reserve', 'wall street', 'nasdaq', 's&p', 'dow jones', 'nyse',
+    'treasury yield', 'sec ', 'us economy', 'u.s. economy', 'powell', 'nonfarm', 'cme'],
+  Nordics: ['riksbank', 'omxs30', 'nasdaq stockholm', 'norges bank', 'oslo bors', 'oslo børs',
+    'osebx', 'omxc25', 'nasdaq copenhagen', 'omxh25', 'helsinki', 'nordic', 'norden',
+    'stockholm', 'swedish krona', 'norwegian krone', 'danish krone'],
+  Europe: ['ecb', 'european central bank', 'euro area', 'eurozone', 'dax', 'ftse', 'cac 40',
+    'lagarde', 'bank of england', 'eurostat', 'european commission'],
+  Asia: ['boj', 'bank of japan', 'pboc', 'nikkei', 'hang seng', 'shanghai composite', 'shenzhen',
+    'nifty', 'sensex', 'dalal street', 'rbi', 'reserve bank of india'],
+  'Latin America': ['banxico', 'bovespa', 'ibovespa', 'latin america', 'latam', 'banco central'],
+  Africa: ['sarb', 'south african reserve bank', 'jse', 'ngx', 'central bank of nigeria', 'cbn'],
+  'Middle East': ['opec', 'aramco', 'saudi arabia', 'saudi vision 2030', 'uae central bank'],
+};
+
+const REGION_MENTION: Record<Exclude<NewsRegion, 'Global'>, string[]> = {
+  US: ['america', 'u.s.', 'united states', 'washington', 'congress', 'silicon valley', 'new york'],
+  Nordics: ['sweden', 'swedish', 'norway', 'norwegian', 'denmark', 'danish', 'finland', 'finnish',
+    'iceland', 'copenhagen', 'oslo', 'helsinki'],
+  Europe: ['germany', 'france', 'britain', 'uk ', 'italy', 'spain', 'netherlands', 'switzerland',
+    'london', 'frankfurt', 'paris', 'brussels', 'portugal', 'ireland', 'belgium', 'austria',
+    'poland', 'greece', 'romania', 'czech', 'hungary', 'lisbon', 'madrid', 'milan', 'amsterdam'],
+  Asia: ['china', 'japan', 'korea', 'hong kong', 'taiwan', 'tokyo', 'beijing', 'asia', 'india',
+    'singapore', 'indonesia', 'vietnam', 'thailand', 'philippines', 'australia'],
+  'Latin America': ['brazil', 'mexico', 'argentina', 'chile', 'colombia', 'peru', 'sao paulo',
+    'real ', 'peso'],
   Africa: ['south africa', 'nigeria', 'kenya', 'egypt', 'morocco', 'ghana', 'africa', 'johannesburg',
-    'nairobi', 'lagos', 'rand '],
+    'nairobi', 'lagos'],
   'Middle East': ['saudi', 'uae', 'dubai', 'abu dhabi', 'qatar', 'israel', 'iran', 'iraq', 'turkey',
-    'kuwait', 'middle east', 'aramco', 'opec+'],
+    'kuwait', 'middle east'],
 };
 
 const TIER1_SOURCES = [
@@ -307,12 +350,22 @@ function isTier1(source: string): boolean {
   return TIER1_SOURCES.some((t) => s.includes(t));
 }
 
-function detectRegion(text: string, fallback: NewsRegion): NewsRegion {
-  for (const [region, terms] of Object.entries(REGION_KEYWORDS)) {
+function detectRegion(text: string, fallback: NewsRegion, category: NewsCategory): NewsRegion {
+  // A token hack, a depeg or a bitcoin move is a global market event, wherever
+  // the exchange or the victims happen to be.
+  if (category === 'Crypto') return 'Global';
+
+  let best: { region: NewsRegion; score: number } = { region: 'Global', score: 0 };
+  for (const region of Object.keys(REGION_IMPACT) as Exclude<NewsRegion, 'Global'>[]) {
     // Word boundaries, not substring: "tearing down homes" is not the Dow.
-    if (termHits(text, terms) > 0) return region as NewsRegion;
+    const score = termHits(text, REGION_IMPACT[region]) * 2 + termHits(text, REGION_MENTION[region]);
+    if (score > best.score) best = { region, score };
   }
-  return fallback;
+  if (best.score >= 2) return best.region;
+
+  // Oil, gold and wars price globally; nothing local to attribute.
+  if (category === 'Commodities' || category === 'Geopolitics') return 'Global';
+  return fallback || 'Global';
 }
 
 /**
@@ -493,6 +546,79 @@ function specificWhy(title: string): string {
   return '';
 }
 
+/**
+ * Importance is a different question from relevance: not "is this about the
+ * market" but "how much does it move". A rate decision, an inflation or jobs
+ * print, a mega-cap's earnings, a major regulatory action, or a war touching
+ * energy prices outranks a routine results note even when both are relevant.
+ */
+const MEGA_CAPS = new Set([
+  'AAPL', 'MSFT', 'NVDA', 'AMZN', 'GOOGL', 'META', 'TSLA', 'AVGO', 'BRK.B',
+  'LLY', 'JPM', 'TSM', 'V', 'UNH', 'XOM',
+]);
+
+const IMPORTANCE_MARKERS: { weight: number; terms: string[] }[] = [
+  {
+    weight: 26,
+    terms: [
+      'fomc', 'federal reserve', 'rate decision', 'rate cut', 'rate hike', 'interest rate decision',
+      'ecb', 'riksbank', 'riksbanken', 'bank of japan', 'boj', 'bank of england', 'pboc',
+      'central bank', 'monetary policy', 'styrränta', 'räntebesked',
+    ],
+  },
+  {
+    weight: 22,
+    terms: [
+      'inflation', 'cpi', 'ppi', 'payrolls', 'jobs report', 'nonfarm', 'unemployment', 'gdp',
+      'retail sales', 'pmi', 'consumer confidence',
+    ],
+  },
+  {
+    weight: 20,
+    terms: ['antitrust', 'sec ', 'doj', 'ftc', 'lawsuit', 'tariff', 'tariffs', 'sanction', 'sanctions',
+      'regulation', 'probe', 'investigation', 'ban ', 'embargo', 'export controls'],
+  },
+  {
+    weight: 20,
+    terms: ['war', 'invasion', 'conflict', 'escalation', 'blockade', 'military', 'ceasefire'],
+  },
+  {
+    weight: 14,
+    terms: ['default', 'bankruptcy', 'bailout', 'contagion', 'crash', 'halted', 'emergency'],
+  },
+];
+
+function importanceFor(
+  title: string,
+  summary: string | undefined,
+  symbols: string[],
+  category: NewsCategory,
+  score: number,
+  source: string | undefined,
+): number {
+  const text = lc(`${title} ${summary || ''}`);
+  let importance = Math.round(score * 0.35);
+
+  for (const marker of IMPORTANCE_MARKERS) {
+    if (termHits(text, marker.terms) > 0) importance += marker.weight;
+  }
+
+  // A war or a sanction set matters most when it touches energy supply.
+  const energy = termHits(text, ['oil', 'crude', 'gas', 'energy', 'shipping', 'red sea', 'pipeline']);
+  if (energy > 0 && (category === 'Commodities' || termHits(text, ['war', 'conflict', 'sanction', 'sanctions']) > 0)) {
+    importance += 18;
+  }
+
+  // Mega-cap earnings move indexes, not just one ticker.
+  const mega = symbols.some((s) => MEGA_CAPS.has(s));
+  if (mega && termHits(text, ['earnings', 'results', 'revenue', 'profit', 'guidance', 'forecast']) > 0) {
+    importance += 24;
+  }
+
+  if (isTier1(source || '')) importance += 6;
+  return Math.max(0, Math.min(100, Math.round(importance)));
+}
+
 /** Score, category, region, sentiment and "affects" for one raw article. */
 export function classifyArticle(raw: {
   title: string;
@@ -502,6 +628,9 @@ export function classifyArticle(raw: {
   image?: string | null;
   publishedAt?: string | null;
   regionHint?: NewsRegion;
+  via?: string;
+  /** First-party sources (filings, central-bank releases) start above zero. */
+  boost?: number;
 }): ScoredArticle | null {
   const title = String(raw.title || '').trim();
   const url = String(raw.url || '').trim();
@@ -533,7 +662,7 @@ export function classifyArticle(raw: {
 
   // A benchmark story is market news even when the headline uses no theme word.
   let score = 26 + themeScore + (symbols.length ? 14 : 0) + penalty + urlPenalty
-    + questionPenalty + weakThemePenalty + (indiaIndex ? 12 : 0);
+    + questionPenalty + weakThemePenalty + (indiaIndex ? 18 : 0) + (raw.boost || 0);
   score = Math.max(0, Math.min(100, Math.round(score)));
 
   if (score < MIN_RELEVANCE) return null;
@@ -563,7 +692,9 @@ export function classifyArticle(raw: {
   }
 
   const sentiment = sentimentFor(text);
-  const region = indiaIndex ? ('Asia' as NewsRegion) : detectRegion(text, raw.regionHint || 'Global');
+  const region = indiaIndex
+    ? ('Asia' as NewsRegion)
+    : detectRegion(text, raw.regionHint || 'Global', category);
 
   // Affects: only assets this headline actually names. A theme proxy ("markets
   // → SPY") produced confident nonsense, and no line beats a wrong line.
@@ -602,6 +733,8 @@ export function classifyArticle(raw: {
     affectSymbols: [...affectSymbols].slice(0, 6),
     why: specificWhy(title),
     relevanceScore: score,
+    importance: importanceFor(title, raw.summary, symbols, category, score, raw.source),
+    via: raw.via,
     assetType,
   };
 }
@@ -627,18 +760,18 @@ async function finnhubCategory(category: string, key: string): Promise<any[]> {
  * Worldwide publisher feeds — free, no key, no rate limit worth managing, and
  * each answers in well under a second from the function runtime.
  *
- * Google News and GDELT were the first choice and both were rejected in
- * testing: Google answers 503 to server-side requests, and GDELT's document
- * API allows one request every five seconds (it timed out on every attempt).
- * These publisher feeds are the working equivalent, one per region.
+ * Google News answers 503 to server-side requests, so the worldwide coverage is
+ * built from publisher feeds and official institutions instead: one or two per
+ * region, each published as headline + link (the form we display).
  */
-const FEEDS: { region: NewsRegion; url: string }[] = [
+const FEEDS: { region: NewsRegion; url: string; source?: string }[] = [
   { region: 'US', url: 'https://www.cnbc.com/id/100003114/device/rss/rss.html' },
-  { region: 'US', url: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml' },
   { region: 'US', url: 'https://feeds.content.dowjones.io/public/rss/mw_topstories' },
   { region: 'Europe', url: 'https://feeds.bbci.co.uk/news/business/rss.xml' },
   { region: 'Asia', url: 'https://www.scmp.com/rss/92/feed' },
   { region: 'Asia', url: 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms' },
+  { region: 'Nordics', url: 'https://www.di.se/rss' },
+  { region: 'Nordics', url: 'https://www.svt.se/nyheter/ekonomi/rss.xml' },
   { region: 'Latin America', url: 'https://www.riotimesonline.com/feed/' },
   { region: 'Latin America', url: 'https://latinfinance.com/feed/' },
   { region: 'Africa', url: 'https://businessday.ng/feed/' },
@@ -646,6 +779,10 @@ const FEEDS: { region: NewsRegion; url: string }[] = [
   { region: 'Africa', url: 'https://african.business/feed/' },
   { region: 'Africa', url: 'https://www.businesslive.co.za/rss/business/' },
   { region: 'Middle East', url: 'https://www.aljazeera.com/xml/rss/all.xml' },
+  // Official first-party releases: the source is the institution itself.
+  { region: 'US', url: 'https://www.federalreserve.gov/feeds/press_all.xml', source: 'Federal Reserve' },
+  { region: 'Europe', url: 'https://www.ecb.europa.eu/rss/press.html', source: 'ECB' },
+  { region: 'Nordics', url: 'https://www.riksbank.se/en-gb/rss/press-releases/', source: 'Sveriges Riksbank' },
 ];
 
 function decodeEntities(text: string): string {
@@ -671,12 +808,16 @@ function splitHeadline(title: string): { title: string; source: string } {
 
 function parseRss(xml: string) {
   const out: { title: string; summary: string; source: string; url: string; publishedAt: string | null }[] = [];
-  const items = String(xml || '').split('<item>').slice(1);
+  // <item> may carry attributes (Riksbank writes <item xml:base="…">), so split
+  // on the tag name rather than the literal opening tag.
+  const items = String(xml || '').split(/<item\b/).slice(1);
   for (const item of items) {
     const rawTitle = decodeEntities((item.match(/<title>([\s\S]*?)<\/title>/) || [])[1]);
-    const link = decodeEntities((item.match(/<link>([\s\S]*?)<\/link>/) || [])[1]);
+    const link = decodeEntities((item.match(/<link>([\s\S]*?)<\/link>/) || [])[1])
+      || decodeEntities((item.match(/<guid[^>]*>([\s\S]*?)<\/guid>/) || [])[1]);
     const summary = decodeEntities((item.match(/<description>([\s\S]*?)<\/description>/) || [])[1]).slice(0, 300);
-    const pub = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1];
+    const pub = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1]
+      || (item.match(/<dc:date>([\s\S]*?)<\/dc:date>/) || [])[1];
     if (!rawTitle || !link) continue;
     const { title, source } = splitHeadline(rawTitle);
     const date = pub ? new Date(pub) : null;
@@ -711,7 +852,7 @@ function publisherFromUrl(url: string): string {
 
 import { logDiag } from './diagLog.ts';
 
-async function fetchFeed(region: NewsRegion, url: string) {
+async function fetchFeed(region: NewsRegion, url: string, sourceOverride?: string) {
   try {
     const startedAt = Date.now();
     const res = await fetch(url, {
@@ -733,9 +874,10 @@ async function fetchFeed(region: NewsRegion, url: string) {
       summary: r.summary,
       url: r.url,
       image: null as string | null,
-      source: r.source || publisher,
+      source: sourceOverride || r.source || publisher,
       publishedAt: r.publishedAt,
       regionHint: region,
+      boost: sourceOverride ? 24 : 0,
     }));
   } catch (error) {
     logDiag({ type: 'news_error', source: publisherFromUrl(url), ok: false, detail: error.message });
@@ -744,6 +886,103 @@ async function fetchFeed(region: NewsRegion, url: string) {
 }
 
 
+
+/**
+ * SEC EDGAR — a company's own 8-K (material event) filing. First-party,
+ * official and free; SEC asks only for a descriptive User-Agent with a contact
+ * address. Only filings from companies in the app's universe are kept, and the
+ * headline is written in plain English so the feed reads like news.
+ */
+const EDGAR_UA = 'TREDIO market news admin@tredio.app';
+
+function companySymbols(company: string): string[] {
+  const name = lc(company)
+    .replace(/\b(inc|corp|corporation|co|company|ltd|plc|holdings|group|the)\b\.?/g, ' ')
+    .replace(/[^a-z0-9& ]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const hits: string[] = [];
+  for (const [alias, symbol] of Object.entries(NAME_ALIASES)) {
+    if (AMBIGUOUS_ALIASES.has(alias)) continue;
+    if (!ASSET_INDEX[symbol] || hits.includes(symbol)) continue;
+    if (name === alias || name.startsWith(`${alias} `) || name.includes(` ${alias} `)) hits.push(symbol);
+  }
+  return hits;
+}
+
+async function edgarFilings() {
+  try {
+    const res = await fetch(
+      'https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=8-K&company=&dateb=&owner=include&count=40&output=atom',
+      {
+        headers: { 'User-Agent': EDGAR_UA, Accept: 'application/atom+xml' },
+        signal: AbortSignal.timeout(9000),
+      },
+    );
+    if (!res.ok) return [];
+    const xml = await res.text();
+    const out: any[] = [];
+    for (const entry of xml.split(/<entry\b/).slice(1)) {
+      // "8-K - APPLE INC (0000320193) (Filer)"
+      const raw = decodeEntities((entry.match(/<title>([\s\S]*?)<\/title>/) || [])[1]);
+      const href = (entry.match(/<link[^>]*href="([^"]+)"/) || [])[1];
+      const updated = (entry.match(/<updated>([\s\S]*?)<\/updated>/) || [])[1];
+      if (!raw || !href) continue;
+      const form = (raw.match(/^(\d+-[A-Z]+)/) || [])[1] || '8-K';
+      const company = raw.replace(/^\d+-[A-Z]+\s*-\s*/, '').replace(/\s*\([^)]*\)/g, ' ').trim();
+      if (!company || companySymbols(company).length === 0) continue;
+      const label = company.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+      out.push({
+        title: `${label} files ${form} filing`,
+        summary: `New ${form} on file with the SEC — a material corporate event for ${label}.`,
+        url: href.startsWith('http') ? href : `https://www.sec.gov${href}`,
+        source: 'SEC EDGAR',
+        publishedAt: updated ? new Date(updated).toISOString() : null,
+        regionHint: 'US' as NewsRegion,
+        boost: 34,
+      });
+    }
+    return out.slice(0, 8);
+  } catch (_) {
+    return [];
+  }
+}
+
+/** GDELT's seendate is 20261101T093000Z. */
+function gdeltDate(value: string): string | null {
+  const m = String(value || '').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
+  if (!m) return null;
+  return new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z`).toISOString();
+}
+
+/**
+ * GDELT — the global event index, used with attribution ("Source: GDELT").
+ * Its document API serves one request every five seconds, so this issues
+ * exactly one query per pool build and treats a refusal as "nothing this
+ * cycle" rather than failing the feed.
+ */
+async function gdeltArticles() {
+  try {
+    const query = '(markets OR inflation OR "central bank" OR earnings OR tariffs)';
+    const url = 'https://api.gdeltproject.org/api/v2/doc/doc'
+      + `?query=${encodeURIComponent(query)}&mode=artlist&maxrecords=25&format=json&timespan=6h&sort=hybridrel`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) return [];
+    const data = await res.json().catch(() => null);
+    const list = Array.isArray(data?.articles) ? data.articles : [];
+    return list.slice(0, 15).map((a: any) => ({
+      title: a.title,
+      summary: '',
+      url: a.url,
+      image: a.socialimage || null,
+      source: String(a.domain || 'GDELT'),
+      publishedAt: gdeltDate(a.seendate),
+      via: 'GDELT',
+    }));
+  } catch (_) {
+    return [];
+  }
+}
 
 // ── CACHE ──────────────────────────────────────────────────────────────────
 const store = globalThis as any;
@@ -800,13 +1039,18 @@ async function buildPool(): Promise<{ articles: ScoredArticle[]; generatedAt: nu
       regionHint: undefined as NewsRegion | undefined,
     }));
 
-  // 2. Worldwide coverage: one Google News feed per region, plus a single global
-  //    GDELT query. A region that fails keeps its last good batch.
-  // Each feed is a different host, so they run in parallel. A feed that fails
-  // keeps its own last good batch instead of emptying the region.
+  // 1b. Official and index sources: SEC 8-K filings for our universe, and the
+  //     single GDELT query for the cycle.
+  const [filings, gdelt] = await Promise.all([edgarFilings(), gdeltArticles()]);
+  const scoredFilings = filings.map((r) => classifyArticle(r)).filter(Boolean) as ScoredArticle[];
+  const scoredGdelt = gdelt.map((r) => classifyArticle(r)).filter(Boolean) as ScoredArticle[];
+
+  // 2. Worldwide coverage: one publication feed per region, plus official
+  //    central-bank releases. Each feed is a different host, so they run in
+  //    parallel, and a feed that fails keeps its own last good batch.
   const feedBatches = await Promise.all(
-    FEEDS.map(async ({ region, url }) => {
-      const raw = await fetchFeed(region, url);
+    FEEDS.map(async ({ region, url, source }) => {
+      const raw = await fetchFeed(region, url, source);
       const scored = raw.map((r) => classifyArticle(r)).filter(Boolean) as ScoredArticle[];
       if (scored.length > 0) {
         cache.regions.set(url, { articles: scored, at: Date.now() });
@@ -821,13 +1065,14 @@ async function buildPool(): Promise<{ articles: ScoredArticle[]; generatedAt: nu
 
   // 3. Score Finnhub's batch, then merge everything.
   const scoredFinnhub = finnhubRaw.map((r) => classifyArticle(r)).filter(Boolean) as ScoredArticle[];
-  const all = [...scoredFinnhub, ...regions.flat()];
+  const all = [...scoredFinnhub, ...scoredFilings, ...scoredGdelt, ...regions.flat()];
 
   const deduped = dedupeEvents(all);
   deduped.sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
 
   console.log(`[news] pool built: ${deduped.length} relevant articles `
-    + `(finnhub ${scoredFinnhub.length}, gdelt ${regions.flat().length}); `
+    + `(finnhub ${scoredFinnhub.length}, sec ${scoredFilings.length}, `
+    + `gdelt ${scoredGdelt.length}, feeds ${regions.flat().length}); `
     + `regions ${regions.map((r) => r.length).join('/')}`);
 
   return { articles: deduped, generatedAt: Date.now() };

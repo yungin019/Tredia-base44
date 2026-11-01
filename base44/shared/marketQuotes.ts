@@ -5,8 +5,8 @@
  *  - one provider call per symbol per 60s quote window (cached, and single-flight:
  *    concurrent callers await the same in-flight request instead of re-fetching)
  *  - chart series cached for 60s (intraday) / 1h (daily and above)
- *  - stocks: Finnhub first, TwelveData as fallback; crypto: TwelveData first,
- *    Finnhub as fallback
+ *  - stocks: Finnhub first, TwelveData as fallback; crypto: CoinGecko first
+ *    (free Demo key), TwelveData as fallback
  *  - last known real quote/series is served (flagged stale) before ever
  *    reporting "unavailable"
  *  - a provider that answers 429 / "credits" is parked for 60s so a rate limit
@@ -24,6 +24,24 @@ const CRYPTO = new Set([
   'BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'MATIC', 'AVAX',
   'LINK', 'UNI', 'DOT', 'ATOM', 'LTC', 'BCH',
 ]);
+
+// CoinGecko addresses coins by id, not ticker.
+const COINGECKO_IDS: Record<string, string> = {
+  BTC: 'bitcoin',
+  ETH: 'ethereum',
+  SOL: 'solana',
+  XRP: 'ripple',
+  ADA: 'cardano',
+  DOGE: 'dogecoin',
+  MATIC: 'matic-network',
+  AVAX: 'avalanche-2',
+  LINK: 'chainlink',
+  UNI: 'uniswap',
+  DOT: 'polkadot',
+  ATOM: 'cosmos',
+  LTC: 'litecoin',
+  BCH: 'bitcoin-cash',
+};
 
 // Finnhub quotes crypto as exchange pairs.
 const FINNHUB_PAIRS: Record<string, string> = {
@@ -112,6 +130,41 @@ async function finnhubQuote(symbol: string, key: string) {
   );
 }
 
+/** Crypto: CoinGecko's simple/price endpoint, authenticated with the Demo key. */
+async function coinGeckoQuote(symbol: string) {
+  const id = COINGECKO_IDS[symbol];
+  if (!id) throw new Error(`coingecko has no id for ${symbol}`);
+  if (parked('coingecko')) throw new Error('coingecko parked after a rate limit');
+
+  const key = Deno.env.get('COINGECKO_API_KEY') || '';
+  const headers: Record<string, string> = { accept: 'application/json' };
+  if (key) headers['x-cg-demo-api-key'] = key;
+
+  const res = await fetch(
+    `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`,
+    { headers, signal: AbortSignal.timeout(7000) },
+  );
+  if (res.status === 429) {
+    park('coingecko', 'HTTP 429');
+    throw new Error('coingecko HTTP 429');
+  }
+  if (!res.ok) throw new Error(`coingecko HTTP ${res.status}`);
+
+  const d = await res.json().catch(() => ({}));
+  const price = Number(d?.[id]?.usd);
+  if (!(price > 0)) throw new Error('coingecko returned no price');
+  const changePct = Number(d?.[id]?.usd_24h_change);
+  return quoteShape(
+    {
+      price,
+      prevClose: Number.isFinite(changePct) ? price / (1 + changePct / 100) : null,
+      changePct,
+      source: 'coingecko',
+    },
+    symbol,
+  );
+}
+
 async function twelveQuote(symbol: string) {
   const key = Deno.env.get('TWELVEDATA_API_KEY') || '';
   if (!key) throw new Error('TWELVEDATA_API_KEY not set');
@@ -158,8 +211,8 @@ export async function getQuote(rawSymbol: string) {
   if (pending) return pending;
 
   const finnhubKey = Deno.env.get('FINNHUB_API_KEY') || '';
-  const providers = isCryptoSymbol(symbol) && FINNHUB_PAIRS[symbol]
-    ? ['twelvedata', 'finnhub']
+  const providers = isCryptoSymbol(symbol) && COINGECKO_IDS[symbol]
+    ? ['coingecko', 'twelvedata']
     : ['finnhub', 'twelvedata'];
 
   const task = (async () => {
@@ -168,7 +221,9 @@ export async function getQuote(rawSymbol: string) {
       try {
         const quote = provider === 'finnhub'
           ? await finnhubQuote(symbol, finnhubKey)
-          : await twelveQuote(symbol);
+          : provider === 'coingecko'
+            ? await coinGeckoQuote(symbol)
+            : await twelveQuote(symbol);
         cache.quotes.set(symbol, quote);
         logDiag({ type: 'provider_ok', source: provider, ok: true, durationMs: Date.now() - startedAt });
         return quote;

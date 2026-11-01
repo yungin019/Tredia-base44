@@ -108,7 +108,7 @@ function NewsDetailModal({ article, onClose }) {
   );
 }
 
-function NewsCard({ article, onClick }) {
+function NewsCard({ article, onClick, pinned }) {
   const s = SENTIMENT_STYLE[article.sentiment] || SENTIMENT_STYLE.NEUTRAL;
   const img = article.image || FALLBACK_IMAGES[article.assetType] || FALLBACK_IMAGES.General;
   const affects = affectsLine(article);
@@ -118,7 +118,7 @@ function NewsCard({ article, onClick }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={onClick}
-      className="w-full text-left rounded-2xl overflow-hidden border border-white/[0.06] hover:border-white/[0.12] transition-all tap-feedback"
+      className={`w-full text-left rounded-2xl overflow-hidden border transition-all tap-feedback ${pinned ? 'sm:col-span-2 border-gold/25' : 'border-white/[0.06] hover:border-white/[0.12]'}`}
       style={{ background: '#0E1119' }}
     >
       <div className="relative h-36 overflow-hidden">
@@ -126,6 +126,11 @@ function NewsCard({ article, onClick }) {
           onError={e => { e.target.src = FALLBACK_IMAGES.General; }} />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0E1119] via-[#0E1119]/40 to-transparent" />
         <div className="absolute top-2 left-2 flex gap-1.5">
+          {pinned && (
+            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-gold/20 backdrop-blur-md text-gold">
+              TOP STORY
+            </span>
+          )}
           <span className="text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-md" style={{ color: s.color, background: `${s.bg}`, border: `1px solid ${s.border}` }}>
             {article.sentiment}
           </span>
@@ -145,7 +150,9 @@ function NewsCard({ article, onClick }) {
         {affects && <p className="text-[9px] font-semibold text-white/40">{affects}</p>}
         {article.why && <p className="text-[9px] text-white/30 leading-snug line-clamp-2">{article.why}</p>}
         <div className="flex items-center justify-between">
-          <span className="text-[9px] text-white/25 font-mono">{article.source}</span>
+          <span className="text-[9px] text-white/25 font-mono">
+            {article.source}{article.via ? ` · via ${article.via}` : ''}
+          </span>
           <span className="text-[9px] text-white/25 font-mono">{article.age}</span>
         </div>
         {article.tickers?.length > 0 && (
@@ -223,7 +230,7 @@ export default function MarketNewsSection() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {ordered.map((a, i) => (
-            <NewsCard key={a.id || i} article={a} onClick={() => setSelected(a)} />
+            <NewsCard key={a.id || i} article={a} onClick={() => setSelected(a)} pinned={a.isTopStory} />
           ))}
         </div>
       )}

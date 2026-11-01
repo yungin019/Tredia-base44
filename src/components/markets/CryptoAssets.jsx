@@ -57,6 +57,16 @@ export default function CryptoAssets({ cryptoData }) {
           </tbody>
         </table>
       </div>
+      <div className="px-5 py-3 border-t border-white/[0.05] text-right">
+        <a
+          href="https://www.coingecko.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[10px] text-white/25 hover:text-white/45 transition-colors"
+        >
+          Crypto data by CoinGecko
+        </a>
+      </div>
     </motion.div>
   );
 }

@@ -84,9 +84,32 @@ Deno.serve(async (req) => {
 
     // A symbol feed is inherently one subject, so it is not re-balanced.
     const selected = symbol ? articles.slice(0, limit) : balanceFeed(articles, limit);
-    const payload = selected.map((a) => ({
+
+    // Rank by impact inside the last 12 hours, then purely by time: a rate
+    // decision from this morning outranks an old wrap-up, and a nine-day-old
+    // feature never sits above this afternoon's inflation print.
+    const RECENT_MS = 12 * 60 * 60 * 1000;
+    const timeOf = (a: { publishedAt?: string | null }) => (a.publishedAt ? new Date(a.publishedAt).getTime() : 0);
+    const ageMs = (a: { publishedAt?: string | null }) => (a.publishedAt ? Date.now() - timeOf(a) : Infinity);
+    const recent = selected
+      .filter((a) => ageMs(a) <= RECENT_MS)
+      .sort((a, b) => (b.importance || 0) - (a.importance || 0) || timeOf(b) - timeOf(a));
+    const older = selected
+      .filter((a) => ageMs(a) > RECENT_MS)
+      .sort((a, b) => timeOf(b) - timeOf(a));
+
+    // Exactly one "Top story": the most important article of the last 12 hours.
+    const topStory = recent[0] && (recent[0].importance || 0) >= 55 ? recent[0] : null;
+    const ordered = [
+      ...(topStory ? [topStory] : []),
+      ...recent.filter((a) => a !== topStory),
+      ...older,
+    ];
+
+    const payload = ordered.map((a) => ({
       ...a,
       age: ageOf(a.publishedAt),
+      isTopStory: a === topStory,
     }));
 
     const countBy = (key: keyof typeof payload[number]) => {
