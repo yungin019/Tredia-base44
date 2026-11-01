@@ -33,8 +33,10 @@ const lc = (value: unknown) => String(value || '').toLowerCase();
 
 function plainText(html: string): string {
   return String(html || '')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/-->/g, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
     .replace(/&nbsp;/g, ' ')
@@ -88,9 +90,16 @@ function fedDecision(text: string): OfficialRewrite | null {
   if (bounds.length === 0) return null;
   const action = actionOf(sentence);
   const rate = bounds.length >= 2 ? `${pct(bounds[0])}-${pct(bounds[1])}` : pct(bounds[0]);
+  // The statement's own decision clause, without any trailing justification or
+  // the navigation text the page carries above it.
+  const summary = sentence
+    .replace(/^[\s\S]*?(The (Committee|Federal Open Market Committee))/, '$1')
+    .replace(/\s*in support of[\s\S]*$/i, '')
+    .replace(/[\s,]+$/, '')
+    .trim();
   return {
     title: `Fed ${action} rates ${action === 'holds' ? 'at' : 'to'} ${rate}`,
-    summary: `${sentence.replace(/\s*in support of[\s\S]*$/i, '').trim()}.`,
+    summary,
   };
 }
 

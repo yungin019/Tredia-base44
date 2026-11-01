@@ -234,7 +234,14 @@ const PENALTIES: { weight: number; terms: string[] }[] = [
     terms: [
       'penny stocks', 'do you own', 'slideshow', 'multibagger', 'stocks to buy',
       'stocks to watch', 'should you buy', 'is it time to buy', 'buy or sell',
+      'price prediction', 'price predictions', 'weekly wrap', 'recap:',
     ],
+  },
+  {
+    // Crime reporting that happens to involve crypto: a sentencing is not a
+    // market event, however many times the headline says "crypto".
+    weight: -45,
+    terms: ['armed robbery', 'kidnapping', 'sentenced to', 'prison for', 'arrested for'],
   },
   {
     weight: -20,
