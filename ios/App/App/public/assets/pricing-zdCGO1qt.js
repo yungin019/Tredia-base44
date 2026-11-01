@@ -1,0 +1,1 @@
+const o={pro:{monthly:9.99,annual:79.99},elite:{monthly:17.99,annual:149.99},og100:{monthly:8.99}},s=7;function a(t){const n=o[t];return!(n!=null&&n.monthly)||!(n!=null&&n.annual)?0:Math.round((1-n.annual/(n.monthly*12))*100)}const l=Math.max(a("pro"),a("elite")),r={signalsPerDay:5,chatsPerDay:3},c=30;export{r as F,l as M,c as P,s as T,o as a};

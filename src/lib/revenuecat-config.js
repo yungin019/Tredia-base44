@@ -1,44 +1,36 @@
 /**
- * TREDIO RevenueCat Configuration
+ * TREDIO RevenueCat configuration — iOS App Store products.
  *
- * Matches exactly with RevenueCat Dashboard:
- * - Elite Monthly → identifier: elite_monthly → product: tredio_elite_monthly
- * - Monthly (Pro) → identifier: $rc_monthly → product: tredio_pro_monthly
- * - Yearly → identifier: $rc_annual → product: yearly
- * - Lifetime → identifier: $rc_lifetime → product: lifetime
+ * Exactly two entitlements exist in the RevenueCat dashboard, and only these
+ * two are ever looked up:
+ *
+ *   pro   ← tredio_pro_monthly, tredio_pro_annual
+ *   elite ← tredio_elite_monthly, tredio_elite_annual, tredio_og100_monthly
+ *
+ * OG100 is the founding-member product: it grants the elite entitlement and is
+ * reported as its own tier ('og100') so the app can show the founder badge.
+ *
+ * The SDK key (public, starts with "appl_") is compiled into the app. Set it as
+ * VITE_REVENUECAT_IOS_KEY — see NATIVE_SETUP.md.
  */
 
-// iOS RevenueCat public SDK key — set as VITE_REVENUECAT_IOS_KEY in env
-const resolveApiKey = () => {
-  const ios = import.meta.env?.VITE_REVENUECAT_IOS_KEY;
-  const fallback = import.meta.env?.VITE_REVENUECAT_API_KEY;
-  const key = ios || fallback || '';
-  if (!key) {
-    console.warn('[RevenueCat] WARNING: No API key found. Set VITE_REVENUECAT_IOS_KEY in environment variables.');
-  } else {
-    console.log('[RC] using key:', key.substring(0, 10) + '...');
-  }
-  return key;
-};
+const resolveApiKey = () => import.meta.env?.VITE_REVENUECAT_IOS_KEY || '';
 
 export const REVENUECAT_CONFIG = {
   apiKey: resolveApiKey(),
   entitlements: {
-    elite: 'elite_monthly',
-    pro: '$rc_monthly',
-    yearly: '$rc_annual',
-    lifetime: '$rc_lifetime'
+    pro: 'pro',
+    elite: 'elite',
   },
   productIds: {
     elite_monthly: 'tredio_elite_monthly',
     elite_annual: 'tredio_elite_annual',
     pro_monthly: 'tredio_pro_monthly',
     pro_annual: 'tredio_pro_annual',
-    // OG100 = Elite benefits at $8.99/mo for life, attached to the elite entitlement
+    // OG100 = elite benefits at $8.99/mo for life, attached to the elite entitlement
     og100_monthly: 'tredio_og100_monthly',
-    yearly: 'yearly',
-    lifetime: 'lifetime'
   },
+  og100ProductId: 'tredio_og100_monthly',
   observerMode: false,
   usesStoreKit2: true,
   logLevel: import.meta.env?.PROD ? 'info' : 'debug',
@@ -53,9 +45,16 @@ export function getProductId(tier, billingCycle = 'monthly') {
   return REVENUECAT_CONFIG.productIds[key] || REVENUECAT_CONFIG.productIds[tier] || null;
 }
 
-export function getTierFromEntitlement(entitlementKey) {
-  for (const [tier, entId] of Object.entries(REVENUECAT_CONFIG.entitlements)) {
-    if (entId === entitlementKey) return tier;
+/**
+ * The tier a customer is on, from RevenueCat's own answer: active entitlements
+ * decide pro/elite, and the OG100 product upgrades elite to 'og100'.
+ */
+export function resolveTier(activeEntitlements = [], activeSubscriptions = []) {
+  const ents = activeEntitlements || [];
+  const products = activeSubscriptions || [];
+  if (ents.includes(REVENUECAT_CONFIG.entitlements.elite)) {
+    return products.includes(REVENUECAT_CONFIG.og100ProductId) ? 'og100' : 'elite';
   }
+  if (ents.includes(REVENUECAT_CONFIG.entitlements.pro)) return 'pro';
   return 'free';
 }

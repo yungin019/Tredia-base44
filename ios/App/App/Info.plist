@@ -12,6 +12,20 @@
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.tredio.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- Google Sign-In callback scheme. Replace REVERSED_CLIENT_ID with
+				     the REVERSED_CLIENT_ID value from GoogleService-Info.plist
+				     (Firebase console → Project settings → your iOS app → plist). -->
+				<string>REVERSED_CLIENT_ID</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

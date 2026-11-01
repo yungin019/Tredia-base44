@@ -263,6 +263,37 @@ export default async function (req) {
       return Response.json({ ok: true });
     }
 
+    // ── Subscription tier (RevenueCat, verified server-side) ────────────
+    // The client never says which tier it has. The verified uid is used as the
+    // RevenueCat app user id, the subscriber's entitlements are read with the
+    // secret key, and only that answer is written to the profile.
+    if (action === 'subscription.sync') {
+      const rcKey = Deno.env.get('REVENUECAT_API_KEY') || '';
+      if (!rcKey) {
+        console.warn('[userData] REVENUECAT_API_KEY missing — tier not synced');
+        return Response.json({ tier: null, verified: false, error: 'REVENUECAT_KEY_MISSING' }, { status: 503 });
+      }
+      const res = await fetch(`https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(uid)}`, {
+        headers: { Authorization: `Bearer ${rcKey}`, Accept: 'application/json' },
+      });
+      if (!res.ok) {
+        // 404 = this uid has no RevenueCat customer yet (nothing bought).
+        if (res.status !== 404) console.warn('[userData] RevenueCat lookup failed:', res.status);
+        return Response.json({ tier: null, verified: false, error: `REVENUECAT_${res.status}` });
+      }
+      const data = await res.json().catch(() => null);
+      const subscriber = data?.subscriber || {};
+      const entitlements = subscriber.entitlements || {};
+      const products = Object.keys(subscriber.subscriptions || {});
+      let tier = 'free';
+      if (entitlements.elite) tier = products.includes('tredio_og100_monthly') ? 'og100' : 'elite';
+      else if (entitlements.pro) tier = 'pro';
+
+      const row = await ensureProfile();
+      await db.UserProfile.updateMany({ user_id: uid }, { $set: { subscription_tier: tier } });
+      return Response.json({ tier, verified: true, profile_id: row.id });
+    }
+
     // ── User-scoped collections ─────────────────────────────────────────
     if (!COLLECTIONS[collectionName]) return Response.json({ error: 'UNKNOWN_COLLECTION' }, { status: 400 });
     const { entity, fields } = COLLECTIONS[collectionName];

@@ -1,0 +1,36 @@
+{
+	"appId": "com.tredio.app",
+	"appName": "Tredio",
+	"webDir": "dist",
+	"plugins": {
+		"FirebaseAuthentication": {
+			"skipNativeAuth": false,
+			"providers": [
+				"google.com",
+				"apple.com"
+			]
+		}
+	},
+	"experimental": {
+		"ios": {
+			"spm": {
+				"packageOptions": {
+					"@capacitor-firebase/authentication": {
+						"symlink": true
+					}
+				},
+				"swiftToolsVersion": "6.1",
+				"packageTraits": {
+					"@capacitor-firebase/authentication": [
+						"Google"
+					]
+				}
+			}
+		}
+	},
+	"packageClassList": [
+		"FirebaseAuthenticationPlugin",
+		"CAPBrowserPlugin",
+		"PurchasesPlugin"
+	]
+}

@@ -4,11 +4,16 @@
  * Uses @revenuecat/purchases-capacitor on iOS/Android only.
  * The import is hidden from Vite's static analyzer via new Function()
  * so the web build never tries to resolve the native-only package.
+ *
+ * The RevenueCat app user id is the Firebase uid, so the backend can read this
+ * customer's entitlements with its secret key and store the verified tier.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { REVENUECAT_CONFIG } from '@/lib/revenuecat-config';
+import { REVENUECAT_CONFIG, resolveTier } from '@/lib/revenuecat-config';
 import { reportPurchaseFailure } from '@/lib/errorReporter';
+import { syncSubscriptionTier } from '@/api/subscriptionSync';
+import { auth } from '@/lib/firebase';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
 
@@ -18,6 +23,17 @@ async function getRCModule() {
   // new Function hides this from Vite's static import resolver
   _rcModule = await new Function('return import("@revenuecat/purchases-capacitor")')();
   return _rcModule;
+}
+
+// The signed-in Firebase user identifies the RevenueCat customer.
+async function identify(Purchases) {
+  const uid = auth?.currentUser?.uid;
+  if (!uid) return;
+  try {
+    await Purchases.logIn({ appUserID: uid });
+  } catch (error) {
+    console.warn('[RC] logIn failed:', error?.message || JSON.stringify(error));
+  }
 }
 
 export function useRevenueCat() {
@@ -32,6 +48,13 @@ export function useRevenueCat() {
     const entitlements = Object.keys(info.entitlements?.active || {});
     setCustomerInfo(info);
     setActiveEntitlements(entitlements);
+    // Launch, purchase and restore all land here: the tier is written to the
+    // profile server-side, where it is read back from RevenueCat.
+    if (IS_NATIVE) {
+      syncSubscriptionTier().catch((error) => {
+        console.warn('[RC] tier sync skipped:', error?.message || error);
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -59,6 +82,7 @@ export function useRevenueCat() {
           setIsInitialized(false);
           return;
         }
+        await identify(Purchases);
         const { customerInfo: info } = await Purchases.getCustomerInfo();
         updateFromCustomerInfo(info);
         setIsInitialized(true);
@@ -82,6 +106,7 @@ export function useRevenueCat() {
 
     try {
       const { Purchases } = await getRCModule();
+      await identify(Purchases);
       const { offerings } = await Purchases.getOfferings();
       const allPackages = offerings?.current?.availablePackages || [];
       const pkg = allPackages.find(p => p.product?.identifier === productId);
@@ -114,6 +139,7 @@ export function useRevenueCat() {
     setPurchaseError(null);
     try {
       const { Purchases } = await getRCModule();
+      await identify(Purchases);
       const { customerInfo: info } = await Purchases.restorePurchases();
       updateFromCustomerInfo(info);
       return true;
@@ -132,12 +158,8 @@ export function useRevenueCat() {
   }, [activeEntitlements]);
 
   const getCurrentTier = useCallback(() => {
-    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.lifetime)) return 'lifetime';
-    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.yearly)) return 'yearly';
-    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.elite)) return 'elite';
-    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.pro)) return 'pro';
-    return 'free';
-  }, [checkEntitlement]);
+    return resolveTier(activeEntitlements, customerInfo?.activeSubscriptions || []);
+  }, [activeEntitlements, customerInfo]);
 
   const getActiveSubscriptions = useCallback(() => {
     return customerInfo?.activeSubscriptions || [];

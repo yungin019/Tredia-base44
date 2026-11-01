@@ -1,19 +1,16 @@
 /**
  * useSubscriptionStatus Hook
- * 
+ *
  * SINGLE SOURCE OF TRUTH: RevenueCat ONLY
  * No localStorage fallback. No local tier persistence.
- * 
- * Entitlement identifiers from RevenueCat Dashboard:
- * - elite: 'elite_monthly'
- * - pro: '$rc_monthly'
- * - yearly: '$rc_annual'
- * - lifetime: '$rc_lifetime'
- * 
- * If RevenueCat unavailable or user has no entitlements:
- * - Default to FREE tier
- * - NO premium features unlocked
- * - All gating enforced strictly
+ *
+ * Two RevenueCat entitlements exist:
+ * - 'elite' → tredio_elite_monthly, tredio_elite_annual, tredio_og100_monthly
+ * - 'pro'   → tredio_pro_monthly, tredio_pro_annual
+ *
+ * Tiers: free | pro | elite | og100 (OG100 is elite granted by the founding
+ * member product). If RevenueCat is unavailable or has no entitlements, the
+ * tier is FREE and no premium feature is unlocked.
  */
 
 import { useRevenueCat } from './useRevenueCat';
@@ -36,10 +33,9 @@ export function useSubscriptionStatus() {
   const tier = useMemo(() => {
     if (hasActiveSubscription()) {
       const rcTier = getRevenueCatTier();
-      if (rcTier === 'elite') return 'elite';
-      if (rcTier === 'pro') return 'pro';
+      if (rcTier && rcTier !== 'free') return rcTier;
     }
-    // Fallback: use DB tier (set by admin or claim)
+    // Fallback: use DB tier (written by the server-side subscription sync)
     if (dbTier && dbTier !== 'free') return dbTier;
     return 'free';
   }, [hasActiveSubscription, getRevenueCatTier, dbTier]);
@@ -51,11 +47,7 @@ export function useSubscriptionStatus() {
   const hasAccess = (feature) => {
     if (!hasActiveSubscription()) return false; // No subscription = no premium features
 
-    // Lifetime and yearly have all features
-    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.lifetime)) return true;
-    if (checkEntitlement(REVENUECAT_CONFIG.entitlements.yearly)) return true;
-    
-    // Elite has all features
+    // Elite (including OG100) has all features
     if (checkEntitlement(REVENUECAT_CONFIG.entitlements.elite)) return true;
 
     // Pro has most features but not super_ai
@@ -68,24 +60,13 @@ export function useSubscriptionStatus() {
     return false;
   };
 
-  /**
-   * Check if currently in free tier
-   */
-  const isFree = tier === 'free';
-
-  /**
-   * Check if currently subscribed (pro, elite, yearly, or lifetime)
-   */
-  const isSubscribed = tier !== 'free';
-
   return {
     tier,
-    isFree,
-    isSubscribed,
+    isFree: tier === 'free',
+    isSubscribed: tier !== 'free',
     isPro: tier === 'pro',
-    isElite: tier === 'elite',
-    isYearly: tier === 'yearly',
-    isLifetime: tier === 'lifetime',
+    isElite: tier === 'elite' || tier === 'og100',
+    isOg100: tier === 'og100',
     hasAccess,
     hasActiveSubscription,
     checkEntitlement, // Direct RevenueCat check
