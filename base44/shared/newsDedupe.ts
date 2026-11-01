@@ -28,7 +28,7 @@ const LEXICON: Record<string, string> = {
   rapport: 'results', rapporten: 'results', kvartal: 'quarter', kvartalet: 'quarter',
   aktier: 'stocks', aktie: 'stock', olja: 'oil', oljepris: 'oil price', guld: 'gold', gas: 'gas',
   elpris: 'power price', elpriserna: 'power price', miljard: 'billion', miljarder: 'billion',
-  miljon: 'million', miljoner: 'million', återbetalat: 'repaid',
+  miljon: 'million', miljoner: 'million', återbetalat: 'replenished', procent: 'percent',
   nordkorea: 'north korea', ryssland: 'russia', ryska: 'russia', ryskt: 'russia',
   kina: 'china', kinesiska: 'china', tyskland: 'germany', tyska: 'germany',
   sverige: 'sweden', svenska: 'sweden', norge: 'norway', danmark: 'denmark',
@@ -49,6 +49,11 @@ const STOP_TOKENS = new Set([
   'the', 'a', 'an', 'and', 'or', 'for', 'to', 'of', 'in', 'on', 'at', 'as', 'is', 'are',
   'was', 'were', 'be', 'been', 'with', 'from', 'by', 'after', 'over', 'into', 'its', 'it',
   'this', 'that', 'than', 'says', 'said', 'amid', 'about', 'up', 'down', 'new', 'will',
+  // Swedish/Danish/Norwegian function words — carry no event meaning, and would
+  // otherwise pad both sides of a cross-language comparison.
+  'efter', 'inför', 'enligt', 'under', 'sedan', 'även', 'från', 'med', 'för', 'som', 'om',
+  'att', 'på', 'av', 'till', 'vid', 'över', 'mot', 'utan', 'har', 'kan', 'ska', 'inte',
+  'mer', 'mest', 'efter', 'bland', 'mot', 'eller', 'men', 'när', 'hur', 'vad',
 ]);
 
 const MERGE_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -79,7 +84,11 @@ function numbersIn(title: string): Set<string> {
   const out = new Set<string>();
   for (const match of lc(title).match(/\d[\d.,]*/g) || []) {
     const digits = match.replace(/[^\d]/g, '');
-    if (digits.length >= 2) out.add(digits);
+    if (digits.length < 2) continue;
+    // A calendar year identifies nothing — two unrelated stories can both
+    // mention 2026 and must not be merged on it.
+    if (digits.length === 4 && Number(digits) >= 1990 && Number(digits) <= 2035) continue;
+    out.add(digits);
   }
   return out;
 }
@@ -104,7 +113,11 @@ function sameEvent<T extends MergeableArticle>(a: EventShape<T>, b: EventShape<T
   if (similarity >= 0.55) return true;
   if (Math.abs(a.time - b.time) > MERGE_WINDOW_MS) return false;
   if (a.article.affectSymbols.some((s) => b.article.affectSymbols.includes(s)) && similarity >= 0.2) return true;
-  if ([...a.numbers].some((n) => b.numbers.has(n)) && similarity >= 0.2) return true;
+  // A shared distinctive figure ("90%", "$30,106 crore") is the strongest signal
+  // two reports are the same event — the amount is what the story is about — so
+  // it needs only a little shared wording to confirm it, which is what a
+  // cross-language pair can offer once the lexicon has done its work.
+  if ([...a.numbers].some((n) => b.numbers.has(n)) && similarity >= 0.1) return true;
   if (sharedEntities(a.tokens, b.tokens) >= 1 && similarity >= 0.3) return true;
   return false;
 }

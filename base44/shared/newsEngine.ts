@@ -1000,7 +1000,7 @@ async function fetchFeed(region: NewsRegion, url: string, sourceOverride?: strin
     const xml = await res.text();
     const publisher = publisherFromUrl(url);
     logDiag({ type: 'news_ok', source: publisher, ok: true, durationMs: Date.now() - startedAt });
-    const rows = parseRss(xml).slice(0, 18).map((r) => ({
+    const rows = parseRss(xml).slice(0, 18).filter((r) => !/\(with q&a\)|with q&a|speech|remarks|welcome address|interview|opening remarks/i.test(r.title)).map((r) => ({
       title: r.title,
       summary: r.summary,
       url: r.url,
@@ -1263,7 +1263,13 @@ export async function getSymbolNews(symbol: string): Promise<ScoredArticle[]> {
     }
 
     const pool = await getNewsPool();
-    const related = pool.articles.filter((a) => a.affectSymbols.includes(sym));
+    // A coin's related news comes from the same tagged pool: the stories that
+    // name it, plus crypto-market stories that name no coin at all (an exchange
+    // hack, a market-wide move). Those are shared by every coin — without them a
+    // major asset's section sits empty while the feed clearly shows crypto news.
+    const isCrypto = CRYPTO_SYMBOLS.has(sym);
+    const related = pool.articles.filter((a) => a.affectSymbols.includes(sym)
+      || (isCrypto && a.category === 'Crypto' && a.tickers.length === 0));
     const scoredCompany = companyRaw.map((r) => classifyArticle(r)).filter(Boolean) as ScoredArticle[];
 
     // Company news for this symbol always belongs here, even when it scored low.

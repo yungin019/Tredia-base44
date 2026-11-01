@@ -113,8 +113,11 @@ Deno.serve(async (req) => {
     // it is a decision from two days ago — an official rate decision outranks
     // this morning's preview of the same week's data. It is pulled into the feed
     // if recency-based balancing had left it out.
+    // A top story must be current: the pinned slot is a 48-hour claim, so an
+    // older decision (however important) drops back into the normal feed.
+    const TOP_STORY_MAX_MS = 48 * 60 * 60 * 1000;
     const topStory = articles
-      .filter((a) => a.publishedAt && (a.importance || 0) >= 45)
+      .filter((a) => a.publishedAt && (a.importance || 0) >= 45 && ageMs(a) <= TOP_STORY_MAX_MS)
       .sort((a, b) => (b.importance || 0) - (a.importance || 0) || timeOf(b) - timeOf(a))[0] || null;
 
     const feed = topStory && !selected.some((a) => a.id === topStory.id)

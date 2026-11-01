@@ -127,8 +127,8 @@ function NewsCard({ article, onClick, pinned }) {
         <div className="absolute inset-0 bg-gradient-to-t from-[#0E1119] via-[#0E1119]/40 to-transparent" />
         <div className="absolute top-2 left-2 flex gap-1.5">
           {pinned && (
-            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-gold/20 backdrop-blur-md text-gold">
-              TOP STORY
+            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-gold text-black">
+              Top story
             </span>
           )}
           <span className="text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-md" style={{ color: s.color, background: `${s.bg}`, border: `1px solid ${s.border}` }}>

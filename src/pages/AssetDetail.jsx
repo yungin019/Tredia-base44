@@ -264,6 +264,10 @@ export default function AssetDetail() {
         setQuote({
           price,
           prevClose,
+          // Carry the provider through: crypto is priced by CoinGecko and must
+          // report its own freshness, not the equity feed's 15-minute delay.
+          source: q?.source,
+          fetchedAt: Date.now(),
           high: Number(q?.high) > 0 ? Number(q.high) : null,
           low: Number(q?.low) > 0 ? Number(q.low) : null,
           changePct: prevClose

@@ -11,6 +11,7 @@ import GlobalAssetSearch from '@/components/ui/GlobalAssetSearch';
 import { useNavigation } from '@/lib/NavigationManager';
 import AlpacaConnectBanner from '@/components/broker/AlpacaConnectBanner';
 import { PRICE_DATA_BADGE } from '@/lib/dataFreshness';
+import { getAssetClass } from '@/lib/assetUniverse';
 import ReportBugButton from '@/components/admin/ReportBugButton';
 import { useFirebaseAuth } from '@/lib/FirebaseAuthContext';
 import { isAdminUser } from '@/lib/adminAccess';
@@ -34,6 +35,13 @@ export default function AppShell({ onLogout }) {
   const { switchTab, goBack, canGoBack, getTabForPath, getTabForHighlight, syncExternalNavigation } = useNavigation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+
+  // A crypto asset page is priced by CoinGecko and refreshed every minute, so
+  // the header must not claim the 15-minute equity delay there.
+  const assetSymbol = location.pathname.startsWith('/Asset/')
+    ? decodeURIComponent(location.pathname.split('/')[2] || '')
+    : '';
+  const cryptoAssetPage = assetSymbol ? getAssetClass(assetSymbol) === 'crypto' : false;
 
   const prevPath = React.useRef(location.pathname);
   const [slideDir, setSlideDir] = useState(1);
@@ -155,8 +163,10 @@ export default function AppShell({ onLogout }) {
 
           {/* Data freshness — the feed is delayed, never call it live */}
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08]">
-            <Clock className="h-3 w-3 text-white/40" />
-            <span className="text-[10px] font-mono font-semibold text-white/45 tracking-wider">{PRICE_DATA_BADGE}</span>
+            <Clock className={`h-3 w-3 ${cryptoAssetPage ? 'text-primary/70' : 'text-white/40'}`} />
+            <span className={`text-[10px] font-mono font-semibold tracking-wider ${cryptoAssetPage ? 'text-primary/80' : 'text-white/45'}`}>
+              {cryptoAssetPage ? 'UPDATED ~1 MIN · COINGECKO' : PRICE_DATA_BADGE}
+            </span>
           </div>
 
           {/* Notifications */}
